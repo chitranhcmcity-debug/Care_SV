@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+db_data/
+dist/
+build/
+.angular/
+coverage/
+*.log
+*_log.txt
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
