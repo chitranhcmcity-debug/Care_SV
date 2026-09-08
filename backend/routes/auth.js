@@ -1,3 +1,5 @@
+const { assert } = require('../utils/validation');
+const { getJwtSecret } = require('../config/env');
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
@@ -8,10 +10,10 @@ const User = require('../models/User');
 const { verifyToken, requireAdmin, requireStaffOrAdmin } = require('../middleware/auth');
 
 // POST /api/auth/login
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
       return res.status(400).json({ message: 'Vui lòng nhập email và mật khẩu' });
     }
 
@@ -30,9 +32,15 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, fullName: user.fullName, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'supersecretjwtkey_itc_care_2026',
-      { expiresIn: '7d' }
+      {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        tokenVersion: user.tokenVersion || 0,
+      },
+      getJwtSecret(),
+      { expiresIn: '7d' },
     );
 
     res.json({
@@ -46,26 +54,34 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Lỗi máy chủ nội bộ' });
+    next(error);
   }
 });
 
 // POST /api/auth/create-staff (Admin only)
-router.post('/create-staff', verifyToken, requireAdmin, async (req, res) => {
+router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { fullName, email, customPassword, role } = req.body;
-    if (!fullName || !email) {
+    if (
+      typeof fullName !== 'string' ||
+      typeof email !== 'string' ||
+      !fullName.trim() ||
+      !email.trim()
+    ) {
       return res.status(400).json({ message: 'Tên và email là bắt buộc' });
     }
 
+    assert(customPassword === undefined || typeof customPassword === 'string', 'Invalid password');
     const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing) {
       return res.status(400).json({ message: 'Email này đã tồn tại trong hệ thống' });
     }
 
     // Custom password or generate random 8-character hex password
-    const rawPassword = customPassword && customPassword.trim() ? customPassword.trim() : crypto.randomBytes(4).toString('hex');
+    const rawPassword =
+      customPassword && customPassword.trim()
+        ? customPassword.trim()
+        : crypto.randomBytes(12).toString('base64url');
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const assignedRole = role && ['staff', 'teacher'].includes(role) ? role : 'staff';
 
@@ -113,11 +129,9 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res) => {
         console.log(` [Nodemailer] Đã gửi email tài khoản tới ${email}`);
       } catch (mailErr) {
         console.warn(' [Nodemailer Fallback] Không thể gửi email qua SMTP:', mailErr.message);
-        console.log(` [CONSOLE CREDENTIALS] Email: ${email} | Password: ${rawPassword}`);
       }
     } else {
       console.log(' [Nodemailer Fallback - No SMTP] Mật khẩu tài khoản nhân sự mới:');
-      console.log(` [STAFF CREATED] Email: ${email} | Mật khẩu: ${rawPassword}`);
     }
 
     res.status(201).json({
@@ -132,25 +146,28 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res) => {
       generatedPassword: rawPassword,
     });
   } catch (error) {
-    console.error('Create staff error:', error);
-    res.status(500).json({ message: 'Lỗi khi tạo tài khoản nhân viên' });
+    next(error);
   }
 });
 
 // GET /api/auth/staff-list (Admin or Staff)
-router.get('/staff-list', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/staff-list', verifyToken, requireStaffOrAdmin, async (req, res, next) => {
   try {
-    const staffs = await User.find({ role: { $ne: 'admin' } }).select('-password').sort({ createdAt: -1 });
+    const staffs = await User.find({ role: { $ne: 'admin' } })
+      .select('-password')
+      .sort({ createdAt: -1 });
     res.json(staffs);
   } catch (error) {
-    res.status(500).json({ message: 'Không thể lấy danh sách nhân viên' });
+    next(error);
   }
 });
 
 // PUT /api/auth/staff/:id (Admin only - Update staff info & optional password/role)
-router.put('/staff/:id', verifyToken, requireAdmin, async (req, res) => {
+router.put('/staff/:id', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { fullName, email, password, role } = req.body;
+    for (const value of [fullName, email, password, role])
+      assert(value === undefined || typeof value === 'string', 'Invalid account details');
     const user = await User.findById(req.params.id);
     if (!user || user.role === 'admin') {
       return res.status(404).json({ message: 'Không tìm thấy tài khoản nhân viên' });
@@ -159,26 +176,29 @@ router.put('/staff/:id', verifyToken, requireAdmin, async (req, res) => {
     if (fullName) user.fullName = fullName.trim();
     if (role && ['staff', 'teacher'].includes(role)) user.role = role;
     if (email) {
-      const existing = await User.findOne({ email: email.toLowerCase().trim(), _id: { $ne: req.params.id } });
+      const existing = await User.findOne({
+        email: email.toLowerCase().trim(),
+        _id: { $ne: req.params.id },
+      });
       if (existing) {
         return res.status(400).json({ message: 'Email này đã thuộc về tài khoản khác' });
       }
       user.email = email.toLowerCase().trim();
     }
     if (password && password.trim()) {
+      user.tokenVersion = (user.tokenVersion || 0) + 1;
       user.password = await bcrypt.hash(password.trim(), 10);
     }
 
     await user.save();
     res.json({ message: 'Cập nhật thông tin nhân viên thành công!', staff: user });
   } catch (error) {
-    console.error('Update staff error:', error);
-    res.status(500).json({ message: 'Lỗi khi cập nhật thông tin nhân viên' });
+    next(error);
   }
 });
 
 // POST /api/auth/staff/:id/reset-password (Admin only - Reset Staff Password)
-router.post('/staff/:id/reset-password', verifyToken, requireAdmin, async (req, res) => {
+router.post('/staff/:id/reset-password', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { newPassword } = req.body;
     const user = await User.findById(req.params.id);
@@ -186,7 +206,12 @@ router.post('/staff/:id/reset-password', verifyToken, requireAdmin, async (req, 
       return res.status(404).json({ message: 'Không tìm thấy tài khoản nhân viên' });
     }
 
-    const rawPassword = newPassword && newPassword.trim() ? newPassword.trim() : crypto.randomBytes(4).toString('hex');
+    assert(newPassword === undefined || typeof newPassword === 'string', 'Invalid password');
+    const rawPassword =
+      newPassword && newPassword.trim()
+        ? newPassword.trim()
+        : crypto.randomBytes(12).toString('base64url');
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     user.password = await bcrypt.hash(rawPassword, 10);
     await user.save();
 
@@ -195,32 +220,35 @@ router.post('/staff/:id/reset-password', verifyToken, requireAdmin, async (req, 
       newPassword: rawPassword,
     });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ message: 'Lỗi khi đặt lại mật khẩu nhân viên' });
+    next(error);
   }
 });
 
 // PUT /api/auth/staff/:id/status (Admin only)
-router.put('/staff/:id/status', verifyToken, requireAdmin, async (req, res) => {
+router.put('/staff/:id/status', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { status } = req.body;
     if (!['active', 'inactive'].includes(status)) {
       return res.status(400).json({ message: 'Trạng thái không hợp lệ' });
     }
 
-    const updated = await User.findByIdAndUpdate(req.params.id, { status }, { new: true }).select('-password');
+    const updated = await User.findByIdAndUpdate(
+      req.params.id,
+      { status, $inc: { tokenVersion: 1 } },
+      { returnDocument: 'after', runValidators: true },
+    ).select('-password');
     if (!updated) {
       return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
     }
 
     res.json({ message: 'Cập nhật trạng thái thành công', staff: updated });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi khi cập nhật trạng thái nhân viên' });
+    next(error);
   }
 });
 
 // DELETE /api/auth/staff/:id (Admin only - Delete Staff Account)
-router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res) => {
+router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -233,13 +261,12 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: `Đã xóa vĩnh viễn tài khoản nhân viên ${user.fullName}!` });
   } catch (error) {
-    console.error('Delete staff error:', error);
-    res.status(500).json({ message: 'Lỗi khi xóa tài khoản nhân viên' });
+    next(error);
   }
 });
 
 // GET /api/auth/class-assignments (Admin/Staff: Get staff class & student assignments + all available classes & students)
-router.get('/class-assignments', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/class-assignments', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const Student = require('../models/Student');
     const staffs = await User.find({ role: 'staff' })
@@ -248,7 +275,9 @@ router.get('/class-assignments', verifyToken, requireStaffOrAdmin, async (req, r
       .sort({ fullName: 1 });
 
     const availableClasses = await Student.distinct('classCode');
-    const allStudents = await Student.find().select('studentCode fullName classCode major').sort({ studentCode: 1 });
+    const allStudents = await Student.find()
+      .select('studentCode fullName classCode major')
+      .sort({ studentCode: 1 });
 
     res.json({
       staffs,
@@ -256,13 +285,12 @@ router.get('/class-assignments', verifyToken, requireStaffOrAdmin, async (req, r
       allStudents,
     });
   } catch (error) {
-    console.error('Fetch class assignments error:', error);
-    res.status(500).json({ message: 'Không thể lấy danh sách phân công' });
+    next(error);
   }
 });
 
 // PUT /api/auth/staff/:id/managed-classes (Admin: Assign fixed home classes to a staff member)
-router.put('/staff/:id/managed-classes', verifyToken, requireAdmin, async (req, res) => {
+router.put('/staff/:id/managed-classes', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { managedClasses } = req.body;
     if (!Array.isArray(managedClasses)) {
@@ -286,13 +314,12 @@ router.put('/staff/:id/managed-classes', verifyToken, requireAdmin, async (req, 
       staff: updatedStaff,
     });
   } catch (error) {
-    console.error('Assign managed classes error:', error);
-    res.status(500).json({ message: 'Lỗi khi gán lớp sinh hoạt cố định' });
+    next(error);
   }
 });
 
 // PUT /api/auth/staff/:id/managed-students (Admin: Assign individual exception students to a staff member)
-router.put('/staff/:id/managed-students', verifyToken, requireAdmin, async (req, res) => {
+router.put('/staff/:id/managed-students', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { managedStudentIds } = req.body;
     if (!Array.isArray(managedStudentIds)) {
@@ -316,18 +343,19 @@ router.put('/staff/:id/managed-students', verifyToken, requireAdmin, async (req,
       staff: updatedStaff,
     });
   } catch (error) {
-    console.error('Assign managed students error:', error);
-    res.status(500).json({ message: 'Lỗi khi gán sinh viên ngoại lệ cá nhân' });
+    next(error);
   }
 });
 
 // POST /api/auth/transfer-classes (Admin: Handover / Transfer managed classes & open call tasks from Staff A to Staff B)
-router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res) => {
+router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { fromStaffId, toStaffId, classCodes } = req.body;
 
     if (!fromStaffId || !toStaffId) {
-      return res.status(400).json({ message: 'Vui lòng chọn Nhân viên chuyển giao và Nhân viên tiếp nhận' });
+      return res
+        .status(400)
+        .json({ message: 'Vui lòng chọn Nhân viên chuyển giao và Nhân viên tiếp nhận' });
     }
     if (fromStaffId === toStaffId) {
       return res.status(400).json({ message: 'Nhân viên chuyển giao và tiếp nhận phải khác nhau' });
@@ -340,16 +368,27 @@ router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res) => 
       return res.status(404).json({ message: 'Không tìm thấy thông tin nhân viên' });
     }
 
-    const classesToTransfer = Array.isArray(classCodes) && classCodes.length > 0
-      ? classCodes.map(c => String(c).trim().toUpperCase())
-      : (fromStaff.managedClasses || []);
+    assert(
+      fromStaff.role === 'staff' && toStaff.role === 'staff' && toStaff.status === 'active',
+      'Select active staff for handover',
+    );
+    const classesToTransfer =
+      Array.isArray(classCodes) && classCodes.length > 0
+        ? classCodes.map((c) => String(c).trim().toUpperCase())
+        : fromStaff.managedClasses || [];
 
+    assert(
+      classesToTransfer.every((code) => fromStaff.managedClasses.includes(code)),
+      'Source staff does not manage these classes',
+    );
     if (classesToTransfer.length === 0) {
       return res.status(400).json({ message: 'Không có lớp nào để bàn giao' });
     }
 
     // Update managedClasses for fromStaff and toStaff
-    fromStaff.managedClasses = (fromStaff.managedClasses || []).filter(c => !classesToTransfer.includes(c));
+    fromStaff.managedClasses = (fromStaff.managedClasses || []).filter(
+      (c) => !classesToTransfer.includes(c),
+    );
     const newToClasses = new Set([...(toStaff.managedClasses || []), ...classesToTransfer]);
     toStaff.managedClasses = Array.from(newToClasses);
 
@@ -360,8 +399,10 @@ router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res) => 
     const Student = require('../models/Student');
     const CallTask = require('../models/CallTask');
 
-    const studentsInClasses = await Student.find({ classCode: { $in: classesToTransfer } }).select('_id');
-    const studentIds = studentsInClasses.map(s => s._id);
+    const studentsInClasses = await Student.find({ classCode: { $in: classesToTransfer } }).select(
+      '_id',
+    );
+    const studentIds = studentsInClasses.map((s) => s._id);
 
     let reassignedTaskCount = 0;
     if (studentIds.length > 0) {
@@ -371,7 +412,7 @@ router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res) => 
           studentId: { $in: studentIds },
           status: { $in: ['Chưa gọi', 'Không bắt máy'] },
         },
-        { assignedStaffId: toStaff._id }
+        { assignedStaffId: toStaff._id },
       );
       reassignedTaskCount = updateResult.modifiedCount || 0;
     }
@@ -380,12 +421,19 @@ router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res) => 
       message: `🔄 Bàn giao thành công ${classesToTransfer.length} lớp (${classesToTransfer.join(', ')}) và ${reassignedTaskCount} nhiệm vụ cuộc gọi chưa xong từ ${fromStaff.fullName} sang ${toStaff.fullName}!`,
       transferredClasses: classesToTransfer,
       reassignedTaskCount,
-      fromStaff: { _id: fromStaff._id, fullName: fromStaff.fullName, managedClasses: fromStaff.managedClasses },
-      toStaff: { _id: toStaff._id, fullName: toStaff.fullName, managedClasses: toStaff.managedClasses },
+      fromStaff: {
+        _id: fromStaff._id,
+        fullName: fromStaff.fullName,
+        managedClasses: fromStaff.managedClasses,
+      },
+      toStaff: {
+        _id: toStaff._id,
+        fullName: toStaff.fullName,
+        managedClasses: toStaff.managedClasses,
+      },
     });
   } catch (error) {
-    console.error('Transfer classes error:', error);
-    res.status(500).json({ message: 'Lỗi khi bàn giao lớp nhân sự' });
+    next(error);
   }
 });
 

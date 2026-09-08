@@ -1,10 +1,11 @@
+const { assert } = require('../utils/validation');
 const express = require('express');
 const router = express.Router();
 const SystemSettings = require('../models/SystemSettings');
 const { verifyToken, requireAdmin, requireStaffOrAdmin } = require('../middleware/auth');
 
 // GET /api/settings (Fetch public/staff settings)
-router.get('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/', verifyToken, requireStaffOrAdmin, async (req, res, next) => {
   try {
     let settings = await SystemSettings.findOne();
     if (!settings) {
@@ -12,13 +13,12 @@ router.get('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
     }
     res.json(settings);
   } catch (error) {
-    console.error('Fetch settings error:', error);
-    res.status(500).json({ message: 'Không thể lấy cấu hình hệ thống' });
+    next(error);
   }
 });
 
 // PUT /api/settings (Update full system configuration - Admin only)
-router.put('/', verifyToken, requireAdmin, async (req, res) => {
+router.put('/', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const {
       systemTitle,
@@ -47,8 +47,24 @@ router.put('/', verifyToken, requireAdmin, async (req, res) => {
     if (departmentName !== undefined) settings.departmentName = departmentName;
     if (supportHotline !== undefined) settings.supportHotline = supportHotline;
     if (supportEmail !== undefined) settings.supportEmail = supportEmail;
-    if (examBanThreshold !== undefined) settings.examBanThreshold = Number(examBanThreshold) || 3;
-    if (parentWarningThreshold !== undefined) settings.parentWarningThreshold = Number(parentWarningThreshold) || 2;
+    if (examBanThreshold !== undefined) {
+      assert(
+        Number.isInteger(Number(examBanThreshold)) &&
+          Number(examBanThreshold) >= 1 &&
+          Number(examBanThreshold) <= 1000,
+        'Invalid examBanThreshold',
+      );
+      settings.examBanThreshold = Number(examBanThreshold);
+    }
+    if (parentWarningThreshold !== undefined) {
+      assert(
+        Number.isInteger(Number(parentWarningThreshold)) &&
+          Number(parentWarningThreshold) >= 1 &&
+          Number(parentWarningThreshold) <= 1000,
+        'Invalid parentWarningThreshold',
+      );
+      settings.parentWarningThreshold = Number(parentWarningThreshold);
+    }
     if (taskAssignmentRule !== undefined) settings.taskAssignmentRule = taskAssignmentRule;
     if (Array.isArray(crawlerMajorPrefixes)) {
       settings.crawlerMajorPrefixes = crawlerMajorPrefixes;
@@ -57,7 +73,15 @@ router.put('/', verifyToken, requireAdmin, async (req, res) => {
       settings.defaultMajorPrefixes = defaultMajorPrefixes;
       settings.crawlerMajorPrefixes = defaultMajorPrefixes;
     }
-    if (defaultConcurrency !== undefined) settings.defaultConcurrency = Number(defaultConcurrency) || 6;
+    if (defaultConcurrency !== undefined) {
+      assert(
+        Number.isInteger(Number(defaultConcurrency)) &&
+          Number(defaultConcurrency) >= 1 &&
+          Number(defaultConcurrency) <= 15,
+        'Invalid defaultConcurrency',
+      );
+      settings.defaultConcurrency = Number(defaultConcurrency);
+    }
     if (defaultYearFilter !== undefined) settings.defaultYearFilter = defaultYearFilter;
     if (Array.isArray(absenceReasons)) settings.absenceReasons = absenceReasons;
     if (Array.isArray(tags)) settings.tags = tags;
@@ -69,8 +93,7 @@ router.put('/', verifyToken, requireAdmin, async (req, res) => {
       settings,
     });
   } catch (error) {
-    console.error('Update settings error:', error);
-    res.status(500).json({ message: 'Lỗi khi cập nhật cấu hình hệ thống' });
+    next(error);
   }
 });
 

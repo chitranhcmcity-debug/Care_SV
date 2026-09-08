@@ -4,10 +4,10 @@ const router = express.Router();
 const CourseGroup = require('../models/CourseGroup');
 const Student = require('../models/Student');
 const User = require('../models/User');
-const { verifyToken, requireStaffOrAdmin } = require('../middleware/auth');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 // GET /api/course-groups (List all course groups with student & teacher details)
-router.get('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { shift, search } = req.query;
     const filter = {};
@@ -24,21 +24,31 @@ router.get('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
         (g) =>
           g.groupCode.toLowerCase().includes(term) ||
           g.courseName.toLowerCase().includes(term) ||
-          g.courseCode.toLowerCase().includes(term)
+          g.courseCode.toLowerCase().includes(term),
       );
     }
 
     res.json(groups);
   } catch (error) {
-    console.error('Fetch course groups error:', error);
-    res.status(500).json({ message: 'Lỗi khi lấy danh sách học phần' });
+    next(error);
   }
 });
 
 // POST /api/course-groups (Create new Course Group with schedule & teacher)
-router.post('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const { courseCode, courseName, groupCode, shift, scheduleDays, room, startDate, endDate, teacherId, teacherName } = req.body;
+    const {
+      courseCode,
+      courseName,
+      groupCode,
+      shift,
+      scheduleDays,
+      room,
+      startDate,
+      endDate,
+      teacherId,
+      teacherName,
+    } = req.body;
 
     if (!groupCode) {
       return res.status(400).json({ message: 'Mã Nhóm Học Phần là bắt buộc' });
@@ -65,7 +75,10 @@ router.post('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
       courseName: courseName || groupCode,
       groupCode: groupCode.trim(),
       shift: shift || 'Sáng',
-      scheduleDays: Array.isArray(scheduleDays) && scheduleDays.length ? scheduleDays : ['Thứ 2', 'Thứ 4', 'Thứ 6'],
+      scheduleDays:
+        Array.isArray(scheduleDays) && scheduleDays.length
+          ? scheduleDays
+          : ['Thứ 2', 'Thứ 4', 'Thứ 6'],
       room: room || 'A.101',
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
@@ -83,15 +96,24 @@ router.post('/', verifyToken, requireStaffOrAdmin, async (req, res) => {
       group: populatedGroup,
     });
   } catch (error) {
-    console.error('Create course group error:', error);
-    res.status(500).json({ message: 'Lỗi khi tạo nhóm học phần mới: ' + error.message });
+    next(error);
   }
 });
 
 // PUT /api/course-groups/:id (Update Course Group schedule & info)
-router.put('/:id', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const { courseCode, courseName, shift, scheduleDays, room, startDate, endDate, teacherId, teacherName } = req.body;
+    const {
+      courseCode,
+      courseName,
+      shift,
+      scheduleDays,
+      room,
+      startDate,
+      endDate,
+      teacherId,
+      teacherName,
+    } = req.body;
 
     const group = await CourseGroup.findById(req.params.id);
     if (!group) {
@@ -126,13 +148,12 @@ router.put('/:id', verifyToken, requireStaffOrAdmin, async (req, res) => {
 
     res.json({ message: 'Cập nhật thông tin học phần thành công!', group: updated });
   } catch (error) {
-    console.error('Update course group error:', error);
-    res.status(500).json({ message: 'Lỗi khi cập nhật nhóm học phần' });
+    next(error);
   }
 });
 
 // DELETE /api/course-groups/:id (Delete Course Group)
-router.delete('/:id', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const deleted = await CourseGroup.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -140,13 +161,12 @@ router.delete('/:id', verifyToken, requireStaffOrAdmin, async (req, res) => {
     }
     res.json({ message: 'Đã xóa nhóm học phần thành công!' });
   } catch (error) {
-    console.error('Delete course group error:', error);
-    res.status(500).json({ message: 'Lỗi khi xóa nhóm học phần' });
+    next(error);
   }
 });
 
 // POST /api/course-groups/:id/assign-student (Enroll individual student by MSSV or ID)
-router.post('/:id/assign-student', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.post('/:id/assign-student', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { studentCode, studentId } = req.body;
 
@@ -180,7 +200,7 @@ router.post('/:id/assign-student', verifyToken, requireStaffOrAdmin, async (req,
 
     const updatedGroup = await CourseGroup.findById(group._id).populate(
       'students',
-      'studentCode fullName classCode major phone parentPhone'
+      'studentCode fullName classCode major phone parentPhone',
     );
 
     res.json({
@@ -188,44 +208,47 @@ router.post('/:id/assign-student', verifyToken, requireStaffOrAdmin, async (req,
       group: updatedGroup,
     });
   } catch (error) {
-    console.error('Assign student to course group error:', error);
-    res.status(500).json({ message: 'Lỗi khi đăng ký sinh viên vào học phần' });
+    next(error);
   }
 });
 
 // DELETE /api/course-groups/:id/remove-student/:studentId (Unenroll student)
-router.delete('/:id/remove-student/:studentId', verifyToken, requireStaffOrAdmin, async (req, res) => {
-  try {
-    const group = await CourseGroup.findById(req.params.id);
-    if (!group) {
-      return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
+router.delete(
+  '/:id/remove-student/:studentId',
+  verifyToken,
+  requireAdmin,
+  async (req, res, next) => {
+    try {
+      const group = await CourseGroup.findById(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
+      }
+
+      const studentId = req.params.studentId;
+      group.students = group.students.filter((st) => st.toString() !== studentId);
+      await group.save();
+
+      // Remove groupCode from Student's courseGroups array
+      const student = await Student.findById(studentId);
+      if (student) {
+        student.courseGroups = student.courseGroups.filter((g) => g !== group.groupCode);
+        await student.save();
+      }
+
+      const updatedGroup = await CourseGroup.findById(group._id).populate(
+        'students',
+        'studentCode fullName classCode major phone parentPhone',
+      );
+
+      res.json({ message: 'Đã rút tên sinh viên khỏi học phần!', group: updatedGroup });
+    } catch (error) {
+      next(error);
     }
-
-    const studentId = req.params.studentId;
-    group.students = group.students.filter((st) => st.toString() !== studentId);
-    await group.save();
-
-    // Remove groupCode from Student's courseGroups array
-    const student = await Student.findById(studentId);
-    if (student) {
-      student.courseGroups = student.courseGroups.filter((g) => g !== group.groupCode);
-      await student.save();
-    }
-
-    const updatedGroup = await CourseGroup.findById(group._id).populate(
-      'students',
-      'studentCode fullName classCode major phone parentPhone'
-    );
-
-    res.json({ message: 'Đã rút tên sinh viên khỏi học phần!', group: updatedGroup });
-  } catch (error) {
-    console.error('Remove student error:', error);
-    res.status(500).json({ message: 'Lỗi khi rút tên sinh viên khỏi học phần' });
-  }
-});
+  },
+);
 
 // POST /api/course-groups/:id/assign-class (Enroll all students of an entire Class into this Course Group)
-router.post('/:id/assign-class', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.post('/:id/assign-class', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { classCode } = req.body;
     if (!classCode) {
@@ -239,7 +262,9 @@ router.post('/:id/assign-class', verifyToken, requireStaffOrAdmin, async (req, r
 
     const classStudents = await Student.find({ classCode: classCode.trim() });
     if (classStudents.length === 0) {
-      return res.status(404).json({ message: `Không tìm thấy sinh viên nào thuộc lớp ${classCode}` });
+      return res
+        .status(404)
+        .json({ message: `Không tìm thấy sinh viên nào thuộc lớp ${classCode}` });
     }
 
     let addedCount = 0;
@@ -259,7 +284,7 @@ router.post('/:id/assign-class', verifyToken, requireStaffOrAdmin, async (req, r
 
     const updatedGroup = await CourseGroup.findById(group._id).populate(
       'students',
-      'studentCode fullName classCode major phone parentPhone'
+      'studentCode fullName classCode major phone parentPhone',
     );
 
     res.json({
@@ -268,8 +293,7 @@ router.post('/:id/assign-class', verifyToken, requireStaffOrAdmin, async (req, r
       addedCount,
     });
   } catch (error) {
-    console.error('Assign class to course group error:', error);
-    res.status(500).json({ message: 'Lỗi khi đăng ký cả lớp vào học phần' });
+    next(error);
   }
 });
 

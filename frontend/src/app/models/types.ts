@@ -40,9 +40,9 @@ export interface CourseGroup {
 
 export interface CallTask {
   _id: string;
-  student?: Student;           // mapped from studentId
-  studentId?: Student;         // populated student object
-  courseGroup?: CourseGroup;   // mapped from courseGroupId
+  student?: Student; // mapped from studentId
+  studentId?: Student; // populated student object
+  courseGroup?: CourseGroup; // mapped from courseGroupId
   courseGroupId?: CourseGroup;
   assignedStaff?: { fullName: string; email: string }; // admin-only
   absenceDate?: string;
@@ -110,5 +110,3 @@ export interface Student360Profile {
   totalAbsences: number;
   totalCalls: number;
 }
-
-

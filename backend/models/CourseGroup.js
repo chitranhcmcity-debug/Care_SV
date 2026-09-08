@@ -21,7 +21,7 @@ const CourseGroupSchema = new mongoose.Schema(
     teacherName: { type: String, default: 'Giảng viên khoa CNTT' },
     students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model('CourseGroup', CourseGroupSchema);

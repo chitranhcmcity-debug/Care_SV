@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { API_BASE_URL } from '../config/api';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SystemSettings } from '../models/types';
@@ -7,18 +8,17 @@ import { SystemSettings } from '../models/types';
   providedIn: 'root',
 })
 export class SettingsService {
-  private get apiUrl(): string {
-    const host = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost';
-    return `http://${host}:5000/api/settings`;
-  }
+  private readonly apiUrl = inject(API_BASE_URL) + '/settings';
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getSettings(): Observable<SystemSettings> {
     return this.http.get<SystemSettings>(this.apiUrl);
   }
 
-  updateSettings(settings: Partial<SystemSettings>): Observable<{ message: string; settings: SystemSettings }> {
+  updateSettings(
+    settings: Partial<SystemSettings>,
+  ): Observable<{ message: string; settings: SystemSettings }> {
     return this.http.put<{ message: string; settings: SystemSettings }>(this.apiUrl, settings);
   }
 }

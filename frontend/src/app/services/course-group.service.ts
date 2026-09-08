@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { API_BASE_URL } from '../config/api';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CourseGroup } from '../models/types';
@@ -7,12 +8,9 @@ import { CourseGroup } from '../models/types';
   providedIn: 'root',
 })
 export class CourseGroupService {
-  private get apiUrl(): string {
-    const host = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost';
-    return `http://${host}:5000/api/course-groups`;
-  }
+  private readonly apiUrl = inject(API_BASE_URL) + '/course-groups';
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getCourseGroups(shift?: string, search?: string): Observable<CourseGroup[]> {
     let params = new HttpParams();
@@ -22,11 +20,16 @@ export class CourseGroupService {
     return this.http.get<CourseGroup[]>(this.apiUrl, { params });
   }
 
-  createCourseGroup(payload: Partial<CourseGroup>): Observable<{ message: string; group: CourseGroup }> {
+  createCourseGroup(
+    payload: Partial<CourseGroup>,
+  ): Observable<{ message: string; group: CourseGroup }> {
     return this.http.post<{ message: string; group: CourseGroup }>(this.apiUrl, payload);
   }
 
-  updateCourseGroup(id: string, payload: Partial<CourseGroup>): Observable<{ message: string; group: CourseGroup }> {
+  updateCourseGroup(
+    id: string,
+    payload: Partial<CourseGroup>,
+  ): Observable<{ message: string; group: CourseGroup }> {
     return this.http.put<{ message: string; group: CourseGroup }>(`${this.apiUrl}/${id}`, payload);
   }
 
@@ -36,24 +39,30 @@ export class CourseGroupService {
 
   assignStudent(
     groupId: string,
-    payload: { studentCode?: string; studentId?: string }
+    payload: { studentCode?: string; studentId?: string },
   ): Observable<{ message: string; group: CourseGroup }> {
     return this.http.post<{ message: string; group: CourseGroup }>(
       `${this.apiUrl}/${groupId}/assign-student`,
-      payload
+      payload,
     );
   }
 
-  removeStudent(groupId: string, studentId: string): Observable<{ message: string; group: CourseGroup }> {
+  removeStudent(
+    groupId: string,
+    studentId: string,
+  ): Observable<{ message: string; group: CourseGroup }> {
     return this.http.delete<{ message: string; group: CourseGroup }>(
-      `${this.apiUrl}/${groupId}/remove-student/${studentId}`
+      `${this.apiUrl}/${groupId}/remove-student/${studentId}`,
     );
   }
 
-  assignClass(groupId: string, classCode: string): Observable<{ message: string; group: CourseGroup; addedCount: number }> {
+  assignClass(
+    groupId: string,
+    classCode: string,
+  ): Observable<{ message: string; group: CourseGroup; addedCount: number }> {
     return this.http.post<{ message: string; group: CourseGroup; addedCount: number }>(
       `${this.apiUrl}/${groupId}/assign-class`,
-      { classCode }
+      { classCode },
     );
   }
 }

@@ -12,7 +12,7 @@ const StudentSchema = new mongoose.Schema(
     courseGroups: [{ type: String }],
     tags: [{ type: String }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model('Student', StudentSchema);

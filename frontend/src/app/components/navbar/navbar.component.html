@@ -1,0 +1,90 @@
+<nav
+  *ngIf="authService.isLoggedIn()"
+  class="hidden md:block sticky top-0 z-50 px-6 py-3 bg-white border-b border-slate-200 text-slate-800 shadow-sm"
+>
+  <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+    <!-- Logo & Title -->
+    <div class="flex items-center space-x-3 cursor-pointer" routerLink="/">
+      <div
+        class="w-9 h-9 rounded-md bg-slate-800 flex items-center justify-center font-bold text-base text-white shadow-sm"
+      >
+        ITC
+      </div>
+      <div>
+        <h1 class="font-bold text-base leading-tight tracking-tight text-slate-900 uppercase">
+          ITC STUDENT CARE
+        </h1>
+        <p class="text-[11px] text-slate-500 font-medium">
+          Hệ Thống Quản Lý Enterprise & Điểm Danh
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="flex items-center space-x-2">
+      <a
+        *ngIf="authService.isAdmin()"
+        routerLink="/admin"
+        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
+        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all"
+      >
+        📊 Quản trị Admin
+      </a>
+
+      <a
+        *ngIf="authService.isAdmin() || authService.isTeacher()"
+        routerLink="/attendance"
+        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
+        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all"
+      >
+        📋 Điểm danh Lớp học
+      </a>
+
+      <a
+        *ngIf="authService.isAdmin() || authService.isStaff()"
+        routerLink="/call-tasks"
+        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
+        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all relative"
+      >
+        <span>📞 Nhiệm vụ Gọi điện</span>
+        <span
+          *ngIf="unreadCount > 0"
+          class="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-700 text-white text-[10px] font-bold"
+        >
+          {{ unreadCount }}
+        </span>
+      </a>
+    </div>
+
+    <!-- User Profile & Logout -->
+    <div class="flex items-center space-x-3">
+      <div class="hidden md:flex flex-col text-right">
+        <span class="text-xs font-bold text-slate-900">{{ user?.fullName }}</span>
+        <span
+          class="text-[10px] font-semibold px-2 py-0.5 rounded-md self-end mt-0.5 border"
+          [ngClass]="{
+            'bg-slate-100 text-slate-900 border-slate-300': user?.role === 'admin',
+            'bg-blue-50 text-blue-900 border-blue-200': user?.role === 'staff',
+            'bg-amber-50 text-amber-900 border-amber-200': user?.role === 'teacher',
+          }"
+        >
+          {{
+            user?.role === 'admin'
+              ? 'QUẢN TRỊ VIÊN'
+              : user?.role === 'teacher'
+                ? 'GIẢNG VIÊN'
+                : 'NHÂN VIÊN CSKH'
+          }}
+        </span>
+      </div>
+
+      <button
+        (click)="logout()"
+        class="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-semibold transition-all"
+        title="Đăng xuất khỏi hệ thống"
+      >
+        🚪 Đăng xuất
+      </button>
+    </div>
+  </div>
+</nav>

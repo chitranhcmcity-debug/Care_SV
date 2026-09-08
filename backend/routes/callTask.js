@@ -1,10 +1,18 @@
+const { CALL_STATUS, CALL_STATUSES } = require('../constants/callStatus');
+const { requireStudentAccess } = require('../middleware/access');
+const { assert, validateId } = require('../utils/validation');
 const express = require('express');
 const router = express.Router();
 const CallTask = require('../models/CallTask');
-const { verifyToken, requireStaffOrAdmin } = require('../middleware/auth');
+const {
+  verifyToken,
+  requireStaffOrAdmin,
+  requireAdmin,
+  requireRoles,
+} = require('../middleware/auth');
 
 // POST /api/call-tasks/cleanup-duplicates (Admin xóa task trùng)
-router.post('/cleanup-duplicates', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.post('/cleanup-duplicates', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const all = await CallTask.find().sort({ createdAt: 1 }); // giữ task cũ nhất
     const seen = new Map();
@@ -22,28 +30,32 @@ router.post('/cleanup-duplicates', verifyToken, requireStaffOrAdmin, async (req,
       await CallTask.deleteMany({ _id: { $in: toDelete } });
     }
     const remaining = await CallTask.countDocuments();
-    res.json({ deleted: toDelete.length, remaining, message: `Đã xóa ${toDelete.length} task trùng` });
+    res.json({
+      deleted: toDelete.length,
+      remaining,
+      message: `Đã xóa ${toDelete.length} task trùng`,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi cleanup: ' + error.message });
+    next(error);
   }
 });
 
 // GET /api/call-tasks/unread-count (Returns count of pending assigned tasks for header badge)
-router.get('/unread-count', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/unread-count', verifyToken, requireStaffOrAdmin, async (req, res, next) => {
   try {
     const userId = req.user.id;
     const count = await CallTask.countDocuments({
       assignedStaffId: userId,
-      status: 'Chưa gọi',
+      status: CALL_STATUS.PENDING,
     });
     res.json({ unreadCount: count });
   } catch (error) {
-    res.status(500).json({ unreadCount: 0 });
+    next(error);
   }
 });
 
 // GET /api/call-tasks/admin-all (Admin xem tất cả task của mọi nhân viên)
-router.get('/admin-all', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/admin-all', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { status, groupCode } = req.query;
     const filter = {};
@@ -56,11 +68,13 @@ router.get('/admin-all', verifyToken, requireStaffOrAdmin, async (req, res) => {
       .sort({ createdAt: -1 });
 
     if (groupCode) {
-      tasks = tasks.filter(t => t.courseGroupId?.groupCode?.toLowerCase() === groupCode.toLowerCase());
+      tasks = tasks.filter(
+        (t) => t.courseGroupId?.groupCode?.toLowerCase() === groupCode.toLowerCase(),
+      );
     }
 
     // Map sang tên field thân thiện cho frontend
-    const mapped = tasks.map(t => ({
+    const mapped = tasks.map((t) => ({
       _id: t._id,
       student: t.studentId,
       courseGroup: t.courseGroupId,
@@ -76,13 +90,12 @@ router.get('/admin-all', verifyToken, requireStaffOrAdmin, async (req, res) => {
 
     res.json(mapped);
   } catch (error) {
-    console.error('Admin all tasks error:', error);
-    res.status(500).json({ message: 'Lỗi lấy danh sách task' });
+    next(error);
   }
 });
 
 // GET /api/call-tasks/my-tasks (Supports optional classCode, groupCode, status filters)
-router.get('/my-tasks', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/my-tasks', verifyToken, requireStaffOrAdmin, async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { classCode, groupCode, status } = req.query;
@@ -98,21 +111,25 @@ router.get('/my-tasks', verifyToken, requireStaffOrAdmin, async (req, res) => {
     // Apply populated filters
     if (classCode) {
       tasks = tasks.filter(
-        (t) => t.studentId?.classCode?.toLowerCase() === String(classCode).toLowerCase()
+        (t) => t.studentId?.classCode?.toLowerCase() === String(classCode).toLowerCase(),
       );
     }
     if (groupCode) {
       tasks = tasks.filter(
-        (t) => t.courseGroupId?.groupCode?.toLowerCase() === String(groupCode).toLowerCase()
+        (t) => t.courseGroupId?.groupCode?.toLowerCase() === String(groupCode).toLowerCase(),
       );
     }
 
     // Sort priority:
     // 1. Due Callback (callbackDate <= now) comes FIRST!
-    // 2. Status queue: 'Chưa gọi' (0) -> 'Không bắt máy' (1) -> 'Đã liên hệ' (2)
+    // 2. Status queue: CALL_STATUS.PENDING (0) -> CALL_STATUS.UNREACHABLE (1) -> CALL_STATUS.CONTACTED (2)
     // 3. Newest createdAt first
     const now = new Date();
-    const priorityMap = { 'Chưa gọi': 0, 'Không bắt máy': 1, 'Đã liên hệ': 2 };
+    const priorityMap = {
+      [CALL_STATUS.PENDING]: 0,
+      [CALL_STATUS.UNREACHABLE]: 1,
+      [CALL_STATUS.CONTACTED]: 2,
+    };
 
     tasks.sort((a, b) => {
       const isCallbackDueA = a.callbackDate && new Date(a.callbackDate) <= now ? 0 : 1;
@@ -127,7 +144,7 @@ router.get('/my-tasks', verifyToken, requireStaffOrAdmin, async (req, res) => {
     });
 
     // Map sang tên field thân thiện cho frontend
-    const mapped = tasks.map(t => ({
+    const mapped = tasks.map((t) => ({
       _id: t._id,
       student: t.studentId,
       courseGroup: t.courseGroupId,
@@ -143,23 +160,46 @@ router.get('/my-tasks', verifyToken, requireStaffOrAdmin, async (req, res) => {
 
     res.json(mapped);
   } catch (error) {
-    console.error('Fetch my call tasks error:', error);
-    res.status(500).json({ message: 'Không thể lấy danh sách nhiệm vụ gọi điện' });
+    next(error);
   }
 });
 
 // PUT /api/call-tasks/:id/update
-router.put('/:id/update', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.put('/:id/update', verifyToken, requireRoles('admin', 'staff'), async (req, res, next) => {
   try {
     const { status, callNote, absenceReasonCategory, callbackDate, tags } = req.body;
     const taskId = req.params.id;
+    validateId(taskId);
+    assert(status === undefined || CALL_STATUSES.includes(status), 'Invalid call status');
+    assert(callNote === undefined || typeof callNote === 'string', 'Invalid call note');
+    assert(
+      absenceReasonCategory === undefined || typeof absenceReasonCategory === 'string',
+      'Invalid absence reason',
+    );
+    assert(
+      callbackDate === undefined ||
+        callbackDate === null ||
+        callbackDate === '' ||
+        (typeof callbackDate === 'string' && !Number.isNaN(Date.parse(callbackDate))),
+      'Invalid callback date',
+    );
+    assert(
+      tags === undefined || (Array.isArray(tags) && tags.every((t) => typeof t === 'string')),
+      'Invalid tags',
+    );
 
     const task = await CallTask.findById(taskId);
     if (!task) {
       return res.status(404).json({ message: 'Không tìm thấy nhiệm vụ cuộc gọi' });
     }
 
-    if (status && ['Chưa gọi', 'Không bắt máy', 'Đã liên hệ'].includes(status)) {
+    assert(
+      req.user.role === 'admin' || String(task.assignedStaffId) === req.user.id,
+      'Task is not assigned to you',
+      403,
+    );
+
+    if (status && CALL_STATUSES.includes(status)) {
       task.status = status;
     }
     if (callNote !== undefined) {
@@ -202,111 +242,121 @@ router.put('/:id/update', verifyToken, requireStaffOrAdmin, async (req, res) => 
 
     res.json({ message: 'Cập nhật cuộc gọi thành công!', task: mapped });
   } catch (error) {
-    console.error('Update call task error:', error);
-    res.status(500).json({ message: 'Lỗi khi cập nhật nhiệm vụ cuộc gọi' });
+    next(error);
   }
 });
 
 // GET /api/call-tasks/student-360/:studentId (Education CRM - Profile 360 Timeline)
-router.get('/student-360/:studentId', verifyToken, requireStaffOrAdmin, async (req, res) => {
-  try {
-    const Student = require('../models/Student');
-    const Attendance = require('../models/Attendance');
+router.get(
+  '/student-360/:studentId',
+  verifyToken,
+  requireStaffOrAdmin,
+  requireStudentAccess,
+  async (req, res, next) => {
+    try {
+      const Student = require('../models/Student');
+      const Attendance = require('../models/Attendance');
 
-    const student = await Student.findById(req.params.studentId);
-    if (!student) {
-      return res.status(404).json({ message: 'Không tìm thấy thông tin sinh viên' });
+      const student = await Student.findById(req.params.studentId);
+      if (!student) {
+        return res.status(404).json({ message: 'Không tìm thấy thông tin sinh viên' });
+      }
+
+      // Fetch call tasks history for this student
+      const callTasks = await CallTask.find({ studentId: student._id })
+        .populate('courseGroupId', 'groupCode courseName')
+        .populate('assignedStaffId', 'fullName email')
+        .sort({ createdAt: -1 });
+
+      // Fetch attendance history for this student across all course groups
+      const attendanceRecords = await Attendance.find({
+        $or: [{ absentStudents: student._id }, { 'excusedStudents.studentId': student._id }],
+      })
+        .populate('courseGroupId', 'groupCode courseName')
+        .populate('recordedBy', 'fullName email')
+        .sort({ date: -1 });
+
+      // Combine timeline entries
+      const timeline = [];
+
+      callTasks.forEach((ct) => {
+        timeline.push({
+          type: 'call_task',
+          date: ct.createdAt,
+          title: `Cuộc gọi CSKH: ${ct.status}`,
+          courseGroup: ct.courseGroupId,
+          staff: ct.assignedStaffId,
+          status: ct.status,
+          note: ct.callNote,
+          absenceReasonCategory: ct.absenceReasonCategory,
+          callbackDate: ct.callbackDate,
+          callAttempts: ct.callAttempts,
+        });
+      });
+
+      attendanceRecords.forEach((att) => {
+        const isAbsent = att.absentStudents.some((id) => id.toString() === student._id.toString());
+        const excusedItem = att.excusedStudents.find(
+          (item) => item.studentId?.toString() === student._id.toString(),
+        );
+
+        timeline.push({
+          type: 'attendance',
+          date: att.date,
+          title: isAbsent ? 'Báo Vắng Học' : 'Vắng Có Lý Do',
+          courseGroup: att.courseGroupId,
+          staff: att.recordedBy,
+          status: isAbsent ? 'Vắng' : 'Có lý do',
+          note: excusedItem ? excusedItem.reason : '',
+        });
+      });
+
+      // Sort timeline by date desc
+      timeline.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      res.json({
+        student,
+        timeline,
+        totalAbsences: attendanceRecords.filter((att) =>
+          att.absentStudents.some((id) => id.toString() === student._id.toString()),
+        ).length,
+        totalCalls: callTasks.length,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    // Fetch call tasks history for this student
-    const callTasks = await CallTask.find({ studentId: student._id })
-      .populate('courseGroupId', 'groupCode courseName')
-      .populate('assignedStaffId', 'fullName email')
-      .sort({ createdAt: -1 });
-
-    // Fetch attendance history for this student across all course groups
-    const attendanceRecords = await Attendance.find({
-      $or: [
-        { absentStudents: student._id },
-        { 'excusedStudents.studentId': student._id }
-      ]
-    })
-      .populate('courseGroupId', 'groupCode courseName')
-      .populate('recordedBy', 'fullName email')
-      .sort({ date: -1 });
-
-    // Combine timeline entries
-    const timeline = [];
-
-    callTasks.forEach(ct => {
-      timeline.push({
-        type: 'call_task',
-        date: ct.createdAt,
-        title: `Cuộc gọi CSKH: ${ct.status}`,
-        courseGroup: ct.courseGroupId,
-        staff: ct.assignedStaffId,
-        status: ct.status,
-        note: ct.callNote,
-        absenceReasonCategory: ct.absenceReasonCategory,
-        callbackDate: ct.callbackDate,
-        callAttempts: ct.callAttempts,
-      });
-    });
-
-    attendanceRecords.forEach(att => {
-      const isAbsent = att.absentStudents.some(id => id.toString() === student._id.toString());
-      const excusedItem = att.excusedStudents.find(item => item.studentId?.toString() === student._id.toString());
-
-      timeline.push({
-        type: 'attendance',
-        date: att.date,
-        title: isAbsent ? 'Báo Vắng Học' : 'Vắng Có Lý Do',
-        courseGroup: att.courseGroupId,
-        staff: att.recordedBy,
-        status: isAbsent ? 'Vắng' : 'Có lý do',
-        note: excusedItem ? excusedItem.reason : '',
-      });
-    });
-
-    // Sort timeline by date desc
-    timeline.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    res.json({
-      student,
-      timeline,
-      totalAbsences: attendanceRecords.filter(att => att.absentStudents.some(id => id.toString() === student._id.toString())).length,
-      totalCalls: callTasks.length,
-    });
-  } catch (error) {
-    console.error('Fetch student 360 profile error:', error);
-    res.status(500).json({ message: 'Lỗi khi lấy hồ sơ 360° sinh viên' });
-  }
-});
+  },
+);
 
 // PUT /api/call-tasks/student-tags/:studentId (Update student tags directly)
-router.put('/student-tags/:studentId', verifyToken, requireStaffOrAdmin, async (req, res) => {
-  try {
-    const { tags } = req.body;
-    if (!Array.isArray(tags)) {
-      return res.status(400).json({ message: 'Thẻ nhãn phải là một mảng' });
+router.put(
+  '/student-tags/:studentId',
+  verifyToken,
+  requireStaffOrAdmin,
+  requireStudentAccess,
+  async (req, res, next) => {
+    try {
+      const { tags } = req.body;
+      if (!Array.isArray(tags) || !tags.every((tag) => typeof tag === 'string')) {
+        return res.status(400).json({ message: 'Thẻ nhãn phải là một mảng' });
+      }
+
+      const Student = require('../models/Student');
+      const student = await Student.findByIdAndUpdate(
+        req.params.studentId,
+        { tags },
+        { returnDocument: 'after' },
+      );
+
+      if (!student) {
+        return res.status(404).json({ message: 'Không tìm thấy sinh viên' });
+      }
+
+      res.json({ message: 'Cập nhật thẻ nhãn thành công!', tags: student.tags });
+    } catch (error) {
+      next(error);
     }
-
-    const Student = require('../models/Student');
-    const student = await Student.findByIdAndUpdate(
-      req.params.studentId,
-      { tags },
-      { new: true }
-    );
-
-    if (!student) {
-      return res.status(404).json({ message: 'Không tìm thấy sinh viên' });
-    }
-
-    res.json({ message: 'Cập nhật thẻ nhãn thành công!', tags: student.tags });
-  } catch (error) {
-    console.error('Update student tags error:', error);
-    res.status(500).json({ message: 'Lỗi khi cập nhật thẻ nhãn sinh viên' });
-  }
-});
+  },
+);
 
 module.exports = router;

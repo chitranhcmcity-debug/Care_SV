@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { API_BASE_URL } from '../config/api';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -22,12 +23,9 @@ export interface ImportByCourseResult {
   providedIn: 'root',
 })
 export class ExcelService {
-  private get apiUrl(): string {
-    const host = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost';
-    return `http://${host}:5000/api/excel`;
-  }
+  private readonly apiUrl = inject(API_BASE_URL) + '/excel';
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   /** Xuất file mẫu cũ (theo lớp) */
   exportTemplate(): Observable<Blob> {
@@ -44,12 +42,14 @@ export class ExcelService {
   }
 
   /** Import cũ */
-  importData(file: File): Observable<{ message: string; updatedCount: number; groupCreatedCount: number }> {
+  importData(
+    file: File,
+  ): Observable<{ message: string; updatedCount: number; groupCreatedCount: number }> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ message: string; updatedCount: number; groupCreatedCount: number }>(
       `${this.apiUrl}/import-data`,
-      formData
+      formData,
     );
   }
 

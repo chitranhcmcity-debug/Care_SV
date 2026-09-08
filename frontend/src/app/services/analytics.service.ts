@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { API_BASE_URL } from '../config/api';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -35,12 +36,9 @@ export interface AnalyticsSummary {
   providedIn: 'root',
 })
 export class AnalyticsService {
-  private get apiUrl(): string {
-    const host = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost';
-    return `http://${host}:5000/api/analytics`;
-  }
+  private readonly apiUrl = inject(API_BASE_URL) + '/analytics';
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getAnalyticsSummary(): Observable<AnalyticsSummary> {
     return this.http.get<AnalyticsSummary>(`${this.apiUrl}/summary`);

@@ -1,3 +1,5 @@
+const { verifyToken, requireAdmin } = require('../middleware/auth');
+const { assert } = require('../utils/validation');
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
@@ -8,7 +10,44 @@ const TARGET_URL = 'https://dkhp.itc.edu.vn/TraCuuThongTin.aspx';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // GET /api/crawler/scan-progress
-router.get('/scan-progress', async (req, res) => {
+router.get('/scan-progress', verifyToken, requireAdmin, async (req, res, next) => {
+  // Parse query parameters
+  const rawPrefixes = req.query.prefixes
+    ? String(req.query.prefixes)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : ['501', '602', '502', '601', '401', '402', '701'];
+
+  const rawYears = req.query.years
+    ? String(req.query.years)
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : ['25', '26'];
+
+  const startSeq = parseInt(req.query.startSeq || '1', 10);
+  const endSeq = parseInt(req.query.endSeq || '100', 10);
+  const concurrency = Math.min(Math.max(parseInt(req.query.concurrency || '6', 10), 1), 15);
+
+  assert(
+    rawPrefixes.length <= 20 && rawPrefixes.every((p) => /^\d{3}$/.test(p)),
+    'Invalid prefixes',
+  );
+  assert(rawYears.length <= 10 && rawYears.every((y) => /^\d{2}$/.test(y)), 'Invalid years');
+  assert(
+    Number.isInteger(startSeq) &&
+      Number.isInteger(endSeq) &&
+      startSeq >= 1 &&
+      endSeq <= 999 &&
+      startSeq <= endSeq,
+    'Invalid sequence range',
+  );
+  assert(Number.isInteger(concurrency), 'Invalid concurrency');
+  assert(
+    rawPrefixes.length * rawYears.length * (endSeq - startSeq + 1) <= 10000,
+    'Scan is too large',
+  );
   // Set SSE Headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -20,19 +59,6 @@ router.get('/scan-progress', async (req, res) => {
     isAborted = true;
     console.log(' 🛑 [SSE Crawler] Client đã gửi tín hiệu Dừng Quét (Close Connection).');
   });
-
-  // Parse query parameters
-  const rawPrefixes = req.query.prefixes
-    ? String(req.query.prefixes).split(',').map((s) => s.trim()).filter(Boolean)
-    : ['501', '602', '502', '601', '401', '402', '701'];
-
-  const rawYears = req.query.years
-    ? String(req.query.years).split(',').map((s) => s.trim()).filter(Boolean)
-    : ['25', '26'];
-
-  const startSeq = parseInt(req.query.startSeq || '1', 10);
-  const endSeq = parseInt(req.query.endSeq || '100', 10);
-  const concurrency = Math.min(Math.max(parseInt(req.query.concurrency || '6', 10), 1), 15);
 
   // Generate target MSSV list with EXACT 9-DIGIT FORMULA: [Prefix 3][Year 2]0[Seq 3]
   const mssvList = [];
@@ -117,7 +143,7 @@ router.get('/scan-progress', async (req, res) => {
             dob: dobText || '',
             major: majorText || 'Công nghệ Thông tin',
           },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: 'after' },
         );
         return student;
       }
@@ -166,7 +192,7 @@ router.get('/scan-progress', async (req, res) => {
             dob: st.dob,
           })),
         }) +
-        '\n\n'
+        '\n\n',
     );
 
     // Small delay between batches to ensure ASP.NET stability
@@ -185,7 +211,7 @@ router.get('/scan-progress', async (req, res) => {
           foundCount,
           message: `Hoàn tất cào dữ liệu sinh viên! Tìm thấy ${foundCount} sinh viên trên cổng trường.`,
         }) +
-        '\n\n'
+        '\n\n',
     );
     res.end();
   }

@@ -1,88 +1,41 @@
-import { Injectable } from '@angular/core';
+import { API_BASE_URL } from '../config/api';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CourseGroup, Student } from '../models/types';
+import { CourseGroup } from '../models/types';
 
-export interface ExcusedStudentItem {
-  studentId: Student | string;
-  reason?: string;
-}
-
-export interface AttendanceHistoryItem {
-  _id: string;
-  courseGroupId: string;
-  date: string;
-  absentStudents: Student[];
-  excusedStudents?: ExcusedStudentItem[];
-  recordedBy?: {
-    fullName: string;
-    email: string;
-  };
-  createdAt?: string;
-}
-
-export interface StudentSummary {
-  student: Student;
-  totalSessions: number;
-  absentCount: number;
-  excusedCount?: number;
-  attendCount: number;
-  attendRate: number;
-  isAtRisk: boolean;
-  callStatus: string | null;
-  callNote: string | null;
-  assignedStaff: string | null;
-}
-
-export interface AttendanceSummary {
-  courseGroup: {
-    _id: string;
-    groupCode: string;
-    courseName: string;
-    shift: string;
-    room: string;
-  };
-  totalSessions: number;
-  examBanThreshold: number;
-  summary: StudentSummary[];
-}
-
-export interface SubmitAttendanceResult {
-  message: string;
-  attendance: any;
-  createdTasksCount: number;
-  taskAssignments: { staffName: string; studentName: string; studentCode: string }[];
-}
-
-export interface ScheduleSession {
-  scheduledDate: string;
-  status: 'recorded' | 'missing' | 'future';
-  attendance: AttendanceHistoryItem | null;
-}
-
-export interface ScheduleData {
-  hasDates: boolean;
-  sessions: ScheduleSession[];
-  courseGroup: any;
-}
+import {
+  AttendanceHistoryItem,
+  AttendanceSummary,
+  SubmitAttendanceResult,
+  ScheduleData,
+  SubmitAttendancePayload,
+} from '../models/attendance';
+export type {
+  ExcusedStudentItem,
+  AttendanceHistoryItem,
+  StudentSummary,
+  AttendanceSummary,
+  SubmitAttendanceResult,
+  ScheduleSession,
+  ScheduleData,
+  SubmitAttendancePayload,
+} from '../models/attendance';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AttendanceService {
-  private get apiUrl(): string {
-    const host = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost';
-    return `http://${host}:5000/api/attendance`;
-  }
+  private readonly apiUrl = inject(API_BASE_URL) + '/attendance';
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   getCourseGroups(showAll = false): Observable<CourseGroup[]> {
     const url = showAll ? `${this.apiUrl}/course-groups?all=true` : `${this.apiUrl}/course-groups`;
     return this.http.get<CourseGroup[]>(url);
   }
 
-  submitAttendance(payload: { courseGroupId: string; absentStudentIds: string[]; excusedStudents?: { studentId: string; reason: string }[]; date?: string }): Observable<SubmitAttendanceResult> {
+  submitAttendance(payload: SubmitAttendancePayload): Observable<SubmitAttendanceResult> {
     return this.http.post<SubmitAttendanceResult>(`${this.apiUrl}/submit`, payload);
   }
 
@@ -90,8 +43,15 @@ export class AttendanceService {
     return this.http.get<AttendanceHistoryItem[]>(`${this.apiUrl}/history/${courseGroupId}`);
   }
 
-  updateAttendanceHistory(attendanceId: string, absentStudentIds: string[], excusedStudents?: { studentId: string; reason: string }[]): Observable<any> {
-    return this.http.put(`${this.apiUrl}/history/${attendanceId}`, { absentStudentIds, excusedStudents });
+  updateAttendanceHistory(
+    attendanceId: string,
+    absentStudentIds: string[],
+    excusedStudents?: { studentId: string; reason: string }[],
+  ): Observable<{ message: string; attendance: AttendanceHistoryItem }> {
+    return this.http.put<{ message: string; attendance: AttendanceHistoryItem }>(
+      `${this.apiUrl}/history/${attendanceId}`,
+      { absentStudentIds, excusedStudents },
+    );
   }
 
   deleteAttendanceRecord(attendanceId: string): Observable<{ message: string }> {

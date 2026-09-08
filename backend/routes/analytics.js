@@ -6,13 +6,13 @@ const CallTask = require('../models/CallTask');
 const Student = require('../models/Student');
 const CourseGroup = require('../models/CourseGroup');
 const SystemSettings = require('../models/SystemSettings');
-const { verifyToken, requireStaffOrAdmin } = require('../middleware/auth');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 // GET /api/analytics/summary
-router.get('/summary', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/summary', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const settings = (await SystemSettings.findOne()) || { examBanThreshold: 2 };
-    const banThreshold = settings.examBanThreshold || 2;
+    const settings = (await SystemSettings.findOne()) || { examBanThreshold: 3 };
+    const banThreshold = settings.examBanThreshold ?? 3;
 
     const totalTasks = await CallTask.countDocuments();
     const completedTasks = await CallTask.countDocuments({ status: 'Đã liên hệ' });
@@ -46,7 +46,12 @@ router.get('/summary', verifyToken, requireStaffOrAdmin, async (req, res) => {
 
     for (const task of tasksWithNotes) {
       const note = (task.callNote || '').toLowerCase();
-      if (note.includes('ốm') || note.includes('bệnh') || note.includes('sốt') || note.includes('viện')) {
+      if (
+        note.includes('ốm') ||
+        note.includes('bệnh') ||
+        note.includes('sốt') ||
+        note.includes('viện')
+      ) {
         reasonCounts['Ốm / Sức khỏe']++;
       } else if (note.includes('gia đình') || note.includes('quê') || note.includes('việc nhà')) {
         reasonCounts['Bận việc gia đình']++;
@@ -89,7 +94,7 @@ router.get('/summary', verifyToken, requireStaffOrAdmin, async (req, res) => {
 
     // Filter students absent >= banThreshold times
     const atRiskKeys = Object.keys(studentCourseAbsenceMap).filter(
-      (k) => studentCourseAbsenceMap[k].absentCount >= banThreshold
+      (k) => studentCourseAbsenceMap[k].absentCount >= banThreshold,
     );
 
     const examBanRiskList = [];
@@ -97,7 +102,7 @@ router.get('/summary', verifyToken, requireStaffOrAdmin, async (req, res) => {
     for (const k of atRiskKeys) {
       const item = studentCourseAbsenceMap[k];
       const studentObj = await Student.findById(item.studentId).select(
-        'studentCode fullName classCode major phone parentPhone'
+        'studentCode fullName classCode major phone parentPhone',
       );
       if (!studentObj) continue;
 
@@ -133,13 +138,12 @@ router.get('/summary', verifyToken, requireStaffOrAdmin, async (req, res) => {
       examBanRiskList,
     });
   } catch (error) {
-    console.error('Analytics summary error:', error);
-    res.status(500).json({ message: 'Lỗi khi tính toán dữ liệu thống kê' });
+    next(error);
   }
 });
 
 // GET /api/analytics/export-care-report
-router.get('/export-care-report', verifyToken, requireStaffOrAdmin, async (req, res) => {
+router.get('/export-care-report', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const tasks = await CallTask.find({})
       .populate('studentId', 'studentCode fullName classCode major phone parentPhone')
@@ -195,18 +199,17 @@ router.get('/export-care-report', verifyToken, requireStaffOrAdmin, async (req, 
 
     res.setHeader(
       'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename="Bao_Cao_Tong_Hop_Cham_Soc_Sinh_Vien.xlsx"'
+      'attachment; filename="Bao_Cao_Tong_Hop_Cham_Soc_Sinh_Vien.xlsx"',
     );
 
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
-    console.error('Export care report error:', error);
-    res.status(500).json({ message: 'Lỗi khi xuất báo cáo chăm sóc Excel' });
+    next(error);
   }
 });
 

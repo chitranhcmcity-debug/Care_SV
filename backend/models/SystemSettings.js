@@ -41,10 +41,9 @@ const SystemSettingsSchema = new mongoose.Schema(
       default: ['#KhóKhănHọcPhí', '#HọcBổng', '#ĐiLàmĐêm', '#CảnhBáoVắng', '#CầnHỗTrợĐặcBiệt'],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const SystemSettings = mongoose.model('SystemSettings', SystemSettingsSchema);
 module.exports = SystemSettings;
 module.exports.SystemConfig = SystemSettings;
-

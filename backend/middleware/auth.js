@@ -1,37 +1,38 @@
 const jwt = require('jsonwebtoken');
-
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Không tìm thấy Token xác thực' });
-  }
-
-  const token = authHeader.split(' ')[1];
+const User = require('../models/User');
+const { getJwtSecret } = require('../config/env');
+async function verifyToken(req, res, next) {
+  const match = /^Bearer (\S+)$/.exec(req.headers.authorization || '');
+  if (!match) return res.status(401).json({ message: 'Authentication required' });
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_itc_care_2026');
-    req.user = decoded;
+    decoded = jwt.verify(match[1], getJwtSecret(), { algorithms: ['HS256'] });
+  } catch {
+    return res.status(401).json({ message: 'Invalid or expired token' });
+  }
+  try {
+    if (!decoded.id || !/^[a-f\d]{24}$/i.test(decoded.id))
+      return res.status(401).json({ message: 'Invalid token' });
+    const user = await User.findById(decoded.id).select('-password');
+    if (
+      !user ||
+      user.status !== 'active' ||
+      (decoded.tokenVersion || 0) !== (user.tokenVersion || 0)
+    )
+      return res.status(401).json({ message: 'Session revoked' });
+    req.user = { ...user.toObject(), id: String(user._id) };
     next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Token không hợp lệ hoặc đã hết hạn' });
+  } catch (error) {
+    next(error);
   }
-};
-
-const requireAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Quyền truy cập bị từ chối. Chỉ dành cho Admin.' });
-  }
-  next();
-};
-
-const requireStaffOrAdmin = (req, res, next) => {
-  if (!req.user || !['admin', 'staff', 'teacher'].includes(req.user.role)) {
-    return res.status(403).json({ message: 'Quyền truy cập bị từ chối.' });
-  }
-  next();
-};
-
-module.exports = {
-  verifyToken,
-  requireAdmin,
-  requireStaffOrAdmin,
-};
+}
+const requireRoles =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role))
+      return res.status(403).json({ message: 'Access denied' });
+    next();
+  };
+const requireAdmin = requireRoles('admin');
+const requireStaffOrAdmin = requireRoles('admin', 'staff', 'teacher');
+module.exports = { verifyToken, requireAdmin, requireStaffOrAdmin, requireRoles };
