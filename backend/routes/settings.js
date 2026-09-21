@@ -29,10 +29,6 @@ router.put('/', verifyToken, requireAdmin, async (req, res, next) => {
       examBanThreshold,
       parentWarningThreshold,
       taskAssignmentRule,
-      defaultMajorPrefixes,
-      crawlerMajorPrefixes,
-      defaultConcurrency,
-      defaultYearFilter,
       absenceReasons,
       tags,
     } = req.body;
@@ -66,23 +62,6 @@ router.put('/', verifyToken, requireAdmin, async (req, res, next) => {
       settings.parentWarningThreshold = Number(parentWarningThreshold);
     }
     if (taskAssignmentRule !== undefined) settings.taskAssignmentRule = taskAssignmentRule;
-    if (Array.isArray(crawlerMajorPrefixes)) {
-      settings.crawlerMajorPrefixes = crawlerMajorPrefixes;
-      settings.defaultMajorPrefixes = crawlerMajorPrefixes;
-    } else if (Array.isArray(defaultMajorPrefixes)) {
-      settings.defaultMajorPrefixes = defaultMajorPrefixes;
-      settings.crawlerMajorPrefixes = defaultMajorPrefixes;
-    }
-    if (defaultConcurrency !== undefined) {
-      assert(
-        Number.isInteger(Number(defaultConcurrency)) &&
-          Number(defaultConcurrency) >= 1 &&
-          Number(defaultConcurrency) <= 15,
-        'Invalid defaultConcurrency',
-      );
-      settings.defaultConcurrency = Number(defaultConcurrency);
-    }
-    if (defaultYearFilter !== undefined) settings.defaultYearFilter = defaultYearFilter;
     if (Array.isArray(absenceReasons)) settings.absenceReasons = absenceReasons;
     if (Array.isArray(tags)) settings.tags = tags;
 

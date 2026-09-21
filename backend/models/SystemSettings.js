@@ -17,18 +17,6 @@ const SystemSettingsSchema = new mongoose.Schema(
       default: 'round-robin',
     },
 
-    // Crawler Default Configuration
-    defaultMajorPrefixes: {
-      type: [String],
-      default: ['501', '602', '502', '601', '401', '402', '701'],
-    },
-    crawlerMajorPrefixes: {
-      type: [String],
-      default: ['501', '602', '502', '601', '401', '402', '701'],
-    },
-    defaultConcurrency: { type: Number, default: 6 },
-    defaultYearFilter: { type: String, default: '25,26' },
-
     // Custom Absence Reasons for staff selection
     absenceReasons: {
       type: [String],

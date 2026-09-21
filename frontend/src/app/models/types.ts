@@ -57,20 +57,6 @@ export interface CallTask {
   updatedAt?: string;
 }
 
-export interface CrawlerProgress {
-  percent: number;
-  currentTask: number;
-  totalTasks: number;
-  foundCount: number;
-  currentMssv: string;
-  lastFound?: {
-    studentCode: string;
-    fullName: string;
-  } | null;
-  completed?: boolean;
-  message?: string;
-}
-
 export interface SystemSettings {
   _id?: string;
   systemTitle: string;
@@ -81,10 +67,6 @@ export interface SystemSettings {
   examBanThreshold: number;
   parentWarningThreshold: number;
   taskAssignmentRule: 'round-robin' | 'least-tasks' | 'admin-only';
-  defaultMajorPrefixes: string[];
-  crawlerMajorPrefixes: string[];
-  defaultConcurrency: number;
-  defaultYearFilter: string;
   absenceReasons: string[];
   tags: string[];
 }

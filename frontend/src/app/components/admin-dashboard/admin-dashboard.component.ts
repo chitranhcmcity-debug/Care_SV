@@ -1,14 +1,13 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, finalize } from 'rxjs';
-import { CrawlerService } from '../../services/crawler.service';
+import { finalize } from 'rxjs';
 import { ExcelService, ImportByCourseResult } from '../../services/excel.service';
 import { StaffService } from '../../services/staff.service';
 import { AnalyticsService, AnalyticsSummary } from '../../services/analytics.service';
 import { SettingsService } from '../../services/settings.service';
 import { CourseGroupService } from '../../services/course-group.service';
-import { User, CrawlerProgress, Student, SystemSettings, CourseGroup } from '../../models/types';
+import { User, SystemSettings, CourseGroup } from '../../models/types';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -17,7 +16,7 @@ import { User, CrawlerProgress, Student, SystemSettings, CourseGroup } from '../
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  activeTab: 'crawler' | 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' = 'courses';
+  activeTab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' = 'courses';
 
   // Global Floating Toast Notification State
   toast = {
@@ -73,29 +72,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     examBanThreshold: 3,
     parentWarningThreshold: 2,
     taskAssignmentRule: 'round-robin',
-    defaultMajorPrefixes: ['501', '602', '502', '601', '401', '402', '701'],
-    crawlerMajorPrefixes: ['501', '602', '502', '601', '401', '402', '701'],
-    defaultConcurrency: 6,
-    defaultYearFilter: '25,26',
     absenceReasons: ['Bệnh/Sức khỏe', 'Việc gia đình', 'Bận đi làm', 'Lý do cá nhân', 'Khác'],
     tags: ['#KhóKhănHọcPhí', '#HọcBổng', '#ĐiLàmĐêm', '#CảnhBáoVắng', '#CầnHỗTrợĐặcBiệt'],
   };
   isSavingSettings = false;
   settingsSaveAlert = '';
   newReasonInput = '';
-
-  // Crawler Config State
-  majorPrefixes: string[] = ['501', '602', '502', '601', '401', '402', '701'];
-  newPrefixInput = '';
-  selectedYears = '25,26';
-  startSeq = 1;
-  endSeq = 50;
-  concurrency = 6;
-
-  isScanning = false;
-  crawlerProgress: CrawlerProgress | null = null;
-  liveFoundStudents: Student[] = [];
-  private scanSub?: Subscription;
 
   // Excel State (legacy)
   isDownloadingExcel = false;
@@ -127,9 +109,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   editStaffRole: 'staff' | 'teacher' = 'staff';
   isUpdatingStaff = false;
 
-  // SystemConfig Tag & Prefix Inputs
+  // SystemConfig Tag Input
   newTagInput = '';
-  newPrefixInputConfig = '';
 
   // Class & Exception Student Assignment & Handover State
   availableHomeClasses: string[] = [];
@@ -157,7 +138,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private analyticsInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(
-    private crawlerService: CrawlerService,
     private excelService: ExcelService,
     private staffService: StaffService,
     private analyticsService: AnalyticsService,
@@ -174,11 +154,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopCrawler();
     if (this.analyticsInterval) clearInterval(this.analyticsInterval);
   }
 
-  switchTab(tab: 'crawler' | 'excel' | 'staff' | 'analytics' | 'courses' | 'settings') {
+  switchTab(tab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings') {
     this.activeTab = tab;
     // Dừng auto-refresh cũ khi đổi tab
     if (this.analyticsInterval) {
@@ -450,15 +429,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       next: (s) => {
         if (s) {
           this.sysSettings = s;
-          if (s.defaultMajorPrefixes && s.defaultMajorPrefixes.length > 0) {
-            this.majorPrefixes = [...s.defaultMajorPrefixes];
-          }
-          if (s.defaultConcurrency) {
-            this.concurrency = s.defaultConcurrency;
-          }
-          if (s.defaultYearFilter) {
-            this.selectedYears = s.defaultYearFilter;
-          }
         }
       },
       error: (err) => console.error('Load settings error:', err),
@@ -468,9 +438,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   saveSettings() {
     this.isSavingSettings = true;
     this.settingsSaveAlert = '';
-    this.sysSettings.defaultMajorPrefixes = [...this.majorPrefixes];
-    this.sysSettings.defaultConcurrency = this.concurrency;
-    this.sysSettings.defaultYearFilter = this.selectedYears;
 
     this.settingsService.updateSettings(this.sysSettings).subscribe({
       next: (res) => {
@@ -514,38 +481,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   removeTag(tag: string) {
     if (this.sysSettings.tags) {
       this.sysSettings.tags = this.sysSettings.tags.filter((t) => t !== tag);
-    }
-  }
-
-  addCrawlerPrefix() {
-    const val = this.newPrefixInputConfig.trim();
-    if (!this.sysSettings.crawlerMajorPrefixes) this.sysSettings.crawlerMajorPrefixes = [];
-    if (val && !this.sysSettings.crawlerMajorPrefixes.includes(val)) {
-      this.sysSettings.crawlerMajorPrefixes.push(val);
-      this.newPrefixInputConfig = '';
-    }
-  }
-
-  removeCrawlerPrefix(prefix: string) {
-    if (this.sysSettings.crawlerMajorPrefixes) {
-      this.sysSettings.crawlerMajorPrefixes = this.sysSettings.crawlerMajorPrefixes.filter(
-        (p) => p !== prefix,
-      );
-    }
-  }
-
-  // Major Prefixes Tag Panel (Legacy Crawler tab)
-  addMajorPrefix() {
-    const val = this.newPrefixInput.trim();
-    if (val && val.length === 3 && !this.majorPrefixes.includes(val)) {
-      this.majorPrefixes.push(val);
-      this.newPrefixInput = '';
-    }
-  }
-
-  removeMajorPrefix(index: number) {
-    if (this.majorPrefixes.length > 1) {
-      this.majorPrefixes.splice(index, 1);
     }
   }
 
@@ -696,49 +631,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.triggerToast('error', 'Lỗi Bàn Giao', err.error?.message || 'Bàn giao lớp thất bại');
         },
       });
-  }
-
-  // Component 1: Concurrency Crawler & Live Stream Table
-  startCrawler() {
-    this.isScanning = true;
-    this.crawlerProgress = null;
-    this.liveFoundStudents = [];
-
-    const prefixesStr = this.majorPrefixes.join(',');
-
-    this.scanSub = this.crawlerService
-      .startScan(this.selectedYears, prefixesStr, this.startSeq, this.endSeq, this.concurrency)
-      .subscribe({
-        next: (event) => {
-          this.crawlerProgress = event;
-
-          if (event.batchFound && event.batchFound.length > 0) {
-            // Push newly found students to the top of the live stream table
-            for (const st of event.batchFound) {
-              if (!this.liveFoundStudents.some((s) => s.studentCode === st.studentCode)) {
-                this.liveFoundStudents.unshift(st);
-              }
-            }
-          }
-
-          if (event.completed) {
-            this.isScanning = false;
-          }
-        },
-        error: (err) => {
-          console.error('Crawler SSE error:', err);
-          this.isScanning = false;
-        },
-      });
-  }
-
-  // Abort Controller / Stop Scan Action
-  stopCrawler() {
-    if (this.scanSub) {
-      this.scanSub.unsubscribe();
-      this.scanSub = undefined;
-    }
-    this.isScanning = false;
   }
 
   // Analytics & Care Report logic

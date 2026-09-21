@@ -5,7 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
-const crawlerRoutes = require('./routes/crawler');
 const excelRoutes = require('./routes/excel');
 const attendanceRoutes = require('./routes/attendance');
 const callTaskRoutes = require('./routes/callTask');
@@ -26,7 +25,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Route Registration
 app.use('/api/auth', authRoutes);
-app.use('/api/crawler', crawlerRoutes);
 app.use('/api/excel', excelRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/call-tasks', callTaskRoutes);
