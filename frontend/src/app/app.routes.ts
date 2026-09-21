@@ -3,6 +3,11 @@ import { adminGuard, staffOrAdminGuard, teacherOrAdminGuard } from './guards/aut
 
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./components/home/home.component').then((m) => m.HomeComponent),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./components/login/login.component').then((m) => m.LoginComponent),
   },
@@ -26,6 +31,5 @@ export const routes: Routes = [
       import('./components/call-task/call-task.component').then((m) => m.CallTaskComponent),
     canActivate: [staffOrAdminGuard],
   },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: '' },
 ];
