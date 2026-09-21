@@ -1,24 +1,26 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col scroll-smooth">
+<div class="min-h-screen bg-white text-slate-900 flex flex-col scroll-smooth">
   <!-- ============ HEADER ============ -->
-  <header class="sticky top-0 z-50 px-6 py-3.5 bg-white/95 backdrop-blur border-b border-slate-200">
+  <header
+    class="sticky top-0 z-50 px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-900/5"
+  >
     <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
       <div class="flex items-center space-x-3">
         <div
-          class="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center font-bold text-white shadow-sm shrink-0"
+          class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center font-bold text-white text-sm shadow-md shadow-slate-900/20 shrink-0"
         >
           ITC
         </div>
         <div>
-          <h1 class="font-bold text-sm leading-tight tracking-tight text-slate-900 uppercase">
+          <h1 class="font-extrabold text-sm leading-tight tracking-tight text-slate-900">
             ITC Student Care
           </h1>
-          <p class="text-[11px] text-slate-500 font-medium">
-            Hệ Thống Quản Lý & Điểm Danh Sinh Viên
+          <p class="text-[11px] text-slate-500 font-medium tracking-wide">
+            Hệ Thống Quản Lý &amp; Điểm Danh Sinh Viên
           </p>
         </div>
       </div>
 
-      <nav class="hidden md:flex items-center gap-6 text-xs font-bold text-slate-600">
+      <nav class="hidden md:flex items-center gap-8 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
         <a href="#tinh-nang" class="hover:text-slate-900 transition-colors">Tính Năng</a>
         <a href="#quy-trinh" class="hover:text-slate-900 transition-colors">Quy Trình</a>
         <a href="#danh-cho-ai" class="hover:text-slate-900 transition-colors">Dành Cho Ai</a>
@@ -27,7 +29,7 @@
 
       <button
         (click)="enterSystem()"
-        class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shadow-sm shrink-0"
+        class="px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold tracking-wide transition-all shadow-sm shrink-0"
       >
         {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG' : 'ĐĂNG NHẬP' }}
       </button>
@@ -37,97 +39,133 @@
   <!-- ============ MAIN ============ -->
   <main class="flex-grow">
     <!-- Hero -->
-    <section class="px-6 py-16 md:py-24 text-center max-w-3xl mx-auto space-y-6">
-      <span
-        class="inline-block px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-bold uppercase tracking-wide"
-      >
-        Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM
-      </span>
-      <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900">
-        Chăm Sóc & Điểm Danh Sinh Viên<br class="hidden md:block" />
-        Đồng Bộ, Chính Xác, Kịp Thời
-      </h2>
-      <p class="text-sm md:text-base text-slate-600 font-medium max-w-2xl mx-auto">
-        Điểm danh theo học phần, tự động phân công nhân viên chăm sóc gọi điện nhắc nhở sinh viên
-        vắng học, và cảnh báo sớm nguy cơ cấm thi cho Phòng Đào Tạo.
-      </p>
-      <div class="flex items-center justify-center gap-3 pt-2">
-        <button
-          (click)="enterSystem()"
-          class="px-6 py-3 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold transition-all shadow-sm"
+    <section class="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-800">
+      <!-- decorative glow -->
+      <div
+        class="pointer-events-none absolute -top-32 -right-24 w-[28rem] h-[28rem] rounded-full bg-amber-400/10 blur-3xl"
+      ></div>
+      <div
+        class="pointer-events-none absolute -bottom-40 -left-24 w-[26rem] h-[26rem] rounded-full bg-blue-500/10 blur-3xl"
+      ></div>
+
+      <div class="relative px-6 pt-20 pb-28 md:pt-28 md:pb-36 text-center max-w-3xl mx-auto space-y-7">
+        <span
+          class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-[11px] font-bold uppercase tracking-widest"
         >
-          {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG →' : 'ĐĂNG NHẬP HỆ THỐNG →' }}
-        </button>
-        <a
-          href="#tinh-nang"
-          class="px-6 py-3 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-sm font-bold transition-all"
-        >
-          Tìm Hiểu Thêm
-        </a>
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM
+        </span>
+        <h2 class="text-4xl md:text-6xl font-black tracking-tight text-white leading-[1.1]">
+          Chăm Sóc &amp; Điểm Danh<br class="hidden md:block" />
+          Sinh Viên <span class="text-amber-400">Chuyên Nghiệp</span>
+        </h2>
+        <p class="text-sm md:text-base text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed">
+          Điểm danh theo học phần, tự động phân công nhân viên chăm sóc gọi điện nhắc nhở sinh viên
+          vắng học, và cảnh báo sớm nguy cơ cấm thi cho Phòng Đào Tạo.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <button
+            (click)="enterSystem()"
+            class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-900 text-sm font-extrabold tracking-wide transition-all shadow-lg shadow-amber-500/20"
+          >
+            {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG →' : 'ĐĂNG NHẬP HỆ THỐNG →' }}
+          </button>
+          <a
+            href="#tinh-nang"
+            class="w-full sm:w-auto px-7 py-3.5 rounded-full border border-white/20 hover:bg-white/10 text-white text-sm font-bold tracking-wide transition-all"
+          >
+            Tìm Hiểu Thêm
+          </a>
+        </div>
       </div>
     </section>
 
-    <!-- Stats strip -->
-    <section class="px-6 pb-16 md:pb-20">
+    <!-- Stats card, overlapping the hero -->
+    <section class="px-6">
       <div
-        class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-slate-200 rounded-md shadow-sm p-6"
+        class="max-w-5xl mx-auto -mt-14 md:-mt-16 relative z-10 bg-white rounded-2xl shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-slate-100"
       >
-        <div class="text-center space-y-1">
-          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">3</p>
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Vai Trò Người Dùng</p>
+        <div class="text-center py-7 px-4 space-y-1">
+          <p class="text-3xl md:text-4xl font-black text-slate-900">3</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vai Trò Người Dùng</p>
         </div>
-        <div class="text-center space-y-1">
-          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">100%</p>
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tự Động Phân Công</p>
+        <div class="text-center py-7 px-4 space-y-1">
+          <p class="text-3xl md:text-4xl font-black text-slate-900">100<span class="text-amber-500">%</span></p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tự Động Phân Công</p>
         </div>
-        <div class="text-center space-y-1">
-          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">24/7</p>
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Theo Dõi Trạng Thái</p>
+        <div class="text-center py-7 px-4 space-y-1">
+          <p class="text-3xl md:text-4xl font-black text-slate-900">24/7</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Theo Dõi Trạng Thái</p>
         </div>
-        <div class="text-center space-y-1">
-          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">Sớm</p>
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Cảnh Báo Cấm Thi</p>
+        <div class="text-center py-7 px-4 space-y-1">
+          <p class="text-3xl md:text-4xl font-black text-slate-900">Sớm</p>
+          <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cảnh Báo Cấm Thi</p>
         </div>
       </div>
     </section>
 
     <!-- Feature highlights -->
-    <section id="tinh-nang" class="px-6 py-16 md:py-20 scroll-mt-20">
-      <div class="max-w-6xl mx-auto space-y-10">
-        <div class="text-center space-y-2 max-w-2xl mx-auto">
-          <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
-            Tính Năng Chính
+    <section id="tinh-nang" class="px-6 pt-20 pb-16 md:pt-28 md:pb-20 scroll-mt-20">
+      <div class="max-w-6xl mx-auto space-y-12">
+        <div class="text-center space-y-3 max-w-2xl mx-auto">
+          <span class="text-[11px] font-bold text-amber-600 uppercase tracking-widest">Tính Năng</span>
+          <h3 class="text-2xl md:text-4xl font-black tracking-tight text-slate-900">
+            Mọi Khâu Được Số Hóa Trọn Vẹn
           </h3>
-          <p class="text-sm text-slate-600 font-medium">
-            Mọi khâu từ điểm danh đến chăm sóc sinh viên đều được số hóa và tự động hóa.
+          <p class="text-sm text-slate-500 font-medium">
+            Từ điểm danh đến chăm sóc sinh viên, vận hành mượt mà và tự động.
           </p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-            <div class="text-2xl">📋</div>
-            <h4 class="font-bold text-sm text-slate-900">Điểm Danh Theo Học Phần</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div
+            class="group bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 hover:-translate-y-1 transition-all duration-300"
+          >
+            <div
+              class="w-11 h-11 rounded-xl bg-slate-900 group-hover:bg-amber-400 flex items-center justify-center text-lg transition-colors duration-300"
+            >
+              📋
+            </div>
+            <h4 class="font-extrabold text-sm text-slate-900">Điểm Danh Theo Học Phần</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Giảng viên điểm danh nhanh theo từng buổi học, tự động đối chiếu lịch học trong tuần.
             </p>
           </div>
-          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-            <div class="text-2xl">📞</div>
-            <h4 class="font-bold text-sm text-slate-900">Nhiệm Vụ Gọi Điện Tự Động</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+          <div
+            class="group bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 hover:-translate-y-1 transition-all duration-300"
+          >
+            <div
+              class="w-11 h-11 rounded-xl bg-slate-900 group-hover:bg-amber-400 flex items-center justify-center text-lg transition-colors duration-300"
+            >
+              📞
+            </div>
+            <h4 class="font-extrabold text-sm text-slate-900">Nhiệm Vụ Gọi Điện Tự Động</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Sinh viên vắng học được tự động phân công cho nhân viên CSKH liên hệ nhắc nhở.
             </p>
           </div>
-          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-            <div class="text-2xl">⚠️</div>
-            <h4 class="font-bold text-sm text-slate-900">Cảnh Báo Nguy Cơ Cấm Thi</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+          <div
+            class="group bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 hover:-translate-y-1 transition-all duration-300"
+          >
+            <div
+              class="w-11 h-11 rounded-xl bg-slate-900 group-hover:bg-amber-400 flex items-center justify-center text-lg transition-colors duration-300"
+            >
+              ⚠️
+            </div>
+            <h4 class="font-extrabold text-sm text-slate-900">Cảnh Báo Nguy Cơ Cấm Thi</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Thống kê số buổi vắng theo học phần, cảnh báo sớm cho Phòng Đào Tạo can thiệp kịp thời.
             </p>
           </div>
-          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-            <div class="text-2xl">🔐</div>
-            <h4 class="font-bold text-sm text-slate-900">Phân Quyền Theo Vai Trò</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+          <div
+            class="group bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm hover:shadow-xl hover:shadow-slate-900/5 hover:-translate-y-1 transition-all duration-300"
+          >
+            <div
+              class="w-11 h-11 rounded-xl bg-slate-900 group-hover:bg-amber-400 flex items-center justify-center text-lg transition-colors duration-300"
+            >
+              🔐
+            </div>
+            <h4 class="font-extrabold text-sm text-slate-900">Phân Quyền Theo Vai Trò</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Quản trị viên, Giảng viên và Nhân viên CSKH mỗi vai trò một khu vực làm việc riêng.
             </p>
           </div>
@@ -136,54 +174,58 @@
     </section>
 
     <!-- How it works -->
-    <section id="quy-trinh" class="px-6 py-16 md:py-20 bg-white border-y border-slate-200 scroll-mt-20">
-      <div class="max-w-6xl mx-auto space-y-10">
-        <div class="text-center space-y-2 max-w-2xl mx-auto">
-          <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
-            Quy Trình Hoạt Động
+    <section id="quy-trinh" class="px-6 py-16 md:py-20 bg-slate-50 scroll-mt-20">
+      <div class="max-w-6xl mx-auto space-y-12">
+        <div class="text-center space-y-3 max-w-2xl mx-auto">
+          <span class="text-[11px] font-bold text-amber-600 uppercase tracking-widest">Quy Trình</span>
+          <h3 class="text-2xl md:text-4xl font-black tracking-tight text-slate-900">
+            Chỉ 4 Bước, Khép Kín Toàn Trình
           </h3>
-          <p class="text-sm text-slate-600 font-medium">
-            Từ điểm danh trên lớp đến khi Phòng Đào Tạo nhận được cảnh báo, chỉ qua 4 bước.
+          <p class="text-sm text-slate-500 font-medium">
+            Từ điểm danh trên lớp đến khi Phòng Đào Tạo nhận được cảnh báo.
           </p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+        <div class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div
+            class="hidden lg:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"
+          ></div>
+          <div class="relative bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm">
             <span
-              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
-              >1</span
+              class="relative z-10 inline-flex w-12 h-12 rounded-full bg-slate-900 text-white text-sm font-black items-center justify-center shadow-md shadow-slate-900/20"
+              >01</span
             >
-            <h4 class="font-bold text-sm text-slate-900 pt-1">Giảng Viên Điểm Danh</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <h4 class="font-extrabold text-sm text-slate-900 pt-1">Giảng Viên Điểm Danh</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Ghi nhận sinh viên vắng học theo từng buổi trong học phần.
             </p>
           </div>
-          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+          <div class="relative bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm">
             <span
-              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
-              >2</span
+              class="relative z-10 inline-flex w-12 h-12 rounded-full bg-slate-900 text-white text-sm font-black items-center justify-center shadow-md shadow-slate-900/20"
+              >02</span
             >
-            <h4 class="font-bold text-sm text-slate-900 pt-1">Hệ Thống Tự Phân Công</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <h4 class="font-extrabold text-sm text-slate-900 pt-1">Hệ Thống Tự Phân Công</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Sinh viên vắng được tự động tạo nhiệm vụ gọi điện, chia đều cho nhân viên CSKH.
             </p>
           </div>
-          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+          <div class="relative bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm">
             <span
-              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
-              >3</span
+              class="relative z-10 inline-flex w-12 h-12 rounded-full bg-slate-900 text-white text-sm font-black items-center justify-center shadow-md shadow-slate-900/20"
+              >03</span
             >
-            <h4 class="font-bold text-sm text-slate-900 pt-1">Nhân Viên CSKH Liên Hệ</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <h4 class="font-extrabold text-sm text-slate-900 pt-1">Nhân Viên CSKH Liên Hệ</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Gọi điện nhắc nhở, ghi nhận lý do vắng và cập nhật trạng thái xử lý.
             </p>
           </div>
-          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+          <div class="relative bg-white border border-slate-100 rounded-2xl p-6 space-y-3 shadow-sm">
             <span
-              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
-              >4</span
+              class="relative z-10 inline-flex w-12 h-12 rounded-full bg-amber-400 text-slate-900 text-sm font-black items-center justify-center shadow-md shadow-amber-500/30"
+              >04</span
             >
-            <h4 class="font-bold text-sm text-slate-900 pt-1">Cảnh Báo Cấm Thi</h4>
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <h4 class="font-extrabold text-sm text-slate-900 pt-1">Cảnh Báo Cấm Thi</h4>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">
               Sinh viên vắng quá số buổi quy định được đưa vào danh sách cảnh báo cho Ban Giám Hiệu.
             </p>
           </div>
@@ -193,42 +235,46 @@
 
     <!-- Who it's for -->
     <section id="danh-cho-ai" class="px-6 py-16 md:py-20 scroll-mt-20">
-      <div class="max-w-6xl mx-auto space-y-10">
-        <div class="text-center space-y-2 max-w-2xl mx-auto">
-          <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
-            Dành Cho Ai
+      <div class="max-w-6xl mx-auto space-y-12">
+        <div class="text-center space-y-3 max-w-2xl mx-auto">
+          <span class="text-[11px] font-bold text-amber-600 uppercase tracking-widest">Dành Cho Ai</span>
+          <h3 class="text-2xl md:text-4xl font-black tracking-tight text-slate-900">
+            Một Khu Vực Làm Việc, Cho Mỗi Vai Trò
           </h3>
-          <p class="text-sm text-slate-600 font-medium">
-            Mỗi vai trò có một khu vực làm việc riêng, đúng với nhiệm vụ được phân công.
-          </p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white border border-slate-200 rounded-md p-6 space-y-3 shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div
+            class="bg-white border-t-4 border-slate-900 rounded-2xl p-7 space-y-3 shadow-sm ring-1 ring-slate-900/5"
+          >
             <span
-              class="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-900 border border-slate-300 text-[10px] font-bold uppercase"
+              class="inline-block px-3 py-1 rounded-full bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest"
               >Quản Trị Viên</span
             >
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <p class="text-xs text-slate-500 font-medium leading-relaxed pt-1">
               Cấu hình học phần, nhập sinh viên hàng loạt qua Excel, phân quyền nhân sự CSKH và xem
               báo cáo thống kê cảnh báo cấm thi toàn trường.
             </p>
           </div>
-          <div class="bg-white border border-slate-200 rounded-md p-6 space-y-3 shadow-sm">
+          <div
+            class="bg-white border-t-4 border-amber-400 rounded-2xl p-7 space-y-3 shadow-sm ring-1 ring-slate-900/5"
+          >
             <span
-              class="inline-block px-2.5 py-1 rounded-md bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase"
+              class="inline-block px-3 py-1 rounded-full bg-amber-400 text-slate-900 text-[10px] font-bold uppercase tracking-widest"
               >Giảng Viên</span
             >
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <p class="text-xs text-slate-500 font-medium leading-relaxed pt-1">
               Điểm danh theo từng buổi học của học phần mình phụ trách, xem lại lịch sử và thời
               khóa biểu.
             </p>
           </div>
-          <div class="bg-white border border-slate-200 rounded-md p-6 space-y-3 shadow-sm">
+          <div
+            class="bg-white border-t-4 border-blue-600 rounded-2xl p-7 space-y-3 shadow-sm ring-1 ring-slate-900/5"
+          >
             <span
-              class="inline-block px-2.5 py-1 rounded-md bg-blue-50 text-blue-900 border border-blue-200 text-[10px] font-bold uppercase"
+              class="inline-block px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest"
               >Nhân Viên CSKH</span
             >
-            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+            <p class="text-xs text-slate-500 font-medium leading-relaxed pt-1">
               Nhận nhiệm vụ gọi điện cho sinh viên vắng học được phân công, ghi nhận lý do và cập
               nhật kết quả liên hệ.
             </p>
@@ -238,23 +284,28 @@
     </section>
 
     <!-- Contact / CTA banner -->
-    <section id="lien-he" class="px-6 pb-16 md:pb-20 scroll-mt-20">
+    <section id="lien-he" class="px-6 pb-20 md:pb-28 scroll-mt-20">
       <div
-        class="max-w-6xl mx-auto bg-slate-800 text-white rounded-md shadow-sm p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6"
+        class="relative overflow-hidden max-w-6xl mx-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white rounded-3xl shadow-xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6"
       >
-        <div class="text-center md:text-left space-y-1">
-          <h3 class="text-lg md:text-xl font-extrabold">Cần hỗ trợ sử dụng hệ thống?</h3>
+        <div
+          class="pointer-events-none absolute -top-20 -right-10 w-72 h-72 rounded-full bg-amber-400/10 blur-3xl"
+        ></div>
+        <div class="relative text-center md:text-left space-y-2">
+          <h3 class="text-xl md:text-2xl font-extrabold">Cần hỗ trợ sử dụng hệ thống?</h3>
           <p class="text-xs md:text-sm text-slate-300 font-medium">
-            Phòng Đào Tạo & Chăm Sóc Sinh Viên luôn sẵn sàng hỗ trợ bạn.
+            Phòng Đào Tạo &amp; Chăm Sóc Sinh Viên luôn sẵn sàng hỗ trợ bạn.
           </p>
-          <div class="flex items-center justify-center md:justify-start gap-4 pt-1 text-xs font-semibold text-slate-200">
-            <span>📞 028 3965 1114</span>
-            <span>✉️ cskh@itc.edu.vn</span>
+          <div
+            class="flex items-center justify-center md:justify-start gap-5 pt-2 text-xs font-bold text-slate-200"
+          >
+            <span class="flex items-center gap-1.5">📞 028 3965 1114</span>
+            <span class="flex items-center gap-1.5">✉️ cskh&#64;itc.edu.vn</span>
           </div>
         </div>
         <button
           (click)="enterSystem()"
-          class="px-6 py-3 rounded-md bg-white hover:bg-slate-100 text-slate-900 text-sm font-bold transition-all shadow-sm shrink-0"
+          class="relative px-7 py-3.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-900 text-sm font-extrabold tracking-wide transition-all shadow-lg shadow-amber-500/20 shrink-0"
         >
           {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG →' : 'ĐĂNG NHẬP HỆ THỐNG →' }}
         </button>
@@ -263,31 +314,31 @@
   </main>
 
   <!-- ============ FOOTER ============ -->
-  <footer class="bg-white border-t border-slate-200">
-    <div class="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+  <footer class="bg-slate-950 text-slate-400">
+    <div class="max-w-6xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
       <div class="space-y-3">
         <div class="flex items-center space-x-3">
           <div
-            class="w-9 h-9 rounded-md bg-slate-800 flex items-center justify-center font-bold text-white text-sm shadow-sm"
+            class="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center font-bold text-white text-sm shadow-sm ring-1 ring-white/10"
           >
             ITC
           </div>
-          <h4 class="font-bold text-sm text-slate-900 uppercase tracking-tight">ITC Student Care</h4>
+          <h4 class="font-extrabold text-sm text-white tracking-tight">ITC Student Care</h4>
         </div>
-        <p class="text-xs text-slate-500 font-medium leading-relaxed max-w-xs">
+        <p class="text-xs text-slate-400 font-medium leading-relaxed max-w-xs">
           Hệ thống quản lý điểm danh và chăm sóc sinh viên của Trường Cao Đẳng Công Nghệ Thông Tin
           TP.HCM.
         </p>
       </div>
 
       <div class="space-y-3">
-        <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wide">Liên Kết Nhanh</h4>
-        <ul class="space-y-2 text-xs font-medium text-slate-500">
-          <li><a href="#tinh-nang" class="hover:text-slate-900 transition-colors">Tính Năng</a></li>
-          <li><a href="#quy-trinh" class="hover:text-slate-900 transition-colors">Quy Trình</a></li>
-          <li><a href="#danh-cho-ai" class="hover:text-slate-900 transition-colors">Dành Cho Ai</a></li>
+        <h4 class="font-bold text-[11px] text-white uppercase tracking-widest">Liên Kết Nhanh</h4>
+        <ul class="space-y-2.5 text-xs font-medium text-slate-400">
+          <li><a href="#tinh-nang" class="hover:text-amber-400 transition-colors">Tính Năng</a></li>
+          <li><a href="#quy-trinh" class="hover:text-amber-400 transition-colors">Quy Trình</a></li>
+          <li><a href="#danh-cho-ai" class="hover:text-amber-400 transition-colors">Dành Cho Ai</a></li>
           <li>
-            <a href="javascript:void(0)" (click)="enterSystem()" class="hover:text-slate-900 transition-colors"
+            <a href="javascript:void(0)" (click)="enterSystem()" class="hover:text-amber-400 transition-colors"
               >Đăng Nhập Hệ Thống</a
             >
           </li>
@@ -295,8 +346,8 @@
       </div>
 
       <div class="space-y-3">
-        <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wide">Liên Hệ</h4>
-        <ul class="space-y-2 text-xs font-medium text-slate-500">
+        <h4 class="font-bold text-[11px] text-white uppercase tracking-widest">Liên Hệ</h4>
+        <ul class="space-y-2.5 text-xs font-medium text-slate-400">
           <li>🏫 Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC)</li>
           <li>🏢 Phòng Đào Tạo &amp; Chăm Sóc Sinh Viên</li>
           <li>📞 028 3965 1114</li>
@@ -305,9 +356,7 @@
       </div>
     </div>
 
-    <div
-      class="px-6 py-4 text-center text-[11px] font-medium text-slate-500 border-t border-slate-200"
-    >
+    <div class="px-6 py-5 text-center text-[11px] font-medium text-slate-500 border-t border-white/10">
       Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026 &mdash; ITC Student Care System
     </div>
   </footer>
