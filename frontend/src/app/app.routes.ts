@@ -31,5 +31,10 @@ export const routes: Routes = [
       import('./components/call-task/call-task.component').then((m) => m.CallTaskComponent),
     canActivate: [staffOrAdminGuard],
   },
+  {
+    path: 'tasks',
+    loadComponent: () => import('./components/task/task.component').then((m) => m.TaskComponent),
+    canActivate: [staffOrAdminGuard],
+  },
   { path: '**', redirectTo: '' },
 ];

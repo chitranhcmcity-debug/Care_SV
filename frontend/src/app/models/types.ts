@@ -86,6 +86,35 @@ export interface TimelineItem {
   callAttempts?: number;
 }
 
+export type TaskStatus = 'Mới giao' | 'Đã xác nhận' | 'Chờ duyệt' | 'Hoàn thành' | 'Bị từ chối';
+
+export interface TaskEvidenceFile {
+  _id: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+}
+
+export interface WorkTask {
+  _id: string;
+  title: string;
+  description: string;
+  assignedBy: { fullName: string; email: string } | string;
+  assignedTo: { fullName: string; email: string } | string;
+  dueDate?: string | null;
+  status: TaskStatus;
+  evidenceNote?: string;
+  evidenceLink?: string;
+  evidenceFiles?: TaskEvidenceFile[];
+  reviewNote?: string;
+  reviewedBy?: { fullName: string; email: string } | string | null;
+  acknowledgedAt?: string | null;
+  submittedAt?: string | null;
+  completedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Student360Profile {
   student: Student;
   timeline: TimelineItem[];

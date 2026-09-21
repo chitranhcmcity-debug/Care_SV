@@ -14,9 +14,11 @@ const CourseGroup = require('../models/CourseGroup');
 const Attendance = require('../models/Attendance');
 const CallTask = require('../models/CallTask');
 const Settings = require('../models/SystemSettings');
+const Task = require('../models/Task');
 const { getConfig } = require('../config/env');
 const { dateKey } = require('../utils/validation');
 const { CALL_STATUS, CALL_STATUSES } = require('../constants/callStatus');
+const { TASK_STATUS } = require('../constants/taskStatus');
 let database, server, base, users, tokens, students, group, otherGroup;
 
 async function request(path, token, method = 'GET', body) {
@@ -512,6 +514,176 @@ test('deleting a course group cascades to its attendance, call tasks and student
   assert.equal(await Attendance.countDocuments({ _id: attendance._id }), 0);
   assert.equal(await CallTask.countDocuments({ _id: task._id }), 0);
   assert.ok(!(await Student.findById(doomedStudent._id)).courseGroups.includes('DOOM_GROUP'));
+});
+
+// Earlier tests exercise password-reset and status-toggle on users.staff/users.other,
+// which bumps tokenVersion and revokes tokens.staff/tokens.other. The task tests need
+// their own freshly-signed, never-revoked staff accounts.
+async function createTaskStaff(suffix) {
+  const password = await bcrypt.hash('task-staff-password', 4);
+  const staff = await User.create({
+    fullName: `Task Staff ${suffix}`,
+    email: `task-staff-${suffix}@example.test`,
+    password,
+    role: 'staff',
+  });
+  return { staff, token: sign(staff) };
+}
+
+test('task creation is admin-only and requires an active staff assignee', async () => {
+  const { staff, token } = await createTaskStaff('perm');
+  assert.equal(
+    (
+      await request('/tasks', token, 'POST', {
+        title: 'x',
+        description: 'y',
+        assignedTo: String(staff._id),
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await request('/tasks', tokens.admin, 'POST', {
+        title: '',
+        description: 'y',
+        assignedTo: String(staff._id),
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await request('/tasks', tokens.admin, 'POST', {
+        title: 'x',
+        description: 'y',
+        assignedTo: String(users.teacher._id), // not a 'staff' role
+      })
+    ).status,
+    400,
+  );
+});
+
+test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve', async () => {
+  const { staff: assignee, token: assigneeToken } = await createTaskStaff('lifecycle-assignee');
+  const { token: bystanderToken } = await createTaskStaff('lifecycle-bystander');
+
+  const create = await request('/tasks', tokens.admin, 'POST', {
+    title: 'Gọi nhắc học phí học kỳ mới',
+    description: 'Gọi cho danh sách sinh viên còn nợ học phí trước ngày 30/09.',
+    assignedTo: String(assignee._id),
+    dueDate: '2026-12-31',
+  });
+  assert.equal(create.status, 201);
+  assert.equal(create.body.task.status, TASK_STATUS.PENDING);
+  const taskId = create.body.task._id;
+
+  // Another staff member cannot act on someone else's task.
+  assert.equal(
+    (await request(`/tasks/${taskId}/acknowledge`, bystanderToken, 'PUT')).status,
+    403,
+  );
+  // The admin who assigned it cannot acknowledge on the assignee's behalf either.
+  assert.equal((await request(`/tasks/${taskId}/acknowledge`, tokens.admin, 'PUT')).status, 403);
+
+  const ack = await request(`/tasks/${taskId}/acknowledge`, assigneeToken, 'PUT');
+  assert.equal(ack.status, 200);
+  assert.equal(ack.body.task.status, TASK_STATUS.ACKNOWLEDGED);
+
+  // Submitting with no note, link or file is rejected.
+  assert.equal(
+    (
+      await fetch(`${base}/tasks/${taskId}/submit`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${assigneeToken}` },
+        body: new FormData(),
+      })
+    ).status,
+    400,
+  );
+
+  const form = new FormData();
+  form.append('note', 'Đã gọi và nhắc nhở đầy đủ danh sách.');
+  form.append('link', 'https://drive.example.com/proof');
+  form.append('files', new Blob(['fake image bytes'], { type: 'image/png' }), 'proof.png');
+  const submitRes = await fetch(`${base}/tasks/${taskId}/submit`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${assigneeToken}` },
+    body: form,
+  });
+  assert.equal(submitRes.status, 200);
+  const submitted = await submitRes.json();
+  assert.equal(submitted.task.status, TASK_STATUS.SUBMITTED);
+  assert.equal(submitted.task.evidenceFiles.length, 1);
+  const fileId = submitted.task.evidenceFiles[0]._id;
+
+  // Evidence is only reachable by the admin or the assignee.
+  assert.equal(
+    (await request(`/tasks/${taskId}/evidence/${fileId}`, bystanderToken)).status,
+    403,
+  );
+  const fileRes = await fetch(`${base}/tasks/${taskId}/evidence/${fileId}`, {
+    headers: { Authorization: `Bearer ${assigneeToken}` },
+  });
+  assert.equal(fileRes.status, 200);
+  assert.equal(fileRes.headers.get('content-type'), 'image/png');
+
+  // Reject once: the task bounces back for rework.
+  const reject = await request(`/tasks/${taskId}/review`, tokens.admin, 'PUT', {
+    approve: false,
+    reviewNote: 'Thiếu ảnh chụp danh sách đã gọi.',
+  });
+  assert.equal(reject.status, 200);
+  assert.equal(reject.body.task.status, TASK_STATUS.REJECTED);
+
+  const resubmitForm = new FormData();
+  resubmitForm.append('note', 'Đã bổ sung ảnh chụp danh sách.');
+  const resubmit = await fetch(`${base}/tasks/${taskId}/submit`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${assigneeToken}` },
+    body: resubmitForm,
+  });
+  assert.equal(resubmit.status, 200);
+  assert.equal((await resubmit.json()).task.status, TASK_STATUS.SUBMITTED);
+
+  const approve = await request(`/tasks/${taskId}/review`, tokens.admin, 'PUT', { approve: true });
+  assert.equal(approve.status, 200);
+  assert.equal(approve.body.task.status, TASK_STATUS.COMPLETED);
+  assert.ok(approve.body.task.completedAt);
+
+  // Closed tasks no longer count toward the staff member's pending badge.
+  const pending = await request('/tasks/pending-count', assigneeToken);
+  assert.equal(pending.status, 200);
+  assert.equal(pending.body.pendingCount, 0);
+});
+
+test('deleting a task removes its evidence files from disk', async () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { staff, token } = await createTaskStaff('delete-cleanup');
+  const create = await request('/tasks', tokens.admin, 'POST', {
+    title: 'Nhiệm vụ sẽ bị xóa',
+    description: 'Kiểm tra dọn file khi xóa nhiệm vụ.',
+    assignedTo: String(staff._id),
+  });
+  const taskId = create.body.task._id;
+  await request(`/tasks/${taskId}/acknowledge`, token, 'PUT');
+
+  const form = new FormData();
+  form.append('files', new Blob(['temp'], { type: 'image/png' }), 'temp.png');
+  await fetch(`${base}/tasks/${taskId}/submit`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+
+  const saved = await Task.findById(taskId);
+  const storedName = saved.evidenceFiles[0].storedName;
+  const diskPath = path.join(__dirname, '..', 'uploads', 'tasks', storedName);
+  assert.ok(fs.existsSync(diskPath));
+
+  assert.equal((await request(`/tasks/${taskId}`, tokens.admin, 'DELETE')).status, 200);
+  assert.ok(!fs.existsSync(diskPath));
 });
 
 test('unknown API routes return JSON and malformed JSON uses the error handler', async () => {

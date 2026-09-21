@@ -54,6 +54,21 @@
           {{ unreadCount }}
         </span>
       </a>
+
+      <a
+        *ngIf="authService.isStaff()"
+        routerLink="/tasks"
+        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
+        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all relative"
+      >
+        <span>🗂️ Nhiệm vụ Được Giao</span>
+        <span
+          *ngIf="pendingTaskCount > 0"
+          class="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-700 text-white text-[10px] font-bold"
+        >
+          {{ pendingTaskCount }}
+        </span>
+      </a>
     </div>
 
     <!-- User Profile & Logout -->

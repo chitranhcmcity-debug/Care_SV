@@ -108,6 +108,17 @@
       👥 Nhân Sự CSKH
     </button>
     <button
+      (click)="switchTab('tasks')"
+      [ngClass]="
+        activeTab === 'tasks'
+          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
+          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
+      "
+      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
+    >
+      🗂️ Giao Việc
+    </button>
+    <button
       (click)="switchTab('analytics')"
       [ngClass]="
         activeTab === 'analytics'
@@ -697,6 +708,273 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- COMPONENT 3B: TASK ASSIGNMENT (GIAO VIỆC) -->
+  <div *ngIf="activeTab === 'tasks'" class="space-y-6">
+    <!-- Create Task Form -->
+    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+      <h3 class="text-base font-extrabold text-slate-900 uppercase tracking-tight">
+        ➕ Giao Nhiệm Vụ Mới
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tiêu Đề</label>
+          <input
+            type="text"
+            [(ngModel)]="taskForm.title"
+            placeholder="VD: Gọi nhắc học phí học kỳ mới"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+          />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+            Mô Tả Nhiệm Vụ Cụ Thể
+          </label>
+          <textarea
+            [(ngModel)]="taskForm.description"
+            rows="3"
+            placeholder="Mô tả chi tiết công việc cần thực hiện..."
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+          ></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+            Giao Cho Nhân Viên
+          </label>
+          <select
+            [(ngModel)]="taskForm.assignedTo"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+          >
+            <option value="">-- Chọn nhân viên CSKH --</option>
+            <option *ngFor="let s of staffOnlyList" [value]="s._id || s.id">
+              {{ s.fullName }} ({{ s.email }})
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+            Hạn Chót (không bắt buộc)
+          </label>
+          <input
+            type="date"
+            [(ngModel)]="taskForm.dueDate"
+            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+          />
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button
+          (click)="createTask()"
+          [disabled]="isCreatingTask"
+          class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-extrabold rounded-xl touch-target text-sm transition-all shadow-sm"
+        >
+          {{ isCreatingTask ? 'Đang giao việc...' : '📤 GIAO NHIỆM VỤ' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats + Filter -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 flex-1">
+        <div class="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-sm">
+          <div class="text-lg font-extrabold text-slate-900">{{ taskList.length }}</div>
+          <div class="text-[10px] font-bold text-slate-500 uppercase">Tổng</div>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center shadow-sm">
+          <div class="text-lg font-extrabold text-amber-900">{{ taskStatusCount('Mới giao') }}</div>
+          <div class="text-[10px] font-bold text-amber-700 uppercase">Mới Giao</div>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center shadow-sm">
+          <div class="text-lg font-extrabold text-blue-900">
+            {{ taskStatusCount('Đã xác nhận') }}
+          </div>
+          <div class="text-[10px] font-bold text-blue-700 uppercase">Đang Làm</div>
+        </div>
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center shadow-sm">
+          <div class="text-lg font-extrabold text-purple-900">
+            {{ taskStatusCount('Chờ duyệt') }}
+          </div>
+          <div class="text-[10px] font-bold text-purple-700 uppercase">Chờ Duyệt</div>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center shadow-sm">
+          <div class="text-lg font-extrabold text-emerald-900">
+            {{ taskStatusCount('Hoàn thành') }}
+          </div>
+          <div class="text-[10px] font-bold text-emerald-700 uppercase">Hoàn Thành</div>
+        </div>
+      </div>
+      <select
+        [(ngModel)]="taskFilterStatus"
+        (change)="loadTasks()"
+        class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white shadow-sm"
+      >
+        <option value="">Tất cả Trạng thái</option>
+        <option value="Mới giao">🆕 Mới giao</option>
+        <option value="Đã xác nhận">▶️ Đã xác nhận</option>
+        <option value="Chờ duyệt">⏳ Chờ duyệt</option>
+        <option value="Hoàn thành">✅ Hoàn thành</option>
+        <option value="Bị từ chối">↩️ Bị từ chối</option>
+      </select>
+    </div>
+
+    <!-- Task List -->
+    <div class="space-y-3">
+      <div
+        *ngFor="let task of taskList"
+        class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3"
+      >
+        <div class="flex items-start justify-between flex-wrap gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span
+                class="px-2.5 py-1 rounded-full text-[11px] font-black"
+                [ngClass]="{
+                  'bg-amber-600 text-white': task.status === 'Mới giao',
+                  'bg-blue-700 text-white': task.status === 'Đã xác nhận',
+                  'bg-rose-600 text-white': task.status === 'Bị từ chối',
+                  'bg-purple-700 text-white': task.status === 'Chờ duyệt',
+                  'bg-emerald-700 text-white': task.status === 'Hoàn thành',
+                }"
+              >
+                {{ task.status }}
+              </span>
+              <span
+                *ngIf="isTaskOverdue(task)"
+                class="px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-300"
+              >
+                ⚠️ QUÁ HẠN
+              </span>
+            </div>
+            <h4 class="text-base font-extrabold text-slate-900">{{ task.title }}</h4>
+            <p class="text-xs text-slate-600 font-medium max-w-xl">{{ task.description }}</p>
+          </div>
+          <div class="text-right text-xs text-slate-500 font-semibold space-y-0.5">
+            <div>Nhân viên: <b class="text-slate-800">{{ displayTaskUser(task.assignedTo) }}</b></div>
+            <div *ngIf="task.dueDate">
+              Hạn chót: <b class="text-slate-800">{{ task.dueDate | date: 'dd/MM/yyyy' }}</b>
+            </div>
+            <button
+              *ngIf="task.status === 'Mới giao' || task.status === 'Đã xác nhận'"
+              (click)="deleteTask(task)"
+              class="text-rose-600 hover:text-rose-800 font-bold text-[11px] mt-1"
+            >
+              🗑️ Xóa nhiệm vụ
+            </button>
+          </div>
+        </div>
+
+        <!-- Evidence preview when waiting for review -->
+        <div
+          *ngIf="task.status === 'Chờ duyệt'"
+          class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2"
+        >
+          <div class="text-[11px] font-bold text-purple-700 uppercase">Minh chứng đã nộp:</div>
+          <p *ngIf="task.evidenceNote" class="text-xs text-slate-700 font-medium">
+            📝 {{ task.evidenceNote }}
+          </p>
+          <a
+            *ngIf="task.evidenceLink"
+            [href]="task.evidenceLink"
+            target="_blank"
+            rel="noopener"
+            class="text-xs text-blue-700 font-bold underline break-all block"
+          >
+            🔗 {{ task.evidenceLink }}
+          </a>
+          <div *ngIf="task.evidenceFiles?.length" class="flex flex-wrap gap-2 pt-1">
+            <button
+              *ngFor="let file of task.evidenceFiles"
+              type="button"
+              (click)="viewTaskFile(task._id, file)"
+              class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100"
+            >
+              📎 {{ file.originalName }} ({{ formatFileSize(file.size) }})
+            </button>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button
+              (click)="openReviewModal(task)"
+              class="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-extrabold shadow-sm"
+            >
+              ⚖️ DUYỆT NHIỆM VỤ
+            </button>
+          </div>
+        </div>
+
+        <div
+          *ngIf="task.status === 'Hoàn thành' && task.reviewNote"
+          class="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold"
+        >
+          ✅ Nhận xét: {{ task.reviewNote }}
+        </div>
+        <div
+          *ngIf="task.status === 'Bị từ chối' && task.reviewNote"
+          class="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold"
+        >
+          ↩️ Lý do từ chối: {{ task.reviewNote }}
+        </div>
+      </div>
+
+      <div
+        *ngIf="taskList.length === 0"
+        class="p-12 text-center bg-white border border-slate-200 rounded-2xl space-y-3 shadow-sm"
+      >
+        <div class="text-4xl">🗂️</div>
+        <h3 class="text-lg font-bold text-slate-900">Chưa Có Nhiệm Vụ Nào</h3>
+        <p class="text-xs text-slate-500 font-medium">Tạo nhiệm vụ mới bằng biểu mẫu phía trên.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REVIEW TASK SUBMISSION -->
+  <div
+    *ngIf="showTaskReviewModal"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex items-start justify-between border-b border-slate-200 pb-3">
+        <div>
+          <div
+            class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 text-[11px] font-black uppercase"
+          >
+            ⚖️ Duyệt Nhiệm Vụ
+          </div>
+          <h3 class="text-lg font-extrabold text-slate-900 mt-1">{{ reviewingTask?.title }}</h3>
+        </div>
+        <button
+          (click)="showTaskReviewModal = false"
+          class="text-slate-400 hover:text-slate-700 font-bold text-2xl"
+        >
+          ✖
+        </button>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+          Nhận xét (không bắt buộc)
+        </label>
+        <textarea
+          [(ngModel)]="reviewNoteInput"
+          rows="3"
+          placeholder="Nhận xét khi duyệt hoặc lý do yêu cầu làm lại..."
+          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
+        ></textarea>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button
+          (click)="submitTaskReview(false)"
+          class="px-5 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-extrabold text-xs border border-rose-300"
+        >
+          ↩️ TỪ CHỐI, YÊU CẦU LÀM LẠI
+        </button>
+        <button
+          (click)="submitTaskReview(true)"
+          class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-sm"
+        >
+          ✅ DUYỆT & ĐÓNG NHIỆM VỤ
+        </button>
+      </div>
     </div>
   </div>
 

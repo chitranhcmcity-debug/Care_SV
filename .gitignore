@@ -3,6 +3,7 @@ node_modules/
 .env.*
 !.env.example
 db_data/
+backend/uploads/
 dist/
 build/
 .angular/

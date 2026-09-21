@@ -7,7 +7,8 @@ import { StaffService } from '../../services/staff.service';
 import { AnalyticsService, AnalyticsSummary } from '../../services/analytics.service';
 import { SettingsService } from '../../services/settings.service';
 import { CourseGroupService } from '../../services/course-group.service';
-import { User, SystemSettings, CourseGroup } from '../../models/types';
+import { TaskService } from '../../services/task.service';
+import { User, SystemSettings, CourseGroup, WorkTask, TaskStatus, TaskEvidenceFile } from '../../models/types';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -16,7 +17,7 @@ import { User, SystemSettings, CourseGroup } from '../../models/types';
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  activeTab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' = 'courses';
+  activeTab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'tasks' = 'courses';
 
   // Global Floating Toast Notification State
   toast = {
@@ -130,6 +131,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   handoverClassesToTransfer: string[] = [];
   isExecutingHandover = false;
 
+  // Task (Giao Việc) State
+  taskList: WorkTask[] = [];
+  taskFilterStatus: TaskStatus | '' = '';
+  taskForm = { title: '', description: '', assignedTo: '', dueDate: '' };
+  isCreatingTask = false;
+  showTaskReviewModal = false;
+  reviewingTask: WorkTask | null = null;
+  reviewNoteInput = '';
+
   // Analytics State
   analyticsData: AnalyticsSummary | null = null;
   isExportingCareReport = false;
@@ -143,6 +153,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private analyticsService: AnalyticsService,
     private settingsService: SettingsService,
     private courseGroupService: CourseGroupService,
+    private taskService: TaskService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -151,13 +162,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadAnalytics();
     this.loadSettings();
     this.loadCourseGroups();
+    this.loadTasks();
   }
 
   ngOnDestroy(): void {
     if (this.analyticsInterval) clearInterval(this.analyticsInterval);
   }
 
-  switchTab(tab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings') {
+  switchTab(tab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'tasks') {
     this.activeTab = tab;
     // Dừng auto-refresh cũ khi đổi tab
     if (this.analyticsInterval) {
@@ -172,7 +184,143 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.loadSettings();
     } else if (tab === 'courses' || tab === 'excel') {
       this.loadCourseGroups();
+    } else if (tab === 'tasks') {
+      this.loadTasks();
+      if (!this.staffList.length) this.loadStaffList();
     }
+  }
+
+  // Task (Giao Việc) Management Methods
+  get staffOnlyList(): User[] {
+    return this.staffList.filter((s) => s.role === 'staff' && s.status === 'active');
+  }
+
+  loadTasks() {
+    this.taskService
+      .getAllTasks(this.taskFilterStatus ? { status: this.taskFilterStatus } : undefined)
+      .subscribe({
+        next: (list) => {
+          this.taskList = list;
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Load tasks error:', err),
+      });
+  }
+
+  taskStatusCount(status: TaskStatus): number {
+    return this.taskList.filter((t) => t.status === status).length;
+  }
+
+  createTask() {
+    if (
+      !this.taskForm.title.trim() ||
+      !this.taskForm.description.trim() ||
+      !this.taskForm.assignedTo
+    ) {
+      this.triggerToast(
+        'error',
+        'Thiếu Thông Tin',
+        'Vui lòng nhập tiêu đề, mô tả và chọn nhân viên nhận việc!',
+      );
+      return;
+    }
+    this.isCreatingTask = true;
+    this.cdr.detectChanges();
+    this.taskService
+      .createTask({
+        title: this.taskForm.title.trim(),
+        description: this.taskForm.description.trim(),
+        assignedTo: this.taskForm.assignedTo,
+        dueDate: this.taskForm.dueDate || null,
+      })
+      .pipe(
+        finalize(() => {
+          this.isCreatingTask = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          this.triggerToast('success', 'Đã Giao Việc!', res.message);
+          this.taskForm = { title: '', description: '', assignedTo: '', dueDate: '' };
+          this.loadTasks();
+        },
+        error: (err) =>
+          this.triggerToast(
+            'error',
+            'Lỗi Giao Việc',
+            err.error?.message || 'Không thể giao nhiệm vụ',
+          ),
+      });
+  }
+
+  deleteTask(task: WorkTask) {
+    if (!confirm(`Bạn có chắc chắn muốn xóa nhiệm vụ "${task.title}"?`)) return;
+    this.taskService.deleteTask(task._id).subscribe({
+      next: (res) => {
+        this.triggerToast('success', 'Đã Xóa Nhiệm Vụ', res.message);
+        this.loadTasks();
+      },
+      error: (err) =>
+        this.triggerToast('error', 'Lỗi Xóa', err.error?.message || 'Không thể xóa nhiệm vụ'),
+    });
+  }
+
+  openReviewModal(task: WorkTask) {
+    this.reviewingTask = task;
+    this.reviewNoteInput = '';
+    this.showTaskReviewModal = true;
+    this.cdr.detectChanges();
+  }
+
+  submitTaskReview(approve: boolean) {
+    if (!this.reviewingTask) return;
+    this.taskService
+      .reviewTask(this.reviewingTask._id, approve, this.reviewNoteInput.trim())
+      .subscribe({
+        next: (res) => {
+          this.triggerToast(
+            approve ? 'success' : 'info',
+            approve ? 'Đã Duyệt & Đóng!' : 'Đã Từ Chối',
+            res.message,
+          );
+          this.showTaskReviewModal = false;
+          this.loadTasks();
+        },
+        error: (err) =>
+          this.triggerToast(
+            'error',
+            'Lỗi Duyệt Nhiệm Vụ',
+            err.error?.message || 'Không thể duyệt nhiệm vụ',
+          ),
+      });
+  }
+
+  viewTaskFile(taskId: string, file: TaskEvidenceFile) {
+    this.taskService.getEvidenceBlob(taskId, file._id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      },
+      error: () => alert('Không thể tải tệp minh chứng'),
+    });
+  }
+
+  displayTaskUser(u: { fullName: string; email: string } | string | null | undefined): string {
+    if (!u) return '—';
+    return typeof u === 'string' ? u : u.fullName;
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  isTaskOverdue(task: WorkTask): boolean {
+    if (!task.dueDate || task.status === 'Hoàn thành') return false;
+    return new Date(task.dueDate).getTime() < Date.now();
   }
 
   // Course Group Management Methods
