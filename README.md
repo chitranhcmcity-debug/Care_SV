@@ -5,6 +5,11 @@ Angular và Node.js. Backend dùng CommonJS; frontend dùng TypeScript và stand
 
 ## Chạy development
 
+Trên Windows, sau khi cài thư viện và cấu hình `.env` theo hướng dẫn bên dưới,
+nhấp đúp `run_app.bat`. Giữ cửa sổ này mở trong khi sử dụng; nhấn `Ctrl+C` để dừng.
+Trình duyệt chỉ tự mở khi giao diện và API đã sẵn sàng. Nếu khởi động thất bại,
+cửa sổ giữ lại thông báo lỗi để kiểm tra.
+
 Cần Node.js `>=24.15.0 <25` (phiên bản tham chiếu trong `.nvmrc`) và MongoDB.
 Tạo `backend/.env` từ `backend/.env.example`, cấu hình `MONGO_URI` và thay
 `JWT_SECRET` bằng chuỗi ngẫu nhiên ít nhất 32 ký tự. Không commit `.env`.
