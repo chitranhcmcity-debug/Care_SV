@@ -1,10 +1,10 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
-  <!-- Public header -->
-  <header class="px-6 py-4 bg-white border-b border-slate-200">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
+<div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col scroll-smooth">
+  <!-- ============ HEADER ============ -->
+  <header class="sticky top-0 z-50 px-6 py-3.5 bg-white/95 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
       <div class="flex items-center space-x-3">
         <div
-          class="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center font-bold text-white shadow-sm"
+          class="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center font-bold text-white shadow-sm shrink-0"
         >
           ITC
         </div>
@@ -17,17 +17,26 @@
           </p>
         </div>
       </div>
+
+      <nav class="hidden md:flex items-center gap-6 text-xs font-bold text-slate-600">
+        <a href="#tinh-nang" class="hover:text-slate-900 transition-colors">Tính Năng</a>
+        <a href="#quy-trinh" class="hover:text-slate-900 transition-colors">Quy Trình</a>
+        <a href="#danh-cho-ai" class="hover:text-slate-900 transition-colors">Dành Cho Ai</a>
+        <a href="#lien-he" class="hover:text-slate-900 transition-colors">Liên Hệ</a>
+      </nav>
+
       <button
         (click)="enterSystem()"
-        class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shadow-sm"
+        class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all shadow-sm shrink-0"
       >
         {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG' : 'ĐĂNG NHẬP' }}
       </button>
     </div>
   </header>
 
-  <!-- Hero -->
+  <!-- ============ MAIN ============ -->
   <main class="flex-grow">
+    <!-- Hero -->
     <section class="px-6 py-16 md:py-24 text-center max-w-3xl mx-auto space-y-6">
       <span
         class="inline-block px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[11px] font-bold uppercase tracking-wide"
@@ -49,47 +58,257 @@
         >
           {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG →' : 'ĐĂNG NHẬP HỆ THỐNG →' }}
         </button>
+        <a
+          href="#tinh-nang"
+          class="px-6 py-3 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-sm font-bold transition-all"
+        >
+          Tìm Hiểu Thêm
+        </a>
+      </div>
+    </section>
+
+    <!-- Stats strip -->
+    <section class="px-6 pb-16 md:pb-20">
+      <div
+        class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-slate-200 rounded-md shadow-sm p-6"
+      >
+        <div class="text-center space-y-1">
+          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">3</p>
+          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Vai Trò Người Dùng</p>
+        </div>
+        <div class="text-center space-y-1">
+          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">100%</p>
+          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tự Động Phân Công</p>
+        </div>
+        <div class="text-center space-y-1">
+          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">24/7</p>
+          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Theo Dõi Trạng Thái</p>
+        </div>
+        <div class="text-center space-y-1">
+          <p class="text-2xl md:text-3xl font-extrabold text-slate-900">Sớm</p>
+          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Cảnh Báo Cấm Thi</p>
+        </div>
       </div>
     </section>
 
     <!-- Feature highlights -->
-    <section class="px-6 pb-16 md:pb-24">
-      <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-          <div class="text-2xl">📋</div>
-          <h3 class="font-bold text-sm text-slate-900">Điểm Danh Theo Học Phần</h3>
-          <p class="text-xs text-slate-600 font-medium leading-relaxed">
-            Giảng viên điểm danh nhanh theo từng buổi học, tự động đối chiếu lịch học trong tuần.
+    <section id="tinh-nang" class="px-6 py-16 md:py-20 scroll-mt-20">
+      <div class="max-w-6xl mx-auto space-y-10">
+        <div class="text-center space-y-2 max-w-2xl mx-auto">
+          <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+            Tính Năng Chính
+          </h3>
+          <p class="text-sm text-slate-600 font-medium">
+            Mọi khâu từ điểm danh đến chăm sóc sinh viên đều được số hóa và tự động hóa.
           </p>
         </div>
-        <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-          <div class="text-2xl">📞</div>
-          <h3 class="font-bold text-sm text-slate-900">Nhiệm Vụ Gọi Điện Tự Động</h3>
-          <p class="text-xs text-slate-600 font-medium leading-relaxed">
-            Sinh viên vắng học được tự động phân công cho nhân viên CSKH liên hệ nhắc nhở.
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
+            <div class="text-2xl">📋</div>
+            <h4 class="font-bold text-sm text-slate-900">Điểm Danh Theo Học Phần</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Giảng viên điểm danh nhanh theo từng buổi học, tự động đối chiếu lịch học trong tuần.
+            </p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
+            <div class="text-2xl">📞</div>
+            <h4 class="font-bold text-sm text-slate-900">Nhiệm Vụ Gọi Điện Tự Động</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Sinh viên vắng học được tự động phân công cho nhân viên CSKH liên hệ nhắc nhở.
+            </p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
+            <div class="text-2xl">⚠️</div>
+            <h4 class="font-bold text-sm text-slate-900">Cảnh Báo Nguy Cơ Cấm Thi</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Thống kê số buổi vắng theo học phần, cảnh báo sớm cho Phòng Đào Tạo can thiệp kịp thời.
+            </p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
+            <div class="text-2xl">🔐</div>
+            <h4 class="font-bold text-sm text-slate-900">Phân Quyền Theo Vai Trò</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Quản trị viên, Giảng viên và Nhân viên CSKH mỗi vai trò một khu vực làm việc riêng.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="quy-trinh" class="px-6 py-16 md:py-20 bg-white border-y border-slate-200 scroll-mt-20">
+      <div class="max-w-6xl mx-auto space-y-10">
+        <div class="text-center space-y-2 max-w-2xl mx-auto">
+          <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+            Quy Trình Hoạt Động
+          </h3>
+          <p class="text-sm text-slate-600 font-medium">
+            Từ điểm danh trên lớp đến khi Phòng Đào Tạo nhận được cảnh báo, chỉ qua 4 bước.
           </p>
         </div>
-        <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-          <div class="text-2xl">⚠️</div>
-          <h3 class="font-bold text-sm text-slate-900">Cảnh Báo Nguy Cơ Cấm Thi</h3>
-          <p class="text-xs text-slate-600 font-medium leading-relaxed">
-            Thống kê số buổi vắng theo học phần, cảnh báo sớm cho Phòng Đào Tạo can thiệp kịp thời.
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+            <span
+              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
+              >1</span
+            >
+            <h4 class="font-bold text-sm text-slate-900 pt-1">Giảng Viên Điểm Danh</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Ghi nhận sinh viên vắng học theo từng buổi trong học phần.
+            </p>
+          </div>
+          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+            <span
+              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
+              >2</span
+            >
+            <h4 class="font-bold text-sm text-slate-900 pt-1">Hệ Thống Tự Phân Công</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Sinh viên vắng được tự động tạo nhiệm vụ gọi điện, chia đều cho nhân viên CSKH.
+            </p>
+          </div>
+          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+            <span
+              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
+              >3</span
+            >
+            <h4 class="font-bold text-sm text-slate-900 pt-1">Nhân Viên CSKH Liên Hệ</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Gọi điện nhắc nhở, ghi nhận lý do vắng và cập nhật trạng thái xử lý.
+            </p>
+          </div>
+          <div class="relative bg-slate-50 border border-slate-200 rounded-md p-5 space-y-2">
+            <span
+              class="inline-flex w-7 h-7 rounded-full bg-slate-800 text-white text-xs font-extrabold items-center justify-center"
+              >4</span
+            >
+            <h4 class="font-bold text-sm text-slate-900 pt-1">Cảnh Báo Cấm Thi</h4>
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Sinh viên vắng quá số buổi quy định được đưa vào danh sách cảnh báo cho Ban Giám Hiệu.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Who it's for -->
+    <section id="danh-cho-ai" class="px-6 py-16 md:py-20 scroll-mt-20">
+      <div class="max-w-6xl mx-auto space-y-10">
+        <div class="text-center space-y-2 max-w-2xl mx-auto">
+          <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
+            Dành Cho Ai
+          </h3>
+          <p class="text-sm text-slate-600 font-medium">
+            Mỗi vai trò có một khu vực làm việc riêng, đúng với nhiệm vụ được phân công.
           </p>
         </div>
-        <div class="bg-white border border-slate-200 rounded-md p-5 space-y-2 shadow-sm">
-          <div class="text-2xl">🔐</div>
-          <h3 class="font-bold text-sm text-slate-900">Phân Quyền Theo Vai Trò</h3>
-          <p class="text-xs text-slate-600 font-medium leading-relaxed">
-            Quản trị viên, Giảng viên và Nhân viên CSKH mỗi vai trò một khu vực làm việc riêng.
-          </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white border border-slate-200 rounded-md p-6 space-y-3 shadow-sm">
+            <span
+              class="inline-block px-2.5 py-1 rounded-md bg-slate-100 text-slate-900 border border-slate-300 text-[10px] font-bold uppercase"
+              >Quản Trị Viên</span
+            >
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Cấu hình học phần, nhập sinh viên hàng loạt qua Excel, phân quyền nhân sự CSKH và xem
+              báo cáo thống kê cảnh báo cấm thi toàn trường.
+            </p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-md p-6 space-y-3 shadow-sm">
+            <span
+              class="inline-block px-2.5 py-1 rounded-md bg-amber-50 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase"
+              >Giảng Viên</span
+            >
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Điểm danh theo từng buổi học của học phần mình phụ trách, xem lại lịch sử và thời
+              khóa biểu.
+            </p>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-md p-6 space-y-3 shadow-sm">
+            <span
+              class="inline-block px-2.5 py-1 rounded-md bg-blue-50 text-blue-900 border border-blue-200 text-[10px] font-bold uppercase"
+              >Nhân Viên CSKH</span
+            >
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+              Nhận nhiệm vụ gọi điện cho sinh viên vắng học được phân công, ghi nhận lý do và cập
+              nhật kết quả liên hệ.
+            </p>
+          </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Contact / CTA banner -->
+    <section id="lien-he" class="px-6 pb-16 md:pb-20 scroll-mt-20">
+      <div
+        class="max-w-6xl mx-auto bg-slate-800 text-white rounded-md shadow-sm p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6"
+      >
+        <div class="text-center md:text-left space-y-1">
+          <h3 class="text-lg md:text-xl font-extrabold">Cần hỗ trợ sử dụng hệ thống?</h3>
+          <p class="text-xs md:text-sm text-slate-300 font-medium">
+            Phòng Đào Tạo & Chăm Sóc Sinh Viên luôn sẵn sàng hỗ trợ bạn.
+          </p>
+          <div class="flex items-center justify-center md:justify-start gap-4 pt-1 text-xs font-semibold text-slate-200">
+            <span>📞 028 3965 1114</span>
+            <span>✉️ cskh@itc.edu.vn</span>
+          </div>
+        </div>
+        <button
+          (click)="enterSystem()"
+          class="px-6 py-3 rounded-md bg-white hover:bg-slate-100 text-slate-900 text-sm font-bold transition-all shadow-sm shrink-0"
+        >
+          {{ authService.isLoggedIn() ? 'VÀO HỆ THỐNG →' : 'ĐĂNG NHẬP HỆ THỐNG →' }}
+        </button>
       </div>
     </section>
   </main>
 
-  <footer
-    class="px-6 py-5 text-center text-[11px] font-medium text-slate-500 border-t border-slate-200 bg-white"
-  >
-    Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-white border-t border-slate-200">
+    <div class="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="space-y-3">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-9 h-9 rounded-md bg-slate-800 flex items-center justify-center font-bold text-white text-sm shadow-sm"
+          >
+            ITC
+          </div>
+          <h4 class="font-bold text-sm text-slate-900 uppercase tracking-tight">ITC Student Care</h4>
+        </div>
+        <p class="text-xs text-slate-500 font-medium leading-relaxed max-w-xs">
+          Hệ thống quản lý điểm danh và chăm sóc sinh viên của Trường Cao Đẳng Công Nghệ Thông Tin
+          TP.HCM.
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wide">Liên Kết Nhanh</h4>
+        <ul class="space-y-2 text-xs font-medium text-slate-500">
+          <li><a href="#tinh-nang" class="hover:text-slate-900 transition-colors">Tính Năng</a></li>
+          <li><a href="#quy-trinh" class="hover:text-slate-900 transition-colors">Quy Trình</a></li>
+          <li><a href="#danh-cho-ai" class="hover:text-slate-900 transition-colors">Dành Cho Ai</a></li>
+          <li>
+            <a href="javascript:void(0)" (click)="enterSystem()" class="hover:text-slate-900 transition-colors"
+              >Đăng Nhập Hệ Thống</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="space-y-3">
+        <h4 class="font-bold text-xs text-slate-900 uppercase tracking-wide">Liên Hệ</h4>
+        <ul class="space-y-2 text-xs font-medium text-slate-500">
+          <li>🏫 Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC)</li>
+          <li>🏢 Phòng Đào Tạo &amp; Chăm Sóc Sinh Viên</li>
+          <li>📞 028 3965 1114</li>
+          <li>✉️ cskh&#64;itc.edu.vn</li>
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="px-6 py-4 text-center text-[11px] font-medium text-slate-500 border-t border-slate-200"
+    >
+      Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026 &mdash; ITC Student Care System
+    </div>
   </footer>
 </div>
