@@ -1,55 +1,98 @@
-<nav
-  *ngIf="authService.isLoggedIn()"
-  class="hidden md:block sticky top-0 z-50 px-6 py-3 bg-white border-b border-slate-200 text-slate-800 shadow-sm"
->
-  <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-    <!-- Logo & Title -->
-    <div class="flex items-center space-x-3 cursor-pointer" routerLink="/">
+<ng-container *ngIf="authService.isLoggedIn()">
+  <!-- Mobile top bar: opens the sidebar as a slide-in drawer -->
+  <div
+    class="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-slate-900 text-white shadow-sm"
+  >
+    <button
+      type="button"
+      (click)="toggleSidebar()"
+      class="text-xl leading-none w-8 h-8 flex items-center justify-center"
+      aria-label="Mở menu điều hướng"
+    >
+      ☰
+    </button>
+    <span class="font-extrabold text-xs uppercase tracking-widest">ITC Student Care</span>
+    <button
+      type="button"
+      (click)="logout()"
+      class="text-sm w-8 h-8 flex items-center justify-center"
+      title="Đăng xuất"
+    >
+      🚪
+    </button>
+  </div>
+
+  <!-- Mobile drawer backdrop -->
+  <div
+    *ngIf="sidebarOpen"
+    (click)="closeSidebar()"
+    class="md:hidden fixed inset-0 bg-slate-950/60 z-40"
+  ></div>
+
+  <!-- Sidebar: fixed drawer on mobile, static column on desktop -->
+  <aside
+    class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 transition-transform duration-200 ease-in-out md:translate-x-0"
+    [ngClass]="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+  >
+    <!-- Workspace header -->
+    <div class="p-4 border-b border-white/10 flex items-center gap-3">
       <div
-        class="w-9 h-9 rounded-md bg-slate-800 flex items-center justify-center font-bold text-base text-white shadow-sm"
+        class="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-700 to-slate-950 flex items-center justify-center font-extrabold text-white text-sm ring-1 ring-white/10 shrink-0"
       >
         ITC
       </div>
-      <div>
-        <h1 class="font-bold text-base leading-tight tracking-tight text-slate-900 uppercase">
-          ITC STUDENT CARE
-        </h1>
-        <p class="text-[11px] text-slate-500 font-medium">
-          Hệ Thống Quản Lý Enterprise & Điểm Danh
-        </p>
+      <div class="min-w-0">
+        <div class="font-extrabold text-sm text-white leading-tight truncate">
+          ITC Student Care
+        </div>
+        <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">
+          Workspace
+        </div>
       </div>
     </div>
 
-    <!-- Navigation Links -->
-    <div class="flex items-center space-x-2">
+    <!-- Channel-style navigation -->
+    <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+      <div class="px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        Kênh Làm Việc
+      </div>
+
       <a
         *ngIf="authService.isAdmin()"
         routerLink="/admin"
-        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
-        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all"
+        routerLinkActive="bg-white/10 text-white font-bold"
+        (click)="closeSidebar()"
+        class="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
       >
-        📊 Quản trị Admin
+        <span class="text-slate-500">#</span>
+        <span>quan-tri-he-thong</span>
       </a>
 
       <a
         *ngIf="authService.isAdmin() || authService.isTeacher()"
         routerLink="/attendance"
-        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
-        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all"
+        routerLinkActive="bg-white/10 text-white font-bold"
+        (click)="closeSidebar()"
+        class="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
       >
-        📋 Điểm danh Lớp học
+        <span class="text-slate-500">#</span>
+        <span>diem-danh-lop-hoc</span>
       </a>
 
       <a
         *ngIf="authService.isAdmin() || authService.isStaff()"
         routerLink="/call-tasks"
-        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
-        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all relative"
+        routerLinkActive="bg-white/10 text-white font-bold"
+        (click)="closeSidebar()"
+        class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
       >
-        <span>📞 Nhiệm vụ Gọi điện</span>
+        <span class="flex items-center gap-2 min-w-0">
+          <span class="text-slate-500">#</span>
+          <span class="truncate">nhiem-vu-goi-dien</span>
+        </span>
         <span
           *ngIf="unreadCount > 0"
-          class="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-700 text-white text-[10px] font-bold"
+          class="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold shrink-0"
         >
           {{ unreadCount }}
         </span>
@@ -58,48 +101,52 @@
       <a
         *ngIf="authService.isStaff()"
         routerLink="/tasks"
-        routerLinkActive="bg-slate-800 text-white font-bold shadow-sm"
-        class="px-3.5 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-all relative"
+        routerLinkActive="bg-white/10 text-white font-bold"
+        (click)="closeSidebar()"
+        class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
       >
-        <span>🗂️ Nhiệm vụ Được Giao</span>
+        <span class="flex items-center gap-2 min-w-0">
+          <span class="text-slate-500">#</span>
+          <span class="truncate">nhiem-vu-duoc-giao</span>
+        </span>
         <span
           *ngIf="pendingTaskCount > 0"
-          class="ml-1.5 px-1.5 py-0.5 rounded-full bg-red-700 text-white text-[10px] font-bold"
+          class="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold shrink-0"
         >
           {{ pendingTaskCount }}
         </span>
       </a>
-    </div>
+    </nav>
 
-    <!-- User Profile & Logout -->
-    <div class="flex items-center space-x-3">
-      <div class="hidden md:flex flex-col text-right">
-        <span class="text-xs font-bold text-slate-900">{{ user?.fullName }}</span>
-        <span
-          class="text-[10px] font-semibold px-2 py-0.5 rounded-md self-end mt-0.5 border"
-          [ngClass]="{
-            'bg-slate-100 text-slate-900 border-slate-300': user?.role === 'admin',
-            'bg-blue-50 text-blue-900 border-blue-200': user?.role === 'staff',
-            'bg-amber-50 text-amber-900 border-amber-200': user?.role === 'teacher',
-          }"
+    <!-- User profile footer -->
+    <div class="p-3 border-t border-white/10">
+      <div class="flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-white/5 transition-colors">
+        <div
+          class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-extrabold shrink-0"
         >
-          {{
-            user?.role === 'admin'
-              ? 'QUẢN TRỊ VIÊN'
-              : user?.role === 'teacher'
-                ? 'GIẢNG VIÊN'
-                : 'NHÂN VIÊN CSKH'
-          }}
-        </span>
+          {{ (user?.fullName || '?').charAt(0) }}
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-xs font-bold text-white truncate">{{ user?.fullName }}</div>
+          <div class="text-[10px] text-slate-500 font-semibold truncate">
+            {{
+              user?.role === 'admin'
+                ? 'Quản trị viên'
+                : user?.role === 'teacher'
+                  ? 'Giảng viên'
+                  : 'Nhân viên CSKH'
+            }}
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="logout()"
+          title="Đăng xuất khỏi hệ thống"
+          class="text-slate-400 hover:text-white text-sm shrink-0 w-7 h-7 flex items-center justify-center"
+        >
+          🚪
+        </button>
       </div>
-
-      <button
-        (click)="logout()"
-        class="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-semibold transition-all"
-        title="Đăng xuất khỏi hệ thống"
-      >
-        🚪 Đăng xuất
-      </button>
     </div>
-  </div>
-</nav>
+  </aside>
+</ng-container>

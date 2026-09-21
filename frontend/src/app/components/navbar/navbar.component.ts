@@ -14,6 +14,7 @@ import { TaskService } from '../../services/task.service';
 export class NavbarComponent implements OnInit, OnDestroy {
   unreadCount = 0;
   pendingTaskCount = 0;
+  sidebarOpen = false;
   private intervalId: any;
 
   constructor(
@@ -57,6 +58,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   get user() {
     return this.authService.currentUser();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
   logout() {

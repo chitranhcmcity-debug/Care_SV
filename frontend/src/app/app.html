@@ -1,6 +1,15 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+<!-- Public pages (home, login): full-width, no app shell -->
+<div class="min-h-screen bg-slate-50 text-slate-900 font-sans" *ngIf="!authService.isLoggedIn()">
+  <router-outlet></router-outlet>
+</div>
+
+<!-- Signed-in app shell: fixed sidebar + scrollable content pane -->
+<div
+  class="bg-slate-50 text-slate-900 font-sans md:h-screen md:flex md:overflow-hidden"
+  *ngIf="authService.isLoggedIn()"
+>
   <app-navbar></app-navbar>
-  <main class="flex-grow">
+  <main class="flex-1 md:overflow-y-auto">
     <router-outlet></router-outlet>
   </main>
 </div>
