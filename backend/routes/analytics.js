@@ -35,7 +35,9 @@ router.get('/summary', verifyToken, requireAdmin, async (req, res, next) => {
     }));
 
     // 2. Reason extraction breakdown from CallTask notes
-    const tasksWithNotes = await CallTask.find({ callNote: { $ne: '' } });
+    const tasksWithNotes = await CallTask.find({
+      $or: [{ callNote: { $ne: '' } }, { absenceReasonCategory: { $ne: '' } }],
+    });
     const reasonCounts = {
       'Ốm / Sức khỏe': 0,
       'Bận việc gia đình': 0,
@@ -44,24 +46,25 @@ router.get('/summary', verifyToken, requireAdmin, async (req, res, next) => {
       'Lý do khác': 0,
     };
 
+    // Whole-word match so short keywords like "ca" do not hit "các", "cả", "cái"...
+    const hasWord = (text, word) =>
+      new RegExp(`(^|[^\\p{L}])${word}([^\\p{L}]|$)`, 'u').test(text);
+    const classifyReason = (text) => {
+      if (['ốm', 'bệnh', 'sốt', 'viện', 'sức khỏe'].some((w) => hasWord(text, w)))
+        return 'Ốm / Sức khỏe';
+      if (['gia đình', 'quê', 'việc nhà'].some((w) => hasWord(text, w)))
+        return 'Bận việc gia đình';
+      if (['làm', 'đi làm', 'ca'].some((w) => hasWord(text, w))) return 'Bận đi làm';
+      if (['quên', 'ngủ'].some((w) => hasWord(text, w))) return 'Quên lịch học';
+      return null;
+    };
+
     for (const task of tasksWithNotes) {
+      // The category chosen by staff is authoritative; fall back to the free-text note.
+      const category = (task.absenceReasonCategory || '').toLowerCase();
       const note = (task.callNote || '').toLowerCase();
-      if (
-        note.includes('ốm') ||
-        note.includes('bệnh') ||
-        note.includes('sốt') ||
-        note.includes('viện')
-      ) {
-        reasonCounts['Ốm / Sức khỏe']++;
-      } else if (note.includes('gia đình') || note.includes('quê') || note.includes('việc nhà')) {
-        reasonCounts['Bận việc gia đình']++;
-      } else if (note.includes('làm') || note.includes('ca')) {
-        reasonCounts['Bận đi làm']++;
-      } else if (note.includes('quên') || note.includes('ngủ')) {
-        reasonCounts['Quên lịch học']++;
-      } else {
-        reasonCounts['Lý do khác']++;
-      }
+      const bucket = (category ? classifyReason(category) : classifyReason(note)) || 'Lý do khác';
+      reasonCounts[bucket]++;
     }
 
     const reasonStats = Object.keys(reasonCounts).map((key) => ({

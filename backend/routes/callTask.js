@@ -199,6 +199,7 @@ router.put('/:id/update', verifyToken, requireRoles('admin', 'staff'), async (re
       403,
     );
 
+    const previousStatus = task.status;
     if (status && CALL_STATUSES.includes(status)) {
       task.status = status;
     }
@@ -212,8 +213,11 @@ router.put('/:id/update', verifyToken, requireRoles('admin', 'staff'), async (re
       task.callbackDate = callbackDate ? new Date(callbackDate) : null;
     }
 
-    // Increment call attempts by 1
-    task.callAttempts = (task.callAttempts || 0) + 1;
+    // Count a call attempt only when an outcome is recorded: the status changes,
+    // or a retry is logged as unreachable. Editing notes/tags alone is not a call.
+    if (status && (status !== previousStatus || status === CALL_STATUS.UNREACHABLE)) {
+      task.callAttempts = (task.callAttempts || 0) + 1;
+    }
 
     await task.save();
 

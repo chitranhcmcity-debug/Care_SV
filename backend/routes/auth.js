@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const { CALL_STATUS } = require('../constants/callStatus');
 const { verifyToken, requireAdmin, requireStaffOrAdmin } = require('../middleware/auth');
 
 // POST /api/auth/login
@@ -256,6 +257,21 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) =>
     }
     if (user.role === 'admin') {
       return res.status(400).json({ message: 'Không thể xóa tài khoản Quản trị viên (Admin)' });
+    }
+
+    if (user.role === 'staff') {
+      // Open call tasks would otherwise keep pointing at a deleted user: invisible in
+      // "my-tasks" (no one to own them) yet stuck for any other staff to pick up.
+      // Hand them to the admin performing the deletion, same as a manual handover.
+      const CallTask = require('../models/CallTask');
+      await CallTask.updateMany(
+        { assignedStaffId: user._id, status: { $in: [CALL_STATUS.PENDING, CALL_STATUS.UNREACHABLE] } },
+        { assignedStaffId: req.user.id },
+      );
+    } else if (user.role === 'teacher') {
+      // Course groups taught by this teacher would otherwise keep a dangling teacherId.
+      const CourseGroup = require('../models/CourseGroup');
+      await CourseGroup.updateMany({ teacherId: user._id }, { teacherId: null });
     }
 
     await User.findByIdAndDelete(req.params.id);

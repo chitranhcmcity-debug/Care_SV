@@ -4,6 +4,8 @@ const router = express.Router();
 const CourseGroup = require('../models/CourseGroup');
 const Student = require('../models/Student');
 const User = require('../models/User');
+const Attendance = require('../models/Attendance');
+const CallTask = require('../models/CallTask');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 // GET /api/course-groups (List all course groups with student & teacher details)
@@ -159,6 +161,19 @@ router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
     if (!deleted) {
       return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
     }
+
+    // Every route that reads Attendance/CallTask for a group first loads the group
+    // (requireCourseAccess), so once it's gone those records become permanently
+    // unreachable orphans. Remove them, and drop the group from its students' list.
+    await Attendance.deleteMany({ courseGroupId: deleted._id });
+    await CallTask.deleteMany({ courseGroupId: deleted._id });
+    if (deleted.students?.length) {
+      await Student.updateMany(
+        { _id: { $in: deleted.students } },
+        { $pull: { courseGroups: deleted.groupCode } },
+      );
+    }
+
     res.json({ message: 'Đã xóa nhóm học phần thành công!' });
   } catch (error) {
     next(error);

@@ -4,11 +4,24 @@ const CallTask = require('../models/CallTask');
 const Student = require('../models/Student');
 const User = require('../models/User');
 const SystemSettings = require('../models/SystemSettings');
+const RoundRobinCursor = require('../models/RoundRobinCursor');
 const { validateAttendance, dayBounds, dateKey } = require('../utils/validation');
 
 // Serialize edits to the same session in this process. The unique session index
 // additionally prevents duplicate records across multiple server processes.
 const pending = new Map();
+
+// Persisted, atomically-incremented cursor so round-robin actually rotates across
+// separate saveAttendance calls (and processes), instead of restarting at staff[0]
+// every time because it indexed by position within that session's absentee list.
+async function nextRoundRobinSeat(staffCount) {
+  const updated = await RoundRobinCursor.findOneAndUpdate(
+    { _id: 'callTaskAssignment' },
+    { $inc: { value: 1 } },
+    { upsert: true, returnDocument: 'after' },
+  );
+  return (updated.value - 1) % staffCount;
+}
 async function withSessionLock(key, operation) {
   const previous = pending.get(key) || Promise.resolve();
   const current = previous.catch(() => {}).then(operation);
@@ -79,7 +92,7 @@ async function saveAttendance({
           ]),
         ),
       );
-      for (const [index, studentId] of missing.entries()) {
+      for (const studentId of missing) {
         const student = studentMap.get(studentId);
         let member = staff.find((person) =>
           person.managedStudents.some((id) => String(id) === studentId),
@@ -95,7 +108,7 @@ async function saveAttendance({
                     ? candidate
                     : least,
                 )
-              : staff[index % staff.length];
+              : staff[await nextRoundRobinSeat(staff.length)];
         const task = await CallTask.updateOne(
           { attendanceId: attendance._id, studentId },
           {

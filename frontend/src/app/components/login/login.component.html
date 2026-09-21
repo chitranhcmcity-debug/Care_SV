@@ -21,36 +21,6 @@
       <span>⚠️</span> {{ errorMessage }}
     </div>
 
-    <!-- Quick Demo Switcher -->
-    <div class="space-y-1.5">
-      <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider"
-        >Đăng nhập nhanh 3 Roles:</label
-      >
-      <div class="grid grid-cols-3 gap-2">
-        <button
-          type="button"
-          (click)="fillCredentials('admin@itc.edu.vn', 'admin123')"
-          class="py-2 px-2 rounded-md border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all text-center"
-        >
-          🛡️ Admin
-        </button>
-        <button
-          type="button"
-          (click)="fillCredentials('teacher1@itc.edu.vn', 'teacher123')"
-          class="py-2 px-2 rounded-md border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all text-center"
-        >
-          👨‍🏫 Giảng viên
-        </button>
-        <button
-          type="button"
-          (click)="fillCredentials('staff1@itc.edu.vn', 'staff123')"
-          class="py-2 px-2 rounded-md border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all text-center"
-        >
-          🎧 CSKH Staff
-        </button>
-      </div>
-    </div>
-
     <!-- Form -->
     <form (ngSubmit)="onLogin()" class="space-y-4">
       <div>

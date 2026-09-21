@@ -25,11 +25,6 @@ export class LoginComponent {
     }
   }
 
-  fillCredentials(e: string, p: string) {
-    this.email = e;
-    this.password = p;
-  }
-
   onLogin() {
     if (!this.email || !this.password) {
       this.errorMessage = 'Vui lòng điền đầy đủ Email và Mật khẩu!';

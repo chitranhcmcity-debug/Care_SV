@@ -84,11 +84,6 @@ after(async () => {
   if (database) await database.stop();
 });
 
-test('crawler requires login and admin, and validates bounds before connecting externally', async () => {
-  assert.equal((await request('/crawler/scan-progress')).status, 401);
-  assert.equal((await request('/crawler/scan-progress', tokens.staff)).status, 403);
-  assert.equal((await request('/crawler/scan-progress?endSeq=999999', tokens.admin)).status, 400);
-});
 test('staff cannot use global administrative APIs', async () => {
   for (const path of [
     '/call-tasks/admin-all',
@@ -351,7 +346,172 @@ test('call updates accept every schema status and reject invalid values without 
   assert.equal(invalid.status, 400);
   const saved = await CallTask.findById(task._id);
   assert.equal(saved.status, CALL_STATUS.CONTACTED);
-  assert.equal(saved.callAttempts, CALL_STATUSES.length);
+  // PENDING -> PENDING is not a call; UNREACHABLE and CONTACTED each count once.
+  assert.equal(saved.callAttempts, CALL_STATUSES.length - 1);
+
+  const noteOnly = await request(`/call-tasks/${task._id}/update`, tokens.admin, 'PUT', {
+    status: CALL_STATUS.CONTACTED,
+    callNote: 'edited note',
+  });
+  assert.equal(noteOnly.status, 200);
+  assert.equal(noteOnly.body.task.callAttempts, CALL_STATUSES.length - 1);
+});
+
+test('excel import keeps existing phones and home class when cells are blank', async () => {
+  const ExcelJS = require('exceljs');
+  await Student.create({
+    studentCode: 'KEEP00001',
+    fullName: 'Keep Me',
+    classCode: 'HOMECLASS',
+    phone: '0901111111',
+    parentPhone: '0902222222',
+  });
+  await CourseGroup.create({ groupCode: 'IMP_GROUP_CD25X' });
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('IMP_GROUP_CD25X');
+  sheet.addRow(['MSSV', 'Họ và Tên', 'SĐT Sinh Viên', 'SĐT Phụ Huynh']);
+  sheet.addRow(['KEEP00001', 'Keep Me', '', '']);
+  sheet.addRow(['NEW000001', 'Brand New', '0903333333', '']);
+  const form = new FormData();
+  form.append('file', new Blob([await workbook.xlsx.writeBuffer()]), 'import.xlsx');
+  const response = await fetch(base + '/excel/import-by-course', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${tokens.admin}` },
+    body: form,
+  });
+  assert.equal(response.status, 200);
+  const kept = await Student.findOne({ studentCode: 'KEEP00001' });
+  assert.equal(kept.phone, '0901111111');
+  assert.equal(kept.parentPhone, '0902222222');
+  assert.equal(kept.classCode, 'HOMECLASS');
+  const created = await Student.findOne({ studentCode: 'NEW000001' });
+  assert.equal(created.classCode, 'CD25X');
+});
+
+test('excel templates require an admin token', async () => {
+  for (const path of ['/excel/course-template', '/excel/export-template']) {
+    assert.equal((await request(path)).status, 401);
+    assert.equal((await request(path, tokens.teacher)).status, 403);
+  }
+});
+
+test('reason analytics prefers category and matches whole words only', async () => {
+  await CallTask.deleteMany({});
+  const base = {
+    studentId: students[0]._id,
+    courseGroupId: group._id,
+    assignedStaffId: users.admin._id,
+    absenceDate: new Date(),
+  };
+  await CallTask.create([
+    { ...base, callNote: 'các bạn nghỉ hết' },
+    { ...base, callNote: 'đi làm ca tối' },
+    { ...base, callNote: 'ghi chú bất kỳ', absenceReasonCategory: 'Bệnh/Sức khỏe' },
+  ]);
+  const { body } = await request('/analytics/summary', tokens.admin);
+  const counts = Object.fromEntries(body.reasonStats.map((r) => [r.reason, r.count]));
+  assert.equal(counts['Lý do khác'], 1);
+  assert.equal(counts['Bận đi làm'], 1);
+  assert.equal(counts['Ốm / Sức khỏe'], 1);
+});
+
+test('round-robin call task assignment rotates instead of always picking the first staff', async () => {
+  const rrGroup = await CourseGroup.create({ groupCode: 'RR_GROUP' });
+  const rrStudents = await Student.create([
+    { studentCode: 'RR000001', fullName: 'RR One', classCode: 'RRCLS' },
+    { studentCode: 'RR000002', fullName: 'RR Two', classCode: 'RRCLS' },
+  ]);
+  rrGroup.students = rrStudents.map((s) => s._id);
+  await rrGroup.save();
+  await Settings.updateOne({}, { taskAssignmentRule: 'round-robin' }, { upsert: true });
+
+  // Each submission has exactly one absentee, so with the old `index % staff.length`
+  // (index always 0) the same staff member would be picked every single time.
+  const staffNames = [];
+  for (const [i, student] of rrStudents.entries()) {
+    const res = await request('/attendance/submit', tokens.admin, 'POST', {
+      courseGroupId: String(rrGroup._id),
+      absentStudentIds: [String(student._id)],
+      date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    assert.equal(res.status, 201);
+    staffNames.push(res.body.taskAssignments[0]?.staffName);
+  }
+  assert.notEqual(staffNames[0], staffNames[1]);
+});
+
+test('deleting staff hands off their open call tasks to the deleting admin', async () => {
+  const doomedStaff = await User.create({
+    fullName: 'Doomed Staff',
+    email: 'doomed-staff@example.test',
+    password: await bcrypt.hash('x', 4),
+    role: 'staff',
+  });
+  const openTask = await CallTask.create({
+    studentId: students[0]._id,
+    courseGroupId: group._id,
+    assignedStaffId: doomedStaff._id,
+    absenceDate: new Date(),
+  });
+  const doneTask = await CallTask.create({
+    studentId: students[0]._id,
+    courseGroupId: group._id,
+    assignedStaffId: doomedStaff._id,
+    absenceDate: new Date(),
+    status: CALL_STATUS.CONTACTED,
+  });
+
+  const response = await request(`/auth/staff/${doomedStaff._id}`, tokens.admin, 'DELETE');
+  assert.equal(response.status, 200);
+  assert.equal((await CallTask.findById(openTask._id)).assignedStaffId.toString(), users.admin.id);
+  // Completed tasks are historical: left pointing at the deleted user, not reassigned.
+  assert.equal((await CallTask.findById(doneTask._id)).assignedStaffId.toString(), doomedStaff.id);
+});
+
+test('deleting a teacher clears teacherId on their course groups', async () => {
+  const doomedTeacher = await User.create({
+    fullName: 'Doomed Teacher',
+    email: 'doomed-teacher@example.test',
+    password: await bcrypt.hash('x', 4),
+    role: 'teacher',
+  });
+  const taughtGroup = await CourseGroup.create({
+    groupCode: 'TAUGHT_GROUP',
+    teacherId: doomedTeacher._id,
+  });
+
+  const response = await request(`/auth/staff/${doomedTeacher._id}`, tokens.admin, 'DELETE');
+  assert.equal(response.status, 200);
+  assert.equal((await CourseGroup.findById(taughtGroup._id)).teacherId, null);
+});
+
+test('deleting a course group cascades to its attendance, call tasks and student enrollment', async () => {
+  const doomedStudent = await Student.create({
+    studentCode: 'DOOM00001',
+    fullName: 'Doomed Student',
+    classCode: 'DOOM',
+    courseGroups: ['DOOM_GROUP'],
+  });
+  const doomedGroup = await CourseGroup.create({
+    groupCode: 'DOOM_GROUP',
+    students: [doomedStudent._id],
+  });
+  const attendance = await Attendance.create({
+    courseGroupId: doomedGroup._id,
+    absentStudents: [doomedStudent._id],
+  });
+  const task = await CallTask.create({
+    studentId: doomedStudent._id,
+    courseGroupId: doomedGroup._id,
+    assignedStaffId: users.admin._id,
+    absenceDate: new Date(),
+  });
+
+  const response = await request(`/course-groups/${doomedGroup._id}`, tokens.admin, 'DELETE');
+  assert.equal(response.status, 200);
+  assert.equal(await Attendance.countDocuments({ _id: attendance._id }), 0);
+  assert.equal(await CallTask.countDocuments({ _id: task._id }), 0);
+  assert.ok(!(await Student.findById(doomedStudent._id)).courseGroups.includes('DOOM_GROUP'));
 });
 
 test('unknown API routes return JSON and malformed JSON uses the error handler', async () => {

@@ -15,7 +15,7 @@ const upload = multer({ storage });
 // Xuất file Excel mẫu theo từng học phần đã cấu hình
 // Mỗi sheet = 1 groupCode, pre-fill SV hiện có
 // =========================================================
-router.get('/course-template', async (req, res, next) => {
+router.get('/course-template', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const courseGroups = await CourseGroup.find({})
       .populate('students', 'studentCode fullName phone parentPhone classCode')
@@ -207,7 +207,9 @@ router.post(
         }
 
         // Process data rows
-        for (let r = headerRowIndex + 1; r <= worksheet.rowCount + 1; r++) {
+        // getRow() creates missing rows and grows rowCount, so fix the bound up front.
+        const lastRow = worksheet.rowCount;
+        for (let r = headerRowIndex + 1; r <= lastRow; r++) {
           const row = worksheet.getRow(r);
           if (!row || row.values.length === 0) continue;
 
@@ -244,12 +246,14 @@ router.post(
             const student = await Student.findOneAndUpdate(
               { studentCode },
               {
+                // Blank cells must not wipe existing data.
                 $set: {
                   ...(fullName ? { fullName } : {}),
-                  ...(phone !== undefined ? { phone } : {}),
-                  ...(parentPhone !== undefined ? { parentPhone } : {}),
-                  classCode: sheetName.split('_').pop() || sheetName,
+                  ...(phone ? { phone } : {}),
+                  ...(parentPhone ? { parentPhone } : {}),
                 },
+                // Only seed the home class for new students; never overwrite it afterwards.
+                $setOnInsert: { classCode: sheetName.split('_').pop() || sheetName },
               },
               { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
             );
@@ -315,7 +319,7 @@ function escapeRegex(str) {
 // =========================================================
 // GET /api/excel/export-template (cũ — giữ backward compat)
 // =========================================================
-router.get('/export-template', async (req, res, next) => {
+router.get('/export-template', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const students = await Student.find({}).sort({ classCode: 1, studentCode: 1 });
 
@@ -479,8 +483,8 @@ router.post(
               ...(fullName ? { fullName } : {}),
               ...(dob ? { dob } : {}),
               ...(major ? { major } : {}),
-              phone,
-              parentPhone,
+              ...(phone ? { phone } : {}),
+              ...(parentPhone ? { parentPhone } : {}),
               courseGroups: courseGroupsArray,
               classCode: worksheet.name.trim(),
             },
