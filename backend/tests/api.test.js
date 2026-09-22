@@ -7,6 +7,8 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'isolated-test-secret-with-at-least-32-characters';
+// AI routes must fail gracefully (503) rather than call a real API in tests.
+delete process.env.ANTHROPIC_API_KEY;
 const app = require('../app');
 const User = require('../models/User');
 const Student = require('../models/Student');
@@ -684,6 +686,111 @@ test('deleting a task removes its evidence files from disk', async () => {
 
   assert.equal((await request(`/tasks/${taskId}`, tokens.admin, 'DELETE')).status, 200);
   assert.ok(!fs.existsSync(diskPath));
+});
+
+test('AI call-advice enforces call-task ownership and fails gracefully without a key', async () => {
+  const { staff: assignee, token: assigneeToken } = await createTaskStaff('ai-call-advice');
+  const { token: bystanderToken } = await createTaskStaff('ai-call-advice-bystander');
+  const callTask = await CallTask.create({
+    studentId: students[0]._id,
+    courseGroupId: group._id,
+    assignedStaffId: assignee._id,
+    absenceDate: new Date(),
+  });
+
+  assert.equal(
+    (
+      await request('/ai/call-advice', bystanderToken, 'POST', {
+        callTaskId: String(callTask._id),
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await request('/ai/call-advice', assigneeToken, 'POST', { callTaskId: 'not-an-id' })).status,
+    400,
+  );
+  const ok = await request('/ai/call-advice', assigneeToken, 'POST', {
+    callTaskId: String(callTask._id),
+  });
+  assert.equal(ok.status, 503);
+  assert.match(ok.body.message, /ANTHROPIC_API_KEY/);
+});
+
+test('AI review-task-evidence is admin-only and requires submitted evidence', async () => {
+  const { staff, token } = await createTaskStaff('ai-review');
+  const workTask = await Task.create({
+    title: 'x',
+    description: 'y',
+    assignedBy: users.admin._id,
+    assignedTo: staff._id,
+  });
+
+  assert.equal(
+    (
+      await request('/ai/review-task-evidence', token, 'POST', {
+        taskId: String(workTask._id),
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await request('/ai/review-task-evidence', tokens.admin, 'POST', {
+        taskId: String(workTask._id),
+      })
+    ).status,
+    400, // still 'Mới giao' — no evidence submitted yet
+  );
+
+  workTask.status = TASK_STATUS.SUBMITTED;
+  workTask.evidenceNote = 'Đã hoàn thành.';
+  await workTask.save();
+  const ok = await request('/ai/review-task-evidence', tokens.admin, 'POST', {
+    taskId: String(workTask._id),
+  });
+  assert.equal(ok.status, 503);
+});
+
+test('AI chat is admin-only and validates the conversation shape', async () => {
+  const { token } = await createTaskStaff('ai-chat');
+  assert.equal(
+    (
+      await request('/ai/chat', token, 'POST', {
+        messages: [{ role: 'user', content: 'hi' }],
+      })
+    ).status,
+    403,
+  );
+  assert.equal((await request('/ai/chat', tokens.admin, 'POST', { messages: [] })).status, 400);
+  assert.equal(
+    (
+      await request('/ai/chat', tokens.admin, 'POST', {
+        messages: [{ role: 'system', content: 'x' }],
+      })
+    ).status,
+    400,
+  );
+  const ok = await request('/ai/chat', tokens.admin, 'POST', {
+    messages: [{ role: 'user', content: 'Có bao nhiêu sinh viên trong hệ thống?' }],
+  });
+  assert.equal(ok.status, 503);
+});
+
+test('AI staff-performance is admin-only', async () => {
+  const { staff, token } = await createTaskStaff('ai-perf');
+  assert.equal(
+    (
+      await request('/ai/staff-performance', token, 'POST', {
+        staffId: String(staff._id),
+      })
+    ).status,
+    403,
+  );
+  const ok = await request('/ai/staff-performance', tokens.admin, 'POST', {
+    staffId: String(staff._id),
+  });
+  assert.equal(ok.status, 503);
 });
 
 test('unknown API routes return JSON and malformed JSON uses the error handler', async () => {

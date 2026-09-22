@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CallTaskService } from '../../services/call-task.service';
 import { AuthService } from '../../services/auth.service';
 import { SettingsService } from '../../services/settings.service';
+import { AiService } from '../../services/ai.service';
 import { CallTask, Student360Profile, SystemSettings } from '../../models/types';
 
 @Component({
@@ -25,10 +26,16 @@ export class CallTaskComponent implements OnInit {
   show360Modal = false;
   student360Data: Student360Profile | null = null;
 
+  // AI call-advice state, keyed by task id
+  aiAdvice: Record<string, string> = {};
+  aiAdviceLoading: Record<string, boolean> = {};
+  aiAdviceError: Record<string, string> = {};
+
   constructor(
     private callTaskService: CallTaskService,
     private settingsService: SettingsService,
     private authService: AuthService,
+    private aiService: AiService,
   ) {}
 
   ngOnInit(): void {
@@ -110,6 +117,22 @@ export class CallTaskComponent implements OnInit {
     if (!task.student || !task.student.tags) return;
     task.student.tags = task.student.tags.filter((t) => t !== tagToRemove);
     this.callTaskService.updateStudentTags(task.student._id, task.student.tags).subscribe();
+  }
+
+  getAiAdvice(task: CallTask) {
+    this.aiAdviceLoading[task._id] = true;
+    this.aiAdviceError[task._id] = '';
+    this.aiService.getCallAdvice(task._id).subscribe({
+      next: (res) => {
+        this.aiAdvice[task._id] = res.advice;
+        this.aiAdviceLoading[task._id] = false;
+      },
+      error: (err) => {
+        this.aiAdviceLoading[task._id] = false;
+        this.aiAdviceError[task._id] =
+          err.error?.message || 'Không thể lấy gợi ý AI. Vui lòng thử lại.';
+      },
+    });
   }
 
   openStudent360(studentId?: string) {

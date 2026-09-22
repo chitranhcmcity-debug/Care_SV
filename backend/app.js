@@ -12,6 +12,7 @@ const analyticsRoutes = require('./routes/analytics');
 const settingsRoutes = require('./routes/settings');
 const courseGroupRoutes = require('./routes/courseGroup');
 const taskRoutes = require('./routes/task');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/course-groups', courseGroupRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (req, res) =>
   res

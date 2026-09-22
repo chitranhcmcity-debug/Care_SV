@@ -674,6 +674,15 @@
                 ✏️ Sửa
               </button>
               <button
+                *ngIf="staff.role === 'staff'"
+                type="button"
+                (click)="openStaffAiAssessment(staff)"
+                class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
+                title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
+              >
+                🤖 Đánh Giá AI
+              </button>
+              <button
                 type="button"
                 (click)="resetStaffPassword(staff)"
                 class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
@@ -949,6 +958,33 @@
         >
           ✖
         </button>
+      </div>
+      <div>
+        <button
+          type="button"
+          (click)="analyzeTaskEvidenceWithAi()"
+          [disabled]="isAnalyzingEvidence"
+          class="w-full px-4 py-2.5 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-900 text-xs font-extrabold transition-all flex items-center justify-center gap-2"
+        >
+          <span>{{
+            isAnalyzingEvidence ? '⏳ AI đang phân tích minh chứng...' : '🤖 Phân Tích Minh Chứng Bằng AI'
+          }}</span>
+        </button>
+        <div
+          *ngIf="aiEvidenceAnalysis"
+          class="mt-2 p-3 rounded-xl bg-violet-50 border border-violet-200 space-y-2"
+        >
+          <p class="text-xs text-slate-800 font-medium whitespace-pre-wrap">
+            {{ aiEvidenceAnalysis }}
+          </p>
+          <button
+            type="button"
+            (click)="useAiAnalysisAsReviewNote()"
+            class="text-[11px] font-bold text-violet-700 hover:text-violet-900 underline"
+          >
+            Dùng làm nhận xét bên dưới
+          </button>
+        </div>
       </div>
       <div>
         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
@@ -2281,6 +2317,61 @@
           <span>{{
             isExecutingHandover ? 'Đang chuyển giao...' : '⚡ XÁC NHẬN BÀN GIAO 1-CLICK'
           }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AI STAFF PERFORMANCE ASSESSMENT -->
+  <div
+    *ngIf="showStaffAiModal"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="flex items-start justify-between border-b border-slate-200 pb-3">
+        <div>
+          <div
+            class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-violet-100 text-violet-900 text-[11px] font-black uppercase"
+          >
+            🤖 Đánh Giá Năng Lực AI
+          </div>
+          <h3 class="text-lg font-extrabold text-slate-900 mt-1">
+            {{ staffAiTarget?.fullName }}
+          </h3>
+        </div>
+        <button
+          (click)="showStaffAiModal = false"
+          class="text-slate-400 hover:text-slate-700 font-bold text-2xl"
+        >
+          ✖
+        </button>
+      </div>
+
+      <div *ngIf="isLoadingStaffAi" class="py-8 text-center text-xs text-slate-500 font-semibold">
+        ⏳ AI đang phân tích lịch sử xử lý của nhân viên...
+      </div>
+
+      <ng-container *ngIf="!isLoadingStaffAi">
+        <div
+          *ngIf="staffAiStats"
+          class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600 space-y-1"
+        >
+          <div>Nhiệm vụ gọi điện: {{ staffAiStats['callTasks'] | json }}</div>
+          <div>Nhiệm vụ nội bộ: {{ staffAiStats['workTasks'] | json }}</div>
+        </div>
+        <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+          <p class="text-sm text-slate-800 font-medium whitespace-pre-wrap">
+            {{ staffAiAssessment }}
+          </p>
+        </div>
+      </ng-container>
+
+      <div class="pt-2 flex justify-end border-t border-slate-200">
+        <button
+          (click)="showStaffAiModal = false"
+          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl"
+        >
+          Đóng
         </button>
       </div>
     </div>

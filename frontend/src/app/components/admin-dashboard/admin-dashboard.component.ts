@@ -8,6 +8,7 @@ import { AnalyticsService, AnalyticsSummary } from '../../services/analytics.ser
 import { SettingsService } from '../../services/settings.service';
 import { CourseGroupService } from '../../services/course-group.service';
 import { TaskService } from '../../services/task.service';
+import { AiService } from '../../services/ai.service';
 import { User, SystemSettings, CourseGroup, WorkTask, TaskStatus, TaskEvidenceFile } from '../../models/types';
 
 @Component({
@@ -139,6 +140,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   showTaskReviewModal = false;
   reviewingTask: WorkTask | null = null;
   reviewNoteInput = '';
+  aiEvidenceAnalysis = '';
+  isAnalyzingEvidence = false;
+
+  // AI Staff Performance State
+  showStaffAiModal = false;
+  staffAiTarget: User | null = null;
+  staffAiAssessment = '';
+  staffAiStats: Record<string, unknown> | null = null;
+  isLoadingStaffAi = false;
 
   // Analytics State
   analyticsData: AnalyticsSummary | null = null;
@@ -154,6 +164,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private settingsService: SettingsService,
     private courseGroupService: CourseGroupService,
     private taskService: TaskService,
+    private aiService: AiService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -269,8 +280,32 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   openReviewModal(task: WorkTask) {
     this.reviewingTask = task;
     this.reviewNoteInput = '';
+    this.aiEvidenceAnalysis = '';
     this.showTaskReviewModal = true;
     this.cdr.detectChanges();
+  }
+
+  analyzeTaskEvidenceWithAi() {
+    if (!this.reviewingTask) return;
+    this.isAnalyzingEvidence = true;
+    this.aiEvidenceAnalysis = '';
+    this.aiService.reviewTaskEvidence(this.reviewingTask._id).subscribe({
+      next: (res) => {
+        this.aiEvidenceAnalysis = res.analysis;
+        this.isAnalyzingEvidence = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isAnalyzingEvidence = false;
+        this.aiEvidenceAnalysis =
+          '⚠️ ' + (err.error?.message || 'Không thể phân tích minh chứng bằng AI.');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  useAiAnalysisAsReviewNote() {
+    if (this.aiEvidenceAnalysis) this.reviewNoteInput = this.aiEvidenceAnalysis;
   }
 
   submitTaskReview(approve: boolean) {
@@ -310,6 +345,31 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   displayTaskUser(u: { fullName: string; email: string } | string | null | undefined): string {
     if (!u) return '—';
     return typeof u === 'string' ? u : u.fullName;
+  }
+
+  openStaffAiAssessment(staff: User) {
+    this.staffAiTarget = staff;
+    this.staffAiAssessment = '';
+    this.staffAiStats = null;
+    this.showStaffAiModal = true;
+    this.isLoadingStaffAi = true;
+    this.cdr.detectChanges();
+
+    const staffId = staff._id || staff.id || '';
+    this.aiService.getStaffPerformance(staffId).subscribe({
+      next: (res) => {
+        this.staffAiAssessment = res.assessment;
+        this.staffAiStats = res.stats;
+        this.isLoadingStaffAi = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoadingStaffAi = false;
+        this.staffAiAssessment =
+          '⚠️ ' + (err.error?.message || 'Không thể đánh giá năng lực bằng AI.');
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   formatFileSize(bytes: number): string {
