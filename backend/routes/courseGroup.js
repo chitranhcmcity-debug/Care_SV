@@ -165,14 +165,15 @@ router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
     // Every route that reads Attendance/CallTask for a group first loads the group
     // (requireCourseAccess), so once it's gone those records become permanently
     // unreachable orphans. Remove them, and drop the group from its students' list.
-    await Attendance.deleteMany({ courseGroupId: deleted._id });
-    await CallTask.deleteMany({ courseGroupId: deleted._id });
-    if (deleted.students?.length) {
-      await Student.updateMany(
-        { _id: { $in: deleted.students } },
-        { $pull: { courseGroups: deleted.groupCode } },
-      );
-    }
+    await Promise.all([
+      Attendance.deleteMany({ courseGroupId: deleted._id }),
+      CallTask.deleteMany({ courseGroupId: deleted._id }),
+      deleted.students?.length &&
+        Student.updateMany(
+          { _id: { $in: deleted.students } },
+          { $pull: { courseGroups: deleted.groupCode } },
+        ),
+    ]);
 
     res.json({ message: 'Đã xóa nhóm học phần thành công!' });
   } catch (error) {

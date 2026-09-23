@@ -2,7 +2,7 @@ function errorHandler(error, req, res, next) {
   if (res.headersSent) return next(error);
   const status =
     error.status ||
-    (error.name === 'ValidationError' || error.name === 'CastError'
+    (['ValidationError', 'CastError', 'MulterError'].includes(error.name)
       ? 400
       : error.code === 11000
         ? 409

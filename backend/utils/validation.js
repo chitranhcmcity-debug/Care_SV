@@ -30,8 +30,22 @@ function dayBounds(value = new Date()) {
   end.setDate(end.getDate() + 1);
   return { date, start, end };
 }
+// Empty value -> null; anything else must parse to a valid Date.
+function parseOptionalDate(value, message = 'Ngày không hợp lệ') {
+  if (!value) return null;
+  const date = new Date(value);
+  assert(!Number.isNaN(date.getTime()), message);
+  return date;
+}
 function dateKey(value) {
   const date = new Date(value);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
-module.exports = { assert, validateId, validateAttendance, dayBounds, dateKey };
+module.exports = {
+  assert,
+  validateId,
+  validateAttendance,
+  dayBounds,
+  dateKey,
+  parseOptionalDate,
+};

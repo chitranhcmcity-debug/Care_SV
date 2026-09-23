@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
-const { CALL_STATUS } = require('../constants/callStatus');
+const { OPEN_CALL_STATUSES } = require('../constants/callStatus');
 const { verifyToken, requireAdmin, requireStaffOrAdmin } = require('../middleware/auth');
 
 // POST /api/auth/login
@@ -265,7 +265,7 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) =>
       // Hand them to the admin performing the deletion, same as a manual handover.
       const CallTask = require('../models/CallTask');
       await CallTask.updateMany(
-        { assignedStaffId: user._id, status: { $in: [CALL_STATUS.PENDING, CALL_STATUS.UNREACHABLE] } },
+        { assignedStaffId: user._id, status: { $in: OPEN_CALL_STATUSES } },
         { assignedStaffId: req.user.id },
       );
     } else if (user.role === 'teacher') {
@@ -426,7 +426,7 @@ router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res, nex
         {
           assignedStaffId: fromStaff._id,
           studentId: { $in: studentIds },
-          status: { $in: ['Chưa gọi', 'Không bắt máy'] },
+          status: { $in: OPEN_CALL_STATUSES },
         },
         { assignedStaffId: toStaff._id },
       );

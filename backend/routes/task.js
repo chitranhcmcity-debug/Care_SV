@@ -7,8 +7,16 @@ const multer = require('multer');
 const Task = require('../models/Task');
 const User = require('../models/User');
 const { TASK_STATUS, TASK_STATUSES } = require('../constants/taskStatus');
-const { verifyToken, requireAdmin, requireStaffOrAdmin } = require('../middleware/auth');
-const { assert, validateId } = require('../utils/validation');
+const {
+  verifyToken,
+  requireAdmin,
+  requireStaffOrAdmin,
+  requireRoles,
+} = require('../middleware/auth');
+const { assert, validateId, parseOptionalDate } = require('../utils/validation');
+
+// Only the assigned staff member acts on a task (acknowledge / submit) — not admins.
+const requireStaff = requireRoles('staff');
 
 // ---- Evidence file upload (disk storage; served back through an authenticated route,
 // never express.static, so evidence isn't reachable by anyone who guesses the URL) ----
@@ -39,36 +47,30 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024, files: 5 },
   fileFilter: (req, file, cb) => {
     if (!ALLOWED_MIME.has(file.mimetype)) {
-      return cb(new Error('Định dạng file không được hỗ trợ'));
+      return cb(Object.assign(new Error('Định dạng file không được hỗ trợ'), { status: 400 }));
     }
     cb(null, true);
   },
 });
-function handleUpload(req, res, next) {
-  upload.array('files', 5)(req, res, (err) => {
-    if (err) return res.status(400).json({ message: err.message || 'Lỗi tải file minh chứng' });
-    next();
-  });
-}
+const uploadEvidence = upload.array('files', 5);
 function removeFiles(files) {
   for (const file of files) fs.unlink(path.join(UPLOAD_DIR, file.storedName), () => {});
 }
 
-async function loadTaskForUser(req, res, next) {
+async function loadTask(req, res, next) {
   try {
     validateId(req.params.id);
-    const task = await Task.findById(req.params.id);
-    assert(task, 'Không tìm thấy nhiệm vụ', 404);
-    assert(
-      req.user.role === 'admin' || String(task.assignedTo) === req.user.id,
-      'Bạn không có quyền truy cập nhiệm vụ này',
-      403,
-    );
-    req.task = task;
+    req.task = await Task.findById(req.params.id);
+    assert(req.task, 'Không tìm thấy nhiệm vụ', 404);
     next();
   } catch (error) {
     next(error);
   }
+}
+function requireTaskOwnerOrAdmin(req, res, next) {
+  const allowed = req.user.role === 'admin' || String(req.task.assignedTo) === req.user.id;
+  if (!allowed) return res.status(403).json({ message: 'Bạn không có quyền truy cập nhiệm vụ này' });
+  next();
 }
 
 const taskPopulation = [
@@ -89,17 +91,12 @@ router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
       staff && staff.status === 'active' && staff.role === 'staff',
       'Vui lòng chọn một nhân viên CSKH đang hoạt động',
     );
-    let parsedDueDate = null;
-    if (dueDate) {
-      parsedDueDate = new Date(dueDate);
-      assert(!Number.isNaN(parsedDueDate.getTime()), 'Hạn chót không hợp lệ');
-    }
     const task = await Task.create({
       title: title.trim(),
       description: description.trim(),
       assignedBy: req.user.id,
       assignedTo,
-      dueDate: parsedDueDate,
+      dueDate: parseOptionalDate(dueDate, 'Hạn chót không hợp lệ'),
     });
     await task.populate(taskPopulation);
     res.status(201).json({ message: `Đã giao nhiệm vụ cho ${staff.fullName}!`, task });
@@ -121,7 +118,7 @@ router.get('/admin-all', verifyToken, requireAdmin, async (req, res, next) => {
       validateId(assignedTo);
       filter.assignedTo = assignedTo;
     }
-    const tasks = await Task.find(filter).populate(taskPopulation).sort({ createdAt: -1 });
+    const tasks = await Task.find(filter).populate(taskPopulation).sort({ createdAt: -1 }).lean();
     res.json(tasks);
   } catch (error) {
     next(error);
@@ -137,7 +134,7 @@ router.get('/my-tasks', verifyToken, requireStaffOrAdmin, async (req, res, next)
       assert(TASK_STATUSES.includes(status), 'Trạng thái không hợp lệ');
       filter.status = status;
     }
-    const tasks = await Task.find(filter).populate(taskPopulation).sort({ createdAt: -1 });
+    const tasks = await Task.find(filter).populate(taskPopulation).sort({ createdAt: -1 }).lean();
     res.json(tasks);
   } catch (error) {
     next(error);
@@ -158,21 +155,26 @@ router.get('/pending-count', verifyToken, requireStaffOrAdmin, async (req, res, 
 });
 
 // GET /api/tasks/:id (Admin, or the assignee)
-router.get('/:id', verifyToken, requireStaffOrAdmin, loadTaskForUser, async (req, res, next) => {
-  try {
-    await req.task.populate(taskPopulation);
-    res.json(req.task);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/:id',
+  verifyToken,
+  requireStaffOrAdmin,
+  loadTask,
+  requireTaskOwnerOrAdmin,
+  async (req, res, next) => {
+    try {
+      await req.task.populate(taskPopulation);
+      res.json(req.task);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // PUT /api/tasks/:id (Admin: edit title/description/due date before work is submitted)
-router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
+router.put('/:id', verifyToken, requireAdmin, loadTask, async (req, res, next) => {
   try {
-    validateId(req.params.id);
-    const task = await Task.findById(req.params.id);
-    assert(task, 'Không tìm thấy nhiệm vụ', 404);
+    const { task } = req;
     assert(
       [TASK_STATUS.PENDING, TASK_STATUS.ACKNOWLEDGED].includes(task.status),
       'Chỉ có thể sửa nhiệm vụ khi chưa nộp minh chứng',
@@ -186,15 +188,7 @@ router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
       assert(typeof description === 'string' && description.trim(), 'Mô tả không hợp lệ');
       task.description = description.trim();
     }
-    if (dueDate !== undefined) {
-      if (!dueDate) {
-        task.dueDate = null;
-      } else {
-        const parsed = new Date(dueDate);
-        assert(!Number.isNaN(parsed.getTime()), 'Hạn chót không hợp lệ');
-        task.dueDate = parsed;
-      }
-    }
+    if (dueDate !== undefined) task.dueDate = parseOptionalDate(dueDate, 'Hạn chót không hợp lệ');
     await task.save();
     await task.populate(taskPopulation);
     res.json({ message: 'Đã cập nhật nhiệm vụ', task });
@@ -204,12 +198,10 @@ router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
 });
 
 // DELETE /api/tasks/:id (Admin: cancel a task and clean up its evidence files)
-router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
+router.delete('/:id', verifyToken, requireAdmin, loadTask, async (req, res, next) => {
   try {
-    validateId(req.params.id);
-    const task = await Task.findByIdAndDelete(req.params.id);
-    assert(task, 'Không tìm thấy nhiệm vụ', 404);
-    removeFiles(task.evidenceFiles);
+    await req.task.deleteOne();
+    removeFiles(req.task.evidenceFiles);
     res.json({ message: 'Đã xóa nhiệm vụ' });
   } catch (error) {
     next(error);
@@ -220,11 +212,11 @@ router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
 router.put(
   '/:id/acknowledge',
   verifyToken,
-  requireStaffOrAdmin,
-  loadTaskForUser,
+  requireStaff,
+  loadTask,
+  requireTaskOwnerOrAdmin,
   async (req, res, next) => {
     try {
-      assert(req.user.role !== 'admin', 'Chỉ nhân viên được giao mới xác nhận nhiệm vụ', 403);
       assert(req.task.status === TASK_STATUS.PENDING, 'Nhiệm vụ đã được xác nhận trước đó');
       req.task.status = TASK_STATUS.ACKNOWLEDGED;
       req.task.acknowledgedAt = new Date();
@@ -241,12 +233,12 @@ router.put(
 router.put(
   '/:id/submit',
   verifyToken,
-  requireStaffOrAdmin,
-  loadTaskForUser,
-  handleUpload,
+  requireStaff,
+  loadTask,
+  requireTaskOwnerOrAdmin,
+  uploadEvidence,
   async (req, res, next) => {
     try {
-      assert(req.user.role !== 'admin', 'Chỉ nhân viên được giao mới nộp minh chứng', 403);
       assert(
         [TASK_STATUS.ACKNOWLEDGED, TASK_STATUS.REJECTED].includes(req.task.status),
         'Cần xác nhận nhiệm vụ trước khi nộp minh chứng',
@@ -286,11 +278,9 @@ router.put(
 );
 
 // PUT /api/tasks/:id/review (Admin: approve & close, or reject back to the assignee)
-router.put('/:id/review', verifyToken, requireAdmin, async (req, res, next) => {
+router.put('/:id/review', verifyToken, requireAdmin, loadTask, async (req, res, next) => {
   try {
-    validateId(req.params.id);
-    const task = await Task.findById(req.params.id);
-    assert(task, 'Không tìm thấy nhiệm vụ', 404);
+    const { task } = req;
     assert(task.status === TASK_STATUS.SUBMITTED, 'Nhiệm vụ chưa được nộp minh chứng để duyệt');
     const { approve, reviewNote } = req.body;
     assert(typeof approve === 'boolean', 'Vui lòng chọn Duyệt hoặc Từ chối');
@@ -315,7 +305,8 @@ router.get(
   '/:id/evidence/:fileId',
   verifyToken,
   requireStaffOrAdmin,
-  loadTaskForUser,
+  loadTask,
+  requireTaskOwnerOrAdmin,
   async (req, res, next) => {
     try {
       const file = req.task.evidenceFiles.id(req.params.fileId);

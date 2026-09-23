@@ -1,4 +1,5 @@
 const Anthropic = require('@anthropic-ai/sdk');
+const { assert } = require('../utils/validation');
 
 const MODEL = process.env.AI_MODEL || 'claude-opus-5';
 let client = null;
@@ -18,12 +19,11 @@ function getClient() {
  * handling only lives in one place.
  */
 async function chat({ system, messages, maxTokens = 1024, effort = 'low' }) {
-  if (!isConfigured()) {
-    throw Object.assign(
-      new Error('Trợ lý AI chưa được cấu hình. Vui lòng thêm ANTHROPIC_API_KEY vào backend/.env.'),
-      { status: 503 },
-    );
-  }
+  assert(
+    isConfigured(),
+    'Trợ lý AI chưa được cấu hình. Vui lòng thêm ANTHROPIC_API_KEY vào backend/.env.',
+    503,
+  );
   let response;
   try {
     response = await getClient().messages.create({
@@ -45,4 +45,4 @@ async function chat({ system, messages, maxTokens = 1024, effort = 'low' }) {
   return textBlock ? textBlock.text : '';
 }
 
-module.exports = { chat, isConfigured, MODEL };
+module.exports = { chat };

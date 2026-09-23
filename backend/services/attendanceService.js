@@ -1,4 +1,4 @@
-const { CALL_STATUS } = require('../constants/callStatus');
+const { CALL_STATUS, OPEN_CALL_STATUSES } = require('../constants/callStatus');
 const Attendance = require('../models/Attendance');
 const CallTask = require('../models/CallTask');
 const Student = require('../models/Student');
@@ -14,13 +14,15 @@ const pending = new Map();
 // Persisted, atomically-incremented cursor so round-robin actually rotates across
 // separate saveAttendance calls (and processes), instead of restarting at staff[0]
 // every time because it indexed by position within that session's absentee list.
-async function nextRoundRobinSeat(staffCount) {
+// Reserves `count` consecutive seats in one write and returns the first one.
+async function reserveRoundRobinSeats(count) {
+  if (!count) return 0;
   const updated = await RoundRobinCursor.findOneAndUpdate(
     { _id: 'callTaskAssignment' },
-    { $inc: { value: 1 } },
+    { $inc: { value: count } },
     { upsert: true, returnDocument: 'after' },
   );
-  return (updated.value - 1) % staffCount;
+  return updated.value - count;
 }
 async function withSessionLock(key, operation) {
   const previous = pending.get(key) || Promise.resolve();
@@ -87,28 +89,33 @@ async function saveAttendance({
             String(member._id),
             await CallTask.countDocuments({
               assignedStaffId: member._id,
-              status: { $in: [CALL_STATUS.PENDING, CALL_STATUS.UNREACHABLE] },
+              status: { $in: OPEN_CALL_STATUSES },
             }),
           ]),
         ),
       );
+      const managers = new Map(
+        missing.map((studentId) => {
+          const classCode = studentMap.get(studentId).classCode.trim().toUpperCase();
+          const manager =
+            staff.find((person) => person.managedStudents.some((id) => String(id) === studentId)) ||
+            staff.find((person) => person.managedClasses.includes(classCode));
+          return [studentId, manager];
+        }),
+      );
+      let seat =
+        rule === 'least-tasks'
+          ? 0
+          : await reserveRoundRobinSeats(missing.filter((id) => !managers.get(id)).length);
       for (const studentId of missing) {
         const student = studentMap.get(studentId);
-        let member = staff.find((person) =>
-          person.managedStudents.some((id) => String(id) === studentId),
-        );
-        member ||= staff.find((person) =>
-          person.managedClasses.includes(student.classCode.trim().toUpperCase()),
-        );
-        if (!member)
-          member =
-            rule === 'least-tasks'
-              ? staff.reduce((least, candidate) =>
-                  loads.get(String(candidate._id)) < loads.get(String(least._id))
-                    ? candidate
-                    : least,
-                )
-              : staff[await nextRoundRobinSeat(staff.length)];
+        const member =
+          managers.get(studentId) ||
+          (rule === 'least-tasks'
+            ? staff.reduce((least, candidate) =>
+                loads.get(String(candidate._id)) < loads.get(String(least._id)) ? candidate : least,
+              )
+            : staff[seat++ % staff.length]);
         const task = await CallTask.updateOne(
           { attendanceId: attendance._id, studentId },
           {

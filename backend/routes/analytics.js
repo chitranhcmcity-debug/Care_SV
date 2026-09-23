@@ -8,6 +8,16 @@ const CourseGroup = require('../models/CourseGroup');
 const SystemSettings = require('../models/SystemSettings');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
 
+// Whole-word match so short keywords like "ca" do not hit "các", "cả", "cái"...
+// Checked in order; the first bucket that matches wins.
+const wholeWords = (words) => new RegExp(`(^|[^\\p{L}])(${words.join('|')})([^\\p{L}]|$)`, 'u');
+const REASON_PATTERNS = [
+  { reason: 'Ốm / Sức khỏe', pattern: wholeWords(['ốm', 'bệnh', 'sốt', 'viện', 'sức khỏe']) },
+  { reason: 'Bận việc gia đình', pattern: wholeWords(['gia đình', 'quê', 'việc nhà']) },
+  { reason: 'Bận đi làm', pattern: wholeWords(['làm', 'đi làm', 'ca']) },
+  { reason: 'Quên lịch học', pattern: wholeWords(['quên', 'ngủ']) },
+];
+
 // GET /api/analytics/summary
 router.get('/summary', verifyToken, requireAdmin, async (req, res, next) => {
   try {
@@ -37,7 +47,9 @@ router.get('/summary', verifyToken, requireAdmin, async (req, res, next) => {
     // 2. Reason extraction breakdown from CallTask notes
     const tasksWithNotes = await CallTask.find({
       $or: [{ callNote: { $ne: '' } }, { absenceReasonCategory: { $ne: '' } }],
-    });
+    })
+      .select('callNote absenceReasonCategory')
+      .lean();
     const reasonCounts = {
       'Ốm / Sức khỏe': 0,
       'Bận việc gia đình': 0,
@@ -46,18 +58,8 @@ router.get('/summary', verifyToken, requireAdmin, async (req, res, next) => {
       'Lý do khác': 0,
     };
 
-    // Whole-word match so short keywords like "ca" do not hit "các", "cả", "cái"...
-    const hasWord = (text, word) =>
-      new RegExp(`(^|[^\\p{L}])${word}([^\\p{L}]|$)`, 'u').test(text);
-    const classifyReason = (text) => {
-      if (['ốm', 'bệnh', 'sốt', 'viện', 'sức khỏe'].some((w) => hasWord(text, w)))
-        return 'Ốm / Sức khỏe';
-      if (['gia đình', 'quê', 'việc nhà'].some((w) => hasWord(text, w)))
-        return 'Bận việc gia đình';
-      if (['làm', 'đi làm', 'ca'].some((w) => hasWord(text, w))) return 'Bận đi làm';
-      if (['quên', 'ngủ'].some((w) => hasWord(text, w))) return 'Quên lịch học';
-      return null;
-    };
+    const classifyReason = (text) =>
+      REASON_PATTERNS.find(({ pattern }) => pattern.test(text))?.reason ?? null;
 
     for (const task of tasksWithNotes) {
       // The category chosen by staff is authoritative; fall back to the free-text note.
