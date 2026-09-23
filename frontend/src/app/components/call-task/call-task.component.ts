@@ -5,6 +5,7 @@ import { CallTaskService } from '../../services/call-task.service';
 import { AuthService } from '../../services/auth.service';
 import { SettingsService } from '../../services/settings.service';
 import { AiService } from '../../services/ai.service';
+import { NotificationService } from '../../services/notification.service';
 import { CallTask, Student360Profile, SystemSettings } from '../../models/types';
 
 @Component({
@@ -27,15 +28,14 @@ export class CallTaskComponent implements OnInit {
   student360Data: Student360Profile | null = null;
 
   // AI call-advice state, keyed by task id
-  aiAdvice: Record<string, string> = {};
-  aiAdviceLoading: Record<string, boolean> = {};
-  aiAdviceError: Record<string, string> = {};
+  aiAdvice: Record<string, { loading: boolean; text?: string; error?: string }> = {};
 
   constructor(
     private callTaskService: CallTaskService,
     private settingsService: SettingsService,
     private authService: AuthService,
     private aiService: AiService,
+    private notify: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -98,7 +98,7 @@ export class CallTaskComponent implements OnInit {
           // Reload tasks to re-sort by callback & status priority queue
           this.loadTasks();
         },
-        error: (err) => alert(err.error?.message || 'Không thể lưu kết quả cuộc gọi'),
+        error: (err) => this.notify.error(err.error?.message || 'Không thể lưu kết quả cuộc gọi'),
       });
   }
 
@@ -120,18 +120,16 @@ export class CallTaskComponent implements OnInit {
   }
 
   getAiAdvice(task: CallTask) {
-    this.aiAdviceLoading[task._id] = true;
-    this.aiAdviceError[task._id] = '';
+    const previous = this.aiAdvice[task._id];
+    this.aiAdvice[task._id] = { loading: true, text: previous?.text };
     this.aiService.getCallAdvice(task._id).subscribe({
-      next: (res) => {
-        this.aiAdvice[task._id] = res.advice;
-        this.aiAdviceLoading[task._id] = false;
-      },
-      error: (err) => {
-        this.aiAdviceLoading[task._id] = false;
-        this.aiAdviceError[task._id] =
-          err.error?.message || 'Không thể lấy gợi ý AI. Vui lòng thử lại.';
-      },
+      next: (res) => (this.aiAdvice[task._id] = { loading: false, text: res.advice }),
+      error: (err) =>
+        (this.aiAdvice[task._id] = {
+          loading: false,
+          text: previous?.text,
+          error: err.error?.message || 'Không thể lấy gợi ý AI. Vui lòng thử lại.',
+        }),
     });
   }
 
@@ -142,7 +140,7 @@ export class CallTaskComponent implements OnInit {
         this.student360Data = profile;
         this.show360Modal = true;
       },
-      error: (err) => alert(err.error?.message || 'Không thể lấy hồ sơ 360° sinh viên'),
+      error: (err) => this.notify.error(err.error?.message || 'Không thể lấy hồ sơ 360° sinh viên'),
     });
   }
 }

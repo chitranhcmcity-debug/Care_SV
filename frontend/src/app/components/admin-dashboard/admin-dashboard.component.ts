@@ -9,7 +9,16 @@ import { SettingsService } from '../../services/settings.service';
 import { CourseGroupService } from '../../services/course-group.service';
 import { TaskService } from '../../services/task.service';
 import { AiService } from '../../services/ai.service';
-import { User, SystemSettings, CourseGroup, WorkTask, TaskStatus, TaskEvidenceFile } from '../../models/types';
+import { NotificationService, ToastType } from '../../services/notification.service';
+import { User, SystemSettings, CourseGroup, WorkTask, TaskStatus } from '../../models/types';
+import {
+  countTasksByStatus,
+  formatFileSize,
+  isTaskOverdue,
+  taskUserName,
+} from '../../utils/task-utils';
+
+type AdminTab = 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'tasks';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -18,21 +27,43 @@ import { User, SystemSettings, CourseGroup, WorkTask, TaskStatus, TaskEvidenceFi
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  activeTab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'tasks' = 'courses';
+  activeTab: AdminTab = 'courses';
+  // Tab order + 24px stroke icon paths (Tabler-style) for the tab bar.
+  readonly adminTabs: { id: AdminTab; label: string; icon: string }[] = [
+    {
+      id: 'courses',
+      label: 'Cấu hình học phần',
+      icon: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 11h18',
+    },
+    {
+      id: 'excel',
+      label: 'Nhập sinh viên (Excel)',
+      icon: 'M14 3v4a1 1 0 0 0 1 1h4M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2zM9 12l6 6M15 12l-6 6',
+    },
+    {
+      id: 'staff',
+      label: 'Nhân sự CSKH',
+      icon: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
+    },
+    {
+      id: 'tasks',
+      label: 'Giao việc',
+      icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2zM9 14l2 2 4-4',
+    },
+    {
+      id: 'analytics',
+      label: 'Thống kê & cấm thi',
+      icon: 'M3 3v18h18M7 15l4-4 3 3 5-6',
+    },
+    {
+      id: 'settings',
+      label: 'Cấu hình',
+      icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
+    },
+  ];
 
-  // Global Floating Toast Notification State
-  toast = {
-    show: false,
-    type: 'success' as 'success' | 'error' | 'info',
-    title: '',
-    message: '',
-  };
-
-  triggerToast(type: 'success' | 'error' | 'info', title: string, message: string) {
-    this.toast = { show: true, type, title, message };
-    setTimeout(() => {
-      this.toast.show = false;
-    }, 4500);
+  triggerToast(type: ToastType, title: string, message: string) {
+    this.notify.show(type, message, title);
   }
 
   // Course Group Management State
@@ -66,7 +97,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // System Settings State
   sysSettings: SystemSettings = {
-    systemTitle: 'ITC Student Care System',
+    systemTitle: 'ITC CARE',
     schoolName: 'Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC)',
     departmentName: 'Phòng Đào Tạo & Chăm Sóc Sinh Viên',
     supportHotline: '028 3965 1114',
@@ -163,8 +194,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private analyticsService: AnalyticsService,
     private settingsService: SettingsService,
     private courseGroupService: CourseGroupService,
-    private taskService: TaskService,
+    protected taskService: TaskService,
     private aiService: AiService,
+    private notify: NotificationService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -173,14 +205,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.loadAnalytics();
     this.loadSettings();
     this.loadCourseGroups();
-    this.loadTasks();
   }
 
   ngOnDestroy(): void {
     if (this.analyticsInterval) clearInterval(this.analyticsInterval);
   }
 
-  switchTab(tab: 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'tasks') {
+  switchTab(tab: AdminTab) {
     this.activeTab = tab;
     // Dừng auto-refresh cũ khi đổi tab
     if (this.analyticsInterval) {
@@ -219,8 +250,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   taskStatusCount(status: TaskStatus): number {
-    return this.taskList.filter((t) => t.status === status).length;
+    return countTasksByStatus(this.taskList, status);
   }
+
+  readonly taskUserName = taskUserName;
+  readonly isTaskOverdue = isTaskOverdue;
+  readonly formatFileSize = formatFileSize;
 
   createTask() {
     if (
@@ -265,8 +300,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  deleteTask(task: WorkTask) {
-    if (!confirm(`Bạn có chắc chắn muốn xóa nhiệm vụ "${task.title}"?`)) return;
+  async deleteTask(task: WorkTask) {
+    const ok = await this.notify.confirm({
+      title: 'Xóa nhiệm vụ?',
+      message: `Nhiệm vụ "${task.title}" và các tệp minh chứng đi kèm sẽ bị xóa vĩnh viễn.`,
+      confirmText: 'Xóa nhiệm vụ',
+      danger: true,
+    });
+    if (!ok) return;
     this.taskService.deleteTask(task._id).subscribe({
       next: (res) => {
         this.triggerToast('success', 'Đã Xóa Nhiệm Vụ', res.message);
@@ -331,22 +372,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  viewTaskFile(taskId: string, file: TaskEvidenceFile) {
-    this.taskService.getEvidenceBlob(taskId, file._id).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      },
-      error: () => alert('Không thể tải tệp minh chứng'),
-    });
-  }
-
-  displayTaskUser(u: { fullName: string; email: string } | string | null | undefined): string {
-    if (!u) return '—';
-    return typeof u === 'string' ? u : u.fullName;
-  }
-
   openStaffAiAssessment(staff: User) {
     this.staffAiTarget = staff;
     this.staffAiAssessment = '';
@@ -370,17 +395,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  isTaskOverdue(task: WorkTask): boolean {
-    if (!task.dueDate || task.status === 'Hoàn thành') return false;
-    return new Date(task.dueDate).getTime() < Date.now();
   }
 
   // Course Group Management Methods
@@ -568,15 +582,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  deleteCourseGroup(id: string) {
-    if (!confirm('Bạn có chắc chắn muốn xóa nhóm học phần này?')) return;
+  async deleteCourseGroup(id: string) {
+    const ok = await this.notify.confirm({
+      title: 'Xóa nhóm học phần?',
+      message: 'Toàn bộ điểm danh và nhiệm vụ gọi điện của học phần này cũng sẽ bị xóa.',
+      confirmText: 'Xóa học phần',
+      danger: true,
+    });
+    if (!ok) return;
     this.courseGroupService.deleteCourseGroup(id).subscribe({
       next: (res) => {
         this.courseAlertMsg = res.message;
         setTimeout(() => (this.courseAlertMsg = ''), 4000);
         this.loadCourseGroups();
       },
-      error: (err) => alert(err.error?.message || 'Lỗi khi xóa học phần'),
+      error: (err) => this.notify.error(err.error?.message || 'Lỗi khi xóa học phần'),
     });
   }
 
@@ -600,7 +620,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.classToEnroll = '';
           this.loadCourseGroups();
         },
-        error: (err) => alert(err.error?.message || 'Không thể đăng ký cả lớp vào môn học'),
+        error: (err) =>
+          this.notify.error(err.error?.message || 'Không thể đăng ký cả lớp vào môn học'),
       });
   }
 
@@ -615,7 +636,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.mssvToEnroll = '';
           this.loadCourseGroups();
         },
-        error: (err) => alert(err.error?.message || 'Không tìm thấy sinh viên với MSSV này'),
+        error: (err) =>
+          this.notify.error(err.error?.message || 'Không tìm thấy sinh viên với MSSV này'),
       });
   }
 
@@ -627,7 +649,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.enrollAlertMsg = res.message;
         this.loadCourseGroups();
       },
-      error: (err) => alert(err.error?.message || 'Lỗi khi rút tên sinh viên'),
+      error: (err) => this.notify.error(err.error?.message || 'Lỗi khi rút tên sinh viên'),
     });
   }
 
@@ -655,7 +677,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isSavingSettings = false;
-        alert(err.error?.message || 'Lỗi khi lưu cấu hình');
+        this.notify.error(err.error?.message || 'Lỗi khi lưu cấu hình');
       },
     });
   }
@@ -889,7 +911,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isExportingCareReport = false;
-        alert('Không thể xuất báo cáo chăm sóc Excel');
+        this.notify.error('Không thể xuất báo cáo chăm sóc Excel');
       },
     });
   }
@@ -909,7 +931,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isDownloadingExcel = false;
-        alert('Không thể xuất file Excel mẫu');
+        this.notify.error('Không thể xuất file Excel mẫu');
       },
     });
   }
@@ -965,7 +987,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isUploadingExcel = false;
-        alert(err.error?.message || 'Lỗi khi đồng bộ file Excel');
+        this.notify.error(err.error?.message || 'Lỗi khi đồng bộ file Excel');
       },
     });
   }
@@ -1059,7 +1081,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         error: (err) => {
           const errMsg = err.error?.message || err.message || 'Không thể tạo nhân viên';
           this.triggerToast('error', 'Lỗi Tạo Nhân Viên', errMsg);
-          alert('⚠️ ' + errMsg);
           this.cdr.detectChanges();
         },
       });
@@ -1111,19 +1132,19 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         },
         error: (err) => {
-          alert('⚠️ ' + (err.error?.message || 'Lỗi khi cập nhật nhân viên'));
+          this.notify.error(err.error?.message || 'Lỗi khi cập nhật nhân viên');
           this.cdr.detectChanges();
         },
       });
   }
 
-  resetStaffPassword(staff: User) {
-    const customPass = prompt(
-      'Nhập mật khẩu mới cho nhân viên "' +
-        staff.fullName +
-        '" (để trống nếu muốn tự động sinh ngẫu nhiên):',
-      '',
-    );
+  async resetStaffPassword(staff: User) {
+    const customPass = await this.notify.prompt({
+      title: 'Đặt lại mật khẩu',
+      message: `Nhập mật khẩu mới cho "${staff.fullName}". Để trống để hệ thống tự sinh mật khẩu ngẫu nhiên.`,
+      placeholder: 'Mật khẩu mới (không bắt buộc)',
+      confirmText: 'Đặt lại',
+    });
     if (customPass === null) return; // User cancelled
 
     const targetId = staff.id || (staff as any)._id || '';
@@ -1139,7 +1160,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       error: (err) => {
         const msg =
           err.error?.message || err.statusText || 'Không thể kết nối đến máy chủ API backend';
-        alert('⚠️ Lỗi đặt lại mật khẩu: ' + msg);
         this.triggerToast('error', 'Lỗi Reset Mật Khẩu', msg);
         this.cdr.detectChanges();
       },
@@ -1155,23 +1175,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         const msg = err.error?.message || err.statusText || 'Lỗi cập nhật trạng thái';
-        alert('⚠️ ' + msg);
+        this.notify.error(msg);
         this.cdr.detectChanges();
       },
     });
   }
 
-  deleteStaffAccount(staff: User) {
-    if (
-      !confirm(
-        '⚠️ BẠN CÓ CHẮC CHẮN MUỐN XÓA VĨNH VIỄN TÀI KHOẢN NHÂN VIÊN "' +
-          staff.fullName +
-          '" (' +
-          staff.email +
-          ')?',
-      )
-    )
-      return;
+  async deleteStaffAccount(staff: User) {
+    const ok = await this.notify.confirm({
+      title: 'Xóa vĩnh viễn tài khoản?',
+      message: `${staff.fullName} (${staff.email}) sẽ bị xóa khỏi hệ thống. Không thể hoàn tác.`,
+      confirmText: 'Xóa tài khoản',
+      danger: true,
+    });
+    if (!ok) return;
     const targetId = staff.id || (staff as any)._id || '';
     this.staffService.deleteStaff(targetId).subscribe({
       next: (res) => {
@@ -1181,7 +1198,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         const msg = err.error?.message || err.statusText || 'Không thể xóa tài khoản nhân viên';
-        alert('⚠️ Lỗi xóa nhân viên: ' + msg);
         this.triggerToast('error', 'Lỗi Xóa Nhân Viên', msg);
         this.cdr.detectChanges();
       },

@@ -86,7 +86,15 @@ export interface TimelineItem {
   callAttempts?: number;
 }
 
-export type TaskStatus = 'Mới giao' | 'Đã xác nhận' | 'Chờ duyệt' | 'Hoàn thành' | 'Bị từ chối';
+// Mirrors backend/constants/taskStatus.js
+export const TASK_STATUS = {
+  PENDING: 'Mới giao',
+  ACKNOWLEDGED: 'Đã xác nhận',
+  SUBMITTED: 'Chờ duyệt',
+  COMPLETED: 'Hoàn thành',
+  REJECTED: 'Bị từ chối',
+} as const;
+export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 
 export interface TaskEvidenceFile {
   _id: string;

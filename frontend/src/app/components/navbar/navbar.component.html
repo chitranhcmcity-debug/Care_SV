@@ -1,152 +1,297 @@
-<ng-container *ngIf="authService.isLoggedIn()">
-  <!-- Mobile top bar: opens the sidebar as a slide-in drawer -->
-  <div
-    class="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-slate-900 text-white shadow-sm"
+<!-- ===== Header (full width) ===== -->
+<header class="sticky top-0 z-40 h-20 bg-white flex items-center gap-3 md:gap-4 px-4 md:px-6">
+  <!-- Brand -->
+  <a routerLink="/" class="hidden md:flex items-center gap-2.5 w-[228px] shrink-0">
+    <img src="logo_truong.png" alt="Logo ITC" width="40" height="40" class="object-contain" />
+    <span class="font-bold text-lg text-slate-900 tracking-tight">ITC CARE</span>
+  </a>
+
+  <!-- Menu toggle -->
+  <button
+    type="button"
+    (click)="toggleSidebar()"
+    class="w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors shrink-0"
+    aria-label="Thu gọn / mở menu"
   >
-    <button
-      type="button"
-      (click)="toggleSidebar()"
-      class="text-xl leading-none w-8 h-8 flex items-center justify-center"
-      aria-label="Mở menu điều hướng"
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" />
+    </svg>
+  </button>
+
+  <!-- Public website home -->
+  <a
+    routerLink="/"
+    title="Về trang chủ website"
+    aria-label="Về trang chủ website"
+    class="shrink-0 inline-flex items-center gap-2 h-10 px-3 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+  >
+    <svg
+      class="w-5 h-5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      aria-hidden="true"
     >
-      ☰
-    </button>
-    <span class="font-extrabold text-xs uppercase tracking-widest">ITC Student Care</span>
-    <button
-      type="button"
-      (click)="logout()"
-      class="text-sm w-8 h-8 flex items-center justify-center"
-      title="Đăng xuất"
+      <path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    <span class="hidden lg:inline">Về trang chủ</span>
+  </a>
+
+  <!-- Page search -->
+  <div class="relative hidden sm:block w-full max-w-[380px]">
+    <svg
+      class="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
     >
-      🚪
-    </button>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+    </svg>
+    <input
+      type="search"
+      [(ngModel)]="searchTerm"
+      (keydown.enter)="goTo(searchResults[0])"
+      (keydown.escape)="searchTerm = ''"
+      placeholder="Tìm trang..."
+      aria-label="Tìm trang"
+      class="w-full h-12 pl-10 pr-4 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-500 hover:border-violet-300"
+    />
+    <div
+      *ngIf="searchTerm"
+      class="absolute left-0 right-0 top-[52px] bg-white rounded-xl shadow-xl border border-slate-200 p-2"
+    >
+      <button
+        *ngFor="let item of searchResults"
+        type="button"
+        (click)="goTo(item)"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 text-left"
+      >
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path [attr.d]="item.icon" />
+        </svg>
+        {{ item.label }}
+      </button>
+      <div *ngIf="!searchResults.length" class="px-3 py-2.5 text-sm text-slate-500">
+        Không tìm thấy trang phù hợp
+      </div>
+    </div>
   </div>
 
+  <div class="ml-auto flex items-center gap-3">
+    <!-- Notifications -->
+    <a
+      *ngIf="authService.isAdmin() || authService.isStaff()"
+      routerLink="/call-tasks"
+      class="relative w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors"
+      title="Thông báo nhiệm vụ gọi điện"
+      aria-label="Thông báo"
+    >
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path
+          d="M10 5a2 2 0 1 1 4 0 7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6"
+          stroke-linejoin="round"
+        />
+        <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+      </svg>
+      <span
+        *ngIf="unreadCount > 0"
+        class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white"
+      >
+        {{ unreadCount > 99 ? '99+' : unreadCount }}
+      </span>
+    </a>
+
+    <!-- Profile chip + menu -->
+    <div class="relative">
+      <button
+        type="button"
+        (click)="profileMenuOpen = !profileMenuOpen"
+        [attr.aria-expanded]="profileMenuOpen"
+        aria-label="Tài khoản"
+        class="group flex items-center gap-2 h-12 pl-1.5 pr-3 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors"
+      >
+        <span
+          class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-sm font-bold"
+          >{{ userInitial }}</span
+        >
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+          />
+        </svg>
+      </button>
+
+      <ng-container *ngIf="profileMenuOpen">
+        <div class="fixed inset-0 z-40" (click)="profileMenuOpen = false"></div>
+        <div
+          class="absolute right-0 top-[56px] z-50 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-4"
+        >
+          <div class="text-base text-slate-900">
+            Xin chào, <span class="font-semibold">{{ user?.fullName }}</span>
+          </div>
+          <div class="text-sm text-slate-500 mt-0.5">{{ roleLabel }}</div>
+          <div class="h-px bg-slate-200 my-3"></div>
+          <button
+            type="button"
+            (click)="logout()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+          >
+            <svg
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            >
+              <path d="M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2" />
+              <path d="M9 12h12m-3-3 3 3-3 3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Đăng xuất
+          </button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</header>
+
+<div class="flex">
   <!-- Mobile drawer backdrop -->
   <div
     *ngIf="sidebarOpen"
     (click)="closeSidebar()"
-    class="md:hidden fixed inset-0 bg-slate-950/60 z-40"
+    class="md:hidden fixed inset-0 bg-slate-900/40 z-40"
   ></div>
 
-  <!-- Sidebar: fixed drawer on mobile, static column on desktop -->
+  <!-- ===== Sidebar ===== -->
   <aside
-    class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 transition-transform duration-200 ease-in-out md:translate-x-0"
-    [ngClass]="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    class="fixed md:sticky md:top-20 inset-y-0 left-0 z-50 md:z-auto w-[260px] md:h-[calc(100vh-80px)] bg-white flex flex-col shrink-0 transition-transform duration-200 md:translate-x-0"
+    [ngClass]="{
+      'translate-x-0 shadow-xl': sidebarOpen,
+      '-translate-x-full': !sidebarOpen,
+      'md:hidden': sidebarCollapsed,
+    }"
   >
-    <!-- Workspace header -->
-    <div class="p-4 border-b border-white/10 flex items-center gap-3">
-      <div
-        class="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-700 to-slate-950 flex items-center justify-center font-extrabold text-white text-sm ring-1 ring-white/10 shrink-0"
-      >
-        ITC
-      </div>
-      <div class="min-w-0">
-        <div class="font-extrabold text-sm text-white leading-tight truncate">
-          ITC Student Care
-        </div>
-        <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">
-          Workspace
-        </div>
-      </div>
+    <!-- Brand (mobile drawer only; desktop brand lives in the header) -->
+    <div class="md:hidden h-20 px-6 flex items-center gap-2.5">
+      <img src="logo_truong.png" alt="Logo ITC" width="36" height="36" class="object-contain" />
+      <span class="font-bold text-lg text-slate-900">ITC CARE</span>
     </div>
 
-    <!-- Channel-style navigation -->
-    <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-      <div class="px-2.5 py-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-        Kênh Làm Việc
+    <nav class="flex-1 overflow-y-auto px-4 pb-4">
+      <div class="px-3 pt-2 pb-3 text-sm font-medium text-slate-900">Điều hướng</div>
+      <div class="space-y-1">
+        <a
+          *ngFor="let item of navItems"
+          [routerLink]="item.path"
+          routerLinkActive="!bg-violet-50 !text-violet-600 font-medium"
+          (click)="closeSidebar()"
+          class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+        >
+          <svg
+            class="w-5 h-5 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path [attr.d]="item.icon" />
+          </svg>
+          <span class="flex-1">{{ item.label }}</span>
+          <span
+            *ngIf="badgeCount(item) > 0"
+            class="min-w-[22px] h-[22px] px-1.5 rounded-full bg-violet-600 text-white text-xs font-semibold flex items-center justify-center"
+          >
+            {{ badgeCount(item) }}
+          </span>
+        </a>
       </div>
-
-      <a
-        *ngIf="authService.isAdmin()"
-        routerLink="/admin"
-        routerLinkActive="bg-white/10 text-white font-bold"
-        (click)="closeSidebar()"
-        class="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <span class="text-slate-500">#</span>
-        <span>quan-tri-he-thong</span>
-      </a>
-
-      <a
-        *ngIf="authService.isAdmin() || authService.isTeacher()"
-        routerLink="/attendance"
-        routerLinkActive="bg-white/10 text-white font-bold"
-        (click)="closeSidebar()"
-        class="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <span class="text-slate-500">#</span>
-        <span>diem-danh-lop-hoc</span>
-      </a>
-
-      <a
-        *ngIf="authService.isAdmin() || authService.isStaff()"
-        routerLink="/call-tasks"
-        routerLinkActive="bg-white/10 text-white font-bold"
-        (click)="closeSidebar()"
-        class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <span class="flex items-center gap-2 min-w-0">
-          <span class="text-slate-500">#</span>
-          <span class="truncate">nhiem-vu-goi-dien</span>
-        </span>
-        <span
-          *ngIf="unreadCount > 0"
-          class="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold shrink-0"
-        >
-          {{ unreadCount }}
-        </span>
-      </a>
-
-      <a
-        *ngIf="authService.isStaff()"
-        routerLink="/tasks"
-        routerLinkActive="bg-white/10 text-white font-bold"
-        (click)="closeSidebar()"
-        class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <span class="flex items-center gap-2 min-w-0">
-          <span class="text-slate-500">#</span>
-          <span class="truncate">nhiem-vu-duoc-giao</span>
-        </span>
-        <span
-          *ngIf="pendingTaskCount > 0"
-          class="px-1.5 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-bold shrink-0"
-        >
-          {{ pendingTaskCount }}
-        </span>
-      </a>
+      <div class="h-px bg-slate-200 mx-3 my-4"></div>
     </nav>
 
-    <!-- User profile footer -->
-    <div class="p-3 border-t border-white/10">
-      <div class="flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-white/5 transition-colors">
-        <div
-          class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-extrabold shrink-0"
+    <!-- Info card (Berry sidebar card) -->
+    <div class="mx-4 mb-5 p-4 rounded-xl bg-blue-50 relative overflow-hidden">
+      <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-blue-200/60"></div>
+      <div class="absolute -top-14 right-6 w-24 h-24 rounded-full bg-blue-100"></div>
+      <div class="relative flex items-center gap-3">
+        <span
+          class="w-11 h-11 rounded-lg bg-white text-blue-500 flex items-center justify-center shrink-0"
         >
-          {{ (user?.fullName || '?').charAt(0) }}
+          <svg
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <path d="M22 10 12 5 2 10l10 5 10-5z" stroke-linejoin="round" />
+            <path d="M6 12v5c3 2 9 2 12 0v-5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <div class="text-sm font-medium text-blue-800 truncate">{{ user?.fullName }}</div>
+          <div class="text-xs text-slate-500">{{ roleLabel }}</div>
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="text-xs font-bold text-white truncate">{{ user?.fullName }}</div>
-          <div class="text-[10px] text-slate-500 font-semibold truncate">
-            {{
-              user?.role === 'admin'
-                ? 'Quản trị viên'
-                : user?.role === 'teacher'
-                  ? 'Giảng viên'
-                  : 'Nhân viên CSKH'
-            }}
-          </div>
-        </div>
-        <button
-          type="button"
-          (click)="logout()"
-          title="Đăng xuất khỏi hệ thống"
-          class="text-slate-400 hover:text-white text-sm shrink-0 w-7 h-7 flex items-center justify-center"
-        >
-          🚪
-        </button>
       </div>
     </div>
   </aside>
-</ng-container>
+
+  <!-- ===== Content area ===== -->
+  <main
+    class="flex-1 min-w-0 min-h-[calc(100vh-80px)] bg-slate-100 md:rounded-t-xl md:mr-5 transition-[margin]"
+    [ngClass]="sidebarCollapsed ? 'md:ml-5' : ''"
+  >
+    <!-- Breadcrumb card -->
+    <div
+      class="mx-4 md:mx-6 mt-5 px-6 py-4 bg-white rounded-xl flex flex-wrap items-center justify-between gap-2"
+    >
+      <h1 class="text-lg font-semibold text-slate-900">{{ pageTitle }}</h1>
+      <div class="flex items-center gap-2 text-sm text-slate-500">
+        <svg
+          class="w-4 h-4 text-violet-600"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <svg
+          class="w-3.5 h-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span class="text-slate-900">{{ pageTitle }}</span>
+      </div>
+    </div>
+
+    <ng-content></ng-content>
+  </main>
+</div>

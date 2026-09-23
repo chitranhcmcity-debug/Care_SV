@@ -6,14 +6,16 @@
     class="md:hidden sticky top-0 z-40 bg-blue-950 text-white px-4 py-3 shadow-md flex items-center justify-between"
   >
     <div class="flex items-center space-x-3">
-      <div
-        class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-black text-sm text-white shadow-sm"
-      >
-        ITC
-      </div>
+      <img
+        src="logo_truong.png"
+        alt="Logo ITC"
+        width="40"
+        height="40"
+        class="shrink-0 object-contain bg-white rounded-full"
+      />
       <div>
-        <h1 class="font-extrabold text-sm leading-tight tracking-tight">ITC STUDENT CARE</h1>
-        <p class="text-[10px] text-blue-200 font-medium">Cổng Giảng Viên Mobile</p>
+        <h1 class="font-bold text-sm leading-tight tracking-tight">ITC CARE</h1>
+        <p class="text-xs text-blue-200 font-medium">Cổng Giảng Viên Mobile</p>
       </div>
     </div>
 
@@ -38,12 +40,12 @@
     >
       <div class="space-y-1">
         <div
-          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-extrabold border border-blue-200"
+          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200"
         >
           📊 BẢNG QUẢN LÝ & ĐIỂM DANH HỌC PHẦN (VĂN PHÒNG)
         </div>
-        <h2 class="text-2xl font-black text-slate-900 tracking-tight">
-          Xin chào, ThS. {{ currentUser?.fullName }} 👋
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
+          Xin chào, {{ currentUser?.fullName }} 👋
         </h2>
         <p class="text-xs text-slate-500 font-medium">
           Giao diện tối giản văn phòng dành cho máy tính. Quản lý lớp học phần, điểm danh và nhiệm
@@ -59,7 +61,7 @@
           (click)="activeTab = 'home'"
           [ngClass]="
             activeTab === 'home'
-              ? 'bg-blue-900 text-white font-black shadow-sm'
+              ? 'bg-blue-900 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
@@ -71,7 +73,7 @@
           (click)="activeTab = 'attendance'"
           [ngClass]="
             activeTab === 'attendance'
-              ? 'bg-blue-900 text-white font-black shadow-sm'
+              ? 'bg-blue-900 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
@@ -83,7 +85,7 @@
           (click)="activeTab = 'calls'"
           [ngClass]="
             activeTab === 'calls'
-              ? 'bg-blue-900 text-white font-black shadow-sm'
+              ? 'bg-blue-900 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all relative cursor-pointer"
@@ -91,7 +93,7 @@
           <span>📞 Nhiệm Vụ Gọi</span>
           <span
             *ngIf="unreadCallsCount > 0"
-            class="ml-1.5 px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black animate-pulse"
+            class="ml-1.5 px-2 py-0.5 rounded-full bg-rose-600 text-white text-xs font-bold animate-pulse"
           >
             {{ unreadCallsCount }}
           </span>
@@ -113,7 +115,7 @@
           >
             <span>👋 Chào ngày mới</span>
           </div>
-          <h2 class="text-xl font-black tracking-tight leading-snug">
+          <h2 class="text-xl font-bold tracking-tight leading-snug">
             ThS. {{ currentUser?.fullName || 'Giảng Viên' }}
           </h2>
           <p class="text-xs text-blue-200 font-medium">
@@ -128,10 +130,10 @@
           (click)="activeTab = 'attendance'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Lớp Hôm Nay
           </div>
-          <div class="text-3xl font-black text-blue-900">
+          <div class="text-3xl font-bold text-blue-900">
             {{ todayClasses.length }} <span class="text-xs font-normal text-slate-400">lớp</span>
           </div>
           <div class="text-xs text-blue-600 font-bold">📅 {{ todayName }}</div>
@@ -141,10 +143,10 @@
           (click)="activeTab = 'attendance'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
             SV Phụ Trách
           </div>
-          <div class="text-3xl font-black text-emerald-700">
+          <div class="text-3xl font-bold text-emerald-700">
             {{ totalAssignedStudents }} <span class="text-xs font-normal text-slate-400">SV</span>
           </div>
           <div class="text-xs text-emerald-600 font-bold">
@@ -156,10 +158,10 @@
           (click)="activeTab = 'calls'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1 relative"
         >
-          <div class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Cuộc Gọi CSKH
           </div>
-          <div class="text-3xl font-black text-amber-600">
+          <div class="text-3xl font-bold text-amber-600">
             {{ unreadCallsCount }} <span class="text-xs font-normal text-slate-400">tồn</span>
           </div>
           <div class="text-xs text-amber-600 font-bold">📞 Cần liên hệ</div>
@@ -173,10 +175,10 @@
           (click)="activeTab = 'attendance'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
             Cảnh Báo Cấm Thi
           </div>
-          <div class="text-3xl font-black text-rose-600">
+          <div class="text-3xl font-bold text-rose-600">
             0 <span class="text-xs font-normal text-slate-400">SV</span>
           </div>
           <div class="text-xs text-rose-600 font-bold">⚠️ Vắng 2+ buổi</div>
@@ -186,7 +188,7 @@
       <!-- Today's Timetable Widget (Thời khóa biểu hôm nay) -->
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
             <span>🗓️</span>
             <span>LỊCH DẠY HÔM NAY ({{ todayName }})</span>
           </h3>
@@ -205,7 +207,7 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between gap-2">
                 <span
-                  class="px-2.5 py-0.5 rounded-full text-[11px] font-black border uppercase"
+                  class="px-2.5 py-0.5 rounded-full text-xs font-bold border uppercase"
                   [ngClass]="{
                     'bg-amber-100 text-amber-900 border-amber-300': g.shift === 'Sáng',
                     'bg-blue-100 text-blue-900 border-blue-300': g.shift === 'Chiều',
@@ -224,10 +226,10 @@
                   >📍 Phòng {{ g.room || 'A.101' }}</span
                 >
               </div>
-              <h4 class="font-extrabold text-slate-900 text-base leading-snug">
+              <h4 class="font-bold text-slate-900 text-base leading-snug">
                 {{ g.courseName }}
               </h4>
-              <div class="text-xs text-slate-500 font-mono">
+              <div class="text-xs text-slate-500 font-sans tabular-nums">
                 Mã lớp: {{ g.groupCode }} | 🎓 {{ g.students?.length || 0 }} SV
               </div>
             </div>
@@ -235,7 +237,7 @@
             <button
               type="button"
               (click)="goToAttendanceForGroup(g._id)"
-              class="w-full py-2.5 rounded-xl bg-blue-900 hover:bg-blue-950 text-white font-extrabold text-xs shadow-sm transition-all touch-target cursor-pointer flex items-center justify-center gap-1.5"
+              class="w-full py-2.5 rounded-xl bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs shadow-sm transition-all touch-target cursor-pointer flex items-center justify-center gap-1.5"
             >
               <span>⚡ Điểm Danh Lớp Này</span>
             </button>
@@ -253,7 +255,7 @@
 
       <!-- Fast Action Shortcuts Grid -->
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="font-extrabold text-slate-900 text-sm uppercase tracking-wider text-slate-500">
+        <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-500">
           Lối Tắt Thao Tác Nhanh Văn Phòng
         </h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -303,8 +305,8 @@
             (click)="switchAttendanceMode('history')"
             [ngClass]="
               attendanceMode === 'history'
-                ? 'bg-blue-900 text-white font-black shadow-sm'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-extrabold'
+                ? 'bg-blue-900 text-white font-bold shadow-sm'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold'
             "
             class="px-4 py-2 text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2"
           >
@@ -316,8 +318,8 @@
             (click)="switchAttendanceMode('summary')"
             [ngClass]="
               attendanceMode === 'summary'
-                ? 'bg-rose-700 text-white font-black shadow-sm'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-extrabold'
+                ? 'bg-rose-700 text-white font-bold shadow-sm'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold'
             "
             class="px-4 py-2 text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2"
           >
@@ -338,7 +340,7 @@
           class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100"
         >
           <div>
-            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
               <span>📚</span>
               <span>CHỌN LỚP HỌC PHẦN CẦN ĐIỂM DANH</span>
             </h3>
@@ -349,7 +351,7 @@
               (click)="toggleShowAllCourses(false)"
               [ngClass]="
                 !showAllCourses
-                  ? 'bg-blue-900 text-white font-black'
+                  ? 'bg-blue-900 text-white font-bold'
                   : 'bg-slate-100 text-slate-600 font-bold'
               "
               class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-300 cursor-pointer"
@@ -361,7 +363,7 @@
               (click)="toggleShowAllCourses(true)"
               [ngClass]="
                 showAllCourses
-                  ? 'bg-indigo-900 text-white font-black'
+                  ? 'bg-indigo-900 text-white font-bold'
                   : 'bg-slate-100 text-slate-600 font-bold'
               "
               class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-300 cursor-pointer"
@@ -388,7 +390,7 @@
               <!-- Top Row: Shift Badge & Active Selected Pill -->
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 <span
-                  class="px-3 py-1 rounded-full text-[11px] font-black uppercase border tracking-wider"
+                  class="px-3 py-1 rounded-full text-xs font-bold uppercase border tracking-wider"
                   [ngClass]="{
                     'bg-amber-100 text-amber-950 border-amber-300': g.shift === 'Sáng',
                     'bg-blue-100 text-blue-950 border-blue-300': g.shift === 'Chiều',
@@ -406,7 +408,7 @@
 
                 <span
                   *ngIf="selectedGroupId === g._id"
-                  class="text-xs font-black text-emerald-950 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1"
+                  class="text-xs font-bold text-emerald-950 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1"
                 >
                   <span>✅</span>
                   <span>Đang chọn</span>
@@ -416,13 +418,13 @@
               <!-- Course Title & Code -->
               <div>
                 <h4
-                  class="font-black text-slate-900 text-lg sm:text-xl leading-snug group-hover:text-blue-900 transition-colors"
+                  class="font-bold text-slate-900 text-lg sm:text-xl leading-snug group-hover:text-blue-900 transition-colors"
                 >
                   {{ g.courseName || 'Học Phần' }}
                 </h4>
                 <div class="mt-1">
                   <span
-                    class="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/80 inline-block"
+                    class="text-xs font-sans tabular-nums font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/80 inline-block"
                   >
                     Mã lớp: {{ g.groupCode }}
                   </span>
@@ -444,7 +446,7 @@
                   class="flex items-center justify-between gap-3 bg-slate-50/80 px-3.5 py-2 rounded-xl border border-slate-100"
                 >
                   <span class="font-medium text-slate-500 flex-shrink-0">📅 Lịch học:</span>
-                  <span class="font-extrabold text-blue-950 text-right">{{
+                  <span class="font-bold text-blue-950 text-right">{{
                     (g.scheduleDays || []).join(', ')
                   }}</span>
                 </div>
@@ -456,7 +458,7 @@
               class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs gap-2 flex-wrap"
             >
               <span
-                class="px-3 py-1 rounded-xl font-extrabold border"
+                class="px-3 py-1 rounded-xl font-bold border"
                 [ngClass]="getScheduleCheck(g).badgeClass"
               >
                 {{ getScheduleCheck(g).badgeText }}
@@ -475,7 +477,7 @@
           class="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl space-y-2"
         >
           <div class="text-3xl">📭</div>
-          <div class="font-extrabold text-slate-800 text-base">
+          <div class="font-bold text-slate-800 text-base">
             Không tìm thấy nhóm học phần nào!
           </div>
           <p class="text-xs text-slate-500 font-medium">
@@ -489,11 +491,11 @@
           class="p-5 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs space-y-3 text-slate-800"
         >
           <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="font-black text-blue-950 text-sm">
+            <div class="font-bold text-blue-950 text-sm">
               📌 ĐANG ĐIỂM DANH: {{ selectedGroup.courseName }} ({{ selectedGroup.groupCode }})
             </div>
             <div class="text-xs font-bold text-slate-600">
-              Phòng: <b class="text-slate-900 font-black">📍 {{ selectedGroup.room || 'A.101' }}</b>
+              Phòng: <b class="text-slate-900 font-bold">📍 {{ selectedGroup.room || 'A.101' }}</b>
             </div>
           </div>
 
@@ -503,7 +505,7 @@
           >
             <div class="flex items-center gap-2 flex-wrap">
               <span
-                class="px-3 py-1 rounded-full text-xs font-black border tracking-wide shadow-sm"
+                class="px-3 py-1 rounded-full text-xs font-bold border tracking-wide shadow-sm"
                 [ngClass]="getScheduleCheck(selectedGroup).badgeClass"
               >
                 {{ getScheduleCheck(selectedGroup).badgeText }}
@@ -520,7 +522,7 @@
               *ngIf="!getScheduleCheck(selectedGroup).isValid"
               type="button"
               (click)="allowFlexibleAttendance = !allowFlexibleAttendance"
-              class="px-4 py-2 rounded-xl text-xs font-extrabold shadow-sm transition-all touch-target cursor-pointer"
+              class="px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all touch-target cursor-pointer"
               [ngClass]="
                 allowFlexibleAttendance
                   ? 'bg-emerald-700 text-white'
@@ -551,7 +553,7 @@
               🎉
             </div>
             <div>
-              <div class="font-black text-sm sm:text-base">Đã Lưu Điểm Danh Thành Công!</div>
+              <div class="font-bold text-sm sm:text-base">Đã Lưu Điểm Danh Thành Công!</div>
               <div class="text-xs text-emerald-100 font-semibold mt-0.5">
                 {{ submitResult.message }}
               </div>
@@ -582,18 +584,18 @@
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-black text-lg shadow-md shadow-blue-900/20 flex-shrink-0"
+                class="w-10 h-10 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-900/20 flex-shrink-0"
               >
                 📋
               </div>
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="font-black text-slate-900 text-base sm:text-lg tracking-tight">
+                  <h3 class="font-bold text-slate-900 text-base sm:text-lg tracking-tight">
                     SỔ ĐIỂM DANH MA TRẬN {{ selectedGroup ? '— ' + selectedGroup.courseName : '' }}
                   </h3>
                   <span
                     *ngIf="selectedGroup"
-                    class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-50 text-blue-900 border border-blue-200"
+                    class="px-2.5 py-0.5 rounded-full text-xs font-sans tabular-nums font-bold bg-blue-50 text-blue-900 border border-blue-200"
                   >
                     {{ selectedGroup.groupCode }}
                   </span>
@@ -634,14 +636,14 @@
                 <tr class="bg-slate-900 text-white border-b border-slate-800">
                   <!-- Sticky Left Column 1: Mã SV -->
                   <th
-                    class="p-3.5 text-left font-black uppercase tracking-wider sticky left-0 z-30 bg-slate-900 min-w-[110px] border-r border-slate-800 shadow-[2px_0_6px_rgba(0,0,0,0.2)]"
+                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-0 z-30 bg-slate-900 min-w-[110px] border-r border-slate-800 shadow-[2px_0_6px_rgba(0,0,0,0.2)]"
                   >
                     Mã SV
                   </th>
 
                   <!-- Sticky Left Column 2: Họ và Tên -->
                   <th
-                    class="p-3.5 text-left font-black uppercase tracking-wider sticky left-[110px] z-30 bg-slate-900 min-w-[190px] border-r border-slate-800 shadow-[4px_0_10px_rgba(0,0,0,0.25)]"
+                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-[110px] z-30 bg-slate-900 min-w-[190px] border-r border-slate-800 shadow-[4px_0_10px_rgba(0,0,0,0.25)]"
                   >
                     Họ và Tên
                   </th>
@@ -668,16 +670,16 @@
                       <!-- Today Badge -->
                       <span
                         *ngIf="isTodaySession(session)"
-                        class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm animate-pulse"
+                        class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm animate-pulse"
                       >
                         🔥 Hôm Nay
                       </span>
 
                       <!-- Scheduled Date -->
-                      <div class="font-black text-sm text-white tracking-tight">
+                      <div class="font-bold text-sm text-white tracking-tight">
                         {{ session.scheduledDate | date: 'dd/MM' }}
                       </div>
-                      <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <div class="text-xs font-bold uppercase tracking-wider text-slate-400">
                         {{ formatVietnameseDay(session.scheduledDate) }}
                       </div>
 
@@ -685,7 +687,7 @@
                       <div class="mt-0.5">
                         <span
                           *ngIf="isSessionDirty(session)"
-                          class="inline-flex items-center gap-0.5 bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded text-[9px] font-black"
+                          class="inline-flex items-center gap-0.5 bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded text-xs font-bold"
                         >
                           ✏️ Đổi
                         </span>
@@ -695,7 +697,7 @@
                             isSessionLocked(session) &&
                             session.status === 'recorded'
                           "
-                          class="inline-flex items-center text-emerald-400 text-[10px] font-bold gap-0.5"
+                          class="inline-flex items-center text-emerald-400 text-xs font-bold gap-0.5"
                         >
                           🔒 Đã chốt
                         </span>
@@ -705,13 +707,13 @@
                             !isSessionLocked(session) &&
                             session.status === 'recorded'
                           "
-                          class="inline-flex items-center text-emerald-400 text-[10px] font-bold gap-0.5"
+                          class="inline-flex items-center text-emerald-400 text-xs font-bold gap-0.5"
                         >
                           🟢 Đã lưu
                         </span>
                         <span
                           *ngIf="!isSessionDirty(session) && session.status === 'missing'"
-                          class="inline-flex items-center text-amber-300 text-[10px] font-bold"
+                          class="inline-flex items-center text-amber-300 text-xs font-bold"
                         >
                           🟡 Chưa ghi
                         </span>
@@ -721,7 +723,7 @@
                             isSessionLocked(session) &&
                             session.status === 'future'
                           "
-                          class="inline-flex items-center text-slate-400 text-[10px] font-bold gap-0.5"
+                          class="inline-flex items-center text-slate-400 text-xs font-bold gap-0.5"
                         >
                           🔒 Sắp tới
                         </span>
@@ -731,7 +733,7 @@
 
                   <!-- Sticky Right Column: Tổng Vắng -->
                   <th
-                    class="p-3.5 text-center font-black uppercase tracking-wider bg-slate-950 text-slate-200 min-w-[100px] sticky right-0 z-30 border-l border-slate-800 shadow-[-4px_0_10px_rgba(0,0,0,0.25)]"
+                    class="p-3.5 text-center font-bold uppercase tracking-wider bg-slate-950 text-slate-200 min-w-[100px] sticky right-0 z-30 border-l border-slate-800 shadow-[-4px_0_10px_rgba(0,0,0,0.25)]"
                   >
                     Tổng Vắng
                   </th>
@@ -740,12 +742,12 @@
                 <!-- Hàng Header 2: Tổng SV vắng từng buổi -->
                 <tr class="bg-slate-800/90 text-slate-300 border-b border-slate-700/80">
                   <td
-                    class="p-2.5 px-3 font-extrabold text-[11px] sticky left-0 z-30 bg-slate-800 border-r border-slate-700/80 shadow-[2px_0_6px_rgba(0,0,0,0.15)] text-slate-300"
+                    class="p-2.5 px-3 font-bold text-xs sticky left-0 z-30 bg-slate-800 border-r border-slate-700/80 shadow-[2px_0_6px_rgba(0,0,0,0.15)] text-slate-300"
                   >
                     Tổng vắng
                   </td>
                   <td
-                    class="p-2.5 px-3 font-semibold text-[11px] sticky left-[110px] z-30 bg-slate-800 border-r border-slate-700/80 shadow-[4px_0_10px_rgba(0,0,0,0.2)] text-slate-400"
+                    class="p-2.5 px-3 font-semibold text-xs sticky left-[110px] z-30 bg-slate-800 border-r border-slate-700/80 shadow-[4px_0_10px_rgba(0,0,0,0.2)] text-slate-400"
                   >
                     từng buổi học
                   </td>
@@ -756,7 +758,7 @@
                     [ngClass]="isTodaySession(session) ? 'bg-blue-900/60' : ''"
                   >
                     <span
-                      class="px-2 py-0.5 rounded-full text-[10px] font-black inline-flex items-center gap-0.5 border"
+                      class="px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-0.5 border"
                       [ngClass]="
                         getAbsentCountForSession(session) > 0
                           ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
@@ -785,7 +787,7 @@
                 >
                   <!-- Sticky Left Column 1: Mã SV -->
                   <td
-                    class="p-2.5 px-3 sticky left-0 z-10 border-r border-slate-200/80 min-w-[110px] font-mono text-[11px] font-bold text-slate-700 transition-colors group-hover:bg-blue-50/80"
+                    class="p-2.5 px-3 sticky left-0 z-10 border-r border-slate-200/80 min-w-[110px] font-sans tabular-nums text-xs font-bold text-slate-700 transition-colors group-hover:bg-blue-50/80"
                     [ngClass]="
                       getTotalAbsentForStudent(student._id) >=
                       (attendanceSummary?.examBanThreshold || 2)
@@ -809,7 +811,7 @@
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-2 truncate">
                         <span
-                          class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                          class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold flex-shrink-0"
                         >
                           {{ i + 1 }}
                         </span>
@@ -824,7 +826,7 @@
                           getTotalAbsentForStudent(student._id) >=
                           (attendanceSummary?.examBanThreshold || 2)
                         "
-                        class="text-[10px] font-black text-rose-600 bg-rose-100 border border-rose-300 px-1 py-0.2 rounded flex-shrink-0"
+                        class="text-xs font-bold text-rose-600 bg-rose-100 border border-rose-300 px-1 py-0.2 rounded flex-shrink-0"
                         title="Nguy cơ cấm thi"
                       >
                         ⚠️
@@ -873,7 +875,7 @@
                         'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300':
                           !isSessionLocked(session) &&
                           getStudentStatusInMatrix(student._id, session) === 'present',
-                        'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 font-extrabold':
+                        'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 font-bold':
                           !isSessionLocked(session) &&
                           getStudentStatusInMatrix(student._id, session) === 'absent',
                         'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold':
@@ -907,7 +909,7 @@
                           !isSessionLocked(session) &&
                           getStudentStatusInMatrix(student._id, session) === 'absent'
                         "
-                        class="text-sm font-extrabold text-red-700"
+                        class="text-sm font-bold text-red-700"
                         >V</span
                       >
                       <span
@@ -940,7 +942,7 @@
                   >
                     <div class="flex flex-col items-center justify-center gap-0.5">
                       <span
-                        class="px-2.5 py-0.5 rounded-full text-xs font-black"
+                        class="px-2.5 py-0.5 rounded-full text-xs font-bold"
                         [ngClass]="
                           getTotalAbsentForStudent(student._id) === 0
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
@@ -955,7 +957,7 @@
                       </span>
                       <span
                         *ngIf="getTotalExcusedForStudent(student._id) > 0"
-                        class="px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300"
+                        class="px-2 py-0.2 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300"
                         title="Vắng có phép"
                       >
                         {{ getTotalExcusedForStudent(student._id) }} P
@@ -1013,11 +1015,11 @@
                   <span>Buổi {{ activeSession.scheduledDate | date: 'dd/MM/yyyy' }}</span>
                   <span
                     *ngIf="isTodaySession(activeSession)"
-                    class="bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-md uppercase"
+                    class="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.2 rounded-md uppercase"
                     >Hôm Nay</span
                   >
                 </div>
-                <div class="text-[11px] text-slate-300 font-medium">
+                <div class="text-xs text-slate-300 font-medium">
                   <span class="text-red-400 font-bold">{{
                     getAbsentCountForSession(activeSession)
                   }}</span>
@@ -1102,7 +1104,7 @@
                 </svg>
               </div>
               <div>
-                <h3 class="font-black text-slate-900 text-base sm:text-lg tracking-tight">
+                <h3 class="font-bold text-slate-900 text-base sm:text-lg tracking-tight">
                   BẢNG TÓM TẮT VẮNG MỖI SINH VIÊN
                 </h3>
                 <div
@@ -1125,7 +1127,7 @@
             <button
               (click)="loadAttendanceSummary()"
               [disabled]="isLoadingSummary"
-              class="px-4 py-2 bg-gradient-to-r from-rose-700 to-red-800 hover:from-rose-800 hover:to-red-900 text-white text-xs font-extrabold rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-rose-700/20 active:scale-95 disabled:opacity-50"
+              class="px-4 py-2 bg-gradient-to-r from-rose-700 to-red-800 hover:from-rose-800 hover:to-red-900 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-rose-700/20 active:scale-95 disabled:opacity-50"
             >
               <svg
                 class="w-3.5 h-3.5 text-white"
@@ -1159,7 +1161,7 @@
             <table class="w-full text-sm border-collapse">
               <thead>
                 <tr
-                  class="bg-slate-900 text-slate-200 uppercase text-xs font-black border-b border-slate-800"
+                  class="bg-slate-900 text-slate-200 uppercase text-xs font-bold border-b border-slate-800"
                 >
                   <th class="p-4 text-left min-w-[50px]">#</th>
                   <th class="p-4 text-left min-w-[180px]">Sinh Viên</th>
@@ -1180,23 +1182,23 @@
                 >
                   <td class="p-4 font-bold text-slate-400 text-xs">{{ idx + 1 }}</td>
                   <td class="p-4">
-                    <div class="font-extrabold text-slate-900 text-xs sm:text-sm">
+                    <div class="font-bold text-slate-900 text-xs sm:text-sm">
                       {{ row.student.fullName }}
                     </div>
-                    <div class="text-[11px] font-mono font-bold text-indigo-700">
+                    <div class="text-xs font-sans tabular-nums font-bold text-indigo-700">
                       {{ row.student.studentCode }}
                     </div>
                   </td>
                   <td class="p-4 text-xs font-bold text-slate-600">{{ row.student.classCode }}</td>
                   <td class="p-4 text-center">
                     <span
-                      class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-black"
+                      class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold"
                       >{{ row.attendCount }}</span
                     >
                   </td>
                   <td class="p-4 text-center">
                     <span
-                      class="px-3 py-1 rounded-full text-xs font-black inline-flex items-center gap-1 shadow-2xs"
+                      class="px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 shadow-2xs"
                       [ngClass]="
                         row.isAtRisk
                           ? 'bg-rose-600 text-white shadow-md shadow-rose-500/30'
@@ -1225,7 +1227,7 @@
                           [style.width.%]="row.attendRate"
                         ></div>
                       </div>
-                      <span class="text-xs font-extrabold text-slate-700 w-11 text-right"
+                      <span class="text-xs font-bold text-slate-700 w-11 text-right"
                         >{{ row.attendRate }}%</span
                       >
                     </div>
@@ -1279,7 +1281,7 @@
                   <td class="p-4 text-center">
                     <span
                       *ngIf="row.callStatus"
-                      class="px-2.5 py-1 rounded-full text-xs font-extrabold border inline-flex items-center gap-1"
+                      class="px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1"
                       [ngClass]="{
                         'bg-rose-50 text-rose-700 border-rose-200': row.callStatus === 'Chưa gọi',
                         'bg-amber-50 text-amber-700 border-amber-200':
@@ -1330,7 +1332,7 @@
                 🎉
               </div>
               <div>
-                <h5 class="font-extrabold text-sm text-emerald-900">Lưu Điểm Danh Thành Công!</h5>
+                <h5 class="font-bold text-sm text-emerald-900">Lưu Điểm Danh Thành Công!</h5>
                 <p class="text-xs font-medium text-slate-600 mt-0.5">{{ submitResult.message }}</p>
               </div>
             </div>
@@ -1345,7 +1347,7 @@
             *ngIf="submitResult.taskAssignments?.length"
             class="bg-slate-50 rounded-xl p-3 space-y-1"
           >
-            <div class="text-xs font-black text-slate-700 uppercase">Phân Bổ Nhiệm Vụ CSKH:</div>
+            <div class="text-xs font-bold text-slate-700 uppercase">Phân Bổ Nhiệm Vụ CSKH:</div>
             <div
               *ngFor="let ta of submitResult.taskAssignments.slice(0, 5)"
               class="text-xs font-medium text-slate-600 flex items-center gap-2"
@@ -1376,12 +1378,12 @@
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <div class="flex items-center gap-2.5">
               <div
-                class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black text-lg border border-amber-300"
+                class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg border border-amber-300"
               >
                 📝
               </div>
               <div>
-                <h4 class="font-black text-slate-900 text-base">Lý Do Vắng Có Phép</h4>
+                <h4 class="font-bold text-slate-900 text-base">Lý Do Vắng Có Phép</h4>
                 <p class="text-xs text-slate-500 font-medium">
                   Sinh viên:
                   <b class="text-slate-900 font-bold">{{ excusedTarget?.studentName }}</b>
@@ -1438,7 +1440,7 @@
             <button
               type="button"
               (click)="saveExcusedReason()"
-              class="px-5 py-2 rounded-xl text-xs font-black bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 cursor-pointer flex items-center gap-1"
+              class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 cursor-pointer flex items-center gap-1"
             >
               <span>💾</span>
               <span>Xác Nhận Lý Do</span>
@@ -1455,7 +1457,7 @@
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
               <span>📞</span>
               <span>NHIỆM VỤ GỌI ĐIỆN CSKH ĐƯỢC GÁN</span>
             </h3>
@@ -1464,7 +1466,7 @@
             </p>
           </div>
           <span
-            class="px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black"
+            class="px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold"
           >
             {{ unreadCallsCount }} Nhiệm vụ chờ xử lý
           </span>
@@ -1477,7 +1479,7 @@
             (click)="taskFilterStatus = ''"
             [ngClass]="
               taskFilterStatus === ''
-                ? 'bg-slate-900 text-white font-black'
+                ? 'bg-slate-900 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
             class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
@@ -1489,7 +1491,7 @@
             (click)="taskFilterStatus = 'Chưa gọi'"
             [ngClass]="
               taskFilterStatus === 'Chưa gọi'
-                ? 'bg-rose-600 text-white font-black'
+                ? 'bg-rose-600 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
             class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
@@ -1501,7 +1503,7 @@
             (click)="taskFilterStatus = 'Không bắt máy'"
             [ngClass]="
               taskFilterStatus === 'Không bắt máy'
-                ? 'bg-amber-600 text-white font-black'
+                ? 'bg-amber-600 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
             class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
@@ -1513,7 +1515,7 @@
             (click)="taskFilterStatus = 'Đã liên hệ'"
             [ngClass]="
               taskFilterStatus === 'Đã liên hệ'
-                ? 'bg-emerald-700 text-white font-black'
+                ? 'bg-emerald-700 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
             class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
@@ -1532,10 +1534,10 @@
           <div class="space-y-3">
             <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
               <div class="space-y-1">
-                <div class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <div class="font-bold text-slate-900 text-base flex items-center gap-2">
                   <span>🎓 {{ task.studentId?.fullName || 'Sinh Viên' }}</span>
                   <span
-                    class="text-xs font-mono font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
+                    class="text-xs font-sans tabular-nums font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
                   >
                     {{ task.studentId?.studentCode }}
                   </span>
@@ -1547,7 +1549,7 @@
               </div>
 
               <span
-                class="px-3 py-1 rounded-full text-xs font-black border"
+                class="px-3 py-1 rounded-full text-xs font-bold border"
                 [ngClass]="{
                   'bg-rose-100 text-rose-900 border-rose-300': task.status === 'Chưa gọi',
                   'bg-amber-100 text-amber-900 border-amber-300': task.status === 'Không bắt máy',
@@ -1568,7 +1570,7 @@
                 <span
                   >📱 SĐT SV: <b>{{ task.studentId?.phone || 'Chưa cập nhật' }}</b></span
                 >
-                <span class="text-blue-900 font-extrabold">📞 Gọi</span>
+                <span class="text-blue-900 font-bold">📞 Gọi</span>
               </a>
               <a
                 [href]="'tel:' + (task.studentId?.parentPhone || '')"
@@ -1577,7 +1579,7 @@
                 <span
                   >👨‍👩‍👧 SĐT PH: <b>{{ task.studentId?.parentPhone || 'Chưa cập nhật' }}</b></span
                 >
-                <span class="text-amber-900 font-extrabold">📞 Gọi PH</span>
+                <span class="text-amber-900 font-bold">📞 Gọi PH</span>
               </a>
             </div>
           </div>
@@ -1602,7 +1604,7 @@
               <button
                 type="button"
                 (click)="updateTaskStatus(task._id, 'Đã liên hệ', task.callNote)"
-                class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold shadow-sm touch-target cursor-pointer"
+                class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm touch-target cursor-pointer"
               >
                 ✅ Hoàn Thành
               </button>
@@ -1631,30 +1633,30 @@
       <button
         (click)="activeTab = 'home'"
         [ngClass]="
-          activeTab === 'home' ? 'text-blue-900 font-black' : 'text-slate-500 font-semibold'
+          activeTab === 'home' ? 'text-blue-900 font-bold' : 'text-slate-500 font-semibold'
         "
         class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer"
       >
         <div class="text-xl leading-none">🏠</div>
-        <div class="text-[10px] mt-1">Trang chủ</div>
+        <div class="text-xs mt-1">Trang chủ</div>
       </button>
 
       <!-- Tab 2: Điểm danh -->
       <button
         (click)="activeTab = 'attendance'"
         [ngClass]="
-          activeTab === 'attendance' ? 'text-blue-900 font-black' : 'text-slate-500 font-semibold'
+          activeTab === 'attendance' ? 'text-blue-900 font-bold' : 'text-slate-500 font-semibold'
         "
         class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer"
       >
         <div class="text-xl leading-none">📝</div>
-        <div class="text-[10px] mt-1">Điểm danh</div>
+        <div class="text-xs mt-1">Điểm danh</div>
       </button>
 
       <!-- Tab 3: Center (+) Quick Action Button -->
       <button
         (click)="showQuickMenu = true"
-        class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-900 via-indigo-800 to-blue-700 text-white font-black text-2xl flex items-center justify-center shadow-xl -mt-5 border-2 border-white transform active:scale-95 transition-all cursor-pointer"
+        class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-900 via-indigo-800 to-blue-700 text-white font-bold text-2xl flex items-center justify-center shadow-xl -mt-5 border-2 border-white transform active:scale-95 transition-all cursor-pointer"
         title="Thao tác nhanh"
       >
         ➕
@@ -1664,15 +1666,15 @@
       <button
         (click)="activeTab = 'calls'"
         [ngClass]="
-          activeTab === 'calls' ? 'text-blue-900 font-black' : 'text-slate-500 font-semibold'
+          activeTab === 'calls' ? 'text-blue-900 font-bold' : 'text-slate-500 font-semibold'
         "
         class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors relative cursor-pointer"
       >
         <div class="text-xl leading-none">📞</div>
-        <div class="text-[10px] mt-1">Hộp thư gọi</div>
+        <div class="text-xs mt-1">Hộp thư gọi</div>
         <span
           *ngIf="unreadCallsCount > 0"
-          class="absolute top-0 right-3 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-black animate-pulse shadow-sm"
+          class="absolute top-0 right-3 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs font-bold animate-pulse shadow-sm"
         >
           {{ unreadCallsCount }}
         </span>
@@ -1684,7 +1686,7 @@
         class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer text-slate-500 font-semibold"
       >
         <div class="text-xl leading-none">🔑</div>
-        <div class="text-[10px] mt-1">Đổi MK</div>
+        <div class="text-xs mt-1">Đổi MK</div>
       </button>
     </div>
   </nav>
@@ -1700,7 +1702,7 @@
       class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl animate-slide-up"
     >
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
           <span>⚡</span>
           <span>THAO TÁC NHANH THẦN TỐC</span>
         </h3>
@@ -1715,7 +1717,7 @@
       <div class="grid grid-cols-2 gap-3">
         <button
           (click)="showQuickMenu = false; activeTab = 'attendance'"
-          class="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-950 font-extrabold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+          class="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <span class="text-3xl">⚡</span>
           <span>Điểm Danh Ca Học</span>
@@ -1723,7 +1725,7 @@
 
         <button
           (click)="showQuickMenu = false; activeTab = 'calls'"
-          class="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-950 font-extrabold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+          class="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <span class="text-3xl">📞</span>
           <span>Nhiệm Vụ Gọi Điện</span>
@@ -1731,7 +1733,7 @@
 
         <button
           (click)="showQuickMenu = false; showLookupModal = true"
-          class="p-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 font-extrabold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+          class="p-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <span class="text-3xl">🔍</span>
           <span>Tra Cứu Sinh Viên</span>
@@ -1739,7 +1741,7 @@
 
         <button
           (click)="showQuickMenu = false; showPasswordModal = true"
-          class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+          class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <span class="text-3xl">🔑</span>
           <span>Đổi Mật Khẩu</span>
@@ -1748,7 +1750,7 @@
 
       <button
         (click)="showQuickMenu = false"
-        class="w-full py-3 rounded-2xl bg-slate-100 text-slate-700 font-extrabold text-xs touch-target cursor-pointer"
+        class="w-full py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs touch-target cursor-pointer"
       >
         Đóng Menu
       </button>
@@ -1764,7 +1766,7 @@
   >
     <div class="bg-white w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
           <span>🔍</span>
           <span>TRA CỨU HỒ SƠ SINH VIÊN</span>
         </h3>
@@ -1787,7 +1789,7 @@
           />
           <button
             (click)="doStudentLookup()"
-            class="px-4 py-3 rounded-2xl bg-blue-900 text-white font-extrabold text-xs whitespace-nowrap touch-target"
+            class="px-4 py-3 rounded-2xl bg-blue-900 text-white font-bold text-xs whitespace-nowrap touch-target"
           >
             Tìm
           </button>
@@ -1798,10 +1800,10 @@
           *ngIf="lookupResult"
           class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs space-y-2 text-slate-800"
         >
-          <div class="font-black text-base text-blue-950">{{ lookupResult.fullName }}</div>
+          <div class="font-bold text-base text-blue-950">{{ lookupResult.fullName }}</div>
           <div class="grid grid-cols-2 gap-2 text-slate-700">
             <div>
-              MSSV: <b class="text-slate-900 font-mono">{{ lookupResult.studentCode }}</b>
+              MSSV: <b class="text-slate-900 font-sans tabular-nums">{{ lookupResult.studentCode }}</b>
             </div>
             <div>
               Lớp: <b>{{ lookupResult.classCode }}</b>
@@ -1838,7 +1840,7 @@
   >
     <div class="bg-white w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-black text-slate-900 text-base flex items-center gap-2">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
           <span>🔑</span>
           <span>ĐỔI MẬT KHẨU CÁ NHÂN</span>
         </h3>
@@ -1877,7 +1879,7 @@
           </button>
           <button
             (click)="saveMyNewPassword()"
-            class="px-5 py-2.5 rounded-xl bg-blue-900 text-white font-extrabold text-xs shadow-md touch-target"
+            class="px-5 py-2.5 rounded-xl bg-blue-900 text-white font-bold text-xs shadow-md touch-target"
           >
             💾 Lưu Mật Khẩu
           </button>

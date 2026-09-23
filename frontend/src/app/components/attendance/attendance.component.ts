@@ -15,6 +15,7 @@ import {
 import { AuthService } from '../../services/auth.service';
 import { CallTaskService } from '../../services/call-task.service';
 import { StaffService } from '../../services/staff.service';
+import { NotificationService } from '../../services/notification.service';
 import { CourseGroup, Student, CallTask } from '../../models/types';
 
 @Component({
@@ -74,6 +75,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     public authService: AuthService,
     private callTaskService: CallTaskService,
     private staffService: StaffService,
+    private notify: NotificationService,
     private router: Router,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -327,14 +329,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteHistoryRecord(attendanceId: string) {
-    if (!confirm('Xóa bản ghi điểm danh này?')) return;
+  async deleteHistoryRecord(attendanceId: string) {
+    const ok = await this.notify.confirm({
+      title: 'Xóa bản ghi điểm danh?',
+      message: 'Các nhiệm vụ gọi điện chưa xử lý của buổi này cũng sẽ bị xóa.',
+      confirmText: 'Xóa',
+      danger: true,
+    });
+    if (!ok) return;
     this.attendanceService.deleteAttendanceRecord(attendanceId).subscribe({
       next: () => {
         this.historyList = this.historyList.filter((h) => h._id !== attendanceId);
+        this.notify.success('Đã xóa bản ghi điểm danh');
         this.cdr.detectChanges();
       },
-      error: (err) => alert('Lỗi khi xóa: ' + (err.error?.message || err.message)),
+      error: (err) => this.notify.error(err.error?.message || err.message, 'Lỗi khi xóa'),
     });
   }
 
@@ -364,7 +373,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.loadMyCallTasks();
         this.cdr.detectChanges();
       },
-      error: (err) => alert('Lỗi khi cập nhật cuộc gọi: ' + (err.error?.message || err.message)),
+      error: (err) =>
+        this.notify.error(err.error?.message || err.message, 'Lỗi khi cập nhật cuộc gọi'),
     });
   }
 
@@ -394,7 +404,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   saveMyNewPassword() {
     if (!this.newPasswordInput.trim()) {
-      alert('Vui lòng nhập mật khẩu mới');
+      this.notify.warning('Vui lòng nhập mật khẩu mới');
       return;
     }
     const userId = this.currentUser?.id || this.currentUser?._id || '';
@@ -408,7 +418,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         }, 2000);
         this.cdr.detectChanges();
       },
-      error: (err) => alert('Lỗi khi đổi mật khẩu: ' + (err.error?.message || err.message)),
+      error: (err) => this.notify.error(err.error?.message || err.message, 'Lỗi khi đổi mật khẩu'),
     });
   }
 
@@ -571,7 +581,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         },
         error: (err) => {
-          alert(err.error?.message || 'Không thể lưu điểm danh');
+          this.notify.error(err.error?.message || 'Không thể lưu điểm danh');
           this.cdr.detectChanges();
         },
       });
@@ -687,8 +697,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   /** Click ô sinh viên trong ma trận: Có mặt (✓) -> Vắng không phép (✕) -> Vắng có phép (P) -> Có mặt (✓) */
   toggleStudentInMatrix(studentId: string, session: ScheduleSession, studentName = ''): void {
     if (this.isSessionLocked(session)) {
-      alert(
-        `🔒 Buổi học ngày ${new Date(session.scheduledDate).toLocaleDateString('vi-VN')} đã bị khóa (chốt sổ hoặc chưa tới ngày).\n\nHãy bấm "🔓 Bật Điểm Danh Linh Hoạt" ở thẻ thông tin môn học nếu cần mở khóa chỉnh sửa.`,
+      this.notify.warning(
+        `Buổi ngày ${new Date(session.scheduledDate).toLocaleDateString('vi-VN')} đã chốt sổ hoặc chưa tới ngày. Bấm "🔓 Bật Điểm Danh Linh Hoạt" ở thẻ môn học nếu cần chỉnh sửa.`,
+        '🔒 Buổi học đã bị khóa',
       );
       return;
     }
@@ -859,7 +870,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.savingSessionKey = null;
-          alert(err.error?.message || 'Không thể lưu điểm danh cho buổi này.');
+          this.notify.error(err.error?.message || 'Không thể lưu điểm danh cho buổi này.');
           this.cdr.detectChanges();
         },
       });

@@ -1,12 +1,12 @@
 {
-  "short_name": "ITC Care",
-  "name": "ITC Student Care & Attendance",
+  "short_name": "ITC CARE",
+  "name": "ITC CARE",
   "description": "Hệ thống Quản lý & Điểm danh Sinh viên Văn phòng ITC",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "logo_truong.png",
+      "sizes": "240x240",
+      "type": "image/png"
     }
   ],
   "start_url": "/",

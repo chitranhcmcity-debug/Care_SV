@@ -1,0 +1,137 @@
+<!-- Toast stack -->
+<div
+  class="fixed top-4 right-4 left-4 sm:left-auto z-[10002] flex flex-col gap-3 sm:w-[380px] pointer-events-none"
+  aria-live="polite"
+>
+  <div
+    *ngFor="let toast of notify.toasts(); trackBy: trackById"
+    class="toast-enter pointer-events-auto relative overflow-hidden bg-white rounded-xl shadow-xl border border-slate-200 p-4 flex items-start gap-3"
+    [attr.role]="toast.type === 'error' ? 'alert' : 'status'"
+  >
+    <span
+      class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+      [ngClass]="tones[toast.type].iconBox"
+    >
+      <svg
+        class="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path [attr.d]="tones[toast.type].icon" />
+      </svg>
+    </span>
+    <div class="flex-1 min-w-0 pt-0.5">
+      <div class="text-sm font-semibold text-slate-900">{{ toast.title }}</div>
+      <p class="text-sm text-slate-600 mt-0.5 break-words">{{ toast.message }}</p>
+    </div>
+    <button
+      type="button"
+      (click)="notify.dismiss(toast.id)"
+      class="w-7 h-7 -mr-1 -mt-1 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 shrink-0"
+      aria-label="Đóng thông báo"
+    >
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
+      </svg>
+    </button>
+    <!-- auto-dismiss timer -->
+    <span
+      class="toast-timer absolute left-0 bottom-0 h-[3px] w-full opacity-70"
+      [ngClass]="tones[toast.type].bar"
+      [style.animation-duration]="toast.type === 'error' ? '7s' : '4.5s'"
+    ></span>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<ng-container *ngIf="notify.pendingConfirm() as request">
+  <div
+    class="fade-enter fixed inset-0 z-[10001] bg-slate-900/50 backdrop-blur-[2px] flex items-center justify-center p-4"
+    (click)="notify.answerConfirm(false)"
+  >
+    <div
+      class="dialog-enter w-full max-w-[420px] bg-white rounded-2xl shadow-xl p-6"
+      role="alertdialog"
+      aria-modal="true"
+      [attr.aria-label]="request.title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-start gap-4">
+        <span
+          class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+          [ngClass]="request.danger ? 'bg-rose-50 text-rose-600' : 'bg-violet-50 text-violet-600'"
+        >
+          <svg
+            *ngIf="request.danger"
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"
+            />
+          </svg>
+          <svg
+            *ngIf="!request.danger"
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"
+            />
+          </svg>
+        </span>
+        <div class="flex-1 min-w-0 pt-1">
+          <h3 class="text-base font-semibold text-slate-900">{{ request.title }}</h3>
+          <p *ngIf="request.message" class="text-sm text-slate-600 mt-1.5 whitespace-pre-line">
+            {{ request.message }}
+          </p>
+        </div>
+      </div>
+      <input
+        *ngIf="request.input as input"
+        [type]="input.type"
+        [value]="notify.promptValue()"
+        (input)="notify.promptValue.set($any($event.target).value)"
+        [placeholder]="input.placeholder"
+        [attr.aria-label]="request.title"
+        autocomplete="off"
+        data-dialog-autofocus
+        class="mt-5 w-full h-11 px-4 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400"
+      />
+      <div class="mt-6 flex justify-end gap-2">
+        <button
+          type="button"
+          (click)="notify.answerConfirm(false)"
+          class="px-4 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors"
+        >
+          {{ request.cancelText }}
+        </button>
+        <button
+          type="button"
+          (click)="notify.answerConfirm(true)"
+          class="px-4 h-10 rounded-lg text-white text-sm font-medium transition-colors"
+          [ngClass]="
+            request.danger ? 'bg-rose-600 hover:bg-rose-700' : 'bg-violet-600 hover:bg-violet-700'
+          "
+          [attr.data-dialog-autofocus]="request.input ? null : ''"
+        >
+          {{ request.confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>

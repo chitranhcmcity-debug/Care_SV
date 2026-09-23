@@ -1,66 +1,293 @@
-<div class="min-h-[85vh] flex items-center justify-center p-4 bg-slate-50">
-  <div
-    class="bg-white border border-slate-200 max-w-md w-full p-6 md:p-8 rounded-md shadow-sm space-y-6"
-  >
-    <!-- Header -->
-    <div class="text-center space-y-2">
-      <div
-        class="w-14 h-14 rounded-md bg-slate-800 mx-auto flex items-center justify-center text-white text-xl font-bold shadow-sm"
-      >
-        ITC
+<div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] bg-white">
+  <!-- Left: form -->
+  <div class="relative flex flex-col px-6 sm:px-12 py-8">
+    <!-- Brand -->
+    <a routerLink="/" class="flex items-center gap-3 w-fit">
+      <img src="logo_truong.png" alt="Logo ITC" width="40" height="40" class="object-contain" />
+      <div class="leading-tight">
+        <div class="font-bold text-slate-900">ITC CARE</div>
+        <div class="text-xs text-slate-500">Student Care System</div>
       </div>
-      <h2 class="text-xl font-bold text-slate-900 tracking-tight uppercase">ITC CARE ENTERPRISE</h2>
-      <p class="text-xs font-medium text-slate-600">Hệ Thống Quản Lý & Phân Quyền Văn Phòng</p>
-    </div>
+    </a>
 
-    <!-- Error Alert -->
-    <div
-      *ngIf="errorMessage"
-      class="p-3 rounded-md bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center gap-2"
-    >
-      <span>⚠️</span> {{ errorMessage }}
-    </div>
+    <div class="flex-1 flex items-center justify-center py-10">
+      <div class="w-full max-w-[420px] space-y-7">
+        <div class="space-y-2">
+          <h1 class="text-[28px] font-bold text-violet-600 leading-tight">Chào mừng trở lại 👋</h1>
+          <p class="text-sm text-slate-500">
+            Đăng nhập để tiếp tục quản lý điểm danh và chăm sóc sinh viên.
+          </p>
+        </div>
 
-    <!-- Form -->
-    <form (ngSubmit)="onLogin()" class="space-y-4">
-      <div>
-        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1"
-          >Email làm việc</label
+        <!-- Error Alert -->
+        <div
+          *ngIf="errorMessage"
+          role="alert"
+          class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-2"
         >
-        <input
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          required
-          placeholder="example@itc.edu.vn"
-          class="w-full px-3 py-2.5 rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-800 focus:border-slate-800 bg-white text-slate-900 text-sm transition-all"
-        />
+          <svg
+            class="w-5 h-5 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
+          </svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Form -->
+        <form (ngSubmit)="onLogin()" class="space-y-5" novalidate>
+          <div class="space-y-1.5">
+            <label for="login-email" class="block text-sm font-medium text-slate-700"
+              >Tài khoản đăng nhập</label
+            >
+            <div class="relative">
+              <svg
+                class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round" />
+              </svg>
+              <input
+                id="login-email"
+                type="text"
+                autocomplete="username"
+                [(ngModel)]="email"
+                name="email"
+                required
+                placeholder="Nhập tài khoản hoặc email"
+                class="w-full h-12 pl-11 pr-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="login-password" class="block text-sm font-medium text-slate-700"
+              >Mật khẩu</label
+            >
+            <div class="relative">
+              <svg
+                class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+              <input
+                #passwordInput
+                id="login-password"
+                [type]="showPassword ? 'text' : 'password'"
+                autocomplete="current-password"
+                [(ngModel)]="password"
+                name="password"
+                required
+                placeholder="Nhập mật khẩu"
+                class="w-full h-12 pl-11 pr-12 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+              />
+              <button
+                type="button"
+                (click)="showPassword = !showPassword"
+                [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                [attr.aria-pressed]="showPassword"
+                [title]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              >
+                <!-- eye -->
+                <svg
+                  *ngIf="!showPassword"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                >
+                  <path
+                    d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"
+                    stroke-linejoin="round"
+                  />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <!-- eye-off -->
+                <svg
+                  *ngIf="showPassword"
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                >
+                  <path
+                    d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.2 3.1M6.6 6.6C3.8 8.3 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"
+                  />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="loading"
+            class="w-full h-12 bg-violet-600 hover:bg-violet-700 disabled:opacity-70 text-white font-semibold rounded-lg text-sm transition-all shadow-[0_8px_20px_-8px_rgba(103,58,183,0.7)] flex items-center justify-center gap-2"
+          >
+            <svg *ngIf="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+              />
+            </svg>
+            <span>{{ loading ? 'Đang xác thực...' : 'Đăng nhập' }}</span>
+          </button>
+        </form>
+
+        <!-- Quick login (dev builds only) -->
+        <div *ngIf="quickAccounts.length" class="space-y-3">
+          <div class="flex items-center gap-3 text-xs text-slate-400">
+            <span class="h-px flex-1 bg-slate-200"></span>
+            Đăng nhập nhanh
+            <span class="h-px flex-1 bg-slate-200"></span>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <button
+              *ngFor="let account of quickAccounts"
+              type="button"
+              (click)="useQuickAccount(account.email, passwordInput)"
+              [title]="account.email"
+              [attr.aria-pressed]="email === account.email"
+              [disabled]="loading"
+              class="group flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-all"
+              [ngClass]="
+                email === account.email
+                  ? 'border-violet-500 bg-violet-50'
+                  : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/50'
+              "
+            >
+              <span
+                class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                [ngClass]="account.tone"
+                >{{ account.initial }}</span
+              >
+              <span class="text-xs font-medium text-slate-700 leading-tight text-center">{{
+                account.label
+              }}</span>
+              <span class="text-xs text-slate-500">{{ account.email }}</span>
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 text-center">
+            Chọn tài khoản để điền tên đăng nhập, sau đó nhập mật khẩu.
+          </p>
+        </div>
       </div>
+    </div>
 
-      <div>
-        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Mật khẩu</label>
-        <input
-          type="password"
-          [(ngModel)]="password"
-          name="password"
-          required
-          placeholder="••••••••"
-          class="w-full px-3 py-2.5 rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-slate-800 focus:border-slate-800 bg-white text-slate-900 text-sm transition-all"
-        />
-      </div>
-
-      <button
-        type="submit"
-        [disabled]="loading"
-        class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-md text-sm transition-all shadow-sm flex items-center justify-center gap-2"
-      >
-        <span *ngIf="loading">⏳</span>
-        <span>{{ loading ? 'Đang xác thực...' : 'ĐĂNG NHẬP HỆ THỐNG' }}</span>
-      </button>
-    </form>
-
-    <div class="text-center text-[11px] font-medium text-slate-500 pt-3 border-t border-slate-200">
+    <p class="text-xs text-slate-400 text-center lg:text-left">
       Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026
+    </p>
+  </div>
+
+  <!-- Right: brand panel -->
+  <div class="hidden lg:flex relative overflow-hidden m-4 rounded-3xl bg-violet-600 text-white">
+    <div class="absolute -top-28 -right-24 w-96 h-96 rounded-full bg-violet-800"></div>
+    <div class="absolute -top-44 right-32 w-96 h-96 rounded-full bg-violet-800/50"></div>
+    <div class="absolute -bottom-40 -left-24 w-[28rem] h-[28rem] rounded-full bg-blue-500/40"></div>
+    <div class="absolute top-1/3 left-16 w-3 h-3 rounded-full bg-white/50"></div>
+    <div class="absolute bottom-40 right-24 w-2 h-2 rounded-full bg-white/60"></div>
+
+    <div class="relative flex flex-col justify-between p-12 xl:p-16 w-full">
+      <span class="w-fit px-3 py-1 rounded-full bg-white/15 backdrop-blur text-xs font-medium"
+        >Hệ thống chăm sóc sinh viên</span
+      >
+
+      <!-- Floating preview cards -->
+      <div class="relative h-72">
+        <div
+          class="absolute left-0 top-4 w-72 rounded-2xl bg-white text-slate-900 p-5 shadow-xl rotate-[-4deg]"
+        >
+          <div class="text-sm font-semibold">Điểm danh buổi học</div>
+          <div class="mt-4 space-y-3">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-blue-100"></span>
+              <span class="h-2 flex-1 rounded-full bg-slate-100"></span>
+              <span
+                class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-xs font-semibold"
+                >Có mặt</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-violet-100"></span>
+              <span class="h-2 flex-1 rounded-full bg-slate-100"></span>
+              <span
+                class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-xs font-semibold"
+                >Vắng</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full bg-amber-100"></span>
+              <span class="h-2 flex-1 rounded-full bg-slate-100"></span>
+              <span
+                class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-xs font-semibold"
+                >Có mặt</span
+              >
+            </div>
+          </div>
+        </div>
+        <div
+          class="absolute right-2 bottom-0 w-64 rounded-2xl bg-white/95 text-slate-900 p-4 shadow-xl rotate-[3deg]"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              >
+                <path
+                  d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <div>
+              <div class="text-sm font-semibold">Cuộc gọi cần xử lý</div>
+              <div class="text-xs text-slate-500">Đã phân công tự động</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3 max-w-md">
+        <h2 class="text-3xl xl:text-4xl font-semibold leading-tight">
+          Không để sinh viên nào bị bỏ lại phía sau.
+        </h2>
+        <p class="text-violet-100 text-sm leading-relaxed">
+          Điểm danh, cảnh báo vắng học, phân công gọi điện và báo cáo chăm sóc — tất cả trong một
+          nơi.
+        </p>
+      </div>
     </div>
   </div>
 </div>

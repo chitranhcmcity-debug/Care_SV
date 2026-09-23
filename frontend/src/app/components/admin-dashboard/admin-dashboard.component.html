@@ -1,158 +1,116 @@
-<div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
-  <!-- ELEGANT OFFICE TOAST NOTIFICATION -->
-  <div
-    *ngIf="toast.show"
-    class="fixed top-5 right-5 z-[9999] max-w-md w-full transition-all duration-300"
-  >
+<div class="max-w-[1440px] mx-auto px-4 md:px-8 py-6 space-y-6">
+  <!-- Admin Header Banner -->
+  <div class="relative overflow-hidden rounded-2xl bg-violet-600 p-6 md:p-8 text-white">
+    <!-- decorative circles, Berry "Total Earning" card style -->
     <div
-      class="p-4 rounded-2xl shadow-xl border bg-white border-slate-200 flex items-start justify-between gap-3"
-      [ngClass]="{
-        'border-l-4 border-l-emerald-600': toast.type === 'success',
-        'border-l-4 border-l-rose-600': toast.type === 'error',
-        'border-l-4 border-l-blue-600': toast.type === 'info',
-      }"
+      class="pointer-events-none absolute -right-20 -top-32 h-72 w-72 rounded-full bg-violet-800"
+    ></div>
+    <div
+      class="pointer-events-none absolute right-16 -top-44 h-72 w-72 rounded-full bg-violet-800/50"
+    ></div>
+
+    <div
+      class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
     >
-      <div class="flex items-start gap-3">
-        <div
-          class="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0"
-          [ngClass]="{
-            'bg-emerald-100 text-emerald-800': toast.type === 'success',
-            'bg-rose-100 text-rose-800': toast.type === 'error',
-            'bg-blue-100 text-blue-800': toast.type === 'info',
-          }"
+      <div class="space-y-2 max-w-2xl">
+        <span
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-violet-800 text-xs font-medium"
         >
-          <span *ngIf="toast.type === 'success'">✅</span>
-          <span *ngIf="toast.type === 'error'">⚠️</span>
-          <span *ngIf="toast.type === 'info'">ℹ️</span>
-        </div>
-        <div>
-          <h5 class="font-extrabold text-sm text-slate-900">{{ toast.title }}</h5>
-          <p class="text-xs font-semibold text-slate-600 mt-0.5">{{ toast.message }}</p>
-        </div>
+          <svg
+            class="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z" stroke-linejoin="round" />
+          </svg>
+          Quản trị viên hệ thống
+        </span>
+        <h2 class="text-2xl md:text-[28px] font-semibold leading-tight">
+          Quản lý hệ thống &amp; báo cáo chuyên sâu
+        </h2>
+        <p class="text-sm text-violet-100">
+          Nhập sinh viên qua Excel, cấu hình học phần, phân công nhân sự CSKH và theo dõi cảnh báo
+          cấm thi.
+        </p>
       </div>
+
       <button
-        (click)="toast.show = false"
-        class="text-slate-400 hover:text-slate-700 font-bold text-base focus:outline-none"
+        *ngIf="activeTab === 'analytics'"
+        (click)="downloadCareReport()"
+        [disabled]="isExportingCareReport"
+        class="shrink-0 px-5 h-11 bg-white text-violet-600 hover:bg-violet-50 font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center gap-2 disabled:opacity-60"
       >
-        ✖
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>{{
+          isExportingCareReport ? 'Đang xuất báo cáo...' : 'Xuất báo cáo chăm sóc (.xlsx)'
+        }}</span>
       </button>
     </div>
   </div>
 
-  <!-- Admin Header Banner -->
-  <div
-    class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-  >
-    <div class="space-y-1">
-      <div
-        class="inline-flex items-center gap-2 px-3 py-1 rounded bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200"
+  <!-- Tab Navigation (underline tabs) -->
+  <div class="bg-white rounded-2xl px-2">
+    <nav class="flex overflow-x-auto gap-1" role="tablist">
+      <button
+        *ngFor="let tab of adminTabs"
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab === tab.id"
+        (click)="switchTab(tab.id)"
+        class="relative flex items-center gap-2 px-4 h-14 text-sm whitespace-nowrap transition-colors"
+        [ngClass]="
+          activeTab === tab.id
+            ? 'text-violet-600 font-semibold'
+            : 'text-slate-600 font-medium hover:text-slate-900'
+        "
       >
-        🛡️ QUẢN TRỊ VIÊN HỆ THỐNG
-      </div>
-      <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-        Quản Lý Hệ Thống & Báo Cáo Chuyên Sâu
-      </h2>
-      <p class="text-xs sm:text-sm text-slate-600 font-medium">
-        Nhập sinh viên hàng loạt qua Excel, cấu hình học phần, phân quyền nhân sự CSKH & báo cáo
-        cảnh báo cấm thi.
-      </p>
-    </div>
-
-    <button
-      *ngIf="activeTab === 'analytics'"
-      (click)="downloadCareReport()"
-      [disabled]="isExportingCareReport"
-      class="px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-2 touch-target"
-    >
-      <span>{{
-        isExportingCareReport ? 'Đang xuất báo cáo...' : '📥 XUẤT BÁO CÁO CHĂM SÓC (.XLSX)'
-      }}</span>
-    </button>
-  </div>
-
-  <!-- Tab Navigation -->
-  <div
-    class="flex border-b border-slate-200 overflow-x-auto space-x-1 bg-white p-1 rounded-xl shadow-sm border"
-  >
-    <button
-      (click)="switchTab('courses')"
-      [ngClass]="
-        activeTab === 'courses'
-          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
-          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
-      "
-      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
-    >
-      📅 Cấu Hình Học Phần
-    </button>
-    <button
-      (click)="switchTab('excel')"
-      [ngClass]="
-        activeTab === 'excel'
-          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
-          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
-      "
-      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
-    >
-      📊 Nhập Sinh Viên (Excel)
-    </button>
-    <button
-      (click)="switchTab('staff')"
-      [ngClass]="
-        activeTab === 'staff'
-          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
-          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
-      "
-      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
-    >
-      👥 Nhân Sự CSKH
-    </button>
-    <button
-      (click)="switchTab('tasks')"
-      [ngClass]="
-        activeTab === 'tasks'
-          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
-          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
-      "
-      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
-    >
-      🗂️ Giao Việc
-    </button>
-    <button
-      (click)="switchTab('analytics')"
-      [ngClass]="
-        activeTab === 'analytics'
-          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
-          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
-      "
-      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
-    >
-      📈 Thống Kê & Cấm Thi
-    </button>
-    <button
-      (click)="switchTab('settings')"
-      [ngClass]="
-        activeTab === 'settings'
-          ? 'border-blue-700 text-blue-900 bg-blue-50 font-extrabold'
-          : 'border-transparent text-slate-600 hover:text-slate-900 font-medium'
-      "
-      class="py-3 px-4 border-b-2 text-sm transition-all rounded-lg touch-target flex items-center gap-2 whitespace-nowrap"
-    >
-      ⚙️ Cấu Hình
-    </button>
+        <svg
+          class="w-[18px] h-[18px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path [attr.d]="tab.icon" />
+        </svg>
+        {{ tab.label }}
+        <span
+          *ngIf="activeTab === tab.id"
+          class="absolute left-3 right-3 bottom-0 h-[2px] rounded-full bg-violet-600"
+        ></span>
+      </button>
+    </nav>
   </div>
 
   <!-- COMPONENT 2: EXCEL IMPORT BY COURSE -->
   <div *ngIf="activeTab === 'excel'" class="space-y-6">
     <!-- Info Banner -->
-    <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 rounded-2xl shadow-lg">
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div class="relative overflow-hidden bg-blue-500 text-white p-6 rounded-2xl">
+      <div
+        class="pointer-events-none absolute -right-16 -top-28 h-64 w-64 rounded-full bg-blue-700"
+      ></div>
+      <div
+        class="pointer-events-none absolute right-20 -top-40 h-64 w-64 rounded-full bg-blue-700/50"
+      ></div>
+      <div
+        class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+      >
         <div class="space-y-1">
-          <div class="text-xs font-bold text-blue-300 uppercase tracking-wider">
-            📊 NHẬP SINH VIÊN HÀO LOẠT THEO HỌC PHẦN
+          <div class="text-xs font-bold text-blue-100 uppercase tracking-wider">
+            📊 NHẬP SINH VIÊN HÀNG LOẠT THEO HỌC PHẦN
           </div>
-          <h3 class="text-xl font-black">Quy Trình 3 Bước Đơn Giản</h3>
-          <p class="text-sm text-blue-200">
+          <h3 class="text-xl font-bold">Quy Trình 3 Bước Đơn Giản</h3>
+          <p class="text-sm text-blue-50">
             Cấu hình học phần → Tải mẫu Excel → Nhập SV vào mẫu → Upload
           </p>
         </div>
@@ -161,12 +119,12 @@
             <span class="text-2xl">1️⃣</span>
             <span>Cấu Hình<br />Học Phần</span>
           </div>
-          <span class="text-blue-400 text-lg">→</span>
+          <span class="text-blue-100 text-lg">→</span>
           <div class="flex flex-col items-center gap-1 bg-white/10 rounded-xl p-3 text-center">
             <span class="text-2xl">2️⃣</span>
             <span>Tải Mẫu<br />Excel</span>
           </div>
-          <span class="text-blue-400 text-lg">→</span>
+          <span class="text-blue-100 text-lg">→</span>
           <div class="flex flex-col items-center gap-1 bg-white/10 rounded-xl p-3 text-center">
             <span class="text-2xl">3️⃣</span>
             <span>Upload<br />& Đồng Bộ</span>
@@ -183,7 +141,7 @@
             📥
           </div>
           <div>
-            <h4 class="font-extrabold text-slate-900">Tải File Mẫu Theo Học Phần</h4>
+            <h4 class="font-bold text-slate-900">Tải File Mẫu Theo Học Phần</h4>
             <p class="text-xs text-slate-500">Mỗi sheet = 1 mã học phần đã cấu hình</p>
           </div>
         </div>
@@ -191,7 +149,7 @@
         <div
           class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-800 font-medium space-y-1"
         >
-          <div class="font-black text-blue-900">📋 File mẫu sẽ có cấu trúc:</div>
+          <div class="font-bold text-blue-900">📋 File mẫu sẽ có cấu trúc:</div>
           <div>• <b>Mỗi sheet</b> = 1 nhóm học phần (tên sheet = mã nhóm)</div>
           <div>• Các cột: <b>MSSV | Họ Tên | SĐT SV | SĐT Phụ Huynh</b></div>
           <div>• SV đã đăng ký sẽ được pre-fill sẵn</div>
@@ -199,13 +157,13 @@
 
         <div class="text-xs font-bold text-slate-600">
           📌 Số học phần hiện có:
-          <span class="text-blue-900 font-black">{{ courseGroupList.length }} học phần</span>
+          <span class="text-blue-900 font-bold">{{ courseGroupList.length }} học phần</span>
         </div>
 
         <button
           (click)="downloadCourseTemplate()"
           [disabled]="isDownloadingCourseExcel"
-          class="w-full py-3.5 bg-blue-900 hover:bg-blue-950 disabled:bg-slate-400 text-white font-extrabold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
+          class="w-full py-3.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
         >
           <svg
             *ngIf="isDownloadingCourseExcel"
@@ -256,7 +214,7 @@
             📤
           </div>
           <div>
-            <h4 class="font-extrabold text-slate-900">Upload Hàng Loạt Theo Học Phần</h4>
+            <h4 class="font-bold text-slate-900">Upload Hàng Loạt Theo Học Phần</h4>
             <p class="text-xs text-slate-500">Tên sheet phải khớp với mã nhóm học phần</p>
           </div>
         </div>
@@ -294,7 +252,7 @@
         <button
           (click)="uploadByCourse()"
           [disabled]="!selectedCourseFile || isUploadingCourseExcel"
-          class="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-400 text-white font-extrabold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
+          class="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-400 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
         >
           <svg
             *ngIf="isUploadingCourseExcel"
@@ -334,7 +292,7 @@
           🎉
         </div>
         <div>
-          <h4 class="font-extrabold text-emerald-900">Đồng bộ thành công!</h4>
+          <h4 class="font-bold text-emerald-900">Đồng bộ thành công!</h4>
           <p class="text-xs text-slate-600">{{ importCourseResult.message }}</p>
         </div>
       </div>
@@ -343,25 +301,25 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
           <div class="text-xs font-bold text-slate-500 uppercase">Tổng SV</div>
-          <div class="text-2xl font-black text-slate-900">
+          <div class="text-2xl font-bold text-slate-900">
             {{ importCourseResult.totalStudents }}
           </div>
         </div>
         <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
           <div class="text-xs font-bold text-emerald-700 uppercase">SV Mới</div>
-          <div class="text-2xl font-black text-emerald-900">
+          <div class="text-2xl font-bold text-emerald-900">
             {{ importCourseResult.newStudents }}
           </div>
         </div>
         <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-center">
           <div class="text-xs font-bold text-blue-700 uppercase">Cập Nhật</div>
-          <div class="text-2xl font-black text-blue-900">
+          <div class="text-2xl font-bold text-blue-900">
             {{ importCourseResult.updatedStudents }}
           </div>
         </div>
         <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
           <div class="text-xs font-bold text-amber-700 uppercase">Gán HP</div>
-          <div class="text-2xl font-black text-amber-900">
+          <div class="text-2xl font-bold text-amber-900">
             {{ importCourseResult.assignedCount }}
           </div>
         </div>
@@ -369,11 +327,11 @@
 
       <!-- Per-sheet results -->
       <div class="space-y-2">
-        <div class="text-xs font-black text-slate-700 uppercase">Chi tiết theo học phần:</div>
+        <div class="text-xs font-bold text-slate-700 uppercase">Chi tiết theo học phần:</div>
         <div class="overflow-x-auto rounded-xl border border-slate-200">
           <table class="w-full text-xs border-collapse">
             <thead>
-              <tr class="bg-slate-100 text-slate-700 font-black uppercase">
+              <tr class="bg-slate-100 text-slate-700 font-bold uppercase">
                 <th class="p-3 text-left">Học Phần (Sheet)</th>
                 <th class="p-3 text-left">Tên Môn</th>
                 <th class="p-3 text-center">Tổng SV</th>
@@ -383,16 +341,18 @@
             </thead>
             <tbody class="divide-y divide-slate-200 bg-white">
               <tr *ngFor="let r of importCourseResult.sheetResults" class="hover:bg-slate-50">
-                <td class="p-3 font-mono font-black text-blue-900">{{ r.sheetName }}</td>
+                <td class="p-3 font-sans tabular-nums font-bold text-blue-900">
+                  {{ r.sheetName }}
+                </td>
                 <td class="p-3 font-medium text-slate-700">{{ r.courseName }}</td>
                 <td class="p-3 text-center font-bold">{{ r.total }}</td>
                 <td class="p-3 text-center">
-                  <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black"
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold"
                     >+{{ r.newStudents }}</span
                   >
                 </td>
                 <td class="p-3 text-center">
-                  <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-black">{{
+                  <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">{{
                     r.assigned
                   }}</span>
                 </td>
@@ -412,7 +372,7 @@
         *ngIf="importCourseResult.errors?.length"
         class="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold space-y-1"
       >
-        <div class="font-black">
+        <div class="font-bold">
           ⚠️ Cảnh báo ({{ importCourseResult.errors!.length }} dòng bị bỏ qua):
         </div>
         <div *ngFor="let e of importCourseResult.errors">• {{ e }}</div>
@@ -444,7 +404,7 @@
       class="border-b border-slate-200 pb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
     >
       <div>
-        <h3 class="text-lg md:text-xl font-extrabold text-slate-900">
+        <h3 class="text-lg md:text-xl font-bold text-slate-900">
           3. Quản Lý Nhân Sự CSKH & Phân Công Lớp Cố Định
         </h3>
         <p class="text-xs text-slate-500 font-medium">
@@ -454,7 +414,7 @@
       <button
         type="button"
         (click)="openHandoverModal()"
-        class="px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+        class="px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
       >
         <span>🔄 BÀN GIAO LỚP 1-CLICK</span>
       </button>
@@ -498,7 +458,7 @@
         <select
           [(ngModel)]="newStaffRole"
           name="newStaffRole"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-extrabold text-slate-900 bg-white"
+          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-white"
         >
           <option value="staff">🎧 Nhân Viên CSKH</option>
           <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy</option>
@@ -513,13 +473,13 @@
           [(ngModel)]="newStaffPass"
           name="newStaffPass"
           placeholder="Mật khẩu ngẫu nhiên"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-mono font-semibold text-slate-900 bg-white"
+          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-sans tabular-nums font-semibold text-slate-900 bg-white"
         />
       </div>
       <button
         type="submit"
         [disabled]="isCreatingStaff"
-        class="py-3.5 px-6 bg-blue-900 hover:bg-blue-950 text-white font-extrabold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
+        class="py-3.5 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
       >
         <span>{{ isCreatingStaff ? 'Đang tạo...' : '➕ THÊM TÀI KHOẢN' }}</span>
       </button>
@@ -531,7 +491,7 @@
       class="p-5 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl space-y-3 animate-fade-in border border-blue-700"
     >
       <div class="flex items-center justify-between">
-        <span class="font-extrabold text-sm flex items-center gap-2"
+        <span class="font-bold text-sm flex items-center gap-2"
           >🎉 {{ staffCreatedMsg || 'Tạo tài khoản nhân sự thành công!' }}</span
         >
         <button
@@ -550,14 +510,14 @@
             >🔑 MẬT KHẨU ĐĂNG NHẬP KHỞI TẠO (HÃY LƯU VÀ SAO CHÉP):</span
           >
           <span
-            class="font-mono text-xl font-black text-amber-300 tracking-wider bg-black/30 px-3 py-1 rounded border border-amber-400/40 select-all"
+            class="font-sans tabular-nums text-xl font-bold text-amber-300 tracking-wider bg-black/30 px-3 py-1 rounded border border-amber-400/40 select-all"
             >{{ staffGeneratedPass }}</span
           >
         </div>
         <button
           type="button"
           (click)="copyPasswordToClipboard(staffGeneratedPass)"
-          class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+          class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
         >
           📋 SAO CHÉP MẬT KHẨU
         </button>
@@ -583,7 +543,9 @@
         <tbody class="divide-y divide-slate-200 bg-white">
           <tr *ngFor="let staff of staffList" class="hover:bg-slate-50 transition-all">
             <td class="p-3 font-bold text-slate-900">{{ staff.fullName }}</td>
-            <td class="p-3 text-slate-600 font-medium font-mono text-xs">{{ staff.email }}</td>
+            <td class="p-3 text-slate-600 font-medium font-sans tabular-nums text-xs">
+              {{ staff.email }}
+            </td>
             <td class="p-3">
               <span
                 class="px-2 py-0.5 rounded-md text-xs font-semibold border"
@@ -600,7 +562,7 @@
               <div class="flex flex-wrap items-center gap-1.5">
                 <span
                   *ngFor="let cCode of staff.managedClasses"
-                  class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 font-mono font-bold text-xs border border-slate-300"
+                  class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 font-sans tabular-nums font-bold text-xs border border-slate-300"
                 >
                   🏫 {{ cCode }}
                 </span>
@@ -614,7 +576,7 @@
                   *ngIf="staff.role === 'staff'"
                   type="button"
                   (click)="openAssignClassModal(staff)"
-                  class="px-2 py-0.5 rounded-md text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200"
+                  class="px-2 py-0.5 rounded-md text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ✏️ Gán Lớp
                 </button>
@@ -624,7 +586,7 @@
               <div class="flex flex-wrap items-center gap-1.5">
                 <span
                   *ngFor="let st of staff.managedStudents"
-                  class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-900 font-mono text-xs border border-blue-200"
+                  class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-900 font-sans tabular-nums text-xs border border-blue-200"
                   [title]="getStudentDisplayName(st)"
                 >
                   👤 {{ getStudentCodeDisplay(st) }}
@@ -639,7 +601,7 @@
                   *ngIf="staff.role === 'staff'"
                   type="button"
                   (click)="openAssignStudentModal(staff)"
-                  class="px-2 py-0.5 rounded-md text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200"
+                  class="px-2 py-0.5 rounded-md text-xs font-semibold text-slate-700 bg-slate-100 border border-slate-300 hover:bg-slate-200"
                 >
                   ✏️ Gán SV Ngoại Lệ
                 </button>
@@ -661,7 +623,7 @@
               <button
                 type="button"
                 (click)="openHandoverModal(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 transition-all touch-target"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 transition-all touch-target"
                 title="Bàn giao các lớp đang phụ trách sang nhân viên khác"
               >
                 🔄 Bàn Giao
@@ -669,7 +631,7 @@
               <button
                 type="button"
                 (click)="openEditStaffModal(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100 transition-all touch-target"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100 transition-all touch-target"
               >
                 ✏️ Sửa
               </button>
@@ -677,7 +639,7 @@
                 *ngIf="staff.role === 'staff'"
                 type="button"
                 (click)="openStaffAiAssessment(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
                 title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
               >
                 🤖 Đánh Giá AI
@@ -685,7 +647,7 @@
               <button
                 type="button"
                 (click)="resetStaffPassword(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
               >
                 🔑 Reset MK
               </button>
@@ -704,7 +666,7 @@
               <button
                 type="button"
                 (click)="deleteStaffAccount(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-extrabold border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all touch-target"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all touch-target"
               >
                 🗑️ Xóa
               </button>
@@ -724,7 +686,7 @@
   <div *ngIf="activeTab === 'tasks'" class="space-y-6">
     <!-- Create Task Form -->
     <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
-      <h3 class="text-base font-extrabold text-slate-900 uppercase tracking-tight">
+      <h3 class="text-base font-bold text-slate-900 uppercase tracking-tight">
         ➕ Giao Nhiệm Vụ Mới
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -777,7 +739,7 @@
         <button
           (click)="createTask()"
           [disabled]="isCreatingTask"
-          class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-extrabold rounded-xl touch-target text-sm transition-all shadow-sm"
+          class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm"
         >
           {{ isCreatingTask ? 'Đang giao việc...' : '📤 GIAO NHIỆM VỤ' }}
         </button>
@@ -788,30 +750,30 @@
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 flex-1">
         <div class="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-sm">
-          <div class="text-lg font-extrabold text-slate-900">{{ taskList.length }}</div>
-          <div class="text-[10px] font-bold text-slate-500 uppercase">Tổng</div>
+          <div class="text-lg font-bold text-slate-900">{{ taskList.length }}</div>
+          <div class="text-xs font-bold text-slate-500 uppercase">Tổng</div>
         </div>
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center shadow-sm">
-          <div class="text-lg font-extrabold text-amber-900">{{ taskStatusCount('Mới giao') }}</div>
-          <div class="text-[10px] font-bold text-amber-700 uppercase">Mới Giao</div>
+          <div class="text-lg font-bold text-amber-900">{{ taskStatusCount('Mới giao') }}</div>
+          <div class="text-xs font-bold text-amber-700 uppercase">Mới Giao</div>
         </div>
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center shadow-sm">
-          <div class="text-lg font-extrabold text-blue-900">
+          <div class="text-lg font-bold text-blue-900">
             {{ taskStatusCount('Đã xác nhận') }}
           </div>
-          <div class="text-[10px] font-bold text-blue-700 uppercase">Đang Làm</div>
+          <div class="text-xs font-bold text-blue-700 uppercase">Đang Làm</div>
         </div>
         <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center shadow-sm">
-          <div class="text-lg font-extrabold text-purple-900">
+          <div class="text-lg font-bold text-purple-900">
             {{ taskStatusCount('Chờ duyệt') }}
           </div>
-          <div class="text-[10px] font-bold text-purple-700 uppercase">Chờ Duyệt</div>
+          <div class="text-xs font-bold text-purple-700 uppercase">Chờ Duyệt</div>
         </div>
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center shadow-sm">
-          <div class="text-lg font-extrabold text-emerald-900">
+          <div class="text-lg font-bold text-emerald-900">
             {{ taskStatusCount('Hoàn thành') }}
           </div>
-          <div class="text-[10px] font-bold text-emerald-700 uppercase">Hoàn Thành</div>
+          <div class="text-xs font-bold text-emerald-700 uppercase">Hoàn Thành</div>
         </div>
       </div>
       <select
@@ -838,7 +800,7 @@
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
               <span
-                class="px-2.5 py-1 rounded-full text-[11px] font-black"
+                class="px-2.5 py-1 rounded-full text-xs font-bold"
                 [ngClass]="{
                   'bg-amber-600 text-white': task.status === 'Mới giao',
                   'bg-blue-700 text-white': task.status === 'Đã xác nhận',
@@ -851,23 +813,25 @@
               </span>
               <span
                 *ngIf="isTaskOverdue(task)"
-                class="px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-300"
+                class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300"
               >
                 ⚠️ QUÁ HẠN
               </span>
             </div>
-            <h4 class="text-base font-extrabold text-slate-900">{{ task.title }}</h4>
+            <h4 class="text-base font-bold text-slate-900">{{ task.title }}</h4>
             <p class="text-xs text-slate-600 font-medium max-w-xl">{{ task.description }}</p>
           </div>
           <div class="text-right text-xs text-slate-500 font-semibold space-y-0.5">
-            <div>Nhân viên: <b class="text-slate-800">{{ displayTaskUser(task.assignedTo) }}</b></div>
+            <div>
+              Nhân viên: <b class="text-slate-800">{{ taskUserName(task.assignedTo) }}</b>
+            </div>
             <div *ngIf="task.dueDate">
               Hạn chót: <b class="text-slate-800">{{ task.dueDate | date: 'dd/MM/yyyy' }}</b>
             </div>
             <button
               *ngIf="task.status === 'Mới giao' || task.status === 'Đã xác nhận'"
               (click)="deleteTask(task)"
-              class="text-rose-600 hover:text-rose-800 font-bold text-[11px] mt-1"
+              class="text-rose-600 hover:text-rose-800 font-bold text-xs mt-1"
             >
               🗑️ Xóa nhiệm vụ
             </button>
@@ -879,7 +843,7 @@
           *ngIf="task.status === 'Chờ duyệt'"
           class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2"
         >
-          <div class="text-[11px] font-bold text-purple-700 uppercase">Minh chứng đã nộp:</div>
+          <div class="text-xs font-bold text-purple-700 uppercase">Minh chứng đã nộp:</div>
           <p *ngIf="task.evidenceNote" class="text-xs text-slate-700 font-medium">
             📝 {{ task.evidenceNote }}
           </p>
@@ -896,7 +860,7 @@
             <button
               *ngFor="let file of task.evidenceFiles"
               type="button"
-              (click)="viewTaskFile(task._id, file)"
+              (click)="taskService.openEvidence(task._id, file._id)"
               class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100"
             >
               📎 {{ file.originalName }} ({{ formatFileSize(file.size) }})
@@ -905,7 +869,7 @@
           <div class="flex justify-end pt-2">
             <button
               (click)="openReviewModal(task)"
-              class="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-extrabold shadow-sm"
+              class="px-5 py-2 rounded-lg bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-sm"
             >
               ⚖️ DUYỆT NHIỆM VỤ
             </button>
@@ -942,15 +906,17 @@
     *ngIf="showTaskReviewModal"
     class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
   >
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+    <div
+      class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200"
+    >
       <div class="flex items-start justify-between border-b border-slate-200 pb-3">
         <div>
           <div
-            class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 text-[11px] font-black uppercase"
+            class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 text-xs font-bold uppercase"
           >
             ⚖️ Duyệt Nhiệm Vụ
           </div>
-          <h3 class="text-lg font-extrabold text-slate-900 mt-1">{{ reviewingTask?.title }}</h3>
+          <h3 class="text-lg font-bold text-slate-900 mt-1">{{ reviewingTask?.title }}</h3>
         </div>
         <button
           (click)="showTaskReviewModal = false"
@@ -964,10 +930,12 @@
           type="button"
           (click)="analyzeTaskEvidenceWithAi()"
           [disabled]="isAnalyzingEvidence"
-          class="w-full px-4 py-2.5 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-900 text-xs font-extrabold transition-all flex items-center justify-center gap-2"
+          class="w-full px-4 py-2.5 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-900 text-xs font-bold transition-all flex items-center justify-center gap-2"
         >
           <span>{{
-            isAnalyzingEvidence ? '⏳ AI đang phân tích minh chứng...' : '🤖 Phân Tích Minh Chứng Bằng AI'
+            isAnalyzingEvidence
+              ? '⏳ AI đang phân tích minh chứng...'
+              : '🤖 Phân Tích Minh Chứng Bằng AI'
           }}</span>
         </button>
         <div
@@ -980,7 +948,7 @@
           <button
             type="button"
             (click)="useAiAnalysisAsReviewNote()"
-            class="text-[11px] font-bold text-violet-700 hover:text-violet-900 underline"
+            class="text-xs font-bold text-violet-700 hover:text-violet-900 underline"
           >
             Dùng làm nhận xét bên dưới
           </button>
@@ -1000,13 +968,13 @@
       <div class="flex items-center justify-end gap-2 pt-2">
         <button
           (click)="submitTaskReview(false)"
-          class="px-5 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-extrabold text-xs border border-rose-300"
+          class="px-5 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs border border-rose-300"
         >
           ↩️ TỪ CHỐI, YÊU CẦU LÀM LẠI
         </button>
         <button
           (click)="submitTaskReview(true)"
-          class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-sm"
+          class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-sm"
         >
           ✅ DUYỆT & ĐÓNG NHIỆM VỤ
         </button>
@@ -1036,7 +1004,7 @@
       <button
         (click)="loadAnalytics()"
         [disabled]="isRefreshingAnalytics"
-        class="px-4 py-1.5 bg-blue-900 hover:bg-blue-950 disabled:bg-slate-300 text-white text-xs font-extrabold rounded-xl flex items-center gap-1.5 transition-all"
+        class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all"
       >
         <span [class.animate-spin]="isRefreshingAnalytics">🔄</span>
         {{ isRefreshingAnalytics ? 'Đang tải...' : 'Làm Mới' }}
@@ -1047,25 +1015,25 @@
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-center">
         <div class="text-xs text-slate-500 font-bold uppercase">Tổng Nhiệm Vụ</div>
-        <div class="text-2xl font-black text-slate-900 mt-1">
+        <div class="text-2xl font-bold text-slate-900 mt-1">
           {{ analyticsData?.metrics?.totalTasks || 0 }}
         </div>
       </div>
       <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl shadow-sm text-center">
         <div class="text-xs text-emerald-800 font-bold uppercase">Đã Liên Hệ</div>
-        <div class="text-2xl font-black text-emerald-900 mt-1">
+        <div class="text-2xl font-bold text-emerald-900 mt-1">
           {{ analyticsData?.metrics?.completedTasks || 0 }}
         </div>
       </div>
       <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl shadow-sm text-center">
         <div class="text-xs text-amber-800 font-bold uppercase">Chưa Gọi</div>
-        <div class="text-2xl font-black text-amber-900 mt-1">
+        <div class="text-2xl font-bold text-amber-900 mt-1">
           {{ analyticsData?.metrics?.pendingTasks || 0 }}
         </div>
       </div>
       <div class="bg-orange-50 border border-orange-200 p-5 rounded-2xl shadow-sm text-center">
         <div class="text-xs text-orange-800 font-bold uppercase">Không Bắt Máy</div>
-        <div class="text-2xl font-black text-orange-900 mt-1">
+        <div class="text-2xl font-bold text-orange-900 mt-1">
           {{ analyticsData?.metrics?.retryTasks || 0 }}
         </div>
       </div>
@@ -1073,7 +1041,7 @@
         class="bg-rose-50 border border-rose-300 p-5 rounded-2xl shadow-sm text-center col-span-2 md:col-span-1"
       >
         <div class="text-xs text-rose-800 font-bold uppercase">⚠️ NGUY CƠ CẤM THI</div>
-        <div class="text-2xl font-black text-rose-900 mt-1">
+        <div class="text-2xl font-bold text-rose-900 mt-1">
           {{ analyticsData?.metrics?.examBanRiskCount || 0 }}
         </div>
       </div>
@@ -1084,7 +1052,7 @@
       <!-- Chart 1: Absence count by course group -->
       <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
         <h4
-          class="font-extrabold text-slate-900 text-base border-b pb-3 flex items-center justify-between"
+          class="font-bold text-slate-900 text-base border-b pb-3 flex items-center justify-between"
         >
           <span>📊 Tỷ Lệ Vắng Theo Nhóm Học Phần</span>
           <span class="text-xs font-semibold text-slate-500">Buổi vắng</span>
@@ -1116,7 +1084,7 @@
       <!-- Chart 2: Most Common Reasons Breakdown -->
       <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
         <h4
-          class="font-extrabold text-slate-900 text-base border-b pb-3 flex items-center justify-between"
+          class="font-bold text-slate-900 text-base border-b pb-3 flex items-center justify-between"
         >
           <span>💡 Thống Kê Lý Do Vắng Phổ Biến</span>
           <span class="text-xs font-semibold text-slate-500">Trích xuất CallNote</span>
@@ -1125,7 +1093,7 @@
           <div *ngFor="let item of analyticsData?.reasonStats" class="space-y-1">
             <div class="flex justify-between text-xs font-bold text-slate-700">
               <span>{{ item.reason }}</span>
-              <span class="text-emerald-800 font-extrabold">{{ item.count }} Lượt</span>
+              <span class="text-emerald-800 font-bold">{{ item.count }} Lượt</span>
             </div>
             <div
               class="w-full bg-slate-100 rounded-full h-3.5 border border-slate-200 overflow-hidden"
@@ -1144,7 +1112,7 @@
     <div class="bg-white border border-rose-300 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
       <div class="flex items-center justify-between flex-wrap gap-4 border-b border-rose-200 pb-4">
         <div>
-          <h3 class="text-lg md:text-xl font-black text-rose-900 flex items-center gap-2">
+          <h3 class="text-lg md:text-xl font-bold text-rose-900 flex items-center gap-2">
             <span>⚠️ CẢNH BÁO NGUY CƠ CẤM THI KHẨN CẤP</span>
           </h3>
           <p class="text-xs text-rose-700 font-medium mt-0.5">
@@ -1153,7 +1121,7 @@
           </p>
         </div>
         <span
-          class="px-3 py-1.5 rounded-full bg-rose-100 text-rose-900 border border-rose-300 text-xs font-black"
+          class="px-3 py-1.5 rounded-full bg-rose-100 text-rose-900 border border-rose-300 text-xs font-bold"
         >
           {{ analyticsData?.examBanRiskList?.length || 0 }} SINH VIÊN BỊ CẢNH BÁO
         </span>
@@ -1163,7 +1131,7 @@
         <table class="w-full text-left border-collapse text-sm">
           <thead>
             <tr
-              class="bg-rose-50 text-rose-900 uppercase text-xs font-black border-b border-rose-200"
+              class="bg-rose-50 text-rose-900 uppercase text-xs font-bold border-b border-rose-200"
             >
               <th class="p-4">Sinh Viên</th>
               <th class="p-4">Lớp / Ngành</th>
@@ -1179,8 +1147,8 @@
               class="hover:bg-rose-50/40 transition-all"
             >
               <td class="p-4">
-                <div class="font-extrabold text-slate-900">{{ item.student?.fullName }}</div>
-                <div class="text-xs text-blue-900 font-mono font-bold">
+                <div class="font-bold text-slate-900">{{ item.student?.fullName }}</div>
+                <div class="text-xs text-blue-900 font-sans tabular-nums font-bold">
                   MSSV: {{ item.student?.studentCode }}
                 </div>
               </td>
@@ -1189,12 +1157,12 @@
                 <div class="text-xs text-slate-500">{{ item.student?.major }}</div>
               </td>
               <td class="p-4">
-                <div class="font-extrabold text-slate-900">{{ item.courseCode }}</div>
+                <div class="font-bold text-slate-900">{{ item.courseCode }}</div>
                 <div class="text-xs text-slate-500">{{ item.courseName }}</div>
               </td>
               <td class="p-4 text-center">
                 <span
-                  class="px-3 py-1 rounded-full bg-rose-700 text-white font-black text-xs shadow-sm"
+                  class="px-3 py-1 rounded-full bg-rose-700 text-white font-bold text-xs shadow-sm"
                 >
                   ❌ VẮNG {{ item.absentCount }} BUỔI
                 </span>
@@ -1240,7 +1208,7 @@
       class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4"
     >
       <div>
-        <h3 class="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h3 class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
           <span>📅 Quản Lý Học Phần & Thời Khóa Biểu</span>
         </h3>
         <p class="text-xs text-slate-500 font-medium">
@@ -1258,7 +1226,7 @@
         </button>
         <button
           (click)="openCourseModal()"
-          class="px-5 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-2 touch-target"
+          class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-2 touch-target"
         >
           <span>➕ TẠO HỌC PHẦN MỚI</span>
         </button>
@@ -1274,7 +1242,7 @@
           (click)="filterShift = ''; loadCourseGroups()"
           [ngClass]="
             filterShift === ''
-              ? 'bg-blue-900 text-white font-extrabold shadow-sm'
+              ? 'bg-blue-500 text-white font-semibold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all touch-target"
@@ -1285,7 +1253,7 @@
           (click)="filterShift = 'Sáng'; loadCourseGroups()"
           [ngClass]="
             filterShift === 'Sáng'
-              ? 'bg-amber-500 text-white font-extrabold shadow-sm'
+              ? 'bg-amber-500 text-white font-bold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all touch-target flex items-center gap-1.5"
@@ -1296,7 +1264,7 @@
           (click)="filterShift = 'Chiều'; loadCourseGroups()"
           [ngClass]="
             filterShift === 'Chiều'
-              ? 'bg-blue-600 text-white font-extrabold shadow-sm'
+              ? 'bg-blue-600 text-white font-bold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all touch-target flex items-center gap-1.5"
@@ -1307,7 +1275,7 @@
           (click)="filterShift = 'Tối'; loadCourseGroups()"
           [ngClass]="
             filterShift === 'Tối'
-              ? 'bg-purple-900 text-white font-extrabold shadow-sm'
+              ? 'bg-purple-900 text-white font-bold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all touch-target flex items-center gap-1.5"
@@ -1343,7 +1311,7 @@
           <!-- Top Badge Header -->
           <div class="flex items-center justify-between gap-2">
             <span
-              class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1 border"
+              class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border"
               [ngClass]="{
                 'bg-amber-50 text-amber-900 border-amber-300': g.shift === 'Sáng',
                 'bg-blue-50 text-blue-900 border-blue-300': g.shift === 'Chiều',
@@ -1354,13 +1322,15 @@
               <span *ngIf="g.shift === 'Chiều'">🌤️ Ca Chiều</span>
               <span *ngIf="g.shift === 'Tối'">🌙 Ca Tối</span>
             </span>
-            <span class="text-xs font-mono font-bold text-slate-400">ID: {{ g.groupCode }}</span>
+            <span class="text-xs font-sans tabular-nums font-bold text-slate-400"
+              >ID: {{ g.groupCode }}</span
+            >
           </div>
 
           <!-- Title & Course Name -->
           <div>
-            <h4 class="font-black text-slate-900 text-base leading-snug">{{ g.courseName }}</h4>
-            <div class="text-xs text-blue-900 font-mono font-bold mt-0.5">
+            <h4 class="font-bold text-slate-900 text-base leading-snug">{{ g.courseName }}</h4>
+            <div class="text-xs text-blue-900 font-sans tabular-nums font-bold mt-0.5">
               Mã Nhóm: {{ g.groupCode }}
             </div>
           </div>
@@ -1374,7 +1344,7 @@
               <div class="flex flex-wrap gap-1">
                 <span
                   *ngFor="let day of g.scheduleDays"
-                  class="px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-black text-[11px]"
+                  class="px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-bold text-xs"
                 >
                   {{ day }}
                 </span>
@@ -1383,14 +1353,14 @@
             <div class="flex items-center justify-between">
               <span class="font-bold text-slate-500 uppercase">Phòng học:</span>
               <span
-                class="font-black text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200"
+                class="font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200"
               >
                 📍 {{ g.room || 'Chưa xếp' }}
               </span>
             </div>
             <div class="flex items-center justify-between">
               <span class="font-bold text-slate-500 uppercase">Giảng viên:</span>
-              <span class="font-extrabold text-slate-800"
+              <span class="font-bold text-slate-800"
                 >👨‍🏫 {{ g.teacherName || 'Chưa phân công' }}</span
               >
             </div>
@@ -1400,7 +1370,7 @@
             >
               <span class="font-bold text-slate-500 uppercase">Thời gian học:</span>
               <span
-                class="font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 text-[11px]"
+                class="font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 text-xs"
               >
                 📅 {{ g.startDate ? (g.startDate | date: 'dd/MM/yyyy') : '...' }} ➔
                 {{ g.endDate ? (g.endDate | date: 'dd/MM/yyyy') : '...' }}
@@ -1414,7 +1384,7 @@
           <div class="flex items-center justify-between text-xs font-bold">
             <span class="text-slate-500">Sĩ số sinh viên đăng ký:</span>
             <span
-              class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-black"
+              class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold"
             >
               🎓 {{ g.students?.length || 0 }} SV
             </span>
@@ -1424,7 +1394,7 @@
           <div class="grid grid-cols-2 gap-2">
             <button
               (click)="openEnrollModal(g)"
-              class="col-span-2 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs rounded-xl touch-target transition-all flex items-center justify-center gap-1.5"
+              class="col-span-2 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl touch-target transition-all flex items-center justify-center gap-1.5"
             >
               <span>👥 Quản Lý Sinh Viên Đăng Ký ({{ g.students?.length || 0 }})</span>
             </button>
@@ -1462,7 +1432,7 @@
       class="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 space-y-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto"
     >
       <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-        <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
           <span>{{ editingCourseId ? '✏️ Chỉnh Sửa Học Phần' : '➕ Tạo Mới Nhóm Học Phần' }}</span>
         </h3>
         <button
@@ -1476,7 +1446,7 @@
       <!-- Inline Modal Error Alert Banner -->
       <div
         *ngIf="modalErrorMsg"
-        class="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-black flex items-center justify-between animate-pulse"
+        class="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-bold flex items-center justify-between animate-pulse"
       >
         <span>{{ modalErrorMsg }}</span>
         <button type="button" (click)="modalErrorMsg = ''" class="text-rose-700 font-bold">
@@ -1518,7 +1488,7 @@
             <select
               [(ngModel)]="courseForm.shift"
               name="shift"
-              class="w-full px-4 py-3 rounded-xl border border-slate-300 font-extrabold text-sm bg-white text-slate-900"
+              class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900"
             >
               <option value="Sáng">☀️ Ca Sáng</option>
               <option value="Chiều">🌤️ Ca Chiều</option>
@@ -1567,7 +1537,7 @@
             <span>Các Ngày Học Trong Tuần</span>
             <span
               *ngIf="getPrimaryDayFromDate(courseForm.startDate)"
-              class="text-[11px] text-blue-900 font-bold bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200"
+              class="text-xs text-blue-900 font-bold bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200"
             >
               🔒 Thứ cố định: <b>{{ getPrimaryDayFromDate(courseForm.startDate) }}</b> (theo Ngày
               bắt đầu)
@@ -1579,9 +1549,9 @@
               *ngFor="let d of availableDays"
               (click)="toggleScheduleDay(d)"
               [ngClass]="{
-                'bg-amber-500 text-white font-black border-amber-600 shadow-sm':
+                'bg-amber-500 text-white font-bold border-amber-600 shadow-sm':
                   d === getPrimaryDayFromDate(courseForm.startDate),
-                'bg-blue-900 text-white font-black border-blue-950':
+                'bg-blue-500 text-white font-semibold border-blue-500':
                   courseForm.scheduleDays.includes(d) &&
                   d !== getPrimaryDayFromDate(courseForm.startDate),
                 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold border-slate-300':
@@ -1620,7 +1590,7 @@
           <button
             type="submit"
             [disabled]="isSavingCourse"
-            class="px-6 py-3 rounded-xl bg-blue-900 hover:bg-blue-950 disabled:bg-slate-400 text-white font-extrabold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer disabled:cursor-not-allowed"
+            class="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer disabled:cursor-not-allowed"
           >
             <svg
               *ngIf="isSavingCourse"
@@ -1662,11 +1632,11 @@
       <div class="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
           <span
-            class="px-2.5 py-0.5 rounded bg-blue-50 text-blue-900 font-mono font-bold text-xs border border-blue-200"
+            class="px-2.5 py-0.5 rounded bg-blue-50 text-blue-900 font-sans tabular-nums font-bold text-xs border border-blue-200"
           >
             {{ activeGroupForEnroll.groupCode }}
           </span>
-          <h3 class="text-lg font-black text-slate-900 mt-1">
+          <h3 class="text-lg font-bold text-slate-900 mt-1">
             👥 Danh Sách Sinh Viên Đăng Ký Học Phần: {{ activeGroupForEnroll.courseName }}
           </h3>
         </div>
@@ -1684,7 +1654,7 @@
       >
         <!-- Option 1: Enroll Entire Class -->
         <div class="space-y-2">
-          <label class="block text-xs font-black text-slate-700 uppercase"
+          <label class="block text-xs font-bold text-slate-700 uppercase"
             >⚡ Option 1: Đăng ký Nguyên Cả Lớp</label
           >
           <div class="flex items-center space-x-2">
@@ -1697,7 +1667,7 @@
             <button
               type="button"
               (click)="enrollEntireClass()"
-              class="px-3.5 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs touch-target"
+              class="px-3.5 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs touch-target"
             >
               ➕ Thêm Cả Lớp
             </button>
@@ -1706,7 +1676,7 @@
 
         <!-- Option 2: Enroll Individual Student by MSSV -->
         <div class="space-y-2">
-          <label class="block text-xs font-black text-slate-700 uppercase"
+          <label class="block text-xs font-bold text-slate-700 uppercase"
             >➕ Option 2: Thêm SV Lẻ Theo MSSV</label
           >
           <div class="flex items-center space-x-2">
@@ -1719,7 +1689,7 @@
             <button
               type="button"
               (click)="enrollSingleStudent()"
-              class="px-3.5 py-2 rounded-lg bg-blue-900 hover:bg-blue-950 text-white font-extrabold text-xs touch-target"
+              class="px-3.5 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs touch-target"
             >
               ➕ Thêm SV
             </button>
@@ -1737,9 +1707,7 @@
 
       <!-- Currently Enrolled Students Table -->
       <div class="space-y-3">
-        <div
-          class="flex items-center justify-between text-xs font-extrabold text-slate-800 uppercase"
-        >
+        <div class="flex items-center justify-between text-xs font-bold text-slate-800 uppercase">
           <span
             >Danh Sách {{ activeGroupForEnroll.students?.length || 0 }} Sinh Viên Đã Đăng Ký:</span
           >
@@ -1748,7 +1716,7 @@
         <div class="max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white">
           <table class="w-full text-left border-collapse text-xs">
             <thead
-              class="sticky top-0 bg-slate-100 text-slate-800 uppercase font-black border-b border-slate-200"
+              class="sticky top-0 bg-slate-100 text-slate-800 uppercase font-bold border-b border-slate-200"
             >
               <tr>
                 <th class="p-3">#</th>
@@ -1765,10 +1733,12 @@
                 class="hover:bg-slate-50 font-medium"
               >
                 <td class="p-3 font-bold text-slate-400">{{ idx + 1 }}</td>
-                <td class="p-3 font-mono font-black text-blue-900 bg-blue-50/60 rounded px-2">
+                <td
+                  class="p-3 font-sans tabular-nums font-bold text-blue-900 bg-blue-50/60 rounded px-2"
+                >
                   {{ st.studentCode }}
                 </td>
-                <td class="p-3 font-extrabold text-slate-900">{{ st.fullName }}</td>
+                <td class="p-3 font-bold text-slate-900">{{ st.fullName }}</td>
                 <td class="p-3 font-bold text-slate-700">{{ st.classCode }}</td>
                 <td class="p-3 text-slate-600">{{ st.phone || 'Chưa có' }}</td>
                 <td class="p-3 text-right">
@@ -1801,7 +1771,7 @@
       class="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl animate-fade-in"
     >
       <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-        <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
           <span>✏️ Chỉnh Sửa Tài Khoản Nhân Viên</span>
         </h3>
         <button
@@ -1835,7 +1805,7 @@
             [(ngModel)]="editStaffEmail"
             name="editStaffEmail"
             required
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-mono"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
           />
         </div>
 
@@ -1844,7 +1814,7 @@
           <select
             [(ngModel)]="editStaffRole"
             name="editStaffRole"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-extrabold text-sm bg-white text-slate-900"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900"
           >
             <option value="staff">🎧 Nhân Viên CSKH (Chăm sóc sinh viên)</option>
             <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy (Điểm danh môn)</option>
@@ -1858,7 +1828,7 @@
             [(ngModel)]="editStaffPass"
             name="editStaffPass"
             placeholder="Nhập mật khẩu mới tại đây..."
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-mono"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
           />
         </div>
 
@@ -1873,7 +1843,7 @@
           <button
             type="submit"
             [disabled]="isUpdatingStaff"
-            class="px-6 py-3 rounded-xl bg-blue-900 hover:bg-blue-950 disabled:bg-slate-400 text-white font-extrabold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+            class="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
           >
             <span>{{ isUpdatingStaff ? 'Đang lưu...' : '💾 LƯU THAY ĐỔI' }}</span>
           </button>
@@ -1889,7 +1859,7 @@
   >
     <div class="border-b border-slate-200 pb-4 flex items-center justify-between flex-wrap gap-4">
       <div>
-        <h3 class="text-lg md:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+        <h3 class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
           <span>⚙️ Cấu Hình Hệ Thống Động (System Config Master)</span>
         </h3>
         <p class="text-xs text-slate-500 font-medium mt-0.5">
@@ -1899,7 +1869,7 @@
       <button
         (click)="saveSettings()"
         [disabled]="isSavingSettings"
-        class="px-6 py-3 bg-blue-900 hover:bg-blue-950 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+        class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
       >
         <span>{{ isSavingSettings ? 'Đang lưu...' : '💾 LƯU CẤU HÌNH HỆ THỐNG' }}</span>
       </button>
@@ -1908,7 +1878,7 @@
     <!-- 1. Threshold Config Section -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-        <label class="block text-xs font-black text-slate-800 uppercase">
+        <label class="block text-xs font-bold text-slate-800 uppercase">
           🚫 Ngưỡng Khóa / Cấm Thi (Mặc định: 3):
         </label>
         <div class="flex items-center gap-3">
@@ -1917,17 +1887,17 @@
             min="1"
             max="10"
             [(ngModel)]="sysSettings.examBanThreshold"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-black text-lg text-rose-900 bg-white"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-lg text-rose-900 bg-white"
           />
           <span class="text-xs text-slate-500 font-bold">buổi vắng</span>
         </div>
-        <p class="text-[11px] text-slate-500 font-medium">
+        <p class="text-xs text-slate-500 font-medium">
           Sinh viên vắng từ số buổi này trở lên sẽ bị gắn cờ nguy cơ cấm thi.
         </p>
       </div>
 
       <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-        <label class="block text-xs font-black text-slate-800 uppercase">
+        <label class="block text-xs font-bold text-slate-800 uppercase">
           👨‍👩‍👦 Ngưỡng Cảnh Báo Phụ Huynh (Mặc định: 2):
         </label>
         <div class="flex items-center gap-3">
@@ -1936,28 +1906,28 @@
             min="1"
             max="10"
             [(ngModel)]="sysSettings.parentWarningThreshold"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-black text-lg text-amber-900 bg-white"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-lg text-amber-900 bg-white"
           />
           <span class="text-xs text-slate-500 font-bold">buổi vắng</span>
         </div>
-        <p class="text-[11px] text-slate-500 font-medium">
+        <p class="text-xs text-slate-500 font-medium">
           Gửi cảnh báo và yêu cầu CSKH gọi điện báo cho Phụ huynh.
         </p>
       </div>
 
       <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-        <label class="block text-xs font-black text-slate-800 uppercase">
+        <label class="block text-xs font-bold text-slate-800 uppercase">
           🔄 Quy Tắc Phân Công Cuộc Gọi Mặc Định:
         </label>
         <select
           [(ngModel)]="sysSettings.taskAssignmentRule"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-extrabold text-sm text-slate-900 bg-white"
+          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm text-slate-900 bg-white"
         >
           <option value="round-robin">🔄 Xoay Vòng Round-Robin</option>
           <option value="least-tasks">📊 Ít Việc Nhất (Least-Tasks)</option>
           <option value="admin-only">🛡️ Quản Trị Viên (Admin Only)</option>
         </select>
-        <p class="text-[11px] text-slate-500 font-medium">
+        <p class="text-xs text-slate-500 font-medium">
           Quy tắc fallback khi Lớp sinh hoạt chưa được gán nhân viên phụ trách.
         </p>
       </div>
@@ -1967,9 +1937,7 @@
     <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h4 class="font-extrabold text-slate-900 text-sm uppercase">
-            📋 Danh Mục Lý Do Vắng Chuẩn
-          </h4>
+          <h4 class="font-bold text-slate-900 text-sm uppercase">📋 Danh Mục Lý Do Vắng Chuẩn</h4>
           <p class="text-xs text-slate-500 font-medium">
             CSKH sẽ chọn các lý do chuẩn này khi gọi điện xác minh vắng học.
           </p>
@@ -1989,7 +1957,7 @@
           <span>📌 {{ reason }}</span>
           <button
             (click)="removeAbsenceReason(reason)"
-            class="text-rose-500 hover:text-rose-700 font-black"
+            class="text-rose-500 hover:text-rose-700 font-bold"
           >
             ✖
           </button>
@@ -2006,7 +1974,7 @@
         />
         <button
           (click)="addAbsenceReason()"
-          class="px-4 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl touch-target"
+          class="px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs rounded-xl touch-target"
         >
           ➕ Thêm Lý Do
         </button>
@@ -2017,7 +1985,7 @@
     <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h4 class="font-extrabold text-slate-900 text-sm uppercase">
+          <h4 class="font-bold text-slate-900 text-sm uppercase">
             🏷️ Bảng Thẻ Nhãn Phân Loại Sinh Viên (Tags)
           </h4>
           <p class="text-xs text-slate-500 font-medium">
@@ -2034,10 +2002,10 @@
       <div class="flex flex-wrap gap-2">
         <span
           *ngFor="let tag of sysSettings.tags"
-          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-100 border border-purple-300 text-purple-950 text-xs font-black shadow-sm"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-100 border border-purple-300 text-purple-950 text-xs font-bold shadow-sm"
         >
           <span>{{ tag }}</span>
-          <button (click)="removeTag(tag)" class="text-purple-600 hover:text-rose-700 font-black">
+          <button (click)="removeTag(tag)" class="text-purple-600 hover:text-rose-700 font-bold">
             ✖
           </button>
         </span>
@@ -2071,7 +2039,7 @@
     >
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div>
-          <h3 class="text-lg font-black text-slate-900">🏫 Phân Công Lớp Sinh Hoạt Cố Định</h3>
+          <h3 class="text-lg font-bold text-slate-900">🏫 Phân Công Lớp Sinh Hoạt Cố Định</h3>
           <p class="text-xs text-slate-500 font-medium">
             Nhân viên:
             <strong class="text-blue-900">{{ selectedStaffForClassAssign?.fullName }}</strong>
@@ -2098,10 +2066,10 @@
             (click)="toggleClassSelectionForAssign(cCode)"
             [ngClass]="
               selectedHomeClassesForAssign.includes(cCode)
-                ? 'bg-blue-900 text-white font-extrabold border-blue-950'
+                ? 'bg-blue-500 text-white font-semibold border-blue-500'
                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
             "
-            class="px-3.5 py-2 rounded-xl text-xs border font-mono transition-all flex items-center gap-1.5"
+            class="px-3.5 py-2 rounded-xl text-xs border font-sans tabular-nums transition-all flex items-center gap-1.5"
           >
             <span>{{ selectedHomeClassesForAssign.includes(cCode) ? '✅' : '🏫' }}</span>
             <span>{{ cCode }}</span>
@@ -2124,7 +2092,7 @@
         </button>
         <button
           (click)="saveClassAssignment()"
-          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-md shadow-md"
+          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-md shadow-md"
         >
           💾 LƯU PHÂN CÔNG LỚP
         </button>
@@ -2185,13 +2153,15 @@
           >
             <div class="flex items-center space-x-2">
               <span>{{ selectedStudentsForAssign.includes(st._id) ? '✅' : '⚪' }}</span>
-              <span class="font-mono text-slate-900 font-bold">{{ st.studentCode }}</span>
+              <span class="font-sans tabular-nums text-slate-900 font-bold">{{
+                st.studentCode
+              }}</span>
               <span class="text-slate-800">{{ st.fullName }}</span>
-              <span class="text-slate-500 text-[11px]">({{ st.classCode }})</span>
+              <span class="text-slate-500 text-xs">({{ st.classCode }})</span>
             </div>
             <span
               *ngIf="selectedStudentsForAssign.includes(st._id)"
-              class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-semibold"
+              class="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-semibold"
               >Đã chọn</span
             >
           </div>
@@ -2202,7 +2172,7 @@
             Không tìm thấy sinh viên phù hợp.
           </div>
         </div>
-        <p class="text-[11px] text-slate-500 font-medium">
+        <p class="text-xs text-slate-500 font-medium">
           Đã chọn {{ selectedStudentsForAssign.length }} sinh viên ngoại lệ.
         </p>
       </div>
@@ -2234,7 +2204,7 @@
     >
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div>
-          <h3 class="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
+          <h3 class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
             <span>🔄 Bàn Giao Lớp Sinh Hoạt & Công Việc (1-Click)</span>
           </h3>
           <p class="text-xs text-slate-500 font-medium">
@@ -2251,13 +2221,13 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-black text-slate-700 uppercase mb-1"
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1"
             >1. Nhân Viên Chuyển Giao (Bên Giao) <span class="text-rose-600">*</span></label
           >
           <select
             [(ngModel)]="handoverFromStaffId"
             (change)="onHandoverFromStaffChange()"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-extrabold text-slate-900 bg-white"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-white"
           >
             <option value="">-- Chọn nhân viên bàn giao --</option>
             <option *ngFor="let s of staffList" [value]="s._id || s.id">
@@ -2267,12 +2237,12 @@
         </div>
 
         <div>
-          <label class="block text-xs font-black text-slate-700 uppercase mb-1"
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1"
             >2. Nhân Viên Tiếp Nhận (Bên Nhận) <span class="text-rose-600">*</span></label
           >
           <select
             [(ngModel)]="handoverToStaffId"
-            class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-extrabold text-slate-900 bg-white"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-white"
           >
             <option value="">-- Chọn nhân viên tiếp nhận --</option>
             <option *ngFor="let s of staffList" [value]="s._id || s.id">
@@ -2285,13 +2255,13 @@
           *ngIf="handoverFromStaffId"
           class="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-2"
         >
-          <span class="text-xs font-black text-amber-900 uppercase"
+          <span class="text-xs font-bold text-amber-900 uppercase"
             >Danh sách {{ handoverClassesToTransfer.length }} Lớp sẽ chuyển giao:</span
           >
           <div class="flex flex-wrap gap-1.5">
             <span
               *ngFor="let cCode of handoverClassesToTransfer"
-              class="px-2.5 py-1 rounded bg-amber-200 text-amber-950 font-mono font-bold text-xs border border-amber-300"
+              class="px-2.5 py-1 rounded bg-amber-200 text-amber-950 font-sans tabular-nums font-bold text-xs border border-amber-300"
             >
               🏫 {{ cCode }}
             </span>
@@ -2312,7 +2282,7 @@
         <button
           (click)="executeHandover()"
           [disabled]="isExecutingHandover || !handoverFromStaffId || !handoverToStaffId"
-          class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all touch-target cursor-pointer disabled:opacity-50"
+          class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all touch-target cursor-pointer disabled:opacity-50"
         >
           <span>{{
             isExecutingHandover ? 'Đang chuyển giao...' : '⚡ XÁC NHẬN BÀN GIAO 1-CLICK'
@@ -2327,15 +2297,17 @@
     *ngIf="showStaffAiModal"
     class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
   >
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+    <div
+      class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200"
+    >
       <div class="flex items-start justify-between border-b border-slate-200 pb-3">
         <div>
           <div
-            class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-violet-100 text-violet-900 text-[11px] font-black uppercase"
+            class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-violet-100 text-violet-900 text-xs font-bold uppercase"
           >
             🤖 Đánh Giá Năng Lực AI
           </div>
-          <h3 class="text-lg font-extrabold text-slate-900 mt-1">
+          <h3 class="text-lg font-bold text-slate-900 mt-1">
             {{ staffAiTarget?.fullName }}
           </h3>
         </div>
@@ -2354,7 +2326,7 @@
       <ng-container *ngIf="!isLoadingStaffAi">
         <div
           *ngIf="staffAiStats"
-          class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600 space-y-1"
+          class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-600 space-y-1"
         >
           <div>Nhiệm vụ gọi điện: {{ staffAiStats['callTasks'] | json }}</div>
           <div>Nhiệm vụ nội bộ: {{ staffAiStats['workTasks'] | json }}</div>
@@ -2369,7 +2341,7 @@
       <div class="pt-2 flex justify-end border-t border-slate-200">
         <button
           (click)="showStaffAiModal = false"
-          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl"
+          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl"
         >
           Đóng
         </button>

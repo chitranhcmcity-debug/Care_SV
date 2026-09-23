@@ -2,7 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../services/task.service';
-import { WorkTask, TaskStatus, TaskEvidenceFile } from '../../models/types';
+import { NotificationService } from '../../services/notification.service';
+import { WorkTask, TaskStatus, TASK_STATUS } from '../../models/types';
+import {
+  countTasksByStatus,
+  formatFileSize,
+  isTaskOverdue,
+  taskUserName,
+} from '../../utils/task-utils';
 
 interface EvidenceDraft {
   note: string;
@@ -23,7 +30,14 @@ export class TaskComponent implements OnInit {
 
   private drafts = new Map<string, EvidenceDraft>();
 
-  constructor(private taskService: TaskService) {}
+  readonly taskUserName = taskUserName;
+  readonly isTaskOverdue = isTaskOverdue;
+  readonly formatFileSize = formatFileSize;
+
+  constructor(
+    protected taskService: TaskService,
+    private notify: NotificationService,
+  ) {}
 
   ngOnInit(): void {
     this.loadTasks();
@@ -38,29 +52,25 @@ export class TaskComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        alert(err.error?.message || 'Không thể tải danh sách nhiệm vụ');
+        this.notify.error(err.error?.message || 'Không thể tải danh sách nhiệm vụ');
       },
     });
   }
 
-  applyFilter() {
-    this.loadTasks();
-  }
-
   get newCount() {
-    return this.tasks.filter((t) => t.status === 'Mới giao').length;
+    return countTasksByStatus(this.tasks, TASK_STATUS.PENDING);
   }
 
   get inProgressCount() {
-    return this.tasks.filter((t) => t.status === 'Đã xác nhận' || t.status === 'Bị từ chối').length;
+    return countTasksByStatus(this.tasks, TASK_STATUS.ACKNOWLEDGED, TASK_STATUS.REJECTED);
   }
 
   get waitingCount() {
-    return this.tasks.filter((t) => t.status === 'Chờ duyệt').length;
+    return countTasksByStatus(this.tasks, TASK_STATUS.SUBMITTED);
   }
 
   get doneCount() {
-    return this.tasks.filter((t) => t.status === 'Hoàn thành').length;
+    return countTasksByStatus(this.tasks, TASK_STATUS.COMPLETED);
   }
 
   draft(taskId: string): EvidenceDraft {
@@ -77,28 +87,23 @@ export class TaskComponent implements OnInit {
     this.draft(taskId).files = input.files ? Array.from(input.files) : [];
   }
 
-  displayUser(u: { fullName: string; email: string } | string | null | undefined): string {
-    if (!u) return '—';
-    return typeof u === 'string' ? u : u.fullName;
-  }
-
-  isOverdue(task: WorkTask): boolean {
-    if (!task.dueDate) return false;
-    if (task.status === 'Hoàn thành') return false;
-    return new Date(task.dueDate).getTime() < Date.now();
-  }
-
   acknowledge(task: WorkTask) {
     this.taskService.acknowledgeTask(task._id).subscribe({
-      next: (res) => Object.assign(task, res.task),
-      error: (err) => alert(err.error?.message || 'Không thể xác nhận nhiệm vụ'),
+      next: (res) => {
+        Object.assign(task, res.task);
+        this.notify.success(res.message);
+      },
+      error: (err) => this.notify.error(err.error?.message || 'Không thể xác nhận nhiệm vụ'),
     });
   }
 
   submitEvidence(task: WorkTask) {
     const d = this.draft(task._id);
     if (!d.note.trim() && !d.link.trim() && d.files.length === 0) {
-      alert('Vui lòng cung cấp ít nhất một minh chứng: ghi chú, link hoặc file');
+      this.notify.warning(
+        'Vui lòng cung cấp ít nhất một minh chứng: ghi chú, link hoặc file',
+        'Thiếu minh chứng',
+      );
       return;
     }
     this.taskService
@@ -107,25 +112,9 @@ export class TaskComponent implements OnInit {
         next: (res) => {
           Object.assign(task, res.task);
           this.drafts.delete(task._id);
+          this.notify.success(res.message);
         },
-        error: (err) => alert(err.error?.message || 'Không thể nộp minh chứng'),
+        error: (err) => this.notify.error(err.error?.message || 'Không thể nộp minh chứng'),
       });
-  }
-
-  viewFile(taskId: string, file: TaskEvidenceFile) {
-    this.taskService.getEvidenceBlob(taskId, file._id).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-      },
-      error: () => alert('Không thể tải tệp minh chứng'),
-    });
-  }
-
-  formatSize(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 }

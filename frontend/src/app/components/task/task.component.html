@@ -25,21 +25,21 @@
   <!-- Overview Metric Cards -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
     <div class="bg-amber-50 border border-amber-200 p-4 rounded-md text-center space-y-1 shadow-sm">
-      <div class="text-[11px] text-amber-800 font-bold uppercase">Mới Giao</div>
+      <div class="text-xs text-amber-800 font-bold uppercase">Mới Giao</div>
       <div class="text-xl font-bold text-amber-900">{{ newCount }}</div>
     </div>
     <div class="bg-blue-50 border border-blue-200 p-4 rounded-md text-center space-y-1 shadow-sm">
-      <div class="text-[11px] text-blue-800 font-bold uppercase">Đang Thực Hiện</div>
+      <div class="text-xs text-blue-800 font-bold uppercase">Đang Thực Hiện</div>
       <div class="text-xl font-bold text-blue-900">{{ inProgressCount }}</div>
     </div>
     <div class="bg-purple-50 border border-purple-200 p-4 rounded-md text-center space-y-1 shadow-sm">
-      <div class="text-[11px] text-purple-800 font-bold uppercase">Chờ Duyệt</div>
+      <div class="text-xs text-purple-800 font-bold uppercase">Chờ Duyệt</div>
       <div class="text-xl font-bold text-purple-900">{{ waitingCount }}</div>
     </div>
     <div
       class="bg-emerald-50 border border-emerald-200 p-4 rounded-md text-center space-y-1 shadow-sm"
     >
-      <div class="text-[11px] text-emerald-800 font-bold uppercase">Hoàn Thành</div>
+      <div class="text-xs text-emerald-800 font-bold uppercase">Hoàn Thành</div>
       <div class="text-xl font-bold text-emerald-900">{{ doneCount }}</div>
     </div>
   </div>
@@ -48,7 +48,7 @@
   <div class="bg-white border border-slate-200 p-4 rounded-md shadow-sm">
     <select
       [(ngModel)]="filterStatus"
-      (change)="applyFilter()"
+      (change)="loadTasks()"
       class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
     >
       <option value="">Tất cả Trạng thái</option>
@@ -78,7 +78,7 @@
         <div class="space-y-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span
-              class="px-2.5 py-1 rounded-full text-[11px] font-black"
+              class="px-2.5 py-1 rounded-full text-xs font-bold"
               [ngClass]="{
                 'bg-amber-600 text-white': task.status === 'Mới giao',
                 'bg-blue-700 text-white': task.status === 'Đã xác nhận',
@@ -90,19 +90,19 @@
               {{ task.status }}
             </span>
             <span
-              *ngIf="isOverdue(task)"
-              class="px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-300"
+              *ngIf="isTaskOverdue(task)"
+              class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300"
             >
               ⚠️ QUÁ HẠN
             </span>
           </div>
-          <h3 class="text-lg font-extrabold text-slate-900">{{ task.title }}</h3>
+          <h3 class="text-lg font-bold text-slate-900">{{ task.title }}</h3>
         </div>
         <div class="text-xs text-slate-500 font-semibold text-right space-y-0.5">
-          <div>Giao bởi: <b class="text-slate-700">{{ displayUser(task.assignedBy) }}</b></div>
+          <div>Giao bởi: <b class="text-slate-700">{{ taskUserName(task.assignedBy) }}</b></div>
           <div *ngIf="task.dueDate">
             Hạn chót:
-            <b [ngClass]="isOverdue(task) ? 'text-rose-700' : 'text-slate-700'">{{
+            <b [ngClass]="isTaskOverdue(task) ? 'text-rose-700' : 'text-slate-700'">{{
               task.dueDate | date: 'dd/MM/yyyy'
             }}</b>
           </div>
@@ -133,7 +133,7 @@
         *ngIf="task.status === 'Chờ duyệt' || task.status === 'Hoàn thành'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2"
       >
-        <div class="text-[11px] font-bold text-slate-500 uppercase">Minh chứng đã nộp:</div>
+        <div class="text-xs font-bold text-slate-500 uppercase">Minh chứng đã nộp:</div>
         <p *ngIf="task.evidenceNote" class="text-xs text-slate-700 font-medium">
           📝 {{ task.evidenceNote }}
         </p>
@@ -150,10 +150,10 @@
           <button
             *ngFor="let file of task.evidenceFiles"
             type="button"
-            (click)="viewFile(task._id, file)"
+            (click)="taskService.openEvidence(task._id, file._id)"
             class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 flex items-center gap-1.5"
           >
-            📎 {{ file.originalName }} ({{ formatSize(file.size) }})
+            📎 {{ file.originalName }} ({{ formatFileSize(file.size) }})
           </button>
         </div>
       </div>
@@ -162,7 +162,7 @@
       <div *ngIf="task.status === 'Mới giao'" class="flex justify-end">
         <button
           (click)="acknowledge(task)"
-          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-extrabold rounded-xl touch-target text-xs transition-all shadow-sm"
+          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
         >
           ▶️ XÁC NHẬN NHẬN VIỆC
         </button>
@@ -200,7 +200,7 @@
         <div class="flex justify-end">
           <button
             (click)="submitEvidence(task)"
-            class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-extrabold rounded-xl touch-target text-xs transition-all shadow-sm"
+            class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
           >
             📤 NỘP MINH CHỨNG & ĐÓNG NHIỆM VỤ
           </button>

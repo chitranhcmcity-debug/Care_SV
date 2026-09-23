@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { WorkTask, TaskStatus } from '../models/types';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ export class TaskService {
   private readonly apiUrl = inject(API_BASE_URL) + '/tasks';
 
   private readonly http = inject(HttpClient);
+  private readonly notify = inject(NotificationService);
 
   /** Admin: assign a new task to a staff member. */
   createTask(payload: {
@@ -20,14 +22,6 @@ export class TaskService {
     dueDate?: string | null;
   }): Observable<{ message: string; task: WorkTask }> {
     return this.http.post<{ message: string; task: WorkTask }>(this.apiUrl, payload);
-  }
-
-  /** Admin: edit a task that hasn't been submitted yet. */
-  updateTask(
-    id: string,
-    payload: { title?: string; description?: string; dueDate?: string | null },
-  ): Observable<{ message: string; task: WorkTask }> {
-    return this.http.put<{ message: string; task: WorkTask }>(`${this.apiUrl}/${id}`, payload);
   }
 
   /** Admin: cancel/delete a task. */
@@ -55,10 +49,6 @@ export class TaskService {
     return this.http.get<{ pendingCount: number }>(`${this.apiUrl}/pending-count`);
   }
 
-  getTask(id: string): Observable<WorkTask> {
-    return this.http.get<WorkTask>(`${this.apiUrl}/${id}`);
-  }
-
   /** Staff: confirm receipt of a newly assigned task. */
   acknowledgeTask(id: string): Observable<{ message: string; task: WorkTask }> {
     return this.http.put<{ message: string; task: WorkTask }>(
@@ -76,10 +66,7 @@ export class TaskService {
     if (evidence.note) form.append('note', evidence.note);
     if (evidence.link) form.append('link', evidence.link);
     for (const file of evidence.files || []) form.append('files', file);
-    return this.http.put<{ message: string; task: WorkTask }>(
-      `${this.apiUrl}/${id}/submit`,
-      form,
-    );
+    return this.http.put<{ message: string; task: WorkTask }>(`${this.apiUrl}/${id}/submit`, form);
   }
 
   /** Admin: approve (close) or reject (send back) a submitted task. */
@@ -94,13 +81,18 @@ export class TaskService {
     });
   }
 
-  /** URL to view/download one evidence file (browser sends the auth header via interceptor
-   *  only for XHR/fetch, not plain <a>/<img> navigation — components fetch it as a blob). */
-  evidenceUrl(taskId: string, fileId: string): string {
-    return `${this.apiUrl}/${taskId}/evidence/${fileId}`;
-  }
-
-  getEvidenceBlob(taskId: string, fileId: string): Observable<Blob> {
-    return this.http.get(this.evidenceUrl(taskId, fileId), { responseType: 'blob' });
+  /** Open one evidence file in a new tab. It's fetched as a blob because the auth header is
+   *  only added by the interceptor for XHR/fetch, not for plain <a>/<img> navigation. */
+  openEvidence(taskId: string, fileId: string): void {
+    this.http
+      .get(`${this.apiUrl}/${taskId}/evidence/${fileId}`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+        },
+        error: () => this.notify.error('Không thể tải tệp minh chứng'),
+      });
   }
 }
