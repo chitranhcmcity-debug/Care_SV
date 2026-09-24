@@ -40,14 +40,12 @@ Mở `http://localhost:4201`. Angular chuyển `/api` đến Express cổng 5000
 backend/
   app.js          Express app, middleware, API routes và static frontend
   server.js       Kết nối database, khởi động và dừng server
-  config/         Kiểm tra cấu hình môi trường
-  routes/         Khai báo endpoint; module cũ còn chứa handler
-  controllers/    Chuyển HTTP request/response cho module điểm danh
+  routes/         Khai báo endpoint và handler HTTP
   services/       Truy vấn, xử lý điểm danh và phân công cuộc gọi
   models/         Schema, validation và index MongoDB
   middleware/     Xác thực, phân quyền và xử lý lỗi
-  constants/      Giá trị nghiệp vụ dùng chung
-  utils/          Validation và tiện ích ngày
+  scripts/        Dữ liệu mẫu và chuyển đổi dữ liệu cũ khi khởi động
+  utils/          Cấu hình môi trường, hằng số nghiệp vụ, validation và tiện ích ngày
   tests/          Kiểm thử API với database tạm riêng biệt
 frontend/src/app/
   components/     Standalone components và template HTML riêng
@@ -58,14 +56,12 @@ frontend/src/app/
   interceptors/   Gắn token vào API và xử lý phiên hết hạn
 ```
 
-Module điểm danh dùng luồng `route → controller → service → model`. Route gắn middleware
-phân quyền; controller nhận/trả dữ liệu HTTP; service xử lý nghiệp vụ và truy vấn.
-Express 5 chuyển lỗi từ async handler đến middleware lỗi chung. Các module khác vẫn
-có handler trong route; khi mở rộng, áp dụng cùng cách tách trách nhiệm này.
+Route gắn middleware phân quyền và nhận/trả dữ liệu HTTP; nghiệp vụ phức tạp (như điểm danh)
+tách sang `services/`. Express 5 chuyển lỗi từ async handler đến middleware lỗi chung.
 
 Giữ endpoint và hình dạng response hiện có khi refactor. Kiểm tra quyền ở backend;
-guard Angular chỉ phục vụ điều hướng. Dùng hằng trạng thái cuộc gọi ở
-`backend/constants/callStatus.js` để schema và validation thống nhất.
+guard Angular chỉ phục vụ điều hướng. Dùng các hằng trạng thái trong
+`backend/utils/hangSo.js` để schema và validation thống nhất.
 
 ## Kiểm tra trước khi bàn giao
 

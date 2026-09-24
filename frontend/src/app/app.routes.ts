@@ -1,5 +1,19 @@
 import { Routes } from '@angular/router';
-import { adminGuard, staffOrAdminGuard, teacherOrAdminGuard } from './guards/auth.guard';
+import {
+  adminGuard,
+  callTaskGuard,
+  managementGuard,
+  managerGuard,
+  signedInGuard,
+  staffGuard,
+  staffOrAdminGuard,
+  teacherOrAdminGuard,
+} from './guards/auth.guard';
+
+const dashboard = () =>
+  import('./components/admin-dashboard/admin-dashboard.component').then(
+    (m) => m.AdminDashboardComponent,
+  );
 
 export const routes: Routes = [
   {
@@ -7,17 +21,53 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () => import('./components/home/home.component').then((m) => m.HomeComponent),
   },
-  {
-    path: 'login',
+  // One component renders every auth screen; `data.mode` picks which.
+  ...(
+    [
+      ['login', 'login'],
+      ['register', 'register'],
+      ['forgot-password', 'forgot'],
+      ['reset-password', 'reset'],
+      ['verify-email', 'verify'],
+    ] as const
+  ).map(([path, mode]) => ({
+    path,
+    data: { mode },
     loadComponent: () => import('./components/login/login.component').then((m) => m.LoginComponent),
+  })),
+  // One dashboard, tabs filtered per role (see AdminDashboardComponent.adminTabs).
+  { path: 'admin', loadComponent: dashboard, canActivate: [adminGuard] },
+  {
+    path: 'management',
+    loadComponent: dashboard,
+    canActivate: [managerGuard],
+    data: { tabs: ['tasks', 'analytics'] },
   },
   {
-    path: 'admin',
+    path: 'reports',
+    loadComponent: dashboard,
+    canActivate: [staffGuard],
+    data: { tabs: ['analytics'] },
+  },
+  {
+    path: 'students',
     loadComponent: () =>
-      import('./components/admin-dashboard/admin-dashboard.component').then(
-        (m) => m.AdminDashboardComponent,
+      import('./components/students/students.component').then((m) => m.StudentsComponent),
+    canActivate: [managementGuard],
+  },
+  {
+    path: 'calls',
+    loadComponent: () =>
+      import('./components/call-history/call-history.component').then(
+        (m) => m.CallHistoryComponent,
       ),
-    canActivate: [adminGuard],
+    canActivate: [signedInGuard],
+  },
+  {
+    path: 'timetable',
+    loadComponent: () =>
+      import('./components/timetable/timetable.component').then((m) => m.TimetableComponent),
+    canActivate: [signedInGuard],
   },
   {
     path: 'attendance',
@@ -29,7 +79,13 @@ export const routes: Routes = [
     path: 'call-tasks',
     loadComponent: () =>
       import('./components/call-task/call-task.component').then((m) => m.CallTaskComponent),
-    canActivate: [staffOrAdminGuard],
+    canActivate: [callTaskGuard],
+  },
+  {
+    path: 'billing',
+    loadComponent: () =>
+      import('./components/billing/billing.component').then((m) => m.BillingComponent),
+    canActivate: [adminGuard],
   },
   {
     path: 'tasks',

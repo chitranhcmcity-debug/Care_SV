@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ROLE_HOME } from '../../models/types';
 
 // 24px stroke icon paths (Tabler-style).
 const ICONS = {
@@ -28,7 +29,7 @@ const ICONS = {
   imports: [CommonModule, RouterLink],
   templateUrl: './home.component.html',
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly navLinks = [
     { id: 'tinh-nang', label: 'Tính năng' },
     { id: 'quy-trinh', label: 'Quy trình' },
@@ -149,22 +150,50 @@ export class HomeComponent {
     [70, 22],
   ];
 
+  /** Id of the section currently in view — drives the nav highlight. */
+  readonly activeSection = signal('');
+  private sectionObserver?: IntersectionObserver;
+
   constructor(
     public authService: AuthService,
     private router: Router,
   ) {}
+
+  ngAfterViewInit() {
+    // A section counts as active while it crosses a band just below the sticky header.
+    this.sectionObserver = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((e) => e.isIntersecting);
+        if (visible) this.activeSection.set(visible.target.id);
+      },
+      { rootMargin: '-80px 0px -60% 0px' },
+    );
+    for (const { id } of this.navLinks) {
+      const el = document.getElementById(id);
+      if (el) this.sectionObserver.observe(el);
+    }
+  }
+
+  ngOnDestroy() {
+    this.sectionObserver?.disconnect();
+  }
+
+  scrollTo(id: string, event: Event) {
+    event.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    this.activeSection.set(id);
+  }
+
+  logout() {
+    this.authService.logout();
+  }
 
   enterSystem() {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
-    const home: Record<string, string> = {
-      admin: '/admin',
-      teacher: '/attendance',
-      staff: '/call-tasks',
-    };
-    const role = this.authService.currentUser()?.role || 'staff';
-    this.router.navigate([home[role] || '/login']);
+    const role = this.authService.currentUser()?.role;
+    this.router.navigate([(role && ROLE_HOME[role]) || '/login']);
   }
 }

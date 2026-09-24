@@ -292,6 +292,35 @@
       </div>
     </div>
 
+    <!-- Subscription expiry banner -->
+    <div
+      *ngIf="subscriptionWarning as s"
+      role="alert"
+      class="mx-4 md:mx-6 mt-4 px-5 py-3 rounded-xl border text-sm flex flex-wrap items-center justify-between gap-3"
+      [ngClass]="
+        s.active
+          ? 'bg-amber-50 border-amber-200 text-amber-800'
+          : 'bg-rose-50 border-rose-200 text-rose-800'
+      "
+    >
+      <span>
+        <ng-container *ngIf="!s.active"
+          >Gói sử dụng hệ thống đã hết hạn — các chức năng nghiệp vụ đang tạm khóa.</ng-container
+        >
+        <ng-container *ngIf="s.active"
+          >Gói sử dụng hệ thống còn {{ s.daysLeft }} ngày (tới
+          {{ s.expiresAt | date: 'dd/MM/yyyy' }}).</ng-container
+        >
+        <ng-container *ngIf="!authService.isAdmin()"> Vui lòng liên hệ quản trị viên.</ng-container>
+      </span>
+      <a
+        *ngIf="authService.isAdmin()"
+        routerLink="/billing"
+        class="px-3 py-1.5 rounded-lg bg-white border border-current font-semibold hover:opacity-80"
+        >Gia hạn ngay</a
+      >
+    </div>
+
     <ng-content></ng-content>
   </main>
 </div>

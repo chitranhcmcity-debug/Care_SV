@@ -12,11 +12,40 @@
 
     <div class="flex-1 flex items-center justify-center py-10">
       <div class="w-full max-w-[420px] space-y-7">
-        <div class="space-y-2">
-          <h1 class="text-[28px] font-bold text-violet-600 leading-tight">Chào mừng trở lại 👋</h1>
-          <p class="text-sm text-slate-500">
-            Đăng nhập để tiếp tục quản lý điểm danh và chăm sóc sinh viên.
-          </p>
+        <!-- Heading -->
+        <div class="space-y-2" [ngSwitch]="mode">
+          <ng-container *ngSwitchCase="'register'">
+            <h1 class="text-[28px] font-bold text-violet-600 leading-tight">Tạo tài khoản</h1>
+            <p class="text-sm text-slate-500">
+              Dành cho Giảng viên và Nhân viên. Sau khi đăng ký, hãy mở email xác thực để kích hoạt
+              tài khoản.
+            </p>
+          </ng-container>
+          <ng-container *ngSwitchCase="'forgot'">
+            <h1 class="text-[28px] font-bold text-violet-600 leading-tight">Quên mật khẩu?</h1>
+            <p class="text-sm text-slate-500">
+              Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết để bạn đặt mật khẩu mới.
+            </p>
+          </ng-container>
+          <ng-container *ngSwitchCase="'reset'">
+            <h1 class="text-[28px] font-bold text-violet-600 leading-tight">Đặt mật khẩu mới</h1>
+            <p class="text-sm text-slate-500">
+              Mật khẩu mới có ít nhất {{ minPasswordLength }} ký tự. Sau khi đổi, mọi phiên đăng
+              nhập cũ sẽ bị đăng xuất.
+            </p>
+          </ng-container>
+          <ng-container *ngSwitchCase="'verify'">
+            <h1 class="text-[28px] font-bold text-violet-600 leading-tight">Xác thực email</h1>
+            <p class="text-sm text-slate-500">Đang kích hoạt tài khoản của bạn.</p>
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            <h1 class="text-[28px] font-bold text-violet-600 leading-tight">
+              Chào mừng trở lại 👋
+            </h1>
+            <p class="text-sm text-slate-500">
+              Đăng nhập để tiếp tục quản lý điểm danh và chăm sóc sinh viên.
+            </p>
+          </ng-container>
         </div>
 
         <!-- Error Alert -->
@@ -38,40 +67,31 @@
           <span>{{ errorMessage }}</span>
         </div>
 
-        <!-- Form -->
-        <form (ngSubmit)="onLogin()" class="space-y-5" novalidate>
-          <div class="space-y-1.5">
-            <label for="login-email" class="block text-sm font-medium text-slate-700"
-              >Tài khoản đăng nhập</label
-            >
-            <div class="relative">
-              <svg
-                class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round" />
-              </svg>
-              <input
-                id="login-email"
-                type="text"
-                autocomplete="username"
-                [(ngModel)]="email"
-                name="email"
-                required
-                placeholder="Nhập tài khoản hoặc email"
-                class="w-full h-12 pl-11 pr-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
-              />
-            </div>
-          </div>
+        <!-- Success Alert -->
+        <div
+          *ngIf="successMessage"
+          role="status"
+          class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-2"
+        >
+          <svg
+            class="w-5 h-5 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="m8 12 3 3 5-6" />
+          </svg>
+          <span>{{ successMessage }}</span>
+        </div>
 
+        <!-- Password field used by login / register / reset -->
+        <ng-template #passwordField let-id="id" let-label="label" let-autocomplete="autocomplete">
           <div class="space-y-1.5">
-            <label for="login-password" class="block text-sm font-medium text-slate-700"
-              >Mật khẩu</label
-            >
+            <label [for]="id" class="block text-sm font-medium text-slate-700">{{ label }}</label>
             <div class="relative">
               <svg
                 class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
@@ -84,10 +104,9 @@
                 <path d="M8 11V7a4 4 0 0 1 8 0v4" />
               </svg>
               <input
-                #passwordInput
-                id="login-password"
+                [id]="id"
                 [type]="showPassword ? 'text' : 'password'"
-                autocomplete="current-password"
+                [autocomplete]="autocomplete"
                 [(ngModel)]="password"
                 name="password"
                 required
@@ -135,7 +154,29 @@
               </button>
             </div>
           </div>
+        </ng-template>
 
+        <!-- Confirm-password field used by register / reset -->
+        <ng-template #confirmField>
+          <div class="space-y-1.5">
+            <label for="confirm-password" class="block text-sm font-medium text-slate-700"
+              >Nhập lại mật khẩu</label
+            >
+            <input
+              id="confirm-password"
+              [type]="showPassword ? 'text' : 'password'"
+              autocomplete="new-password"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              required
+              placeholder="Nhập lại mật khẩu"
+              class="w-full h-12 px-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+            />
+          </div>
+        </ng-template>
+
+        <!-- Submit button shared by every form -->
+        <ng-template #submitButton let-label="label" let-busy="busy">
           <button
             type="submit"
             [disabled]="loading"
@@ -156,47 +197,333 @@
                 d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
               />
             </svg>
-            <span>{{ loading ? 'Đang xác thực...' : 'Đăng nhập' }}</span>
+            <span>{{ loading ? busy : label }}</span>
           </button>
-        </form>
+        </ng-template>
 
-        <!-- Quick login (dev builds only) -->
-        <div *ngIf="quickAccounts.length" class="space-y-3">
-          <div class="flex items-center gap-3 text-xs text-slate-400">
-            <span class="h-px flex-1 bg-slate-200"></span>
-            Đăng nhập nhanh
-            <span class="h-px flex-1 bg-slate-200"></span>
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <button
-              *ngFor="let account of quickAccounts"
-              type="button"
-              (click)="useQuickAccount(account.email, passwordInput)"
-              [title]="account.email"
-              [attr.aria-pressed]="email === account.email"
-              [disabled]="loading"
-              class="group flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-all"
-              [ngClass]="
-                email === account.email
-                  ? 'border-violet-500 bg-violet-50'
-                  : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/50'
-              "
-            >
-              <span
-                class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-                [ngClass]="account.tone"
-                >{{ account.initial }}</span
+        <!-- ============ LOGIN ============ -->
+        <ng-container *ngIf="mode === 'login'">
+          <form (ngSubmit)="onLogin()" class="space-y-5" novalidate>
+            <div class="space-y-1.5">
+              <label for="login-email" class="block text-sm font-medium text-slate-700"
+                >Tài khoản đăng nhập</label
               >
-              <span class="text-xs font-medium text-slate-700 leading-tight text-center">{{
-                account.label
-              }}</span>
-              <span class="text-xs text-slate-500">{{ account.email }}</span>
-            </button>
-          </div>
-          <p class="text-xs text-slate-400 text-center">
-            Chọn tài khoản để điền tên đăng nhập, sau đó nhập mật khẩu.
+              <div class="relative">
+                <svg
+                  class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round" />
+                </svg>
+                <input
+                  id="login-email"
+                  type="text"
+                  autocomplete="username"
+                  [(ngModel)]="email"
+                  name="email"
+                  required
+                  placeholder="Nhập tài khoản hoặc email"
+                  class="w-full h-12 pl-11 pr-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+                />
+              </div>
+            </div>
+
+            <ng-container
+              *ngTemplateOutlet="
+                passwordField;
+                context: {
+                  id: 'login-password',
+                  label: 'Mật khẩu',
+                  autocomplete: 'current-password',
+                }
+              "
+            ></ng-container>
+
+            <div class="flex justify-end -mt-2">
+              <a
+                routerLink="/forgot-password"
+                class="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
+                >Quên mật khẩu?</a
+              >
+            </div>
+
+            <ng-container
+              *ngTemplateOutlet="
+                submitButton;
+                context: { label: 'Đăng nhập', busy: 'Đang xác thực...' }
+              "
+            ></ng-container>
+          </form>
+
+          <p class="text-sm text-slate-500 text-center">
+            Chưa có tài khoản?
+            <a
+              routerLink="/register"
+              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >Đăng ký ngay</a
+            >
           </p>
-        </div>
+
+          <!-- Quick login (dev builds only) -->
+          <div *ngIf="quickAccounts.length" class="space-y-3">
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span class="h-px flex-1 bg-slate-200"></span>
+              Đăng nhập nhanh
+              <span class="h-px flex-1 bg-slate-200"></span>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                *ngFor="let account of quickAccounts"
+                type="button"
+                (click)="useQuickAccount(account.email)"
+                [title]="account.email"
+                [attr.aria-pressed]="email === account.email"
+                [disabled]="loading"
+                class="group flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-all"
+                [ngClass]="
+                  email === account.email
+                    ? 'border-violet-500 bg-violet-50'
+                    : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/50'
+                "
+              >
+                <span
+                  class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                  [ngClass]="account.tone"
+                  >{{ account.initial }}</span
+                >
+                <span class="text-xs font-medium text-slate-700 leading-tight text-center">{{
+                  account.label
+                }}</span>
+                <span class="text-xs text-slate-500">{{ account.email }}</span>
+              </button>
+            </div>
+            <p class="text-xs text-slate-400 text-center">
+              Chọn tài khoản để điền tên đăng nhập, sau đó nhập mật khẩu.
+            </p>
+          </div>
+        </ng-container>
+
+        <!-- ============ REGISTER ============ -->
+        <ng-container *ngIf="mode === 'register'">
+          <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-5" novalidate>
+            <fieldset class="space-y-1.5">
+              <legend class="block text-sm font-medium text-slate-700 mb-1.5">Bạn là</legend>
+              <div class="grid grid-cols-2 gap-2">
+                <label
+                  *ngFor="
+                    let option of [
+                      {
+                        value: 'teacher',
+                        label: 'Giảng viên',
+                        hint: 'Điểm danh lớp được phân công',
+                      },
+                      {
+                        value: 'staff',
+                        label: 'Nhân viên CSKH',
+                        hint: 'Gọi điện chăm sóc sinh viên',
+                      },
+                    ]
+                  "
+                  class="flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-colors"
+                  [ngClass]="
+                    role === option.value
+                      ? 'border-violet-500 bg-violet-50'
+                      : 'border-slate-200 hover:border-violet-300'
+                  "
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    class="sr-only"
+                    [value]="option.value"
+                    [(ngModel)]="role"
+                  />
+                  <span class="text-sm font-semibold text-slate-800">{{ option.label }}</span>
+                  <span class="text-xs text-slate-500">{{ option.hint }}</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="space-y-1.5">
+              <label for="register-name" class="block text-sm font-medium text-slate-700"
+                >Họ và tên</label
+              >
+              <input
+                id="register-name"
+                type="text"
+                autocomplete="name"
+                [(ngModel)]="fullName"
+                name="fullName"
+                required
+                maxlength="100"
+                placeholder="VD: Nguyễn Văn A"
+                class="w-full h-12 px-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="register-email" class="block text-sm font-medium text-slate-700"
+                >Email</label
+              >
+              <input
+                id="register-email"
+                type="email"
+                autocomplete="email"
+                [(ngModel)]="email"
+                name="email"
+                required
+                placeholder="ten@itc.edu.vn"
+                class="w-full h-12 px-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+              />
+            </div>
+
+            <ng-container
+              *ngTemplateOutlet="
+                passwordField;
+                context: {
+                  id: 'register-password',
+                  label: 'Mật khẩu',
+                  autocomplete: 'new-password',
+                }
+              "
+            ></ng-container>
+            <ng-container *ngTemplateOutlet="confirmField"></ng-container>
+
+            <p *ngIf="role === 'teacher'" class="text-xs text-slate-500">
+              Giảng viên chỉ xem và điểm danh được các lớp do quản trị viên phân công cho mình.
+            </p>
+
+            <ng-container
+              *ngTemplateOutlet="
+                submitButton;
+                context: { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
+              "
+            ></ng-container>
+          </form>
+
+          <p class="text-sm text-slate-500 text-center">
+            Đã có tài khoản?
+            <a
+              routerLink="/login"
+              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >Đăng nhập</a
+            >
+          </p>
+        </ng-container>
+
+        <!-- ============ FORGOT PASSWORD ============ -->
+        <ng-container *ngIf="mode === 'forgot'">
+          <form *ngIf="!successMessage" (ngSubmit)="onForgot()" class="space-y-5" novalidate>
+            <div class="space-y-1.5">
+              <label for="forgot-email" class="block text-sm font-medium text-slate-700"
+                >Email</label
+              >
+              <input
+                id="forgot-email"
+                type="email"
+                autocomplete="email"
+                [(ngModel)]="email"
+                name="email"
+                required
+                placeholder="Email đã đăng ký"
+                class="w-full h-12 px-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+              />
+            </div>
+            <ng-container
+              *ngTemplateOutlet="
+                submitButton;
+                context: { label: 'Gửi liên kết đặt lại', busy: 'Đang gửi...' }
+              "
+            ></ng-container>
+          </form>
+          <p class="text-sm text-slate-500 text-center">
+            <a
+              routerLink="/login"
+              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >← Quay lại đăng nhập</a
+            >
+          </p>
+        </ng-container>
+
+        <!-- ============ RESET PASSWORD ============ -->
+        <ng-container *ngIf="mode === 'reset'">
+          <form
+            *ngIf="!successMessage && !linkMissing"
+            (ngSubmit)="onReset()"
+            class="space-y-5"
+            novalidate
+          >
+            <ng-container
+              *ngTemplateOutlet="
+                passwordField;
+                context: {
+                  id: 'reset-password',
+                  label: 'Mật khẩu mới',
+                  autocomplete: 'new-password',
+                }
+              "
+            ></ng-container>
+            <ng-container *ngTemplateOutlet="confirmField"></ng-container>
+            <ng-container
+              *ngTemplateOutlet="
+                submitButton;
+                context: { label: 'Đổi mật khẩu', busy: 'Đang lưu...' }
+              "
+            ></ng-container>
+          </form>
+          <p class="text-sm text-slate-500 text-center space-x-3">
+            <a
+              routerLink="/login"
+              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >Đăng nhập</a
+            >
+            <a
+              *ngIf="errorMessage"
+              routerLink="/forgot-password"
+              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >Yêu cầu liên kết mới</a
+            >
+          </p>
+        </ng-container>
+
+        <!-- ============ VERIFY EMAIL ============ -->
+        <ng-container *ngIf="mode === 'verify'">
+          <p *ngIf="loading" class="text-sm text-slate-500 flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-violet-600" viewBox="0 0 24 24" fill="none">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+              />
+            </svg>
+            Đang xác thực...
+          </p>
+          <a
+            *ngIf="successMessage"
+            routerLink="/login"
+            class="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-lg text-sm transition-all shadow-[0_8px_20px_-8px_rgba(103,58,183,0.7)] flex items-center justify-center"
+            >Đăng nhập ngay</a
+          >
+          <p *ngIf="errorMessage" class="text-sm text-slate-500 text-center">
+            <a
+              routerLink="/register"
+              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+              >Đăng ký lại để nhận liên kết mới</a
+            >
+          </p>
+        </ng-container>
       </div>
     </div>
 
@@ -236,8 +563,7 @@
             <div class="flex items-center gap-3">
               <span class="w-7 h-7 rounded-full bg-violet-100"></span>
               <span class="h-2 flex-1 rounded-full bg-slate-100"></span>
-              <span
-                class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-xs font-semibold"
+              <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-xs font-semibold"
                 >Vắng</span
               >
             </div>

@@ -3,16 +3,20 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const fs = require('node:fs');
 const path = require('node:path');
-const errorHandler = require('./middleware/errorHandler');
-const authRoutes = require('./routes/auth');
-const excelRoutes = require('./routes/excel');
-const attendanceRoutes = require('./routes/attendance');
-const callTaskRoutes = require('./routes/callTask');
-const analyticsRoutes = require('./routes/analytics');
-const settingsRoutes = require('./routes/settings');
-const courseGroupRoutes = require('./routes/courseGroup');
-const taskRoutes = require('./routes/task');
-const aiRoutes = require('./routes/ai');
+const errorHandler = require('./middleware/xuLyLoi');
+const authRoutes = require('./routes/xacThuc');
+const excelRoutes = require('./routes/nhapXuatExcel');
+const attendanceRoutes = require('./routes/diemDanh');
+const callTaskRoutes = require('./routes/nhiemVuGoiDien');
+const analyticsRoutes = require('./routes/thongKe');
+const settingsRoutes = require('./routes/caiDat');
+const courseGroupRoutes = require('./routes/nhomHocPhan');
+const taskRoutes = require('./routes/nhiemVu');
+const aiRoutes = require('./routes/troLyAi');
+const billingRoutes = require('./routes/thanhToan');
+const studentRoutes = require('./routes/sinhVien');
+const callRoutes = require('./routes/cuocGoi');
+const { requireActiveSubscription } = require('./middleware/goiDichVu');
 
 const app = express();
 
@@ -26,15 +30,20 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Route Registration
+// Always reachable, so users can sign in and an admin can renew an expired subscription.
 app.use('/api/auth', authRoutes);
-app.use('/api/excel', excelRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/call-tasks', callTaskRoutes);
-app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/course-groups', courseGroupRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/billing', billingRoutes);
+// Business features: locked with 402 once the subscription has expired.
+app.use('/api/excel', requireActiveSubscription, excelRoutes);
+app.use('/api/attendance', requireActiveSubscription, attendanceRoutes);
+app.use('/api/call-tasks', requireActiveSubscription, callTaskRoutes);
+app.use('/api/analytics', requireActiveSubscription, analyticsRoutes);
+app.use('/api/course-groups', requireActiveSubscription, courseGroupRoutes);
+app.use('/api/tasks', requireActiveSubscription, taskRoutes);
+app.use('/api/ai', requireActiveSubscription, aiRoutes);
+app.use('/api/students', requireActiveSubscription, studentRoutes);
+app.use('/api/calls', requireActiveSubscription, callRoutes);
 
 app.get('/api/health', (req, res) =>
   res

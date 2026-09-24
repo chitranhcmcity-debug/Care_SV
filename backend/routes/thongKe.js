@@ -1,0 +1,222 @@
+const express = require('express');
+const router = express.Router();
+const ExcelJS = require('exceljs');
+const DiemDanh = require('../models/DiemDanh');
+const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const SinhVien = require('../models/SinhVien');
+const NhomHocPhan = require('../models/NhomHocPhan');
+const CaiDatHeThong = require('../models/CaiDatHeThong');
+const { verifyToken, requireReportViewer } = require('../middleware/xacThuc');
+const { CALL_STATUS, toLabel } = require('../utils/hangSo');
+
+// Whole-word match so short keywords like "ca" do not hit "các", "cả", "cái"...
+// Checked in order; the first bucket that matches wins.
+const wholeWords = (words) => new RegExp(`(^|[^\\p{L}])(${words.join('|')})([^\\p{L}]|$)`, 'u');
+const REASON_PATTERNS = [
+  { reason: 'Ốm / Sức khỏe', pattern: wholeWords(['ốm', 'bệnh', 'sốt', 'viện', 'sức khỏe']) },
+  { reason: 'Bận việc gia đình', pattern: wholeWords(['gia đình', 'quê', 'việc nhà']) },
+  { reason: 'Bận đi làm', pattern: wholeWords(['làm', 'đi làm', 'ca']) },
+  { reason: 'Quên lịch học', pattern: wholeWords(['quên', 'ngủ']) },
+];
+
+// GET /api/analytics/summary
+router.get('/summary', verifyToken, requireReportViewer, async (req, res, next) => {
+  try {
+    const settings = (await CaiDatHeThong.findOne()) || { examBanThreshold: 3 };
+    const banThreshold = settings.examBanThreshold ?? 3;
+
+    const totalTasks = await NhiemVuGoiDien.countDocuments();
+    const completedTasks = await NhiemVuGoiDien.countDocuments({ status: CALL_STATUS.CONTACTED });
+    const pendingTasks = await NhiemVuGoiDien.countDocuments({ status: CALL_STATUS.PENDING });
+    const retryTasks = await NhiemVuGoiDien.countDocuments({ status: CALL_STATUS.UNREACHABLE });
+
+    // 1. Group absences by NhomHocPhan
+    const attendances = await DiemDanh.find({}).populate('courseGroupId', 'groupCode courseName');
+    const courseAbsenceMap = {};
+
+    for (const att of attendances) {
+      const gCode = att.courseGroupId?.groupCode || 'Khác';
+      const count = (att.absentStudents || []).length;
+      courseAbsenceMap[gCode] = (courseAbsenceMap[gCode] || 0) + count;
+    }
+
+    const courseAbsenceStats = Object.keys(courseAbsenceMap).map((code) => ({
+      courseCode: code,
+      absentCount: courseAbsenceMap[code],
+    }));
+
+    // 2. Reason extraction breakdown from NhiemVuGoiDien notes
+    const tasksWithNotes = await NhiemVuGoiDien.find({
+      $or: [{ callNote: { $ne: '' } }, { absenceReasonCategory: { $ne: '' } }],
+    })
+      .select('callNote absenceReasonCategory')
+      .lean();
+    const reasonCounts = {
+      'Ốm / Sức khỏe': 0,
+      'Bận việc gia đình': 0,
+      'Bận đi làm': 0,
+      'Quên lịch học': 0,
+      'Lý do khác': 0,
+    };
+
+    const classifyReason = (text) =>
+      REASON_PATTERNS.find(({ pattern }) => pattern.test(text))?.reason ?? null;
+
+    for (const task of tasksWithNotes) {
+      // The category chosen by staff is authoritative; fall back to the free-text note.
+      const category = (task.absenceReasonCategory || '').toLowerCase();
+      const note = (task.callNote || '').toLowerCase();
+      const bucket = (category ? classifyReason(category) : classifyReason(note)) || 'Lý do khác';
+      reasonCounts[bucket]++;
+    }
+
+    const reasonStats = Object.keys(reasonCounts).map((key) => ({
+      reason: key,
+      count: reasonCounts[key],
+    }));
+
+    // 3. Exam Ban Risk List (Students absent >= 2 times in any course group)
+    // Find all attendance records and aggregate student absence counts per course group
+    const studentCourseAbsenceMap = {}; // key: `${studentId}_${courseGroupId}`
+
+    for (const att of attendances) {
+      if (!att.courseGroupId) continue;
+      const gId = att.courseGroupId._id.toString();
+
+      for (const stId of att.absentStudents || []) {
+        const key = `${stId.toString()}_${gId}`;
+        if (!studentCourseAbsenceMap[key]) {
+          studentCourseAbsenceMap[key] = {
+            studentId: stId.toString(),
+            courseGroupId: gId,
+            courseCode: att.courseGroupId.groupCode,
+            courseName: att.courseGroupId.courseName,
+            absentCount: 0,
+          };
+        }
+        studentCourseAbsenceMap[key].absentCount++;
+      }
+    }
+
+    // Filter students absent >= banThreshold times
+    const atRiskKeys = Object.keys(studentCourseAbsenceMap).filter(
+      (k) => studentCourseAbsenceMap[k].absentCount >= banThreshold,
+    );
+
+    const examBanRiskList = [];
+
+    for (const k of atRiskKeys) {
+      const item = studentCourseAbsenceMap[k];
+      const studentObj = await SinhVien.findById(item.studentId).select(
+        'studentCode fullName classCode major phone parentPhone',
+      );
+      if (!studentObj) continue;
+
+      // Find last call task status for this student & course
+      const lastTask = await NhiemVuGoiDien.findOne({
+        studentId: item.studentId,
+        courseGroupId: item.courseGroupId,
+      })
+        .populate('assignedStaffId', 'fullName email')
+        .sort({ updatedAt: -1 });
+
+      examBanRiskList.push({
+        student: studentObj,
+        courseCode: item.courseCode,
+        courseName: item.courseName,
+        absentCount: item.absentCount,
+        lastCallStatus: lastTask ? lastTask.status : 'Chưa phân công',
+        lastCallNote: lastTask ? lastTask.callNote : '',
+        assignedStaff: lastTask?.assignedStaffId?.fullName || 'Chưa gán',
+      });
+    }
+
+    res.json({
+      metrics: {
+        totalTasks,
+        completedTasks,
+        pendingTasks,
+        retryTasks,
+        examBanRiskCount: examBanRiskList.length,
+      },
+      courseAbsenceStats,
+      reasonStats,
+      examBanRiskList,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/analytics/export-care-report
+router.get('/export-care-report', verifyToken, requireReportViewer, async (req, res, next) => {
+  try {
+    const tasks = await NhiemVuGoiDien.find({})
+      .populate('studentId', 'studentCode fullName classCode major phone parentPhone')
+      .populate('courseGroupId', 'groupCode courseName')
+      .populate('assignedStaffId', 'fullName email')
+      .sort({ updatedAt: -1 });
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'ITC Student Care System';
+    workbook.created = new Date();
+
+    const sheet = workbook.addWorksheet('Báo Cáo Chăm Sóc');
+
+    sheet.columns = [
+      { header: 'STT', key: 'stt', width: 8 },
+      { header: 'Mã SV', key: 'studentCode', width: 14 },
+      { header: 'Họ và Tên Sinh Viên', key: 'fullName', width: 25 },
+      { header: 'Lớp Sinh Hoạt', key: 'classCode', width: 14 },
+      { header: 'Nhóm Học Phần Vắng', key: 'groupCode', width: 30 },
+      { header: 'SĐT Sinh Viên', key: 'phone', width: 16 },
+      { header: 'SĐT Phụ Huynh', key: 'parentPhone', width: 16 },
+      { header: 'Số Lần Gọi', key: 'callAttempts', width: 12 },
+      { header: 'Nhân Viên Chăm Sóc', key: 'staffName', width: 22 },
+      { header: 'Trạng Thái Cuộc Gọi', key: 'status', width: 18 },
+      { header: 'Ghi Chú & Lý Do Vắng', key: 'callNote', width: 35 },
+      { header: 'Ngày Vắng', key: 'absenceDate', width: 15 },
+    ];
+
+    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    sheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1E3A8A' }, // Dark Navy
+    };
+    sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+    tasks.forEach((t, idx) => {
+      sheet.addRow({
+        stt: idx + 1,
+        studentCode: t.studentId?.studentCode || '',
+        fullName: t.studentId?.fullName || '',
+        classCode: t.studentId?.classCode || '',
+        groupCode: t.courseGroupId?.groupCode || '',
+        phone: t.studentId?.phone || '',
+        parentPhone: t.studentId?.parentPhone || '',
+        callAttempts: t.callAttempts || 0,
+        staffName: t.assignedStaffId?.fullName || '',
+        status: t.status ? toLabel(t.status) : '',
+        callNote: t.callNote || '',
+        absenceDate: t.absenceDate ? new Date(t.absenceDate).toLocaleDateString('vi-VN') : '',
+      });
+    });
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Bao_Cao_Tong_Hop_Cham_Soc_Sinh_Vien.xlsx"',
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+module.exports = router;

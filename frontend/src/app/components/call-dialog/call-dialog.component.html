@@ -1,0 +1,202 @@
+<div
+  *ngIf="request() as req"
+  class="fixed inset-0 z-[60] bg-slate-900/50 flex items-center justify-center p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="call-dialog-title"
+>
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-5">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 id="call-dialog-title" class="text-lg font-semibold text-slate-900">
+          Gọi điện · {{ req.student.fullName }}
+        </h2>
+        <p *ngIf="req.student.studentCode" class="text-sm text-slate-500">
+          MSSV {{ req.student.studentCode }}
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="close()"
+        aria-label="Đóng"
+        class="w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- ===== Step 1: who & how ===== -->
+    <ng-container *ngIf="step() === 'setup'">
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-medium text-slate-700 mb-1">Gọi cho</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            *ngFor="
+              let option of [
+                { value: 'sinh_vien', label: 'Sinh viên', phone: req.student.phone },
+                { value: 'phu_huynh', label: 'Phụ huynh', phone: req.student.parentPhone },
+              ]
+            "
+            type="button"
+            (click)="target.set($any(option.value))"
+            [disabled]="!option.phone"
+            class="p-3 rounded-lg border text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            [ngClass]="
+              target() === option.value
+                ? 'border-violet-500 bg-violet-50'
+                : 'border-slate-200 hover:border-violet-300'
+            "
+          >
+            <div class="text-sm font-semibold text-slate-800">{{ option.label }}</div>
+            <div class="text-xs text-slate-500">{{ option.phone || 'Chưa có SĐT' }}</div>
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-medium text-slate-700 mb-1">Cách gọi</legend>
+        <label
+          class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer"
+          [ngClass]="
+            method() === 'dien_thoai' ? 'border-violet-500 bg-violet-50' : 'border-slate-200'
+          "
+        >
+          <input
+            type="radio"
+            name="method"
+            class="mt-1"
+            [checked]="method() === 'dien_thoai'"
+            (change)="method.set('dien_thoai')"
+          />
+          <span>
+            <span class="block text-sm font-semibold text-slate-800">Gọi bằng điện thoại</span>
+            <span class="block text-xs text-slate-500"
+              >Mở trình gọi của máy. Sau cuộc gọi, bạn có thể tải file ghi âm từ điện thoại
+              lên.</span
+            >
+          </span>
+        </label>
+        <label
+          class="flex items-start gap-3 p-3 rounded-lg border"
+          [ngClass]="[
+            method() === 'stringee' ? 'border-violet-500 bg-violet-50' : 'border-slate-200',
+            stringeeAvailable() ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed',
+          ]"
+        >
+          <input
+            type="radio"
+            name="method"
+            class="mt-1"
+            [disabled]="!stringeeAvailable()"
+            [checked]="method() === 'stringee'"
+            (change)="method.set('stringee')"
+          />
+          <span>
+            <span class="block text-sm font-semibold text-slate-800"
+              >Gọi qua tổng đài (tự động ghi âm)</span
+            >
+            <span class="block text-xs text-slate-500">
+              {{
+                stringeeAvailable()
+                  ? 'Gọi ngay trên trình duyệt bằng tai nghe/micro, cuộc gọi được ghi âm tự động.'
+                  : 'Chưa cấu hình tổng đài Stringee trên máy chủ.'
+              }}
+            </span>
+          </span>
+        </label>
+      </fieldset>
+
+      <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
+        Cuộc gọi được lưu vào lịch sử. Nếu ghi âm, hãy thông báo cho người nghe rằng cuộc gọi đang
+        được ghi âm.
+      </p>
+
+      <button
+        type="button"
+        (click)="start()"
+        [disabled]="busy() || !selectedPhone()"
+        class="w-full h-11 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-semibold"
+      >
+        {{ busy() ? 'Đang bắt đầu...' : 'Gọi ' + (selectedPhone() || '') }}
+      </button>
+    </ng-container>
+
+    <!-- ===== Step 2: in the call ===== -->
+    <ng-container *ngIf="step() === 'calling'">
+      <div class="text-center space-y-2 py-4">
+        <div class="text-sm text-slate-500">
+          Đang gọi {{ target() === 'phu_huynh' ? 'phụ huynh' : 'sinh viên' }}
+        </div>
+        <div class="text-2xl font-semibold text-slate-900">{{ phoneNumber() }}</div>
+        <div class="text-3xl font-mono text-violet-600">{{ formatElapsed() }}</div>
+        <div *ngIf="method() === 'stringee'" class="text-sm text-slate-600">
+          {{ stringeeState() }}
+        </div>
+        <p *ngIf="method() === 'dien_thoai'" class="text-xs text-slate-500">
+          Nếu trình gọi không tự mở (VD trên máy tính), hãy bấm số trên điện thoại của bạn.
+        </p>
+      </div>
+      <audio id="stringee-remote-audio" autoplay></audio>
+      <button
+        type="button"
+        (click)="finishCalling()"
+        class="w-full h-11 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold"
+      >
+        {{ method() === 'stringee' ? 'Gác máy' : 'Đã gọi xong' }}
+      </button>
+    </ng-container>
+
+    <!-- ===== Step 3: outcome ===== -->
+    <form *ngIf="step() === 'result'" (ngSubmit)="save()" class="space-y-4">
+      <div class="space-y-1.5">
+        <label for="call-outcome" class="block text-sm font-medium text-slate-700"
+          >Kết quả cuộc gọi</label
+        >
+        <select
+          id="call-outcome"
+          name="outcome"
+          [(ngModel)]="outcome"
+          class="w-full h-11 px-3 rounded-lg border border-slate-300 bg-white text-sm"
+        >
+          <option value="">— Chọn kết quả —</option>
+          <option *ngFor="let o of outcomes" [value]="o[0]">{{ o[1] }}</option>
+        </select>
+      </div>
+      <div class="space-y-1.5">
+        <label for="call-note" class="block text-sm font-medium text-slate-700">Ghi chú</label>
+        <textarea
+          id="call-note"
+          name="note"
+          rows="3"
+          maxlength="2000"
+          [(ngModel)]="note"
+          placeholder="Nội dung trao đổi, lý do vắng..."
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+        ></textarea>
+      </div>
+      <div *ngIf="method() === 'dien_thoai'" class="space-y-1.5">
+        <label for="call-recording" class="block text-sm font-medium text-slate-700"
+          >File ghi âm (không bắt buộc)</label
+        >
+        <input
+          id="call-recording"
+          type="file"
+          accept="audio/*"
+          (change)="onFile($event)"
+          class="block w-full text-sm text-slate-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-700"
+        />
+        <p class="text-xs text-slate-500">mp3, m4a, wav, aac, ogg, amr — tối đa 50MB.</p>
+      </div>
+      <p *ngIf="method() === 'stringee'" class="text-xs text-slate-500">
+        Bản ghi âm của tổng đài sẽ có trong Lịch sử cuộc gọi sau ít phút.
+      </p>
+      <button
+        type="submit"
+        [disabled]="busy()"
+        class="w-full h-11 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-semibold"
+      >
+        {{ busy() ? 'Đang lưu...' : 'Lưu cuộc gọi' }}
+      </button>
+    </form>
+  </div>
+</div>

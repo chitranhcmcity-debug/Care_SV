@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -10,7 +11,19 @@ import { CourseGroupService } from '../../services/course-group.service';
 import { TaskService } from '../../services/task.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService, ToastType } from '../../services/notification.service';
-import { User, SystemSettings, CourseGroup, WorkTask, TaskStatus } from '../../models/types';
+import {
+  User,
+  SystemSettings,
+  CourseGroup,
+  WorkTask,
+  TaskStatus,
+  Shift,
+  Weekday,
+  SHIFT,
+  WEEKDAYS_BY_JS_DAY,
+  DEFAULT_SCHEDULE_DAYS,
+} from '../../models/types';
+import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
 import {
   countTasksByStatus,
   formatFileSize,
@@ -23,7 +36,7 @@ type AdminTab = 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'task
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ViLabelPipe],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
@@ -75,12 +88,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   isSavingCourse = false;
   courseAlertMsg = '';
   modalErrorMsg = '';
-  availableDays = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
+  availableDays: Weekday[] = [...WEEKDAYS_BY_JS_DAY.slice(1), WEEKDAYS_BY_JS_DAY[0]];
   courseForm = {
     groupCode: '',
     courseName: '',
-    shift: 'Sáng' as 'Sáng' | 'Chiều' | 'Tối',
-    scheduleDays: ['Thứ 2', 'Thứ 4', 'Thứ 6'],
+    shift: SHIFT.MORNING as Shift,
+    scheduleDays: [...DEFAULT_SCHEDULE_DAYS],
     room: 'A.101',
     startDate: '',
     endDate: '',
@@ -128,7 +141,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   newStaffName = '';
   newStaffEmail = '';
   newStaffPass = '';
-  newStaffRole: 'staff' | 'teacher' = 'staff';
+  newStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
   isCreatingStaff = false;
   staffCreatedMsg = '';
   staffGeneratedPass = '';
@@ -139,10 +152,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   editStaffName = '';
   editStaffEmail = '';
   editStaffPass = '';
-  editStaffRole: 'staff' | 'teacher' = 'staff';
+  editStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
   isUpdatingStaff = false;
 
-  // SystemConfig Tag Input
+  // System settings tag input
   newTagInput = '';
 
   // Class & Exception Student Assignment & Handover State
@@ -200,11 +213,27 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
+  /** Tabs this route shows: all for the admin; route data narrows it for other roles
+   *  (Trưởng phòng: giao việc + báo cáo; Nhân viên: báo cáo). */
+  private readonly route = inject(ActivatedRoute);
+  readonly visibleTabs = this.adminTabs.filter((tab) => {
+    const allowed = this.route.snapshot.data['tabs'] as AdminTab[] | undefined;
+    return !allowed || allowed.includes(tab.id);
+  });
+  readonly isFullAdmin = !this.route.snapshot.data['tabs'];
+
+  private hasTab(tab: AdminTab) {
+    return this.visibleTabs.some((t) => t.id === tab);
+  }
+
   ngOnInit(): void {
-    this.loadStaffList();
-    this.loadAnalytics();
-    this.loadSettings();
-    this.loadCourseGroups();
+    // Load only what the visible tabs need (other roles cannot read admin-only data).
+    this.activeTab = this.visibleTabs[0]?.id ?? 'analytics';
+    if (this.hasTab('staff') || this.hasTab('tasks')) this.loadStaffList();
+    if (this.hasTab('analytics')) this.loadAnalytics();
+    if (this.hasTab('settings')) this.loadSettings();
+    if (this.hasTab('courses') || this.hasTab('excel')) this.loadCourseGroups();
+    if (this.activeTab === 'tasks') this.loadTasks();
   }
 
   ngOnDestroy(): void {
@@ -408,12 +437,11 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  getPrimaryDayFromDate(dateStr: string): string {
+  getPrimaryDayFromDate(dateStr: string): Weekday | '' {
     if (!dateStr) return '';
     const dt = new Date(dateStr);
     if (isNaN(dt.getTime())) return '';
-    const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return dayNames[dt.getDay()];
+    return WEEKDAYS_BY_JS_DAY[dt.getDay()];
   }
 
   onStartDateChange() {
@@ -447,8 +475,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.courseForm = {
         groupCode: group.groupCode,
         courseName: group.courseName || '',
-        shift: group.shift || 'Sáng',
-        scheduleDays: group.scheduleDays ? [...group.scheduleDays] : ['Thứ 2', 'Thứ 4', 'Thứ 6'],
+        shift: group.shift || SHIFT.MORNING,
+        scheduleDays: group.scheduleDays ? [...group.scheduleDays] : [...DEFAULT_SCHEDULE_DAYS],
         room: group.room || 'A.101',
         startDate: formatDateStr(group.startDate),
         endDate: formatDateStr(group.endDate),
@@ -465,8 +493,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.courseForm = {
         groupCode: '',
         courseName: '',
-        shift: 'Sáng',
-        scheduleDays: ['Thứ 2', 'Thứ 4', 'Thứ 6'],
+        shift: SHIFT.MORNING,
+        scheduleDays: [...DEFAULT_SCHEDULE_DAYS],
         room: 'A.101',
         startDate: todayStr,
         endDate: endStr,
@@ -479,13 +507,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  toggleScheduleDay(day: string) {
+  toggleScheduleDay(day: Weekday) {
     const fixedDay = this.getPrimaryDayFromDate(this.courseForm.startDate);
     if (day === fixedDay) {
       this.triggerToast(
         'info',
         'Thứ Học Cố Định',
-        'Ngày ' + day + ' là thứ trùng với Ngày bắt đầu học phần, không thể tắt!',
+        'Ngày ' + viLabel(day) + ' là thứ trùng với Ngày bắt đầu học phần, không thể tắt!',
       );
       return;
     }
@@ -1066,11 +1094,15 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          this.staffCreatedMsg = res.message;
+          this.staffCreatedMsg = res.message + ' ' + this.emailStatusText(res.emailSent);
           if (res.generatedPassword) {
             this.staffGeneratedPass = res.generatedPassword;
           }
-          this.triggerToast('success', 'Tạo Nhân Viên Thành Công!', res.message);
+          this.triggerToast(
+            res.emailSent ? 'success' : 'warning',
+            'Tạo Nhân Viên Thành Công!',
+            this.emailStatusText(res.emailSent),
+          );
           this.newStaffName = '';
           this.newStaffEmail = '';
           this.newStaffPass = '';
@@ -1091,7 +1123,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.editStaffName = staff.fullName;
     this.editStaffEmail = staff.email;
     this.editStaffPass = '';
-    this.editStaffRole = staff.role === 'teacher' ? 'teacher' : 'staff';
+    this.editStaffRole =
+      staff.role === 'teacher' || staff.role === 'manager' ? staff.role : 'staff';
     this.showEditStaffModal = true;
     this.cdr.detectChanges();
   }
@@ -1138,6 +1171,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
+  private emailStatusText(emailSent: boolean): string {
+    return emailSent
+      ? 'Đã gửi mật khẩu tới email của nhân viên.'
+      : 'Không gửi được email — hãy tự chuyển mật khẩu bên dưới cho nhân viên.';
+  }
+
   async resetStaffPassword(staff: User) {
     const customPass = await this.notify.prompt({
       title: 'Đặt lại mật khẩu',
@@ -1150,9 +1189,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const targetId = staff.id || (staff as any)._id || '';
     this.staffService.resetStaffPassword(targetId, customPass).subscribe({
       next: (res) => {
-        this.staffCreatedMsg = 'Đã đặt lại mật khẩu cho nhân viên ' + staff.fullName + '!';
+        this.staffCreatedMsg =
+          'Đã đặt lại mật khẩu cho nhân viên ' +
+          staff.fullName +
+          '! ' +
+          this.emailStatusText(res.emailSent);
         this.staffGeneratedPass = res.newPassword;
-        this.triggerToast('success', 'Reset Mật Khẩu Thành Công!', res.message);
+        this.triggerToast(
+          res.emailSent ? 'success' : 'warning',
+          'Reset Mật Khẩu Thành Công!',
+          this.emailStatusText(res.emailSent),
+        );
         this.copyPasswordToClipboard(res.newPassword);
         this.loadStaffList();
         this.cdr.detectChanges();

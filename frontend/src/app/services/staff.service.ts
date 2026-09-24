@@ -20,12 +20,19 @@ export class StaffService {
     fullName: string;
     email: string;
     customPassword?: string;
-    role?: 'staff' | 'teacher';
-  }): Observable<{ message: string; staff: User; generatedPassword?: string }> {
-    return this.http.post<{ message: string; staff: User; generatedPassword?: string }>(
-      `${this.apiUrl}/create-staff`,
-      payload,
-    );
+    role?: 'staff' | 'teacher' | 'manager';
+  }): Observable<{
+    message: string;
+    staff: User;
+    generatedPassword?: string;
+    emailSent: boolean;
+  }> {
+    return this.http.post<{
+      message: string;
+      staff: User;
+      generatedPassword?: string;
+      emailSent: boolean;
+    }>(`${this.apiUrl}/create-staff`, payload);
   }
 
   updateStaff(
@@ -38,8 +45,8 @@ export class StaffService {
   resetStaffPassword(
     id: string,
     newPassword?: string,
-  ): Observable<{ message: string; newPassword: string }> {
-    return this.http.post<{ message: string; newPassword: string }>(
+  ): Observable<{ message: string; newPassword: string; emailSent: boolean }> {
+    return this.http.post<{ message: string; newPassword: string; emailSent: boolean }>(
       `${this.apiUrl}/staff/${id}/reset-password`,
       { newPassword },
     );

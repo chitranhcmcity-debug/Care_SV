@@ -28,11 +28,22 @@
           Quản trị viên hệ thống
         </span>
         <h2 class="text-2xl md:text-[28px] font-semibold leading-tight">
-          Quản lý hệ thống &amp; báo cáo chuyên sâu
+          {{
+            isFullAdmin
+              ? 'Quản lý hệ thống & báo cáo chuyên sâu'
+              : visibleTabs.length > 1
+                ? 'Quản lý, giao việc & báo cáo'
+                : 'Báo cáo chăm sóc sinh viên'
+          }}
         </h2>
         <p class="text-sm text-violet-100">
-          Nhập sinh viên qua Excel, cấu hình học phần, phân công nhân sự CSKH và theo dõi cảnh báo
-          cấm thi.
+          {{
+            isFullAdmin
+              ? 'Nhập sinh viên qua Excel, cấu hình học phần, quản lý tài khoản và phân quyền, theo dõi cảnh báo cấm thi.'
+              : visibleTabs.length > 1
+                ? 'Giao việc và duyệt nhiệm vụ cho nhân viên CSKH, theo dõi thống kê và cảnh báo cấm thi.'
+                : 'Thống kê chuyên cần, cảnh báo cấm thi và tiến độ chăm sóc sinh viên.'
+          }}
         </p>
       </div>
 
@@ -60,7 +71,7 @@
   <div class="bg-white rounded-2xl px-2">
     <nav class="flex overflow-x-auto gap-1" role="tablist">
       <button
-        *ngFor="let tab of adminTabs"
+        *ngFor="let tab of visibleTabs"
         type="button"
         role="tab"
         [attr.aria-selected]="activeTab === tab.id"
@@ -462,6 +473,7 @@
         >
           <option value="staff">🎧 Nhân Viên CSKH</option>
           <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy</option>
+          <option value="manager">🏛️ Trưởng phòng / Phó hiệu trưởng</option>
         </select>
       </div>
       <div>
@@ -552,10 +564,18 @@
                 [ngClass]="
                   staff.role === 'teacher'
                     ? 'bg-amber-50 text-amber-900 border-amber-200'
-                    : 'bg-blue-50 text-blue-900 border-blue-200'
+                    : staff.role === 'manager'
+                      ? 'bg-violet-50 text-violet-900 border-violet-200'
+                      : 'bg-blue-50 text-blue-900 border-blue-200'
                 "
               >
-                {{ staff.role === 'teacher' ? '👨‍🏫 GIẢNG VIÊN' : '🎧 NHÂN VIÊN CSKH' }}
+                {{
+                  staff.role === 'teacher'
+                    ? '👨‍🏫 GIẢNG VIÊN'
+                    : staff.role === 'manager'
+                      ? '🏛️ TRƯỞNG PHÒNG / PHT'
+                      : '🎧 NHÂN VIÊN CSKH'
+                }}
               </span>
             </td>
             <td class="p-3">
@@ -613,10 +633,18 @@
                 [ngClass]="
                   staff.status === 'active'
                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    : 'bg-rose-100 text-rose-800 border border-rose-200'
+                    : staff.status === 'unverified'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-rose-100 text-rose-800 border border-rose-200'
                 "
               >
-                {{ staff.status === 'active' ? 'Đang hoạt động' : 'Tạm khóa' }}
+                {{
+                  staff.status === 'active'
+                    ? 'Đang hoạt động'
+                    : staff.status === 'unverified'
+                      ? 'Chờ xác thực email'
+                      : 'Tạm khóa'
+                }}
               </span>
             </td>
             <td class="p-4 text-right space-x-2">
@@ -754,24 +782,24 @@
           <div class="text-xs font-bold text-slate-500 uppercase">Tổng</div>
         </div>
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center shadow-sm">
-          <div class="text-lg font-bold text-amber-900">{{ taskStatusCount('Mới giao') }}</div>
+          <div class="text-lg font-bold text-amber-900">{{ taskStatusCount('moi_giao') }}</div>
           <div class="text-xs font-bold text-amber-700 uppercase">Mới Giao</div>
         </div>
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center shadow-sm">
           <div class="text-lg font-bold text-blue-900">
-            {{ taskStatusCount('Đã xác nhận') }}
+            {{ taskStatusCount('da_xac_nhan') }}
           </div>
           <div class="text-xs font-bold text-blue-700 uppercase">Đang Làm</div>
         </div>
         <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center shadow-sm">
           <div class="text-lg font-bold text-purple-900">
-            {{ taskStatusCount('Chờ duyệt') }}
+            {{ taskStatusCount('cho_duyet') }}
           </div>
           <div class="text-xs font-bold text-purple-700 uppercase">Chờ Duyệt</div>
         </div>
         <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center shadow-sm">
           <div class="text-lg font-bold text-emerald-900">
-            {{ taskStatusCount('Hoàn thành') }}
+            {{ taskStatusCount('hoan_thanh') }}
           </div>
           <div class="text-xs font-bold text-emerald-700 uppercase">Hoàn Thành</div>
         </div>
@@ -782,11 +810,11 @@
         class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white shadow-sm"
       >
         <option value="">Tất cả Trạng thái</option>
-        <option value="Mới giao">🆕 Mới giao</option>
-        <option value="Đã xác nhận">▶️ Đã xác nhận</option>
-        <option value="Chờ duyệt">⏳ Chờ duyệt</option>
-        <option value="Hoàn thành">✅ Hoàn thành</option>
-        <option value="Bị từ chối">↩️ Bị từ chối</option>
+        <option value="moi_giao">🆕 Mới giao</option>
+        <option value="da_xac_nhan">▶️ Đã xác nhận</option>
+        <option value="cho_duyet">⏳ Chờ duyệt</option>
+        <option value="hoan_thanh">✅ Hoàn thành</option>
+        <option value="bi_tu_choi">↩️ Bị từ chối</option>
       </select>
     </div>
 
@@ -802,14 +830,14 @@
               <span
                 class="px-2.5 py-1 rounded-full text-xs font-bold"
                 [ngClass]="{
-                  'bg-amber-600 text-white': task.status === 'Mới giao',
-                  'bg-blue-700 text-white': task.status === 'Đã xác nhận',
-                  'bg-rose-600 text-white': task.status === 'Bị từ chối',
-                  'bg-purple-700 text-white': task.status === 'Chờ duyệt',
-                  'bg-emerald-700 text-white': task.status === 'Hoàn thành',
+                  'bg-amber-600 text-white': task.status === 'moi_giao',
+                  'bg-blue-700 text-white': task.status === 'da_xac_nhan',
+                  'bg-rose-600 text-white': task.status === 'bi_tu_choi',
+                  'bg-purple-700 text-white': task.status === 'cho_duyet',
+                  'bg-emerald-700 text-white': task.status === 'hoan_thanh',
                 }"
               >
-                {{ task.status }}
+                {{ task.status | viLabel }}
               </span>
               <span
                 *ngIf="isTaskOverdue(task)"
@@ -829,7 +857,7 @@
               Hạn chót: <b class="text-slate-800">{{ task.dueDate | date: 'dd/MM/yyyy' }}</b>
             </div>
             <button
-              *ngIf="task.status === 'Mới giao' || task.status === 'Đã xác nhận'"
+              *ngIf="task.status === 'moi_giao' || task.status === 'da_xac_nhan'"
               (click)="deleteTask(task)"
               class="text-rose-600 hover:text-rose-800 font-bold text-xs mt-1"
             >
@@ -840,7 +868,7 @@
 
         <!-- Evidence preview when waiting for review -->
         <div
-          *ngIf="task.status === 'Chờ duyệt'"
+          *ngIf="task.status === 'cho_duyet'"
           class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2"
         >
           <div class="text-xs font-bold text-purple-700 uppercase">Minh chứng đã nộp:</div>
@@ -877,13 +905,13 @@
         </div>
 
         <div
-          *ngIf="task.status === 'Hoàn thành' && task.reviewNote"
+          *ngIf="task.status === 'hoan_thanh' && task.reviewNote"
           class="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold"
         >
           ✅ Nhận xét: {{ task.reviewNote }}
         </div>
         <div
-          *ngIf="task.status === 'Bị từ chối' && task.reviewNote"
+          *ngIf="task.status === 'bi_tu_choi' && task.reviewNote"
           class="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold"
         >
           ↩️ Lý do từ chối: {{ task.reviewNote }}
@@ -1172,14 +1200,14 @@
                   class="px-2.5 py-1 rounded text-xs font-bold border"
                   [ngClass]="{
                     'bg-amber-50 text-amber-900 border-amber-200':
-                      item.lastCallStatus === 'Chưa gọi',
+                      item.lastCallStatus === 'chua_goi',
                     'bg-orange-50 text-orange-900 border-orange-200':
-                      item.lastCallStatus === 'Không bắt máy',
+                      item.lastCallStatus === 'khong_bat_may',
                     'bg-emerald-50 text-emerald-900 border-emerald-200':
-                      item.lastCallStatus === 'Đã liên hệ',
+                      item.lastCallStatus === 'da_lien_he',
                   }"
                 >
-                  {{ item.lastCallStatus }}
+                  {{ item.lastCallStatus | viLabel }}
                 </span>
                 <div class="text-xs text-slate-400 mt-0.5">NV: {{ item.assignedStaff }}</div>
               </td>
@@ -1250,9 +1278,9 @@
           🌐 Tất cả Ca học ({{ courseGroupList.length }})
         </button>
         <button
-          (click)="filterShift = 'Sáng'; loadCourseGroups()"
+          (click)="filterShift = 'sang'; loadCourseGroups()"
           [ngClass]="
-            filterShift === 'Sáng'
+            filterShift === 'sang'
               ? 'bg-amber-500 text-white font-bold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
@@ -1261,9 +1289,9 @@
           <span>☀️ Ca Sáng</span>
         </button>
         <button
-          (click)="filterShift = 'Chiều'; loadCourseGroups()"
+          (click)="filterShift = 'chieu'; loadCourseGroups()"
           [ngClass]="
-            filterShift === 'Chiều'
+            filterShift === 'chieu'
               ? 'bg-blue-600 text-white font-bold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
@@ -1272,9 +1300,9 @@
           <span>🌤️ Ca Chiều</span>
         </button>
         <button
-          (click)="filterShift = 'Tối'; loadCourseGroups()"
+          (click)="filterShift = 'toi'; loadCourseGroups()"
           [ngClass]="
-            filterShift === 'Tối'
+            filterShift === 'toi'
               ? 'bg-purple-900 text-white font-bold shadow-sm'
               : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
           "
@@ -1313,14 +1341,14 @@
             <span
               class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border"
               [ngClass]="{
-                'bg-amber-50 text-amber-900 border-amber-300': g.shift === 'Sáng',
-                'bg-blue-50 text-blue-900 border-blue-300': g.shift === 'Chiều',
-                'bg-purple-50 text-purple-900 border-purple-300': g.shift === 'Tối',
+                'bg-amber-50 text-amber-900 border-amber-300': g.shift === 'sang',
+                'bg-blue-50 text-blue-900 border-blue-300': g.shift === 'chieu',
+                'bg-purple-50 text-purple-900 border-purple-300': g.shift === 'toi',
               }"
             >
-              <span *ngIf="g.shift === 'Sáng'">☀️ Ca Sáng</span>
-              <span *ngIf="g.shift === 'Chiều'">🌤️ Ca Chiều</span>
-              <span *ngIf="g.shift === 'Tối'">🌙 Ca Tối</span>
+              <span *ngIf="g.shift === 'sang'">☀️ Ca Sáng</span>
+              <span *ngIf="g.shift === 'chieu'">🌤️ Ca Chiều</span>
+              <span *ngIf="g.shift === 'toi'">🌙 Ca Tối</span>
             </span>
             <span class="text-xs font-sans tabular-nums font-bold text-slate-400"
               >ID: {{ g.groupCode }}</span
@@ -1346,7 +1374,7 @@
                   *ngFor="let day of g.scheduleDays"
                   class="px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-bold text-xs"
                 >
-                  {{ day }}
+                  {{ day | viLabel }}
                 </span>
               </div>
             </div>
@@ -1490,9 +1518,9 @@
               name="shift"
               class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900"
             >
-              <option value="Sáng">☀️ Ca Sáng</option>
-              <option value="Chiều">🌤️ Ca Chiều</option>
-              <option value="Tối">🌙 Ca Tối</option>
+              <option value="sang">☀️ Ca Sáng</option>
+              <option value="chieu">🌤️ Ca Chiều</option>
+              <option value="toi">🌙 Ca Tối</option>
             </select>
           </div>
 
@@ -1560,7 +1588,7 @@
               class="px-3.5 py-2 rounded-xl text-xs transition-all touch-target border flex items-center gap-1"
             >
               <span *ngIf="d === getPrimaryDayFromDate(courseForm.startDate)">🔒</span>
-              <span>{{ d }}</span>
+              <span>{{ d | viLabel }}</span>
             </button>
           </div>
         </div>
@@ -1818,6 +1846,7 @@
           >
             <option value="staff">🎧 Nhân Viên CSKH (Chăm sóc sinh viên)</option>
             <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy (Điểm danh môn)</option>
+            <option value="manager">🏛️ Trưởng phòng / Phó hiệu trưởng (Quản lý, giao việc)</option>
           </select>
         </div>
 

@@ -5,12 +5,29 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { CallDialogComponent } from './components/call-dialog/call-dialog.component';
 import { AuthService } from './services/auth.service';
+
+// Pages rendered full-width without the signed-in sidebar shell.
+const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+];
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NavbarComponent, NotificationsComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    NavbarComponent,
+    NotificationsComponent,
+    CallDialogComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -27,7 +44,7 @@ export class App {
 
   get showDashboard(): boolean {
     const path = this.currentUrl().split(/[?#]/)[0];
-    return this.authService.isLoggedIn() && path !== '/' && path !== '/login';
+    return this.authService.isLoggedIn() && !PUBLIC_PATHS.includes(path);
   }
 
   constructor(public authService: AuthService) {}

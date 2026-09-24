@@ -1,0 +1,146 @@
+<div class="mx-4 md:mx-6 my-5 space-y-5">
+  <!-- Current subscription -->
+  <section class="bg-white rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+    <div class="space-y-1">
+      <div class="text-sm text-slate-500">Gói sử dụng hiện tại</div>
+      <div *ngIf="status() as s; else loadingStatus" class="space-y-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xl font-semibold text-slate-900">
+            {{ currentPlanName() }}
+          </span>
+          <span
+            class="px-2.5 py-0.5 rounded-full text-xs font-semibold border"
+            [ngClass]="
+              !s.active
+                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                : s.daysLeft <= 7
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            "
+          >
+            {{ !s.active ? 'Đã hết hạn' : 'Còn ' + s.daysLeft + ' ngày' }}
+          </span>
+        </div>
+        <div class="text-sm text-slate-600">
+          {{ s.active ? 'Sử dụng tới' : 'Hết hạn từ' }}
+          <strong>{{ s.expiresAt | date: 'HH:mm dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+      <ng-template #loadingStatus
+        ><div class="text-sm text-slate-400">Đang tải...</div></ng-template
+      >
+    </div>
+    <p class="text-sm text-slate-500 max-w-md">
+      Gia hạn sớm được cộng dồn vào thời gian còn lại. Khi hết hạn, các chức năng điểm danh, gọi
+      điện, nhiệm vụ và báo cáo tạm khóa cho tới khi gia hạn.
+    </p>
+  </section>
+
+  <div
+    *ngIf="status() && !status()!.payosConfigured"
+    role="alert"
+    class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm"
+  >
+    Máy chủ chưa cấu hình PayOS. Hãy điền <code>PAYOS_CLIENT_ID</code>, <code>PAYOS_API_KEY</code>,
+    <code>PAYOS_CHECKSUM_KEY</code> vào <code>backend/.env</code> rồi khởi động lại backend.
+  </div>
+
+  <!-- Plans -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div
+      *ngFor="let plan of plans(); let last = last"
+      class="relative bg-white rounded-xl p-6 flex flex-col gap-4 border"
+      [ngClass]="last ? 'border-violet-400 ring-1 ring-violet-400' : 'border-transparent'"
+    >
+      <span
+        *ngIf="last"
+        class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-xs font-semibold"
+        >Tiết kiệm nhất</span
+      >
+      <div>
+        <div class="font-semibold text-slate-900">{{ plan.name }}</div>
+        <div class="text-sm text-slate-500">{{ plan.months }} tháng sử dụng</div>
+      </div>
+      <div>
+        <div class="text-2xl font-bold text-slate-900">{{ formatVnd(plan.amount) }}</div>
+        <div class="text-xs text-slate-500">
+          ≈ {{ formatVnd(perMonth(plan)) }}/tháng
+          <span *ngIf="savingPercent(plan)" class="text-emerald-600 font-semibold">
+            · tiết kiệm {{ savingPercent(plan) }}%</span
+          >
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="buy(plan)"
+        [disabled]="!!buyingPlan() || !status()?.payosConfigured"
+        class="mt-auto h-11 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        [ngClass]="
+          last
+            ? 'bg-violet-600 hover:bg-violet-700 text-white'
+            : 'bg-violet-50 hover:bg-violet-100 text-violet-700'
+        "
+      >
+        {{ buyingPlan() === plan.code ? 'Đang chuyển tới PayOS...' : 'Thanh toán qua PayOS' }}
+      </button>
+    </div>
+  </section>
+
+  <!-- History -->
+  <section class="bg-white rounded-xl p-6 space-y-4">
+    <h2 class="font-semibold text-slate-900">Lịch sử thanh toán</h2>
+    <div *ngIf="!orders().length" class="text-sm text-slate-500">Chưa có giao dịch nào.</div>
+    <div *ngIf="orders().length" class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-slate-500 border-b border-slate-200">
+            <th class="py-2 pr-4 font-medium">Mã đơn</th>
+            <th class="py-2 pr-4 font-medium">Gói</th>
+            <th class="py-2 pr-4 font-medium">Số tiền</th>
+            <th class="py-2 pr-4 font-medium">Trạng thái</th>
+            <th class="py-2 pr-4 font-medium">Thời gian</th>
+            <th class="py-2 font-medium"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of orders()" class="border-b border-slate-100 last:border-0">
+            <td class="py-3 pr-4 font-mono text-xs text-slate-700">{{ order.orderCode }}</td>
+            <td class="py-3 pr-4">{{ order.planName }}</td>
+            <td class="py-3 pr-4 whitespace-nowrap">{{ formatVnd(order.amount) }}</td>
+            <td class="py-3 pr-4">
+              <span
+                class="px-2 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap"
+                [ngClass]="statusTone[order.status]"
+                >{{ statusLabel[order.status] }}</span
+              >
+              <div *ngIf="order.extendedTo" class="text-xs text-slate-500 mt-1">
+                Gia hạn tới {{ order.extendedTo | date: 'dd/MM/yyyy' }}
+              </div>
+            </td>
+            <td class="py-3 pr-4 text-xs text-slate-500 whitespace-nowrap">
+              {{ order.paidAt || order.createdAt | date: 'HH:mm dd/MM/yyyy' }}
+              <div *ngIf="order.createdBy">{{ order.createdBy.fullName }}</div>
+            </td>
+            <td class="py-3 text-right whitespace-nowrap">
+              <ng-container *ngIf="order.status === 'cho_thanh_toan'">
+                <a
+                  [href]="order.checkoutUrl"
+                  class="text-violet-600 hover:underline font-medium text-xs mr-3"
+                  >Tiếp tục thanh toán</a
+                >
+                <button
+                  type="button"
+                  (click)="sync(order.orderCode)"
+                  [disabled]="syncingOrder() === order.orderCode"
+                  class="text-slate-600 hover:text-slate-900 font-medium text-xs disabled:opacity-60"
+                >
+                  {{ syncingOrder() === order.orderCode ? 'Đang kiểm tra...' : 'Kiểm tra lại' }}
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

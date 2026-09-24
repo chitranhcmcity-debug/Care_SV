@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TaskService } from '../../services/task.service';
 import { NotificationService } from '../../services/notification.service';
 import { WorkTask, TaskStatus, TASK_STATUS } from '../../models/types';
+import { ViLabelPipe } from '../../utils/label.pipe';
 import {
   countTasksByStatus,
   formatFileSize,
@@ -20,7 +21,7 @@ interface EvidenceDraft {
 @Component({
   selector: 'app-task',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ViLabelPipe],
   templateUrl: './task.component.html',
 })
 export class TaskComponent implements OnInit {

@@ -6,7 +6,8 @@ import { AuthService } from '../../services/auth.service';
 import { SettingsService } from '../../services/settings.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService } from '../../services/notification.service';
-import { CallTask, Student360Profile, SystemSettings } from '../../models/types';
+import { CallService, CallTarget } from '../../services/call.service';
+import { CallTask, CALL_STATUS, Student360Profile, SystemSettings } from '../../models/types';
 
 @Component({
   selector: 'app-call-task',
@@ -33,12 +34,47 @@ export class CallTaskComponent implements OnInit {
   constructor(
     private callTaskService: CallTaskService,
     private settingsService: SettingsService,
-    private authService: AuthService,
+    public authService: AuthService,
     private aiService: AiService,
     private notify: NotificationService,
+    private calls: CallService,
   ) {}
 
+  /** Calls go through the app's call dialog, so each one is logged (and can be recorded). */
+  callStudent(
+    event: Event,
+    student:
+      | {
+          _id: string;
+          fullName: string;
+          studentCode?: string;
+          phone?: string;
+          parentPhone?: string;
+        }
+      | null
+      | undefined,
+    target: CallTarget,
+    context: { callTaskId?: string } = {},
+  ) {
+    event.preventDefault();
+    if (student?._id) this.calls.open({ student, target, ...context });
+  }
+
+  /** Management sees every staff member's tasks; the manager only has that view. */
+  viewAll = false;
+
+  /** Updating a task is for its assignee (or the admin); the manager's overview is read-only. */
+  canUpdate(): boolean {
+    return !this.viewAll || this.authService.isAdmin();
+  }
+
+  setViewAll(value: boolean) {
+    this.viewAll = value;
+    this.loadTasks();
+  }
+
   ngOnInit(): void {
+    this.viewAll = this.authService.isManager();
     this.loadTasks();
     this.loadSystemSettings();
   }
@@ -51,16 +87,18 @@ export class CallTaskComponent implements OnInit {
   }
 
   loadTasks() {
-    this.callTaskService
-      .getMyTasks({
-        classCode: this.filterClassCode,
-        groupCode: this.filterGroupCode,
-        status: this.filterStatus,
-      })
-      .subscribe({
-        next: (list) => (this.tasks = list),
-        error: (err) => console.error('Load call tasks error:', err),
-      });
+    const filters = {
+      classCode: this.filterClassCode,
+      groupCode: this.filterGroupCode,
+      status: this.filterStatus,
+    };
+    (this.viewAll
+      ? this.callTaskService.getAllTasks(filters)
+      : this.callTaskService.getMyTasks(filters)
+    ).subscribe({
+      next: (list) => (this.tasks = list),
+      error: (err) => console.error('Load call tasks error:', err),
+    });
   }
 
   applyFilters() {
@@ -68,7 +106,7 @@ export class CallTaskComponent implements OnInit {
   }
 
   get pendingCount() {
-    return this.tasks.filter((t) => t.callStatus === 'Chưa gọi').length;
+    return this.tasks.filter((t) => t.callStatus === CALL_STATUS.PENDING).length;
   }
 
   get callbackDueCount() {
@@ -76,7 +114,7 @@ export class CallTaskComponent implements OnInit {
   }
 
   get doneCount() {
-    return this.tasks.filter((t) => t.callStatus === 'Đã liên hệ').length;
+    return this.tasks.filter((t) => t.callStatus === CALL_STATUS.CONTACTED).length;
   }
 
   onCallbackDateChange(task: CallTask, dateValue: string) {

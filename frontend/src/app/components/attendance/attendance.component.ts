@@ -16,12 +16,22 @@ import { AuthService } from '../../services/auth.service';
 import { CallTaskService } from '../../services/call-task.service';
 import { StaffService } from '../../services/staff.service';
 import { NotificationService } from '../../services/notification.service';
-import { CourseGroup, Student, CallTask } from '../../models/types';
+import { CallService, CallTarget } from '../../services/call.service';
+import {
+  CourseGroup,
+  Student,
+  CallTask,
+  CallStatus,
+  CALL_STATUS,
+  SHIFT,
+  WEEKDAYS_BY_JS_DAY,
+} from '../../models/types';
+import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
 
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ViLabelPipe],
   templateUrl: './attendance.component.html',
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
@@ -78,7 +88,28 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     private notify: NotificationService,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private calls: CallService,
   ) {}
+
+  /** Every "Gọi" link goes through the app's call dialog, so the call is logged (and can be recorded). */
+  callStudent(
+    event: Event,
+    student:
+      | {
+          _id: string;
+          fullName: string;
+          studentCode?: string;
+          phone?: string;
+          parentPhone?: string;
+        }
+      | null
+      | undefined,
+    target: CallTarget,
+    context: { callTaskId?: string; courseGroupId?: string } = {},
+  ) {
+    event.preventDefault();
+    if (student?._id) this.calls.open({ student, target, ...context });
+  }
 
   ngOnInit(): void {
     this.loadCourseGroups();
@@ -100,8 +131,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   get todayName(): string {
-    const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return dayNames[new Date().getDay()];
+    return viLabel(WEEKDAYS_BY_JS_DAY[new Date().getDay()]);
   }
 
   get todayDateStr(): string {
@@ -113,8 +143,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   get todayClasses(): CourseGroup[] {
-    const tName = this.todayName;
-    return this.myAssignedGroups.filter((g) => g.scheduleDays && g.scheduleDays.includes(tName));
+    const today = WEEKDAYS_BY_JS_DAY[new Date().getDay()];
+    return this.myAssignedGroups.filter((g) => g.scheduleDays && g.scheduleDays.includes(today));
   }
 
   get totalAssignedStudents(): number {
@@ -351,7 +381,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.callTaskService.getMyTasks().subscribe({
       next: (tasks) => {
         this.myCallTasks = tasks;
-        this.unreadCallsCount = tasks.filter((t) => t.status === 'Chưa gọi').length;
+        this.unreadCallsCount = tasks.filter((t) => t.status === CALL_STATUS.PENDING).length;
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Load call tasks error:', err),
@@ -363,11 +393,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return this.myCallTasks.filter((t) => t.status === this.taskFilterStatus);
   }
 
-  updateTaskStatus(
-    taskId: string,
-    status: 'Chưa gọi' | 'Không bắt máy' | 'Đã liên hệ',
-    note: string,
-  ) {
+  updateTaskStatus(taskId: string, status: CallStatus, note: string) {
     this.callTaskService.updateTaskStatus(taskId, { status, callNote: note || '' }).subscribe({
       next: (res) => {
         this.loadMyCallTasks();
@@ -458,14 +484,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
 
     // 2. Check Day of Week
-    const dayNames = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    const todayName = dayNames[now.getDay()];
+    const today = WEEKDAYS_BY_JS_DAY[now.getDay()];
+    const todayName = viLabel(today);
 
     if (group.scheduleDays && group.scheduleDays.length > 0) {
-      if (!group.scheduleDays.includes(todayName)) {
+      if (!group.scheduleDays.includes(today)) {
         return {
           isValid: false,
-          reason: `⚠️ Hôm nay (${todayName}) không có lịch học môn này (${group.scheduleDays.join(', ')})`,
+          reason: `⚠️ Hôm nay (${todayName}) không có lịch học môn này (${group.scheduleDays.map(viLabel).join(', ')})`,
           badgeText: `🔒 Ngoài lịch học (${todayName})`,
           badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
         };
@@ -474,26 +500,26 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
     // 3. Check Shift Time
     const hour = now.getHours();
-    const shift = group.shift || 'Sáng';
+    const shift = group.shift || SHIFT.MORNING;
 
-    if (shift === 'Sáng' && (hour < 6 || hour >= 12)) {
+    if (shift === SHIFT.MORNING && (hour < 6 || hour >= 12)) {
       return {
         isValid: false,
-        reason: `⚠️ Chưa đúng ca học (${shift}). Giờ hiện tại ngoài ca Sáng (06:00 - 12:00)`,
+        reason: `⚠️ Chưa đúng ca học (${viLabel(shift)}). Giờ hiện tại ngoài ca Sáng (06:00 - 12:00)`,
         badgeText: `🔒 Ngoài Ca Sáng`,
         badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
       };
-    } else if (shift === 'Chiều' && (hour < 12 || hour >= 18)) {
+    } else if (shift === SHIFT.AFTERNOON && (hour < 12 || hour >= 18)) {
       return {
         isValid: false,
-        reason: `⚠️ Chưa đúng ca học (${shift}). Giờ hiện tại ngoài ca Chiều (12:00 - 18:00)`,
+        reason: `⚠️ Chưa đúng ca học (${viLabel(shift)}). Giờ hiện tại ngoài ca Chiều (12:00 - 18:00)`,
         badgeText: `🔒 Ngoài Ca Chiều`,
         badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
       };
-    } else if (shift === 'Tối' && (hour < 17 || hour >= 22)) {
+    } else if (shift === SHIFT.EVENING && (hour < 17 || hour >= 22)) {
       return {
         isValid: false,
-        reason: `⚠️ Chưa đúng ca học (${shift}). Giờ hiện tại ngoài ca Tối (17:30 - 22:00)`,
+        reason: `⚠️ Chưa đúng ca học (${viLabel(shift)}). Giờ hiện tại ngoài ca Tối (17:30 - 22:00)`,
         badgeText: `🔒 Ngoài Ca Tối`,
         badgeClass: 'bg-purple-100 text-purple-900 border-purple-300',
       };
@@ -923,7 +949,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (!dateInput) return '';
     const d = new Date(dateInput);
     if (isNaN(d.getTime())) return '';
-    const days = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return days[d.getDay()] || '';
+    return viLabel(WEEKDAYS_BY_JS_DAY[d.getDay()]);
   }
 }

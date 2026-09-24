@@ -12,7 +12,9 @@
       <h2 class="text-xl md:text-2xl font-bold text-slate-900 mt-1 uppercase tracking-tight">
         Danh Sách Nhiệm Vụ Từ Quản Lý
       </h2>
-      <p class="text-xs text-slate-600">Xác nhận nhận việc, thực hiện và nộp minh chứng khi hoàn thành.</p>
+      <p class="text-xs text-slate-600">
+        Xác nhận nhận việc, thực hiện và nộp minh chứng khi hoàn thành.
+      </p>
     </div>
     <button
       (click)="loadTasks()"
@@ -32,7 +34,9 @@
       <div class="text-xs text-blue-800 font-bold uppercase">Đang Thực Hiện</div>
       <div class="text-xl font-bold text-blue-900">{{ inProgressCount }}</div>
     </div>
-    <div class="bg-purple-50 border border-purple-200 p-4 rounded-md text-center space-y-1 shadow-sm">
+    <div
+      class="bg-purple-50 border border-purple-200 p-4 rounded-md text-center space-y-1 shadow-sm"
+    >
       <div class="text-xs text-purple-800 font-bold uppercase">Chờ Duyệt</div>
       <div class="text-xl font-bold text-purple-900">{{ waitingCount }}</div>
     </div>
@@ -52,11 +56,11 @@
       class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
     >
       <option value="">Tất cả Trạng thái</option>
-      <option value="Mới giao">🆕 Mới giao</option>
-      <option value="Đã xác nhận">▶️ Đã xác nhận</option>
-      <option value="Chờ duyệt">⏳ Chờ duyệt</option>
-      <option value="Hoàn thành">✅ Hoàn thành</option>
-      <option value="Bị từ chối">↩️ Bị từ chối</option>
+      <option value="moi_giao">🆕 Mới giao</option>
+      <option value="da_xac_nhan">▶️ Đã xác nhận</option>
+      <option value="cho_duyet">⏳ Chờ duyệt</option>
+      <option value="hoan_thanh">✅ Hoàn thành</option>
+      <option value="bi_tu_choi">↩️ Bị từ chối</option>
     </select>
   </div>
 
@@ -66,11 +70,11 @@
       *ngFor="let task of tasks"
       class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm"
       [ngClass]="{
-        'border-amber-300 bg-amber-50/20': task.status === 'Mới giao',
-        'border-blue-300 bg-blue-50/20': task.status === 'Đã xác nhận',
-        'border-rose-300 bg-rose-50/20': task.status === 'Bị từ chối',
-        'border-purple-300 bg-purple-50/20': task.status === 'Chờ duyệt',
-        'border-emerald-300 bg-emerald-50/20': task.status === 'Hoàn thành',
+        'border-amber-300 bg-amber-50/20': task.status === 'moi_giao',
+        'border-blue-300 bg-blue-50/20': task.status === 'da_xac_nhan',
+        'border-rose-300 bg-rose-50/20': task.status === 'bi_tu_choi',
+        'border-purple-300 bg-purple-50/20': task.status === 'cho_duyet',
+        'border-emerald-300 bg-emerald-50/20': task.status === 'hoan_thanh',
       }"
     >
       <!-- Header -->
@@ -80,14 +84,14 @@
             <span
               class="px-2.5 py-1 rounded-full text-xs font-bold"
               [ngClass]="{
-                'bg-amber-600 text-white': task.status === 'Mới giao',
-                'bg-blue-700 text-white': task.status === 'Đã xác nhận',
-                'bg-rose-600 text-white': task.status === 'Bị từ chối',
-                'bg-purple-700 text-white': task.status === 'Chờ duyệt',
-                'bg-emerald-700 text-white': task.status === 'Hoàn thành',
+                'bg-amber-600 text-white': task.status === 'moi_giao',
+                'bg-blue-700 text-white': task.status === 'da_xac_nhan',
+                'bg-rose-600 text-white': task.status === 'bi_tu_choi',
+                'bg-purple-700 text-white': task.status === 'cho_duyet',
+                'bg-emerald-700 text-white': task.status === 'hoan_thanh',
               }"
             >
-              {{ task.status }}
+              {{ task.status | viLabel }}
             </span>
             <span
               *ngIf="isTaskOverdue(task)"
@@ -99,7 +103,9 @@
           <h3 class="text-lg font-bold text-slate-900">{{ task.title }}</h3>
         </div>
         <div class="text-xs text-slate-500 font-semibold text-right space-y-0.5">
-          <div>Giao bởi: <b class="text-slate-700">{{ taskUserName(task.assignedBy) }}</b></div>
+          <div>
+            Giao bởi: <b class="text-slate-700">{{ taskUserName(task.assignedBy) }}</b>
+          </div>
           <div *ngIf="task.dueDate">
             Hạn chót:
             <b [ngClass]="isTaskOverdue(task) ? 'text-rose-700' : 'text-slate-700'">{{
@@ -114,7 +120,7 @@
 
       <!-- Rejection reason -->
       <div
-        *ngIf="task.status === 'Bị từ chối' && task.reviewNote"
+        *ngIf="task.status === 'bi_tu_choi' && task.reviewNote"
         class="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold"
       >
         ↩️ Sếp yêu cầu làm lại: {{ task.reviewNote }}
@@ -122,7 +128,7 @@
 
       <!-- Approved note -->
       <div
-        *ngIf="task.status === 'Hoàn thành' && task.reviewNote"
+        *ngIf="task.status === 'hoan_thanh' && task.reviewNote"
         class="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold"
       >
         ✅ Nhận xét của sếp: {{ task.reviewNote }}
@@ -130,7 +136,7 @@
 
       <!-- Submitted / completed evidence (read-only) -->
       <div
-        *ngIf="task.status === 'Chờ duyệt' || task.status === 'Hoàn thành'"
+        *ngIf="task.status === 'cho_duyet' || task.status === 'hoan_thanh'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2"
       >
         <div class="text-xs font-bold text-slate-500 uppercase">Minh chứng đã nộp:</div>
@@ -159,7 +165,7 @@
       </div>
 
       <!-- Action: acknowledge -->
-      <div *ngIf="task.status === 'Mới giao'" class="flex justify-end">
+      <div *ngIf="task.status === 'moi_giao'" class="flex justify-end">
         <button
           (click)="acknowledge(task)"
           class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
@@ -170,7 +176,7 @@
 
       <!-- Action: submit evidence -->
       <div
-        *ngIf="task.status === 'Đã xác nhận' || task.status === 'Bị từ chối'"
+        *ngIf="task.status === 'da_xac_nhan' || task.status === 'bi_tu_choi'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3"
       >
         <label class="block text-xs font-bold text-slate-700 uppercase">
@@ -208,7 +214,7 @@
       </div>
 
       <div
-        *ngIf="task.status === 'Chờ duyệt'"
+        *ngIf="task.status === 'cho_duyet'"
         class="text-xs text-purple-700 font-bold text-center py-1"
       >
         ⏳ Đã nộp minh chứng, đang chờ sếp duyệt...
@@ -221,7 +227,9 @@
     >
       <div class="text-4xl">🎉</div>
       <h3 class="text-lg font-bold text-slate-900">Không Có Nhiệm Vụ Nào!</h3>
-      <p class="text-xs text-slate-500 font-medium">Bạn chưa được giao nhiệm vụ nào phù hợp bộ lọc.</p>
+      <p class="text-xs text-slate-500 font-medium">
+        Bạn chưa được giao nhiệm vụ nào phù hợp bộ lọc.
+      </p>
     </div>
   </div>
 </div>

@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const app = require('./app');
-const { getConfig } = require('./config/env');
+const { getConfig } = require('./utils/moiTruong');
 async function startServer() {
   const config = getConfig();
   let memoryServer;
@@ -15,7 +15,8 @@ async function startServer() {
       console.warn('Using a temporary database; data will not persist.');
     }
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
-    if (config.seedDemo) await require('./scripts/seedDemo')();
+    await require('./scripts/chuyenDoiDuLieu')();
+    if (config.seedDemo) await require('./scripts/taoDuLieuMau')();
     server = await new Promise((resolve, reject) => {
       const listener = app.listen(config.port, '0.0.0.0', () => resolve(listener));
       listener.on('error', reject);

@@ -7,8 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "format": "prettier --ignore-path ../.prettierignore --write src public/sw.js *.json ../backend/{app,server}.js ../backend/{config,constants,controllers,middleware,models,routes,services,utils,tests,scripts}/**/*.js ../README.md ../.prettierrc.json",
-    "format:check": "prettier --ignore-path ../.prettierignore --check src public/sw.js *.json ../backend/{app,server}.js ../backend/{config,constants,controllers,middleware,models,routes,services,utils,tests,scripts}/**/*.js ../README.md ../.prettierrc.json"
+    "format": "prettier --ignore-path ../.prettierignore --write src public/sw.js *.json ../backend/{app,server}.js ../backend/{middleware,models,routes,scripts,services,tests,utils}/**/*.js ../README.md ../.prettierrc.json",
+    "format:check": "prettier --ignore-path ../.prettierignore --check src public/sw.js *.json ../backend/{app,server}.js ../backend/{middleware,models,routes,scripts,services,tests,utils}/**/*.js ../README.md ../.prettierrc.json"
   },
   "private": true,
   "packageManager": "npm@11.12.1",

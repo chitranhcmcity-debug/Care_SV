@@ -130,9 +130,7 @@
           (click)="activeTab = 'attendance'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Lớp Hôm Nay
-          </div>
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lớp Hôm Nay</div>
           <div class="text-3xl font-bold text-blue-900">
             {{ todayClasses.length }} <span class="text-xs font-normal text-slate-400">lớp</span>
           </div>
@@ -143,9 +141,7 @@
           (click)="activeTab = 'attendance'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            SV Phụ Trách
-          </div>
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">SV Phụ Trách</div>
           <div class="text-3xl font-bold text-emerald-700">
             {{ totalAssignedStudents }} <span class="text-xs font-normal text-slate-400">SV</span>
           </div>
@@ -158,9 +154,7 @@
           (click)="activeTab = 'calls'"
           class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1 relative"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Cuộc Gọi CSKH
-          </div>
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cuộc Gọi CSKH</div>
           <div class="text-3xl font-bold text-amber-600">
             {{ unreadCallsCount }} <span class="text-xs font-normal text-slate-400">tồn</span>
           </div>
@@ -209,15 +203,15 @@
                 <span
                   class="px-2.5 py-0.5 rounded-full text-xs font-bold border uppercase"
                   [ngClass]="{
-                    'bg-amber-100 text-amber-900 border-amber-300': g.shift === 'Sáng',
-                    'bg-blue-100 text-blue-900 border-blue-300': g.shift === 'Chiều',
-                    'bg-purple-100 text-purple-900 border-purple-300': g.shift === 'Tối',
+                    'bg-amber-100 text-amber-900 border-amber-300': g.shift === 'sang',
+                    'bg-blue-100 text-blue-900 border-blue-300': g.shift === 'chieu',
+                    'bg-purple-100 text-purple-900 border-purple-300': g.shift === 'toi',
                   }"
                 >
                   {{
-                    g.shift === 'Chiều'
+                    g.shift === 'chieu'
                       ? '🌤️ Ca Chiều'
-                      : g.shift === 'Tối'
+                      : g.shift === 'toi'
                         ? '🌙 Ca Tối'
                         : '☀️ Ca Sáng'
                   }}
@@ -392,15 +386,15 @@
                 <span
                   class="px-3 py-1 rounded-full text-xs font-bold uppercase border tracking-wider"
                   [ngClass]="{
-                    'bg-amber-100 text-amber-950 border-amber-300': g.shift === 'Sáng',
-                    'bg-blue-100 text-blue-950 border-blue-300': g.shift === 'Chiều',
-                    'bg-purple-100 text-purple-950 border-purple-300': g.shift === 'Tối',
+                    'bg-amber-100 text-amber-950 border-amber-300': g.shift === 'sang',
+                    'bg-blue-100 text-blue-950 border-blue-300': g.shift === 'chieu',
+                    'bg-purple-100 text-purple-950 border-purple-300': g.shift === 'toi',
                   }"
                 >
                   {{
-                    g.shift === 'Chiều'
+                    g.shift === 'chieu'
                       ? '🌤️ Ca Chiều'
-                      : g.shift === 'Tối'
+                      : g.shift === 'toi'
                         ? '🌙 Ca Tối'
                         : '☀️ Ca Sáng'
                   }}
@@ -447,7 +441,7 @@
                 >
                   <span class="font-medium text-slate-500 flex-shrink-0">📅 Lịch học:</span>
                   <span class="font-bold text-blue-950 text-right">{{
-                    (g.scheduleDays || []).join(', ')
+                    g.scheduleDays | viLabel
                   }}</span>
                 </div>
               </div>
@@ -477,9 +471,7 @@
           class="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl space-y-2"
         >
           <div class="text-3xl">📭</div>
-          <div class="font-bold text-slate-800 text-base">
-            Không tìm thấy nhóm học phần nào!
-          </div>
+          <div class="font-bold text-slate-800 text-base">Không tìm thấy nhóm học phần nào!</div>
           <p class="text-xs text-slate-500 font-medium">
             Bấm "🌐 Tất cả môn" ở trên nếu cần tìm môn dạy thay.
           </p>
@@ -1236,6 +1228,11 @@
                     <a
                       *ngIf="row.student.phone"
                       [href]="'tel:' + row.student.phone"
+                      (click)="
+                        callStudent($event, row.student, 'sinh_vien', {
+                          courseGroupId: selectedGroup?._id,
+                        })
+                      "
                       class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200/60 transition-colors"
                     >
                       <svg
@@ -1259,6 +1256,11 @@
                     <a
                       *ngIf="row.student.parentPhone"
                       [href]="'tel:' + row.student.parentPhone"
+                      (click)="
+                        callStudent($event, row.student, 'phu_huynh', {
+                          courseGroupId: selectedGroup?._id,
+                        })
+                      "
                       class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200/60 transition-colors"
                     >
                       <svg
@@ -1283,22 +1285,22 @@
                       *ngIf="row.callStatus"
                       class="px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1"
                       [ngClass]="{
-                        'bg-rose-50 text-rose-700 border-rose-200': row.callStatus === 'Chưa gọi',
+                        'bg-rose-50 text-rose-700 border-rose-200': row.callStatus === 'chua_goi',
                         'bg-amber-50 text-amber-700 border-amber-200':
-                          row.callStatus === 'Không bắt máy',
+                          row.callStatus === 'khong_bat_may',
                         'bg-emerald-50 text-emerald-700 border-emerald-200':
-                          row.callStatus === 'Đã liên hệ',
+                          row.callStatus === 'da_lien_he',
                       }"
                     >
                       <span
                         class="w-1.5 h-1.5 rounded-full"
                         [ngClass]="{
-                          'bg-rose-500': row.callStatus === 'Chưa gọi',
-                          'bg-amber-500': row.callStatus === 'Không bắt máy',
-                          'bg-emerald-500': row.callStatus === 'Đã liên hệ',
+                          'bg-rose-500': row.callStatus === 'chua_goi',
+                          'bg-amber-500': row.callStatus === 'khong_bat_may',
+                          'bg-emerald-500': row.callStatus === 'da_lien_he',
                         }"
                       ></span>
-                      <span>{{ row.callStatus }}</span>
+                      <span>{{ row.callStatus | viLabel }}</span>
                     </span>
                     <span *ngIf="!row.callStatus" class="text-xs text-slate-400">—</span>
                   </td>
@@ -1488,9 +1490,9 @@
           </button>
           <button
             type="button"
-            (click)="taskFilterStatus = 'Chưa gọi'"
+            (click)="taskFilterStatus = 'chua_goi'"
             [ngClass]="
-              taskFilterStatus === 'Chưa gọi'
+              taskFilterStatus === 'chua_goi'
                 ? 'bg-rose-600 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
@@ -1500,9 +1502,9 @@
           </button>
           <button
             type="button"
-            (click)="taskFilterStatus = 'Không bắt máy'"
+            (click)="taskFilterStatus = 'khong_bat_may'"
             [ngClass]="
-              taskFilterStatus === 'Không bắt máy'
+              taskFilterStatus === 'khong_bat_may'
                 ? 'bg-amber-600 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
@@ -1512,9 +1514,9 @@
           </button>
           <button
             type="button"
-            (click)="taskFilterStatus = 'Đã liên hệ'"
+            (click)="taskFilterStatus = 'da_lien_he'"
             [ngClass]="
-              taskFilterStatus === 'Đã liên hệ'
+              taskFilterStatus === 'da_lien_he'
                 ? 'bg-emerald-700 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
@@ -1551,13 +1553,13 @@
               <span
                 class="px-3 py-1 rounded-full text-xs font-bold border"
                 [ngClass]="{
-                  'bg-rose-100 text-rose-900 border-rose-300': task.status === 'Chưa gọi',
-                  'bg-amber-100 text-amber-900 border-amber-300': task.status === 'Không bắt máy',
+                  'bg-rose-100 text-rose-900 border-rose-300': task.status === 'chua_goi',
+                  'bg-amber-100 text-amber-900 border-amber-300': task.status === 'khong_bat_may',
                   'bg-emerald-100 text-emerald-900 border-emerald-300':
-                    task.status === 'Đã liên hệ',
+                    task.status === 'da_lien_he',
                 }"
               >
-                {{ task.status }}
+                {{ task.status | viLabel }}
               </span>
             </div>
 
@@ -1565,6 +1567,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <a
                 [href]="'tel:' + (task.studentId?.phone || '')"
+                (click)="callStudent($event, task.studentId, 'sinh_vien', { callTaskId: task._id })"
                 class="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-800 flex items-center justify-between touch-target"
               >
                 <span
@@ -1574,6 +1577,7 @@
               </a>
               <a
                 [href]="'tel:' + (task.studentId?.parentPhone || '')"
+                (click)="callStudent($event, task.studentId, 'phu_huynh', { callTaskId: task._id })"
                 class="p-2.5 rounded-xl bg-amber-50/80 hover:bg-amber-100 border border-amber-200 font-bold text-amber-950 flex items-center justify-between touch-target"
               >
                 <span
@@ -1596,14 +1600,14 @@
             <div class="flex items-center justify-end space-x-2">
               <button
                 type="button"
-                (click)="updateTaskStatus(task._id, 'Không bắt máy', task.callNote)"
+                (click)="updateTaskStatus(task._id, 'khong_bat_may', task.callNote)"
                 class="px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold touch-target cursor-pointer"
               >
                 🟡 Không Bắt Máy
               </button>
               <button
                 type="button"
-                (click)="updateTaskStatus(task._id, 'Đã liên hệ', task.callNote)"
+                (click)="updateTaskStatus(task._id, 'da_lien_he', task.callNote)"
                 class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm touch-target cursor-pointer"
               >
                 ✅ Hoàn Thành
@@ -1803,7 +1807,8 @@
           <div class="font-bold text-base text-blue-950">{{ lookupResult.fullName }}</div>
           <div class="grid grid-cols-2 gap-2 text-slate-700">
             <div>
-              MSSV: <b class="text-slate-900 font-sans tabular-nums">{{ lookupResult.studentCode }}</b>
+              MSSV:
+              <b class="text-slate-900 font-sans tabular-nums">{{ lookupResult.studentCode }}</b>
             </div>
             <div>
               Lớp: <b>{{ lookupResult.classCode }}</b>

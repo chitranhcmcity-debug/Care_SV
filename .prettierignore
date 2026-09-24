@@ -3,5 +3,3 @@
 **/.angular/
 **/coverage/
 **/package-lock.json
-test_screenshots/
-server-test/

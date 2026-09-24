@@ -1,10 +1,26 @@
+/** manager = Trưởng phòng / Phó hiệu trưởng. */
+export type Role = 'admin' | 'manager' | 'staff' | 'teacher';
+export const ROLE_LABELS: Record<Role, string> = {
+  admin: 'Quản trị viên',
+  manager: 'Trưởng phòng / Phó hiệu trưởng',
+  staff: 'Nhân viên CSKH',
+  teacher: 'Giảng viên',
+};
+/** Landing page after sign-in for each role. */
+export const ROLE_HOME: Record<Role, string> = {
+  admin: '/admin',
+  manager: '/management',
+  staff: '/call-tasks',
+  teacher: '/attendance',
+};
+
 export interface User {
   id?: string;
   _id?: string;
   fullName: string;
   email: string;
-  role: 'admin' | 'staff' | 'teacher';
-  status: 'active' | 'inactive';
+  role: Role;
+  status: 'active' | 'inactive' | 'unverified';
   managedClasses?: string[];
   managedStudents?: (Student | string)[];
 }
@@ -28,8 +44,8 @@ export interface CourseGroup {
   courseCode?: string;
   courseName?: string;
   groupCode: string;
-  shift?: 'Sáng' | 'Chiều' | 'Tối';
-  scheduleDays?: string[];
+  shift?: Shift;
+  scheduleDays?: Weekday[];
   room?: string;
   startDate?: string;
   endDate?: string;
@@ -46,8 +62,8 @@ export interface CallTask {
   courseGroupId?: CourseGroup;
   assignedStaff?: { fullName: string; email: string }; // admin-only
   absenceDate?: string;
-  status?: 'Chưa gọi' | 'Không bắt máy' | 'Đã liên hệ';
-  callStatus: 'Chưa gọi' | 'Không bắt máy' | 'Đã liên hệ';
+  status?: CallStatus;
+  callStatus: CallStatus;
   callNote: string;
   absenceReasonCategory?: string;
   callbackDate?: string | null;
@@ -71,8 +87,6 @@ export interface SystemSettings {
   tags: string[];
 }
 
-export type SystemConfig = SystemSettings;
-
 export interface TimelineItem {
   type: 'call_task' | 'attendance';
   date: string;
@@ -86,15 +100,60 @@ export interface TimelineItem {
   callAttempts?: number;
 }
 
-// Mirrors backend/constants/taskStatus.js
+// Stored values are unaccented codes mirroring backend/utils/hangSo.js; VI_LABELS holds the
+// Vietnamese display text (render with the viLabel pipe).
 export const TASK_STATUS = {
-  PENDING: 'Mới giao',
-  ACKNOWLEDGED: 'Đã xác nhận',
-  SUBMITTED: 'Chờ duyệt',
-  COMPLETED: 'Hoàn thành',
-  REJECTED: 'Bị từ chối',
+  PENDING: 'moi_giao',
+  ACKNOWLEDGED: 'da_xac_nhan',
+  SUBMITTED: 'cho_duyet',
+  COMPLETED: 'hoan_thanh',
+  REJECTED: 'bi_tu_choi',
 } as const;
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
+
+export const CALL_STATUS = {
+  PENDING: 'chua_goi',
+  UNREACHABLE: 'khong_bat_may',
+  CONTACTED: 'da_lien_he',
+} as const;
+export type CallStatus = (typeof CALL_STATUS)[keyof typeof CALL_STATUS];
+
+export const SHIFT = { MORNING: 'sang', AFTERNOON: 'chieu', EVENING: 'toi' } as const;
+export type Shift = (typeof SHIFT)[keyof typeof SHIFT];
+
+// Indexed by Date#getDay() (0 = Sunday).
+export const WEEKDAYS_BY_JS_DAY = [
+  'chu_nhat',
+  'thu_2',
+  'thu_3',
+  'thu_4',
+  'thu_5',
+  'thu_6',
+  'thu_7',
+] as const;
+export type Weekday = (typeof WEEKDAYS_BY_JS_DAY)[number];
+export const DEFAULT_SCHEDULE_DAYS: Weekday[] = ['thu_2', 'thu_4', 'thu_6'];
+
+export const VI_LABELS: Record<string, string> = {
+  moi_giao: 'Mới giao',
+  da_xac_nhan: 'Đã xác nhận',
+  cho_duyet: 'Chờ duyệt',
+  hoan_thanh: 'Hoàn thành',
+  bi_tu_choi: 'Bị từ chối',
+  chua_goi: 'Chưa gọi',
+  khong_bat_may: 'Không bắt máy',
+  da_lien_he: 'Đã liên hệ',
+  sang: 'Sáng',
+  chieu: 'Chiều',
+  toi: 'Tối',
+  thu_2: 'Thứ 2',
+  thu_3: 'Thứ 3',
+  thu_4: 'Thứ 4',
+  thu_5: 'Thứ 5',
+  thu_6: 'Thứ 6',
+  thu_7: 'Thứ 7',
+  chu_nhat: 'Chủ Nhật',
+};
 
 export interface TaskEvidenceFile {
   _id: string;

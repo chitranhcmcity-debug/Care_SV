@@ -39,6 +39,31 @@ export class AuthService {
     );
   }
 
+  /** Self sign-up (teachers and staff only); the account must be verified by email. */
+  register(payload: {
+    fullName: string;
+    email: string;
+    password: string;
+    role: 'staff' | 'teacher';
+  }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/register`, payload);
+  }
+
+  verifyEmail(token: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/verify-email`, { token });
+  }
+
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, {
+      token,
+      password,
+    });
+  }
+
   logout(): void {
     localStorage.removeItem('itc_token');
     localStorage.removeItem('itc_user');
@@ -55,6 +80,15 @@ export class AuthService {
     } catch {
       return false;
     }
+  }
+
+  isManager(): boolean {
+    return this.currentUser()?.role === 'manager';
+  }
+
+  /** Admin or Trưởng phòng/Phó hiệu trưởng. */
+  isManagement(): boolean {
+    return this.isAdmin() || this.isManager();
   }
 
   isAdmin(): boolean {
