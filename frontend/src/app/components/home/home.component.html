@@ -31,6 +31,24 @@
       </nav>
 
       <div class="flex items-center gap-2 shrink-0">
+        <div
+          *ngIf="authService.currentUser() as user"
+          class="hidden md:flex items-center gap-2.5 pl-1.5 pr-3 h-11 rounded-lg bg-slate-50 border border-slate-200"
+        >
+          <span
+            class="w-8 h-8 rounded-md bg-violet-100 text-violet-700 text-sm font-semibold flex items-center justify-center"
+            aria-hidden="true"
+            >{{ (user.fullName || '?').trim().charAt(0).toUpperCase() }}</span
+          >
+          <span class="leading-tight min-w-0">
+            <span class="block text-sm font-medium text-slate-900 truncate max-w-[160px]">{{
+              user.fullName
+            }}</span>
+            <span class="block text-xs text-slate-500 truncate max-w-[160px]">{{
+              roleLabels[user.role]
+            }}</span>
+          </span>
+        </div>
         <button
           type="button"
           (click)="enterSystem()"
@@ -44,7 +62,7 @@
           (click)="logout()"
           [title]="'Đăng xuất khỏi tài khoản ' + (authService.currentUser()?.fullName || '')"
           aria-label="Đăng xuất"
-          class="h-11 px-3 sm:px-4 rounded-lg border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-sm font-medium transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+          class="w-11 h-11 rounded-lg border border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
         >
           <svg
             class="w-5 h-5"
@@ -60,7 +78,6 @@
               d="M15 12H4m0 0 3.5-3.5M4 12l3.5 3.5M10 5V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-8a1 1 0 0 1-1-1v-1"
             />
           </svg>
-          <span class="hidden sm:inline">Đăng xuất</span>
         </button>
       </div>
     </div>

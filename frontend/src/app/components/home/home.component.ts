@@ -2,6 +2,7 @@ import { AfterViewInit, Component, OnDestroy, signal, inject } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { ROLE_LABELS } from '../../models/types';
 import { BrandingService } from '../../services/branding.service';
 
 // 24px stroke icon paths (Tabler-style).
@@ -154,6 +155,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   /** Id of the section currently in view — drives the nav highlight. */
   readonly activeSection = signal('');
+  readonly roleLabels = ROLE_LABELS;
   private sectionObserver?: IntersectionObserver;
 
   constructor(
