@@ -1795,3 +1795,28 @@ test('system overview is admin-only and summarises accounts, data, activity and 
   assert.ok(integrations.some((g) => g.name === 'Email (SMTP)'));
   assert.equal(typeof subscription.active, 'boolean');
 });
+
+test('notification bell: opening it marks current work as seen; new work shows up again', async () => {
+  const { staff, token } = await createTaskStaff('bell');
+  const before = await request('/notifications', token);
+  assert.equal(before.status, 200);
+  assert.equal(before.body.unseen, before.body.callTasks.pending + before.body.tasks.pending);
+
+  const seen = await request('/notifications/seen', token, 'PUT');
+  assert.equal(seen.body.unseen, 0);
+  // Seeing is not doing: the work itself is still pending.
+  assert.equal(seen.body.tasks.pending, before.body.tasks.pending);
+
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const created = await request('/tasks', tokens.manager, 'POST', {
+    title: 'Thông báo mới',
+    description: 'Nhiệm vụ giao sau lần xem chuông gần nhất.',
+    assignedTo: String(staff._id),
+  });
+  assert.equal(created.status, 201);
+  const after = await request('/notifications', token);
+  assert.equal(after.body.unseen, 1);
+  assert.equal(after.body.tasks.new, 1);
+  assert.equal(after.body.tasks.pending, before.body.tasks.pending + 1);
+  await NhiemVu.deleteOne({ _id: created.body.task?._id ?? created.body._id });
+});

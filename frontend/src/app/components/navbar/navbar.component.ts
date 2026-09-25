@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { CallTaskService } from '../../services/call-task.service';
-import { TaskService } from '../../services/task.service';
+import { InboxService } from '../../services/inbox.service';
 import { BillingService } from '../../services/billing.service';
 import { ROLE_LABELS } from '../../models/types';
 import { BrandingService } from '../../services/branding.service';
@@ -105,8 +104,14 @@ const normalize = (text: string) =>
 export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly branding = inject(BrandingService);
 
+  /** Sidebar badges: call tasks not yet called, assigned tasks needing action. */
   unreadCount = 0;
   pendingTaskCount = 0;
+  /** Bell badge: work that appeared since the bell was last opened. */
+  unseenCount = 0;
+  /** What was new when the bell was opened, so the list can still mark it. */
+  newCallTasks = 0;
+  newTasks = 0;
   sidebarOpen = false; // mobile drawer
   sidebarCollapsed = false; // desktop
   profileMenuOpen = false;
@@ -120,8 +125,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   constructor(
     public authService: AuthService,
-    private callTaskService: CallTaskService,
-    private taskService: TaskService,
+    private inbox: InboxService,
     private router: Router,
     public billing: BillingService,
   ) {}
@@ -129,13 +133,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.billing.refreshStatus().subscribe({ error: () => {} });
     this.authService.refreshSession().subscribe();
-    this.fetchUnreadCount();
-    this.fetchPendingTaskCount();
-    // Poll unread notification count every 15 seconds
-    this.intervalId = setInterval(() => {
-      this.fetchUnreadCount();
-      this.fetchPendingTaskCount();
-    }, 15000);
+    this.fetchNotifications();
+    // Poll the bell and sidebar counts every 15 seconds
+    this.intervalId = setInterval(() => this.fetchNotifications(), 15000);
     // Pick up permission changes made by the admin while this tab stays open.
     this.sessionIntervalId = setInterval(
       () => this.authService.refreshSession().subscribe(),
@@ -149,20 +149,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   // The navbar is only rendered inside the signed-in shell (app.html), so no login checks here.
-  fetchUnreadCount() {
-    this.callTaskService.getUnreadCount().subscribe({
-      next: (res) => (this.unreadCount = res.unreadCount || 0),
-      error: () => (this.unreadCount = 0),
+  fetchNotifications() {
+    if (!this.showNotifications) return;
+    this.inbox.summary().subscribe({
+      next: (res) => {
+        this.unreadCount = res.callTasks.pending;
+        this.pendingTaskCount = res.tasks.pending;
+        this.unseenCount = res.unseen;
+        if (!this.notificationsOpen) {
+          this.newCallTasks = res.callTasks.new;
+          this.newTasks = res.tasks.new;
+        }
+      },
+      error: () => {},
     });
   }
 
-  fetchPendingTaskCount() {
-    if (this.authService.isStaff()) {
-      this.taskService.getPendingCount().subscribe({
-        next: (res) => (this.pendingTaskCount = res.pendingCount || 0),
-        error: () => (this.pendingTaskCount = 0),
-      });
-    }
+  /** Opening the bell marks everything as seen; the list keeps showing what was new. */
+  toggleNotifications() {
+    if (this.notificationsOpen) return this.closeNotifications();
+    this.notificationsOpen = true;
+    this.profileMenuOpen = false;
+    if (!this.unseenCount) return;
+    this.unseenCount = 0;
+    this.inbox.markSeen().subscribe({ error: () => {} });
+  }
+
+  closeNotifications() {
+    this.notificationsOpen = false;
+    this.newCallTasks = 0;
+    this.newTasks = 0;
   }
 
   /** Expired, or at most 7 days left: show the renewal banner. */
@@ -216,11 +232,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** Shown to anyone who can receive call tasks or assigned tasks. */
   get showNotifications(): boolean {
     return this.authService.canOpen('/call-tasks') || this.authService.canOpen('/tasks');
-  }
-
-  /** Bell badge: open call tasks plus assigned tasks waiting for the user. */
-  get notificationCount(): number {
-    return this.unreadCount + this.pendingTaskCount;
   }
 
   badgeCount(item: NavItem): number {

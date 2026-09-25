@@ -17,6 +17,8 @@ const NguoiDungSchema = new mongoose.Schema(
     resetTokenExpires: { type: Date, default: null },
     // Lớp hành chính đang phụ trách (nhân viên CSKH); lịch sử ở LichSuPhanCong.
     managedClasses: [{ type: String }],
+    // Last time the user opened the notification bell; newer work counts as unseen.
+    notificationsSeenAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

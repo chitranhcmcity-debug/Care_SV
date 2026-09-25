@@ -93,7 +93,7 @@
     <div *ngIf="showNotifications" class="relative">
       <button
         type="button"
-        (click)="notificationsOpen = !notificationsOpen; profileMenuOpen = false"
+        (click)="toggleNotifications()"
         [attr.aria-expanded]="notificationsOpen"
         class="relative w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors"
         title="Thông báo"
@@ -113,15 +113,15 @@
           <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
         </svg>
         <span
-          *ngIf="notificationCount > 0"
+          *ngIf="unseenCount > 0"
           class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white"
         >
-          {{ notificationCount > 99 ? '99+' : notificationCount }}
+          {{ unseenCount > 99 ? '99+' : unseenCount }}
         </span>
       </button>
 
       <ng-container *ngIf="notificationsOpen">
-        <div class="fixed inset-0 z-40" (click)="notificationsOpen = false"></div>
+        <div class="fixed inset-0 z-40" (click)="closeNotifications()"></div>
         <div
           class="absolute right-0 top-[48px] z-50 w-80 bg-white rounded-xl shadow-xl border border-slate-200 p-2"
         >
@@ -129,7 +129,7 @@
           <a
             *ngIf="unreadCount > 0"
             routerLink="/call-tasks"
-            (click)="notificationsOpen = false"
+            (click)="closeNotifications()"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
           >
             <span
@@ -138,12 +138,17 @@
             >
             <span class="flex-1 text-sm text-slate-700">
               <strong class="text-slate-900">{{ unreadCount }}</strong> nhiệm vụ gọi điện chưa gọi
+              <span
+                *ngIf="newCallTasks"
+                class="ml-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"
+                >{{ newCallTasks }} mới</span
+              >
             </span>
           </a>
           <a
             *ngIf="pendingTaskCount > 0"
             routerLink="/tasks"
-            (click)="notificationsOpen = false"
+            (click)="closeNotifications()"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
           >
             <span
@@ -153,9 +158,17 @@
             <span class="flex-1 text-sm text-slate-700">
               <strong class="text-slate-900">{{ pendingTaskCount }}</strong> nhiệm vụ được giao cần
               xử lý
+              <span
+                *ngIf="newTasks"
+                class="ml-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"
+                >{{ newTasks }} mới</span
+              >
             </span>
           </a>
-          <div *ngIf="!notificationCount" class="px-3 py-6 text-center text-sm text-slate-500">
+          <div
+            *ngIf="!unreadCount && !pendingTaskCount"
+            class="px-3 py-6 text-center text-sm text-slate-500"
+          >
             Không có thông báo mới.
           </div>
         </div>
