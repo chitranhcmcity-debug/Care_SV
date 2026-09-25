@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { InboxScope, InboxService, InboxSummary } from '../../services/inbox.service';
@@ -12,7 +12,6 @@ import {
   ADMIN_CONFIG_TABS,
   ADMIN_SYSTEM_TABS,
   AdminTab,
-  DashboardTab,
   visibleDashboardTabs,
 } from '../admin-dashboard/dashboard-tabs';
 
@@ -22,25 +21,21 @@ interface NavItem {
   /** 24px stroke icon path (Tabler-style). */
   icon: string;
   badge?: 'unread' | 'pendingTasks';
-  /** Dashboard entries: the ?tab= sections listed under it (all visible tabs when omitted). */
-  tabs?: AdminTab[];
-  /** Tab the entry itself opens. */
+  /** Set on links to a dashboard section (?tab=). */
   queryParams?: { tab: AdminTab };
+}
+
+/** A titled group of sidebar links; every link has the same look. */
+interface NavSection {
+  title: string;
+  links: NavItem[];
 }
 
 const NAV_ITEMS: NavItem[] = [
   {
     path: '/admin',
     label: 'Quản trị hệ thống',
-    tabs: ADMIN_SYSTEM_TABS,
     icon: 'M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1zM15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1zM15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z',
-  },
-  {
-    path: '/admin',
-    label: 'Cấu hình hệ thống',
-    tabs: ADMIN_CONFIG_TABS,
-    queryParams: { tab: 'integrations' },
-    icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4',
   },
   {
     path: '/management',
@@ -50,7 +45,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     path: '/students',
     label: 'Hồ sơ sinh viên',
-    icon: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 11h6M19 8v6',
+    icon: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
   },
   {
     path: '/attendance',
@@ -98,7 +93,7 @@ const normalize = (text: string) =>
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './navbar.component.html',
   host: { class: 'block min-h-screen bg-white' },
 })
@@ -230,33 +225,60 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return role ? ROLE_LABELS[role] : '';
   }
 
-  /** Plain pages, then the dashboard entries with their sections. The admin lands on
-   *  "Quản trị hệ thống" (system overview first), so that group leads the list instead. */
-  get navItems(): NavItem[] {
-    const items = NAV_ITEMS.filter((item) => this.authService.canOpen(item.path));
-    const plain = items.filter((item) => !DASHBOARD_PATHS.includes(item.path));
-    const dashboards = items.filter((item) => DASHBOARD_PATHS.includes(item.path));
-    return this.authService.isAdmin()
-      ? [dashboards[0], ...plain, ...dashboards.slice(1)]
-      : [...plain, ...dashboards];
+  /** Sidebar groups, rebuilt only when the role or permissions change: *ngFor must get the
+   *  same objects on every render, or it rebuilds the links endlessly. */
+  get navSections(): NavSection[] {
+    const key = `${this.user?.role}|${this.authService.permissions()?.join(',')}`;
+    if (key !== this.sectionsKey) {
+      this.sectionsKey = key;
+      this.sections = this.buildSections();
+    }
+    return this.sections;
+  }
+  private sectionsKey = '';
+  private sections: NavSection[] = [];
+
+  private buildSections(): NavSection[] {
+    const auth = this.authService;
+    const pages = NAV_ITEMS.filter(
+      (item) => !DASHBOARD_PATHS.includes(item.path) && auth.canOpen(item.path),
+    );
+    const work = pages.filter((item) => item.path !== '/billing');
+    const billing = pages.filter((item) => item.path === '/billing');
+    const tabs = visibleDashboardTabs(auth);
+    const tabLinks = (path: string, ids?: AdminTab[]): NavItem[] =>
+      auth.canOpen(path)
+        ? tabs
+            .filter((tab) => !ids || ids.includes(tab.id))
+            .map((tab) => ({
+              path,
+              label: tab.label,
+              icon: tab.icon,
+              queryParams: { tab: tab.id },
+            }))
+        : [];
+    const sections: NavSection[] = auth.isAdmin()
+      ? [
+          { title: 'Quản trị hệ thống', links: tabLinks('/admin', ADMIN_SYSTEM_TABS) },
+          { title: 'Nghiệp vụ', links: work },
+          { title: 'Cấu hình', links: [...tabLinks('/admin', ADMIN_CONFIG_TABS), ...billing] },
+        ]
+      : [
+          { title: 'Công việc', links: [...work, ...billing] },
+          { title: 'Quản lý & báo cáo', links: tabLinks('/management') },
+        ];
+    return sections.filter((section) => section.links.length);
   }
 
-  /** Dashboard sections shown under a dashboard entry of the sidebar. */
-  tabsFor(item: NavItem): DashboardTab[] {
-    if (!DASHBOARD_PATHS.includes(item.path)) return [];
-    const tabs = visibleDashboardTabs(this.authService);
-    return item.tabs ? tabs.filter((tab) => item.tabs!.includes(tab.id)) : tabs;
-  }
-
-  /** A dashboard entry is active when the open tab is one of its sections (no ?tab= means the
-   *  dashboard's first tab); other entries match their path. */
+  /** Section links match path and ?tab= (no tab = the dashboard's first); pages match path. */
   isActive(item: NavItem): boolean {
-    const tree = this.router.parseUrl(this.router.url);
     const path = this.router.url.split(/[?#]/)[0];
     if (path !== item.path && !path.startsWith(item.path + '/')) return false;
-    if (!item.tabs) return true;
-    const tab = tree.queryParams['tab'] ?? visibleDashboardTabs(this.authService)[0]?.id;
-    return item.tabs.includes(tab);
+    if (!item.queryParams) return true;
+    const tab =
+      this.router.parseUrl(this.router.url).queryParams['tab'] ??
+      visibleDashboardTabs(this.authService)[0]?.id;
+    return item.queryParams.tab === tab;
   }
 
   /** Shown to anyone who can receive call tasks or assigned tasks. */
@@ -283,7 +305,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   get searchResults(): NavItem[] {
     const term = normalize(this.searchTerm);
-    return term ? this.navItems.filter((item) => normalize(item.label).includes(term)) : [];
+    return term
+      ? this.navSections
+          .flatMap((section) => section.links)
+          .filter((item) => normalize(item.label).includes(term))
+      : [];
   }
 
   goTo(item: NavItem | undefined) {

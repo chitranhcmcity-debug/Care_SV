@@ -255,19 +255,29 @@
     <!-- Brand (mobile drawer only; desktop brand lives in the header) -->
     <div class="md:hidden h-20 px-6 flex items-center gap-2.5">
       <img [src]="branding.logo()" alt="Logo ITC" width="36" height="36" class="object-contain" />
-      <span class="font-bold text-lg text-slate-900">{{ branding.title() }}</span>
+      <span class="font-bold text-base leading-tight text-slate-900 line-clamp-2">{{
+        branding.title()
+      }}</span>
     </div>
 
-    <nav class="flex-1 overflow-y-auto px-4 pb-4">
-      <div class="px-3 pt-2 pb-3 text-sm font-medium text-slate-900">Điều hướng</div>
-      <div class="space-y-1">
-        <ng-container *ngFor="let item of navItems">
+    <nav class="nav-scroll flex-1 overflow-y-auto px-4 pb-4" aria-label="Điều hướng chính">
+      <div *ngFor="let section of navSections" class="pt-3 first:pt-1">
+        <div class="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          {{ section.title }}
+        </div>
+        <div class="space-y-0.5">
           <a
+            *ngFor="let item of section.links"
             [routerLink]="item.path"
             [queryParams]="item.queryParams"
-            [ngClass]="isActive(item) ? '!bg-violet-50 !text-violet-600 font-medium' : ''"
+            [ngClass]="
+              isActive(item)
+                ? 'bg-violet-50 text-violet-600 font-medium'
+                : 'text-slate-700 hover:bg-slate-50 hover:text-violet-600'
+            "
+            [attr.aria-current]="isActive(item) ? 'page' : null"
             (click)="closeSidebar()"
-            class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+            class="flex items-center gap-3 h-10 px-3 rounded-lg text-sm transition-colors"
           >
             <svg
               class="w-5 h-5 shrink-0"
@@ -280,76 +290,30 @@
             >
               <path [attr.d]="item.icon" />
             </svg>
-            <span class="flex-1">{{ item.label }}</span>
+            <span class="flex-1 truncate">{{ item.label }}</span>
             <span
               *ngIf="badgeCount(item) > 0"
-              class="min-w-[22px] h-[22px] px-1.5 rounded-full bg-violet-600 text-white text-xs font-semibold flex items-center justify-center"
+              class="min-w-[20px] h-5 px-1.5 rounded-full bg-violet-600 text-white text-[11px] font-semibold flex items-center justify-center"
             >
               {{ badgeCount(item) }}
             </span>
           </a>
-          <!-- Dashboard sections (formerly the tab bar), one link per ?tab= -->
-          <div
-            *ngIf="tabsFor(item) as tabs"
-            class="ml-6 pl-3 border-l border-slate-200 space-y-0.5"
-            [class.hidden]="!tabs.length"
-          >
-            <a
-              *ngFor="let tab of tabs"
-              [routerLink]="item.path"
-              [queryParams]="{ tab: tab.id }"
-              routerLinkActive="!bg-violet-50 !text-violet-600 font-semibold"
-              [routerLinkActiveOptions]="{
-                paths: 'exact',
-                queryParams: 'exact',
-                matrixParams: 'ignored',
-                fragment: 'ignored',
-              }"
-              (click)="closeSidebar()"
-              class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] text-slate-600 hover:bg-violet-50 hover:text-violet-600 transition-colors"
-            >
-              <svg
-                class="w-[18px] h-[18px] shrink-0"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path [attr.d]="tab.icon" />
-              </svg>
-              <span>{{ tab.label }}</span>
-            </a>
-          </div>
-        </ng-container>
+        </div>
       </div>
-      <div class="h-px bg-slate-200 mx-3 my-4"></div>
     </nav>
 
-    <!-- Info card (Berry sidebar card) -->
-    <div class="mx-4 mb-5 p-4 rounded-xl bg-blue-50 relative overflow-hidden">
-      <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-blue-200/60"></div>
-      <div class="absolute -top-14 right-6 w-24 h-24 rounded-full bg-blue-100"></div>
-      <div class="relative flex items-center gap-3">
-        <span
-          class="w-11 h-11 rounded-lg bg-white text-blue-500 flex items-center justify-center shrink-0"
-        >
-          <svg
-            class="w-6 h-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path d="M22 10 12 5 2 10l10 5 10-5z" stroke-linejoin="round" />
-            <path d="M6 12v5c3 2 9 2 12 0v-5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-        <div class="min-w-0">
-          <div class="text-sm font-medium text-blue-800 truncate">{{ user?.fullName }}</div>
-          <div class="text-xs text-slate-500">{{ roleLabel }}</div>
-        </div>
+    <!-- Signed-in user -->
+    <div
+      class="mx-4 mb-4 mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3"
+    >
+      <span
+        class="w-9 h-9 rounded-lg bg-violet-100 text-violet-700 font-semibold flex items-center justify-center shrink-0"
+        aria-hidden="true"
+        >{{ userInitial }}</span
+      >
+      <div class="min-w-0">
+        <div class="text-sm font-medium text-slate-900 truncate">{{ user?.fullName }}</div>
+        <div class="text-xs text-slate-500 truncate">{{ roleLabel }}</div>
       </div>
     </div>
   </aside>

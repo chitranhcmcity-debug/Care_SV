@@ -213,6 +213,15 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+/* Sidebar: thin scrollbar that only shows on hover. */
+.nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.nav-scroll:hover {
+  scrollbar-color: #cdd5df transparent;
+}
+
 /* Tailwind (built at compile time; theme in tailwind.config.js). Kept last so utilities
    win over the base rules above, as with the former CDN script. */
 @tailwind base;
