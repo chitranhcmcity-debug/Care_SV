@@ -89,34 +89,84 @@
   </div>
 
   <div class="ml-auto flex items-center gap-3">
-    <!-- Notifications -->
-    <a
-      *ngIf="authService.canOpen('/call-tasks')"
-      routerLink="/call-tasks"
-      class="relative w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors"
-      title="Thông báo nhiệm vụ gọi điện"
-      aria-label="Thông báo"
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path
-          d="M10 5a2 2 0 1 1 4 0 7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6"
-          stroke-linejoin="round"
-        />
-        <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
-      </svg>
-      <span
-        *ngIf="unreadCount > 0"
-        class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white"
+    <!-- Notifications: open call tasks + assigned tasks waiting for the user -->
+    <div *ngIf="showNotifications" class="relative">
+      <button
+        type="button"
+        (click)="notificationsOpen = !notificationsOpen; profileMenuOpen = false"
+        [attr.aria-expanded]="notificationsOpen"
+        class="relative w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors"
+        title="Thông báo"
+        aria-label="Thông báo"
       >
-        {{ unreadCount > 99 ? '99+' : unreadCount }}
-      </span>
-    </a>
+        <svg
+          class="w-5 h-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <path
+            d="M10 5a2 2 0 1 1 4 0 7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6"
+            stroke-linejoin="round"
+          />
+          <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+        </svg>
+        <span
+          *ngIf="notificationCount > 0"
+          class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white"
+        >
+          {{ notificationCount > 99 ? '99+' : notificationCount }}
+        </span>
+      </button>
+
+      <ng-container *ngIf="notificationsOpen">
+        <div class="fixed inset-0 z-40" (click)="notificationsOpen = false"></div>
+        <div
+          class="absolute right-0 top-[48px] z-50 w-80 bg-white rounded-xl shadow-xl border border-slate-200 p-2"
+        >
+          <div class="px-3 py-2 text-sm font-semibold text-slate-900">Thông báo</div>
+          <a
+            *ngIf="unreadCount > 0"
+            routerLink="/call-tasks"
+            (click)="notificationsOpen = false"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
+          >
+            <span
+              class="w-9 h-9 shrink-0 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center"
+              >📞</span
+            >
+            <span class="flex-1 text-sm text-slate-700">
+              <strong class="text-slate-900">{{ unreadCount }}</strong> nhiệm vụ gọi điện chưa gọi
+            </span>
+          </a>
+          <a
+            *ngIf="pendingTaskCount > 0"
+            routerLink="/tasks"
+            (click)="notificationsOpen = false"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
+          >
+            <span
+              class="w-9 h-9 shrink-0 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center"
+              >📋</span
+            >
+            <span class="flex-1 text-sm text-slate-700">
+              <strong class="text-slate-900">{{ pendingTaskCount }}</strong> nhiệm vụ được giao cần
+              xử lý
+            </span>
+          </a>
+          <div *ngIf="!notificationCount" class="px-3 py-6 text-center text-sm text-slate-500">
+            Không có thông báo mới.
+          </div>
+        </div>
+      </ng-container>
+    </div>
 
     <!-- Profile chip + menu -->
     <div class="relative">
       <button
         type="button"
-        (click)="profileMenuOpen = !profileMenuOpen"
+        (click)="profileMenuOpen = !profileMenuOpen; notificationsOpen = false"
         [attr.aria-expanded]="profileMenuOpen"
         aria-label="Tài khoản"
         class="group flex items-center gap-2 h-12 pl-1.5 pr-3 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors"

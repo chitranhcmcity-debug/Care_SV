@@ -110,6 +110,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   sidebarOpen = false; // mobile drawer
   sidebarCollapsed = false; // desktop
   profileMenuOpen = false;
+  notificationsOpen = false;
   searchTerm = '';
   get todayLabel(): string {
     return new Date().toLocaleDateString('vi-VN');
@@ -210,6 +211,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!item.tabs) return true;
     const tab = tree.queryParams['tab'] ?? visibleDashboardTabs(this.authService)[0]?.id;
     return item.tabs.includes(tab);
+  }
+
+  /** Shown to anyone who can receive call tasks or assigned tasks. */
+  get showNotifications(): boolean {
+    return this.authService.canOpen('/call-tasks') || this.authService.canOpen('/tasks');
+  }
+
+  /** Bell badge: open call tasks plus assigned tasks waiting for the user. */
+  get notificationCount(): number {
+    return this.unreadCount + this.pendingTaskCount;
   }
 
   badgeCount(item: NavItem): number {
