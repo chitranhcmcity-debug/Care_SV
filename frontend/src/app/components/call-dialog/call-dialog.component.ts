@@ -1,4 +1,4 @@
-import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -100,14 +100,6 @@ export class CallDialogComponent implements OnDestroy {
     effect(() => {
       const req = this.request();
       if (!req) return;
-      this.calls.config().subscribe({
-        next: (c) => {
-          this.stringeeAvailable.set(c.stringee);
-          // Prefer the real switchboard call (recorded) whenever the server supports it.
-          if (c.stringee && this.step() === 'setup') this.method.set('stringee');
-        },
-        error: () => this.stringeeAvailable.set(false),
-      });
       this.step.set('setup');
       this.target.set(req.target ?? (req.student.phone ? 'sinh_vien' : 'phu_huynh'));
       this.method.set('dien_thoai');
@@ -117,6 +109,17 @@ export class CallDialogComponent implements OnDestroy {
       this.outcome = '';
       this.note = '';
       this.recordingFile = null;
+      // After the reset above: the cached config answers synchronously on later opens.
+      untracked(() =>
+        this.calls.config().subscribe({
+          next: (c) => {
+            this.stringeeAvailable.set(c.stringee);
+            // Prefer the real switchboard call (recorded) whenever the server supports it.
+            if (c.stringee && this.step() === 'setup') this.method.set('stringee');
+          },
+          error: () => this.stringeeAvailable.set(false),
+        }),
+      );
     });
   }
 

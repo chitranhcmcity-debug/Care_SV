@@ -31,6 +31,24 @@ describe('Call dialog access', () => {
     expect(fixture.componentInstance.stringeeAvailable()).toBe(true);
   });
 
+  it('keeps the switchboard selected when the dialog is opened again', () => {
+    const fixture = TestBed.createComponent(CallDialogComponent);
+    const dialog = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    const student = { _id: 'student', fullName: 'Student', phone: '0912345678' };
+    dialog.calls.open({ student });
+    fixture.detectChanges();
+    http.expectOne('/api/calls/config').flush({ stringee: true, hotline: '02873001234' });
+    expect(dialog.method()).toBe('stringee');
+    dialog.calls.close();
+    fixture.detectChanges();
+    // Second open: the cached config answers synchronously.
+    dialog.calls.open({ student });
+    fixture.detectChanges();
+    http.expectNone('/api/calls/config');
+    expect(dialog.method()).toBe('stringee');
+  });
+
   it('explains admin access and prevents submitting a call', () => {
     const auth = TestBed.inject(AuthService);
     auth.currentUser.set({
