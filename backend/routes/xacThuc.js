@@ -6,8 +6,10 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const NguoiDung = require('../models/NguoiDung');
-const { OPEN_CALL_STATUSES, ROLE_LABEL } = require('../utils/hangSo');
+const { ROLE_LABEL } = require('../utils/hangSo');
 const { verifyToken, requireAdmin, requireSignedIn } = require('../middleware/xacThuc');
+const { permissionsForRole } = require('../services/dichVuPhanQuyen');
+const { releaseStaffClasses } = require('../services/dichVuPhanCongLop');
 const {
   sendAccountEmail,
   sendVerificationEmail,
@@ -103,10 +105,18 @@ router.post('/login', async (req, res, next) => {
         role: user.role,
         status: user.status,
       },
+      permissions: await permissionsForRole(user.role),
     });
   } catch (error) {
     next(error);
   }
+});
+
+// GET /api/auth/me — the signed-in user and their current permissions, so the UI picks up
+// changes an admin makes to the permission matrix without signing in again.
+router.get('/me', verifyToken, requireSignedIn, (req, res) => {
+  const { id, fullName, email, role, status, permissions } = req.user;
+  res.json({ user: { id, fullName, email, role, status }, permissions });
 });
 
 // POST /api/auth/register (Public) — self sign-up for teachers and staff only.
@@ -344,7 +354,12 @@ router.put('/staff/:id', verifyToken, requireAdmin, async (req, res, next) => {
     }
 
     if (fullName) user.fullName = fullName.trim();
-    if (ASSIGNABLE_ROLES.includes(role)) user.role = role;
+    if (ASSIGNABLE_ROLES.includes(role) && role !== user.role) {
+      if (user.role === 'staff')
+        await releaseStaffClasses(user, req.user.id, 'Đổi vai trò tài khoản');
+      user.role = role;
+      user.managedClasses = [];
+    }
     if (email) {
       const existing = await NguoiDung.findOne({
         email: email.toLowerCase().trim(),
@@ -419,6 +434,8 @@ router.put('/staff/:id/status', verifyToken, requireAdmin, async (req, res, next
     if (!updated) {
       return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
     }
+    if (updated.role === 'staff' && status === 'inactive')
+      await releaseStaffClasses(updated, req.user.id, 'Tài khoản nhân viên bị khóa');
 
     res.json({ message: 'Cập nhật trạng thái thành công', staff: updated });
   } catch (error) {
@@ -438,14 +455,8 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) =>
     }
 
     if (user.role === 'staff') {
-      // Open call tasks would otherwise keep pointing at a deleted user: invisible in
-      // "my-tasks" (no one to own them) yet stuck for any other staff to pick up.
-      // Hand them to the admin performing the deletion, same as a manual handover.
-      const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
-      await NhiemVuGoiDien.updateMany(
-        { assignedStaffId: user._id, status: { $in: OPEN_CALL_STATUSES } },
-        { assignedStaffId: req.user.id },
-      );
+      // Their classes are released (history kept) and open call tasks go to the manager's queue.
+      await releaseStaffClasses(user, req.user.id, 'Tài khoản nhân viên bị xóa');
     } else if (user.role === 'teacher') {
       // Course groups taught by this teacher would otherwise keep a dangling teacherId.
       const NhomHocPhan = require('../models/NhomHocPhan');
@@ -459,176 +470,6 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) =>
   }
 });
 
-// GET /api/auth/class-assignments (Admin/Staff: Get staff class & student assignments + all available classes & students)
-router.get('/class-assignments', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const SinhVien = require('../models/SinhVien');
-    const staffs = await NguoiDung.find({ role: 'staff' })
-      .select('fullName email status managedClasses managedStudents')
-      .populate('managedStudents', 'studentCode fullName classCode major')
-      .sort({ fullName: 1 });
-
-    const availableClasses = await SinhVien.distinct('classCode');
-    const allStudents = await SinhVien.find()
-      .select('studentCode fullName classCode major')
-      .sort({ studentCode: 1 });
-
-    res.json({
-      staffs,
-      availableClasses: availableClasses.filter(Boolean).sort(),
-      allStudents,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// PUT /api/auth/staff/:id/managed-classes (Admin: Assign fixed home classes to a staff member)
-router.put('/staff/:id/managed-classes', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const { managedClasses } = req.body;
-    if (!Array.isArray(managedClasses)) {
-      return res.status(400).json({ message: 'Danh sách lớp phải là một mảng' });
-    }
-
-    const staff = await NguoiDung.findById(req.params.id);
-    if (!staff || staff.role !== 'staff') {
-      return res.status(404).json({ message: 'Không tìm thấy tài khoản nhân viên' });
-    }
-
-    staff.managedClasses = managedClasses.map((c) => String(c).trim().toUpperCase());
-    await staff.save();
-
-    const updatedStaff = await NguoiDung.findById(staff._id)
-      .select('fullName email status managedClasses managedStudents')
-      .populate('managedStudents', 'studentCode fullName classCode major');
-
-    res.json({
-      message: `Đã gán ${staff.managedClasses.length} lớp sinh hoạt cố định cho ${staff.fullName}!`,
-      staff: updatedStaff,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// PUT /api/auth/staff/:id/managed-students (Admin: Assign individual exception students to a staff member)
-router.put('/staff/:id/managed-students', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const { managedStudentIds } = req.body;
-    if (!Array.isArray(managedStudentIds)) {
-      return res.status(400).json({ message: 'Danh sách sinh viên phải là một mảng' });
-    }
-
-    const staff = await NguoiDung.findById(req.params.id);
-    if (!staff || staff.role !== 'staff') {
-      return res.status(404).json({ message: 'Không tìm thấy tài khoản nhân viên' });
-    }
-
-    staff.managedStudents = managedStudentIds;
-    await staff.save();
-
-    const updatedStaff = await NguoiDung.findById(staff._id)
-      .select('fullName email status managedClasses managedStudents')
-      .populate('managedStudents', 'studentCode fullName classCode major');
-
-    res.json({
-      message: `Đã gán ${staff.managedStudents.length} sinh viên ngoại lệ cá nhân cho ${staff.fullName}!`,
-      staff: updatedStaff,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// POST /api/auth/transfer-classes (Admin: Handover / Transfer managed classes & open call tasks from Staff A to Staff B)
-router.post('/transfer-classes', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const { fromStaffId, toStaffId, classCodes } = req.body;
-
-    if (!fromStaffId || !toStaffId) {
-      return res
-        .status(400)
-        .json({ message: 'Vui lòng chọn Nhân viên chuyển giao và Nhân viên tiếp nhận' });
-    }
-    if (fromStaffId === toStaffId) {
-      return res.status(400).json({ message: 'Nhân viên chuyển giao và tiếp nhận phải khác nhau' });
-    }
-
-    const fromStaff = await NguoiDung.findById(fromStaffId);
-    const toStaff = await NguoiDung.findById(toStaffId);
-
-    if (!fromStaff || !toStaff) {
-      return res.status(404).json({ message: 'Không tìm thấy thông tin nhân viên' });
-    }
-
-    assert(
-      fromStaff.role === 'staff' && toStaff.role === 'staff' && toStaff.status === 'active',
-      'Select active staff for handover',
-    );
-    const classesToTransfer =
-      Array.isArray(classCodes) && classCodes.length > 0
-        ? classCodes.map((c) => String(c).trim().toUpperCase())
-        : fromStaff.managedClasses || [];
-
-    assert(
-      classesToTransfer.every((code) => fromStaff.managedClasses.includes(code)),
-      'Source staff does not manage these classes',
-    );
-    if (classesToTransfer.length === 0) {
-      return res.status(400).json({ message: 'Không có lớp nào để bàn giao' });
-    }
-
-    // Update managedClasses for fromStaff and toStaff
-    fromStaff.managedClasses = (fromStaff.managedClasses || []).filter(
-      (c) => !classesToTransfer.includes(c),
-    );
-    const newToClasses = new Set([...(toStaff.managedClasses || []), ...classesToTransfer]);
-    toStaff.managedClasses = Array.from(newToClasses);
-
-    await fromStaff.save();
-    await toStaff.save();
-
-    // Reassign open CallTasks belonging to students of these classes
-    const SinhVien = require('../models/SinhVien');
-    const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
-
-    const studentsInClasses = await SinhVien.find({ classCode: { $in: classesToTransfer } }).select(
-      '_id',
-    );
-    const studentIds = studentsInClasses.map((s) => s._id);
-
-    let reassignedTaskCount = 0;
-    if (studentIds.length > 0) {
-      const updateResult = await NhiemVuGoiDien.updateMany(
-        {
-          assignedStaffId: fromStaff._id,
-          studentId: { $in: studentIds },
-          status: { $in: OPEN_CALL_STATUSES },
-        },
-        { assignedStaffId: toStaff._id },
-      );
-      reassignedTaskCount = updateResult.modifiedCount || 0;
-    }
-
-    res.json({
-      message: `🔄 Bàn giao thành công ${classesToTransfer.length} lớp (${classesToTransfer.join(', ')}) và ${reassignedTaskCount} nhiệm vụ cuộc gọi chưa xong từ ${fromStaff.fullName} sang ${toStaff.fullName}!`,
-      transferredClasses: classesToTransfer,
-      reassignedTaskCount,
-      fromStaff: {
-        _id: fromStaff._id,
-        fullName: fromStaff.fullName,
-        managedClasses: fromStaff.managedClasses,
-      },
-      toStaff: {
-        _id: toStaff._id,
-        fullName: toStaff.fullName,
-        managedClasses: toStaff.managedClasses,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// Phân lớp phụ trách cho nhân viên CSKH: xem routes/phanCongLop.js (/api/class-assignments).
 
 module.exports = router;

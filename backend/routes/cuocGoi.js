@@ -9,10 +9,10 @@ const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const stringee = require('../services/dichVuStringee');
-const { verifyToken, requireSignedIn } = require('../middleware/xacThuc');
+const { verifyToken, requireSignedIn, requireOperator } = require('../middleware/xacThuc');
 const { canAccessStudent } = require('../middleware/phanQuyen');
 const { assert, validateId } = require('../utils/kiemTra');
-const { isManagement } = require('../utils/hangSo');
+const { can } = require('../services/dichVuPhanQuyen');
 const { getAppUrl } = require('../utils/moiTruong');
 
 // ---- Recordings live on disk and are only served through the authenticated route below.
@@ -66,15 +66,14 @@ const callPopulation = [
   { path: 'courseGroupId', select: 'groupCode courseName' },
 ];
 
-/** Loads :id; readers are the caller and management, writers only the caller (or admin). */
+/** Loads :id; readers are the caller and holders of callTasks.viewAll, writers only the caller. */
 const loadCall = (mode) => async (req, res, next) => {
   try {
     validateId(req.params.id);
     const call = await CuocGoi.findById(req.params.id);
     assert(call, 'Không tìm thấy cuộc gọi', 404);
     const isCaller = String(call.callerId) === req.user.id;
-    const allowed =
-      mode === 'read' ? isCaller || isManagement(req.user) : isCaller || req.user.role === 'admin';
+    const allowed = mode === 'read' ? isCaller || can(req.user, 'callTasks.viewAll') : isCaller;
     assert(allowed, 'Bạn không có quyền với cuộc gọi này', 403);
     req.call = call;
     next();
@@ -131,7 +130,7 @@ router.get('/config', (req, res) => {
 
 // POST /api/calls — start a call to a student or their parent; returns the number to dial
 // (and a Stringee client token when calling through the switchboard).
-router.post('/', async (req, res, next) => {
+router.post('/', requireOperator, async (req, res, next) => {
   try {
     const { studentId, target, method, callTaskId, courseGroupId } = req.body ?? {};
     validateId(studentId);
@@ -298,7 +297,7 @@ router.get('/', async (req, res, next) => {
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
     const page = Math.max(Number(req.query.page) || 1, 1);
     const filter = {};
-    if (!isManagement(req.user)) filter.callerId = req.user.id;
+    if (!can(req.user, 'callTasks.viewAll')) filter.callerId = req.user.id;
     else if (callerId) {
       validateId(callerId);
       filter.callerId = callerId;

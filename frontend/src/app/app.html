@@ -3,6 +3,9 @@
   <router-outlet></router-outlet>
 </app-navbar>
 
+<!-- AI Care assistant (signed-in pages only; tools depend on role) -->
+<app-ai-care *ngIf="showDashboard"></app-ai-care>
+
 <!-- Public pages (home, login): full-width, no app shell -->
 <ng-template #publicShell>
   <div class="min-h-screen bg-slate-50 text-slate-900 font-sans">

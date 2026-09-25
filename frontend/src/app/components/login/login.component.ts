@@ -1,10 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit, isDevMode } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, isDevMode, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { ROLE_HOME } from '../../models/types';
+import { BrandingService } from '../../services/branding.service';
 
 // Local development accounts. Only fill the username; the password is entered manually.
 const DEMO_ACCOUNTS = [
@@ -13,6 +13,12 @@ const DEMO_ACCOUNTS = [
     label: 'Quản trị viên',
     initial: 'QT',
     tone: 'bg-blue-100 text-blue-600',
+  },
+  {
+    email: 'manager',
+    label: 'Trưởng phòng / Phó hiệu trưởng',
+    initial: 'QL',
+    tone: 'bg-violet-100 text-violet-600',
   },
   {
     email: 'staff',
@@ -40,6 +46,8 @@ const MIN_PASSWORD_LENGTH = 8;
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnInit {
+  protected readonly branding = inject(BrandingService);
+
   mode: AuthMode = 'login';
   readonly minPasswordLength = MIN_PASSWORD_LENGTH;
 
@@ -180,7 +188,6 @@ export class LoginComponent implements OnInit {
   }
 
   private redirectByUserRole() {
-    const role = this.authService.currentUser()?.role;
-    this.router.navigate([(role && ROLE_HOME[role]) || '/login']);
+    this.router.navigate([this.authService.homePath()]);
   }
 }

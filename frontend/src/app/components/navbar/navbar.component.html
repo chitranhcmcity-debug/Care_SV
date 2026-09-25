@@ -2,8 +2,8 @@
 <header class="sticky top-0 z-40 h-20 bg-white flex items-center gap-3 md:gap-4 px-4 md:px-6">
   <!-- Brand -->
   <a routerLink="/" class="hidden md:flex items-center gap-2.5 w-[228px] shrink-0">
-    <img src="logo_truong.png" alt="Logo ITC" width="40" height="40" class="object-contain" />
-    <span class="font-bold text-lg text-slate-900 tracking-tight">ITC CARE</span>
+    <img [src]="branding.logo()" alt="Logo ITC" width="40" height="40" class="object-contain" />
+    <span class="font-bold text-lg text-slate-900 tracking-tight">{{ branding.title() }}</span>
   </a>
 
   <!-- Menu toggle -->
@@ -91,7 +91,7 @@
   <div class="ml-auto flex items-center gap-3">
     <!-- Notifications -->
     <a
-      *ngIf="authService.isAdmin() || authService.isStaff()"
+      *ngIf="authService.canOpen('/call-tasks')"
       routerLink="/call-tasks"
       class="relative w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors"
       title="Thông báo nhiệm vụ gọi điện"
@@ -191,39 +191,74 @@
   >
     <!-- Brand (mobile drawer only; desktop brand lives in the header) -->
     <div class="md:hidden h-20 px-6 flex items-center gap-2.5">
-      <img src="logo_truong.png" alt="Logo ITC" width="36" height="36" class="object-contain" />
-      <span class="font-bold text-lg text-slate-900">ITC CARE</span>
+      <img [src]="branding.logo()" alt="Logo ITC" width="36" height="36" class="object-contain" />
+      <span class="font-bold text-lg text-slate-900">{{ branding.title() }}</span>
     </div>
 
     <nav class="flex-1 overflow-y-auto px-4 pb-4">
       <div class="px-3 pt-2 pb-3 text-sm font-medium text-slate-900">Điều hướng</div>
       <div class="space-y-1">
-        <a
-          *ngFor="let item of navItems"
-          [routerLink]="item.path"
-          routerLinkActive="!bg-violet-50 !text-violet-600 font-medium"
-          (click)="closeSidebar()"
-          class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
-        >
-          <svg
-            class="w-5 h-5 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+        <ng-container *ngFor="let item of navItems">
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="!bg-violet-50 !text-violet-600 font-medium"
+            (click)="closeSidebar()"
+            class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
           >
-            <path [attr.d]="item.icon" />
-          </svg>
-          <span class="flex-1">{{ item.label }}</span>
-          <span
-            *ngIf="badgeCount(item) > 0"
-            class="min-w-[22px] h-[22px] px-1.5 rounded-full bg-violet-600 text-white text-xs font-semibold flex items-center justify-center"
+            <svg
+              class="w-5 h-5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path [attr.d]="item.icon" />
+            </svg>
+            <span class="flex-1">{{ item.label }}</span>
+            <span
+              *ngIf="badgeCount(item) > 0"
+              class="min-w-[22px] h-[22px] px-1.5 rounded-full bg-violet-600 text-white text-xs font-semibold flex items-center justify-center"
+            >
+              {{ badgeCount(item) }}
+            </span>
+          </a>
+          <!-- Dashboard sections (formerly the tab bar), one link per ?tab= -->
+          <div
+            *ngIf="tabsFor(item) as tabs"
+            class="ml-6 pl-3 border-l border-slate-200 space-y-0.5"
+            [class.hidden]="!tabs.length"
           >
-            {{ badgeCount(item) }}
-          </span>
-        </a>
+            <a
+              *ngFor="let tab of tabs"
+              [routerLink]="item.path"
+              [queryParams]="{ tab: tab.id }"
+              routerLinkActive="!bg-violet-50 !text-violet-600 font-semibold"
+              [routerLinkActiveOptions]="{
+                paths: 'exact',
+                queryParams: 'exact',
+                matrixParams: 'ignored',
+                fragment: 'ignored',
+              }"
+              (click)="closeSidebar()"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] text-slate-600 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+            >
+              <svg
+                class="w-[18px] h-[18px] shrink-0"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="tab.icon" />
+              </svg>
+              <span>{{ tab.label }}</span>
+            </a>
+          </div>
+        </ng-container>
       </div>
       <div class="h-px bg-slate-200 mx-3 my-4"></div>
     </nav>

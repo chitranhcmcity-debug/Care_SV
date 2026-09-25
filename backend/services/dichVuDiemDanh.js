@@ -1,29 +1,14 @@
-const { CALL_STATUS, OPEN_CALL_STATUSES } = require('../utils/hangSo');
+const { CALL_STATUS } = require('../utils/hangSo');
 const DiemDanh = require('../models/DiemDanh');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const SinhVien = require('../models/SinhVien');
-const NguoiDung = require('../models/NguoiDung');
-const CaiDatHeThong = require('../models/CaiDatHeThong');
-const ConTroXoayVong = require('../models/ConTroXoayVong');
+const { staffForClass } = require('./dichVuPhanCongLop');
 const { validateAttendance, dayBounds, dateKey } = require('../utils/kiemTra');
 
 // Serialize edits to the same session in this process. The unique session index
 // additionally prevents duplicate records across multiple server processes.
 const pending = new Map();
 
-// Persisted, atomically-incremented cursor so round-robin actually rotates across
-// separate saveAttendance calls (and processes), instead of restarting at staff[0]
-// every time because it indexed by position within that session's absentee list.
-// Reserves `count` consecutive seats in one write and returns the first one.
-async function reserveRoundRobinSeats(count) {
-  if (!count) return 0;
-  const updated = await ConTroXoayVong.findOneAndUpdate(
-    { _id: 'callTaskAssignment' },
-    { $inc: { value: count } },
-    { upsert: true, returnDocument: 'after' },
-  );
-  return updated.value - count;
-}
 async function withSessionLock(key, operation) {
   const previous = pending.get(key) || Promise.resolve();
   const current = previous.catch(() => {}).then(operation);
@@ -71,57 +56,30 @@ async function saveAttendance({
     const existing = await NhiemVuGoiDien.find(tasksFilter).select('studentId');
     const assigned = new Set(existing.map((task) => String(task.studentId)));
     const missing = absentStudentIds.filter((id) => !assigned.has(id));
-    const settings = await CaiDatHeThong.findOne();
-    const rule = settings?.taskAssignmentRule || 'round-robin';
-    let staff = await NguoiDung.find({
-      role: rule === 'admin-only' ? 'admin' : 'staff',
-      status: 'active',
-    }).sort({ _id: 1 });
-    if (!staff.length)
-      staff = await NguoiDung.find({ role: 'admin', status: 'active' }).sort({ _id: 1 });
+    // Each absent student's call goes to the staff member currently responsible for their
+    // administrative class; classes without one go to the manager's queue (assignedStaffId null).
     const assignments = [];
-    if (staff.length && missing.length) {
+    if (missing.length) {
       const students = await SinhVien.find({ _id: { $in: missing } });
-      const studentMap = new Map(students.map((student) => [String(student._id), student]));
-      const loads = new Map(
-        await Promise.all(
-          staff.map(async (member) => [
-            String(member._id),
-            await NhiemVuGoiDien.countDocuments({
-              assignedStaffId: member._id,
-              status: { $in: OPEN_CALL_STATUSES },
-            }),
-          ]),
-        ),
-      );
-      const managers = new Map(
-        missing.map((studentId) => {
-          const classCode = studentMap.get(studentId).classCode.trim().toUpperCase();
-          const manager =
-            staff.find((person) => person.managedStudents.some((id) => String(id) === studentId)) ||
-            staff.find((person) => person.managedClasses.includes(classCode));
-          return [studentId, manager];
-        }),
-      );
-      let seat =
-        rule === 'least-tasks'
-          ? 0
-          : await reserveRoundRobinSeats(missing.filter((id) => !managers.get(id)).length);
-      for (const studentId of missing) {
-        const student = studentMap.get(studentId);
-        const member =
-          managers.get(studentId) ||
-          (rule === 'least-tasks'
-            ? staff.reduce((least, candidate) =>
-                loads.get(String(candidate._id)) < loads.get(String(least._id)) ? candidate : least,
-              )
-            : staff[seat++ % staff.length]);
+      const owners = new Map();
+      for (const student of students) {
+        const code = String(student.classCode || '')
+          .trim()
+          .toUpperCase();
+        if (!owners.has(code)) owners.set(code, await staffForClass(code));
+      }
+      for (const student of students) {
+        const owner = owners.get(
+          String(student.classCode || '')
+            .trim()
+            .toUpperCase(),
+        );
         const task = await NhiemVuGoiDien.updateOne(
-          { attendanceId: attendance._id, studentId },
+          { attendanceId: attendance._id, studentId: student._id },
           {
             $setOnInsert: {
               courseGroupId: group._id,
-              assignedStaffId: member._id,
+              assignedStaffId: owner ? owner._id : null,
               absenceDate: bounds.date,
               status: CALL_STATUS.PENDING,
               callNote: '',
@@ -130,15 +88,14 @@ async function saveAttendance({
           },
           { upsert: true, runValidators: true },
         );
-        if (task.upsertedCount) {
-          loads.set(String(member._id), loads.get(String(member._id)) + 1);
+        if (task.upsertedCount)
           assignments.push({
-            staffName: member.fullName,
+            staffName: owner ? owner.fullName : 'Hàng chờ Trưởng phòng (lớp chưa phân công)',
+            unassigned: !owner,
             studentName: student.fullName,
             studentCode: student.studentCode,
             classCode: student.classCode,
           });
-        }
       }
     }
     return {

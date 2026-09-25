@@ -6,13 +6,30 @@ export const ROLE_LABELS: Record<Role, string> = {
   staff: 'Nhân viên CSKH',
   teacher: 'Giảng viên',
 };
-/** Landing page after sign-in for each role. */
-export const ROLE_HOME: Record<Role, string> = {
-  admin: '/admin',
-  manager: '/management',
-  staff: '/call-tasks',
-  teacher: '/attendance',
-};
+/** Permission keys an admin can grant per role (mirrors PERMISSIONS in backend/utils/hangSo.js).
+ *  The admin itself holds a fixed view-only set (ADMIN_PERMISSIONS in the backend). */
+export type Permission =
+  | 'students.view'
+  | 'attendance.take'
+  | 'attendance.override'
+  | 'courses.manage'
+  | 'excel.import'
+  | 'callTasks.update'
+  | 'callTasks.viewAll'
+  | 'classes.assign'
+  | 'warnings.configure'
+  | 'tasks.manage'
+  | 'reports.view'
+  | 'ai.chat';
+export type ConfigurableRole = Exclude<Role, 'admin'>;
+export type PermissionMatrix = Record<ConfigurableRole, Permission[]>;
+
+export interface PermissionConfig {
+  permissions: { key: Permission; group: string; label: string; description: string }[];
+  roles: { role: ConfigurableRole; label: string }[];
+  defaults: PermissionMatrix;
+  matrix: PermissionMatrix;
+}
 
 export interface User {
   id?: string;
@@ -22,7 +39,6 @@ export interface User {
   role: Role;
   status: 'active' | 'inactive' | 'unverified';
   managedClasses?: string[];
-  managedStudents?: (Student | string)[];
 }
 
 export interface Student {
@@ -47,6 +63,12 @@ export interface CourseGroup {
   shift?: Shift;
   scheduleDays?: Weekday[];
   room?: string;
+  /** HH:mm; empty = default hours of the shift. */
+  startTime?: string;
+  endTime?: string;
+  /** 0 = default / computed from the schedule. */
+  periodsPerSession?: number;
+  totalPeriods?: number;
   startDate?: string;
   endDate?: string;
   teacherId?: User | string;
@@ -60,7 +82,7 @@ export interface CallTask {
   studentId?: Student; // populated student object
   courseGroup?: CourseGroup; // mapped from courseGroupId
   courseGroupId?: CourseGroup;
-  assignedStaff?: { fullName: string; email: string }; // admin-only
+  assignedStaff?: { _id?: string; fullName: string; email: string } | null; // null = manager queue
   absenceDate?: string;
   status?: CallStatus;
   callStatus: CallStatus;
@@ -80,11 +102,78 @@ export interface SystemSettings {
   departmentName: string;
   supportHotline: string;
   supportEmail: string;
-  examBanThreshold: number;
-  parentWarningThreshold: number;
-  taskAssignmentRule: 'round-robin' | 'least-tasks' | 'admin-only';
+  logoDataUrl?: string;
+  primaryColor?: string;
+  warningLevels: WarningLevel[];
   absenceReasons: string[];
   tags: string[];
+}
+
+/** Absence warning level configured by the manager; levels are ordered mildest first. */
+export interface WarningLevel {
+  name: string;
+  /** 'percent' = % of the course's total periods; 'periods' = number of periods missed. */
+  unit: 'percent' | 'periods';
+  threshold: number;
+  color: string;
+  examBan: boolean;
+}
+
+/** Absence figures of one student in one course group. */
+export interface AbsenceWarning {
+  absentPeriods: number;
+  absentPercent: number | null;
+  warningLevel: WarningLevel | null;
+  isAtRisk: boolean;
+}
+
+export interface AttendanceWindow {
+  open: boolean;
+  reason: string;
+  startTime: string;
+  endTime: string;
+  canOverride: boolean;
+}
+
+export interface ClassAssignmentOverview {
+  classes: {
+    classCode: string;
+    studentCount: number;
+    staff: { _id: string; fullName: string } | null;
+    since: string | null;
+  }[];
+  staffs: {
+    _id: string;
+    fullName: string;
+    email: string;
+    status: User['status'];
+    managedClasses: string[];
+    openTasks: number;
+  }[];
+  unassignedQueue: number;
+}
+
+export interface ClassAssignmentRecord {
+  _id: string;
+  classCode: string;
+  staffId: string;
+  staffName: string;
+  assignedBy?: { fullName: string } | null;
+  startedAt: string;
+  active: boolean;
+  endedAt?: string | null;
+  endedBy?: { fullName: string } | null;
+  endReason?: string;
+}
+
+export interface IntegrationItem {
+  key: string;
+  group: string;
+  label: string;
+  secret: boolean;
+  placeholder?: string;
+  source: 'database' | 'env' | 'none';
+  value: string;
 }
 
 export interface TimelineItem {

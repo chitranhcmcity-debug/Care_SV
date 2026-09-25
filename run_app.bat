@@ -8,7 +8,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-node scripts/start-dev.cjs
+node "%~dp0scripts\start-dev.cjs"
 if errorlevel 1 (
   echo.
   echo Khoi dong that bai. Xem thong bao loi o tren.

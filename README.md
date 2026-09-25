@@ -52,7 +52,7 @@ frontend/src/app/
   models/         Kiểu dữ liệu và hợp đồng API
   services/       HTTP và trạng thái dùng chung
   config/         Cấu hình API qua dependency injection
-  guards/         Điều hướng theo phiên đăng nhập và vai trò
+  guards/         Điều hướng theo phiên đăng nhập và quyền (bảng phân quyền do admin cấu hình)
   interceptors/   Gắn token vào API và xử lý phiên hết hạn
 ```
 
@@ -62,6 +62,22 @@ tách sang `services/`. Express 5 chuyển lỗi từ async handler đến middl
 Giữ endpoint và hình dạng response hiện có khi refactor. Kiểm tra quyền ở backend;
 guard Angular chỉ phục vụ điều hướng. Dùng các hằng trạng thái trong
 `backend/utils/hangSo.js` để schema và validation thống nhất.
+
+## Vai trò và nghiệp vụ
+
+- **Admin**: quản trị hệ thống — tài khoản, phân quyền, cấu hình hệ thống, cấu hình API
+  (Claude, Stringee, SMTP; khóa mã hóa trong database, ghi đè `.env`), giao diện web (tên, logo, màu).
+  Chỉ **xem** dữ liệu nghiệp vụ.
+- **Trưởng phòng / Phó hiệu trưởng**: giao việc, phân lớp hành chính cho CSKH (có lịch sử),
+  xử lý hàng chờ cuộc gọi chưa phân công, học phần & thời khóa biểu, cấu hình **mức cảnh báo**
+  (tên, ngưỡng theo tiết hoặc % tổng số tiết, màu, mức cấm thi), điểm danh ngoài giờ.
+- **Nhân viên CSKH**: chỉ thấy sinh viên các lớp hành chính được phân công; cuộc gọi của SV vắng
+  tự giao cho người phụ trách lớp, lớp chưa có người thì vào hàng chờ Trưởng phòng.
+- **Giảng viên**: điểm danh học phần mình dạy chỉ trong giờ học theo thời khóa biểu (mở sớm
+  10 phút), sửa được đến hết ngày; mọi cuộc gọi cho sinh viên được lưu lịch sử.
+- **AI Care** nhận cấu hình hiện hành (mức cảnh báo, quy định điểm danh, phân lớp) ở mỗi câu hỏi.
+
+Quyền chi tiết nằm ở `PERMISSIONS` trong `backend/utils/hangSo.js`; admin bật/tắt cho từng vai trò.
 
 ## Kiểm tra trước khi bàn giao
 
@@ -82,6 +98,18 @@ script thủ công, không thuộc bộ `npm test` và có thể thay đổi d�
 `npm run format` trong `frontend` để định dạng mã nguồn frontend và backend.
 
 ## Chạy bản build
+
+### Tài khoản quản lý khi phát triển
+
+Trong thư mục `backend`, chạy `npm run create:manager` để tạo tài khoản `manager`
+(Trưởng phòng / Phó hiệu trưởng) trong MongoDB cấu hình bởi `.env`. Lệnh in mật khẩu
+ngẫu nhiên khi tạo mới; chạy lại giữ nguyên mật khẩu và trạng thái tài khoản hiện có.
+Có thể đặt `DEMO_MANAGER_PASSWORD` (8–128 ký tự) để chọn mật khẩu khi tạo; biến này
+cũng tạo tài khoản quản lý khi bật `SEED_DEMO`. Script không chạy trong production.
+Sau đăng nhập, tài khoản mở `/management`, mặc định là Tổng quan & cảnh báo;
+các chức năng hiển thị theo quyền được quản trị viên cấp.
+
+### Triển khai
 
 Sau `npm run build` ở frontend, chạy `npm start` ở backend. Express phục vụ Angular
 từ `frontend/dist/frontend/browser`. `/api/health` trả 200 khi MongoDB đã kết nối,

@@ -16,6 +16,10 @@ async function startServer() {
     }
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
     await require('./scripts/chuyenDoiDuLieu')();
+    // Class assignments made before assignment history existed get their history records.
+    await require('./services/dichVuPhanCongLop').syncLegacyAssignments();
+    // API keys an admin saved in the UI take precedence over .env.
+    await require('./services/dichVuCauHinhApi').applyIntegrations();
     if (config.seedDemo) await require('./scripts/taoDuLieuMau')();
     server = await new Promise((resolve, reject) => {
       const listener = app.listen(config.port, '0.0.0.0', () => resolve(listener));

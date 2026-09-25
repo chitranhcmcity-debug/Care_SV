@@ -1,33 +1,38 @@
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
 const SinhVien = require('../models/SinhVien');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const { assert, validateId } = require('../utils/kiemTra');
-const { isManagement } = require('../utils/hangSo');
+const { can } = require('../services/dichVuPhanQuyen');
 
 /**
  * Whether a user may see (and call) a student:
- * - Admin, Trưởng phòng/Phó hiệu trưởng: every student.
+ * - Roles granted 'students.view' (Trưởng phòng by default; admin read-only): every student.
  * - Giảng viên: students enrolled in a course group they teach.
- * - Nhân viên CSKH: students they have a call task for, or who are assigned to them.
+ * - Nhân viên CSKH: only students of the administrative classes currently assigned to them.
  */
 async function canAccessStudent(user, student) {
-  if (isManagement(user)) return true;
+  if (can(user, 'students.view')) return true;
   if (user.role === 'teacher')
     return Boolean(await NhomHocPhan.exists({ teacherId: user.id, students: student._id }));
-  if (user.role === 'staff') {
-    if (
-      user.managedStudents?.some((id) => String(id) === String(student._id)) ||
-      user.managedClasses?.includes(student.classCode)
-    )
-      return true;
-    return Boolean(
-      await NhiemVuGoiDien.exists({ studentId: student._id, assignedStaffId: user.id }),
+  if (user.role === 'staff')
+    return (user.managedClasses || []).includes(
+      String(student.classCode || '')
+        .trim()
+        .toUpperCase(),
     );
-  }
   return false;
 }
-async function requireCourseAccess(req, res, next) {
+
+/** Whether the user oversees attendance of every course group (read side). */
+const seesAllCourses = (user) =>
+  can(user, 'attendance.override') || can(user, 'reports.view') || can(user, 'students.view');
+/**
+ * Loads the course group (from :courseGroupId, body.courseGroupId or :attendanceId) and checks access.
+ * mode 'read': the teacher of the group, or anyone who oversees attendance.
+ * mode 'write': the teacher of the group (with attendance.take), or attendance.override.
+ * The teacher's time window is enforced by the attendance routes.
+ */
+const courseAccess = (mode) => async (req, res, next) => {
   try {
     let courseId = req.params.courseGroupId || req.body?.courseGroupId;
     if (req.params.attendanceId) {
@@ -40,17 +45,21 @@ async function requireCourseAccess(req, res, next) {
     validateId(courseId);
     const group = await NhomHocPhan.findById(courseId);
     assert(group, 'Không tìm thấy học phần', 404);
-    assert(
-      req.user.role === 'admin' || String(group.teacherId) === req.user.id,
-      'Bạn không được phân công học phần này',
-      403,
-    );
+    const isTeacher = String(group.teacherId) === req.user.id && can(req.user, 'attendance.take');
+    const allowed =
+      mode === 'read'
+        ? isTeacher || seesAllCourses(req.user)
+        : isTeacher || can(req.user, 'attendance.override');
+    assert(allowed, 'Bạn không được phân công học phần này', 403);
     req.courseGroup = group;
+    req.canOverrideAttendance = can(req.user, 'attendance.override');
     next();
   } catch (error) {
     next(error);
   }
-}
+};
+const requireCourseRead = courseAccess('read');
+const requireCourseWrite = courseAccess('write');
 async function requireStudentAccess(req, res, next) {
   try {
     validateId(req.params.studentId);
@@ -67,4 +76,10 @@ async function requireStudentAccess(req, res, next) {
     next(error);
   }
 }
-module.exports = { requireCourseAccess, requireStudentAccess, canAccessStudent };
+module.exports = {
+  requireCourseRead,
+  requireCourseWrite,
+  requireStudentAccess,
+  canAccessStudent,
+  seesAllCourses,
+};

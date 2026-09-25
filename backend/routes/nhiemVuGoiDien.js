@@ -1,15 +1,16 @@
-const { CALL_STATUS, CALL_STATUSES, toLabel, isManagement } = require('../utils/hangSo');
+const { CALL_STATUS, CALL_STATUSES, toLabel } = require('../utils/hangSo');
 const { requireStudentAccess } = require('../middleware/phanQuyen');
 const { assert, validateId } = require('../utils/kiemTra');
 const express = require('express');
 const router = express.Router();
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const NguoiDung = require('../models/NguoiDung');
 const {
   verifyToken,
   requireSignedIn,
+  requireOperator,
   requireAdmin,
-  requireManagement,
-  requireRoles,
+  requirePermission,
 } = require('../middleware/xacThuc');
 
 // POST /api/call-tasks/cleanup-duplicates (Admin xóa task trùng)
@@ -56,51 +57,62 @@ router.get('/unread-count', verifyToken, requireSignedIn, async (req, res, next)
 });
 
 // GET /api/call-tasks/admin-all (Admin xem tất cả task của mọi nhân viên)
-router.get('/admin-all', verifyToken, requireManagement, async (req, res, next) => {
-  try {
-    const { status, groupCode, classCode } = req.query;
-    const filter = {};
-    if (status) filter.status = status;
-    const now = new Date();
+router.get(
+  '/admin-all',
+  verifyToken,
+  requirePermission('callTasks.viewAll'),
+  async (req, res, next) => {
+    try {
+      const { status, groupCode, classCode, assignedTo } = req.query;
+      const filter = {};
+      if (status) filter.status = status;
+      // assignedTo=unassigned → the manager's queue (classes without a responsible staff member).
+      if (assignedTo === 'unassigned') filter.assignedStaffId = null;
+      else if (assignedTo) {
+        validateId(assignedTo);
+        filter.assignedStaffId = assignedTo;
+      }
+      const now = new Date();
 
-    let tasks = await NhiemVuGoiDien.find(filter)
-      .populate('studentId', 'studentCode fullName classCode dob major phone parentPhone tags')
-      .populate('courseGroupId', 'groupCode courseName')
-      .populate('assignedStaffId', 'fullName email')
-      .sort({ createdAt: -1 });
+      let tasks = await NhiemVuGoiDien.find(filter)
+        .populate('studentId', 'studentCode fullName classCode dob major phone parentPhone tags')
+        .populate('courseGroupId', 'groupCode courseName')
+        .populate('assignedStaffId', 'fullName email')
+        .sort({ createdAt: -1 });
 
-    if (groupCode) {
-      tasks = tasks.filter(
-        (t) => t.courseGroupId?.groupCode?.toLowerCase() === String(groupCode).toLowerCase(),
-      );
+      if (groupCode) {
+        tasks = tasks.filter(
+          (t) => t.courseGroupId?.groupCode?.toLowerCase() === String(groupCode).toLowerCase(),
+        );
+      }
+      if (classCode) {
+        tasks = tasks.filter(
+          (t) => t.studentId?.classCode?.toLowerCase() === String(classCode).toLowerCase(),
+        );
+      }
+
+      // Map sang tên field thân thiện cho frontend
+      const mapped = tasks.map((t) => ({
+        _id: t._id,
+        student: t.studentId,
+        courseGroup: t.courseGroupId,
+        assignedStaff: t.assignedStaffId,
+        absenceDate: t.absenceDate,
+        callStatus: t.status,
+        callNote: t.callNote,
+        absenceReasonCategory: t.absenceReasonCategory || '',
+        callbackDate: t.callbackDate || null,
+        isCallbackDue: t.callbackDate ? new Date(t.callbackDate) <= now : false,
+        callAttempts: t.callAttempts,
+        createdAt: t.createdAt,
+      }));
+
+      res.json(mapped);
+    } catch (error) {
+      next(error);
     }
-    if (classCode) {
-      tasks = tasks.filter(
-        (t) => t.studentId?.classCode?.toLowerCase() === String(classCode).toLowerCase(),
-      );
-    }
-
-    // Map sang tên field thân thiện cho frontend
-    const mapped = tasks.map((t) => ({
-      _id: t._id,
-      student: t.studentId,
-      courseGroup: t.courseGroupId,
-      assignedStaff: t.assignedStaffId,
-      absenceDate: t.absenceDate,
-      callStatus: t.status,
-      callNote: t.callNote,
-      absenceReasonCategory: t.absenceReasonCategory || '',
-      callbackDate: t.callbackDate || null,
-      isCallbackDue: t.callbackDate ? new Date(t.callbackDate) <= now : false,
-      callAttempts: t.callAttempts,
-      createdAt: t.createdAt,
-    }));
-
-    res.json(mapped);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // GET /api/call-tasks/my-tasks (Supports optional classCode, groupCode, status filters)
 router.get('/my-tasks', verifyToken, requireSignedIn, async (req, res, next) => {
@@ -173,90 +185,119 @@ router.get('/my-tasks', verifyToken, requireSignedIn, async (req, res, next) => 
 });
 
 // PUT /api/call-tasks/:id/update
-router.put('/:id/update', verifyToken, requireRoles('admin', 'staff'), async (req, res, next) => {
-  try {
-    const { status, callNote, absenceReasonCategory, callbackDate, tags } = req.body;
-    const taskId = req.params.id;
-    validateId(taskId);
-    assert(status === undefined || CALL_STATUSES.includes(status), 'Invalid call status');
-    assert(callNote === undefined || typeof callNote === 'string', 'Invalid call note');
-    assert(
-      absenceReasonCategory === undefined || typeof absenceReasonCategory === 'string',
-      'Invalid absence reason',
-    );
-    assert(
-      callbackDate === undefined ||
-        callbackDate === null ||
-        callbackDate === '' ||
-        (typeof callbackDate === 'string' && !Number.isNaN(Date.parse(callbackDate))),
-      'Invalid callback date',
-    );
-    assert(
-      tags === undefined || (Array.isArray(tags) && tags.every((t) => typeof t === 'string')),
-      'Invalid tags',
-    );
+router.put(
+  '/:id/update',
+  verifyToken,
+  requirePermission('callTasks.update'),
+  async (req, res, next) => {
+    try {
+      const { status, callNote, absenceReasonCategory, callbackDate, tags } = req.body;
+      const taskId = req.params.id;
+      validateId(taskId);
+      assert(status === undefined || CALL_STATUSES.includes(status), 'Invalid call status');
+      assert(callNote === undefined || typeof callNote === 'string', 'Invalid call note');
+      assert(
+        absenceReasonCategory === undefined || typeof absenceReasonCategory === 'string',
+        'Invalid absence reason',
+      );
+      assert(
+        callbackDate === undefined ||
+          callbackDate === null ||
+          callbackDate === '' ||
+          (typeof callbackDate === 'string' && !Number.isNaN(Date.parse(callbackDate))),
+        'Invalid callback date',
+      );
+      assert(
+        tags === undefined || (Array.isArray(tags) && tags.every((t) => typeof t === 'string')),
+        'Invalid tags',
+      );
 
-    const task = await NhiemVuGoiDien.findById(taskId);
-    if (!task) {
-      return res.status(404).json({ message: 'Không tìm thấy nhiệm vụ cuộc gọi' });
+      const task = await NhiemVuGoiDien.findById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: 'Không tìm thấy nhiệm vụ cuộc gọi' });
+      }
+
+      assert(String(task.assignedStaffId) === req.user.id, 'Nhiệm vụ không thuộc về bạn', 403);
+
+      const previousStatus = task.status;
+      if (status && CALL_STATUSES.includes(status)) {
+        task.status = status;
+      }
+      if (callNote !== undefined) {
+        task.callNote = callNote;
+      }
+      if (absenceReasonCategory !== undefined) {
+        task.absenceReasonCategory = absenceReasonCategory;
+      }
+      if (callbackDate !== undefined) {
+        task.callbackDate = callbackDate ? new Date(callbackDate) : null;
+      }
+
+      // Count a call attempt only when an outcome is recorded: the status changes,
+      // or a retry is logged as unreachable. Editing notes/tags alone is not a call.
+      if (status && (status !== previousStatus || status === CALL_STATUS.UNREACHABLE)) {
+        task.callAttempts = (task.callAttempts || 0) + 1;
+      }
+
+      await task.save();
+
+      // If student tags were provided in update, save them to SinhVien model as well
+      if (Array.isArray(tags) && task.studentId) {
+        const SinhVien = require('../models/SinhVien');
+        await SinhVien.findByIdAndUpdate(task.studentId, { tags });
+      }
+
+      const updatedTask = await NhiemVuGoiDien.findById(taskId)
+        .populate('studentId', 'studentCode fullName classCode dob major phone parentPhone tags')
+        .populate('courseGroupId', 'groupCode courseName');
+
+      const mapped = {
+        _id: updatedTask._id,
+        student: updatedTask.studentId,
+        courseGroup: updatedTask.courseGroupId,
+        absenceDate: updatedTask.absenceDate,
+        callStatus: updatedTask.status,
+        callNote: updatedTask.callNote,
+        absenceReasonCategory: updatedTask.absenceReasonCategory || '',
+        callbackDate: updatedTask.callbackDate || null,
+        callAttempts: updatedTask.callAttempts,
+        createdAt: updatedTask.createdAt,
+      };
+
+      res.json({ message: 'Cập nhật cuộc gọi thành công!', task: mapped });
+    } catch (error) {
+      next(error);
     }
+  },
+);
 
-    assert(
-      isManagement(req.user) || String(task.assignedStaffId) === req.user.id,
-      'Task is not assigned to you',
-      403,
-    );
-
-    const previousStatus = task.status;
-    if (status && CALL_STATUSES.includes(status)) {
-      task.status = status;
+// PUT /api/call-tasks/:id/assign (Trưởng phòng) — body { staffId }: hand one call task (e.g. from
+// the unassigned queue) to an active staff member.
+router.put(
+  '/:id/assign',
+  verifyToken,
+  requirePermission('classes.assign'),
+  async (req, res, next) => {
+    try {
+      validateId(req.params.id);
+      validateId(req.body?.staffId);
+      const staff = await NguoiDung.findById(req.body.staffId);
+      assert(
+        staff && staff.role === 'staff' && staff.status === 'active',
+        'Chỉ giao cho nhân viên CSKH đang hoạt động',
+      );
+      const task = await NhiemVuGoiDien.findByIdAndUpdate(
+        req.params.id,
+        { assignedStaffId: staff._id },
+        { returnDocument: 'after' },
+      );
+      assert(task, 'Không tìm thấy nhiệm vụ cuộc gọi', 404);
+      res.json({ message: `Đã giao cuộc gọi cho ${staff.fullName}`, task });
+    } catch (error) {
+      next(error);
     }
-    if (callNote !== undefined) {
-      task.callNote = callNote;
-    }
-    if (absenceReasonCategory !== undefined) {
-      task.absenceReasonCategory = absenceReasonCategory;
-    }
-    if (callbackDate !== undefined) {
-      task.callbackDate = callbackDate ? new Date(callbackDate) : null;
-    }
-
-    // Count a call attempt only when an outcome is recorded: the status changes,
-    // or a retry is logged as unreachable. Editing notes/tags alone is not a call.
-    if (status && (status !== previousStatus || status === CALL_STATUS.UNREACHABLE)) {
-      task.callAttempts = (task.callAttempts || 0) + 1;
-    }
-
-    await task.save();
-
-    // If student tags were provided in update, save them to SinhVien model as well
-    if (Array.isArray(tags) && task.studentId) {
-      const SinhVien = require('../models/SinhVien');
-      await SinhVien.findByIdAndUpdate(task.studentId, { tags });
-    }
-
-    const updatedTask = await NhiemVuGoiDien.findById(taskId)
-      .populate('studentId', 'studentCode fullName classCode dob major phone parentPhone tags')
-      .populate('courseGroupId', 'groupCode courseName');
-
-    const mapped = {
-      _id: updatedTask._id,
-      student: updatedTask.studentId,
-      courseGroup: updatedTask.courseGroupId,
-      absenceDate: updatedTask.absenceDate,
-      callStatus: updatedTask.status,
-      callNote: updatedTask.callNote,
-      absenceReasonCategory: updatedTask.absenceReasonCategory || '',
-      callbackDate: updatedTask.callbackDate || null,
-      callAttempts: updatedTask.callAttempts,
-      createdAt: updatedTask.createdAt,
-    };
-
-    res.json({ message: 'Cập nhật cuộc gọi thành công!', task: mapped });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // GET /api/call-tasks/student-360/:studentId (Education CRM - Profile 360 Timeline)
 router.get(
@@ -344,7 +385,7 @@ router.get(
 router.put(
   '/student-tags/:studentId',
   verifyToken,
-  requireSignedIn,
+  requireOperator,
   requireStudentAccess,
   async (req, res, next) => {
     try {

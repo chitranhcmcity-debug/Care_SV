@@ -29,13 +29,16 @@ export class CallTaskService {
     return this.http.get<CallTask[]>(`${this.apiUrl}/my-tasks`, { params });
   }
 
-  /** Admin / Trưởng phòng: every staff member's call tasks. */
+  /** Admin / Trưởng phòng: every staff member's call tasks.
+   *  assignedTo: a staff id, or 'unassigned' for the manager's queue. */
   getAllTasks(filters?: {
     classCode?: string;
     groupCode?: string;
     status?: string;
+    assignedTo?: string;
   }): Observable<CallTask[]> {
     let params = new HttpParams();
+    if (filters?.assignedTo) params = params.set('assignedTo', filters.assignedTo);
     if (filters?.classCode) params = params.set('classCode', filters.classCode);
     if (filters?.groupCode) params = params.set('groupCode', filters.groupCode);
     if (filters?.status) params = params.set('status', filters.status);
@@ -56,6 +59,11 @@ export class CallTaskService {
       `${this.apiUrl}/${id}/update`,
       payload,
     );
+  }
+
+  /** Trưởng phòng: hand one call (e.g. from the unassigned queue) to a staff member. */
+  assignTask(id: string, staffId: string): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/${id}/assign`, { staffId });
   }
 
   getStudent360Profile(studentId: string): Observable<import('../models/types').Student360Profile> {

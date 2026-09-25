@@ -9,6 +9,9 @@ async function seedInitialUsers() {
   if (!process.env.DEMO_ADMIN_PASSWORD || !process.env.DEMO_STAFF_PASSWORD)
     throw new Error('Set DEMO_ADMIN_PASSWORD and DEMO_STAFF_PASSWORD before seeding');
   try {
+    if (process.env.DEMO_MANAGER_PASSWORD) {
+      await require('./taoTaiKhoanQuanLy').createManagerAccount(process.env.DEMO_MANAGER_PASSWORD);
+    }
     let adminUser = await NguoiDung.findOne({ role: 'admin' });
     if (!adminUser) {
       const adminPassword = await bcrypt.hash(process.env.DEMO_ADMIN_PASSWORD, 10);

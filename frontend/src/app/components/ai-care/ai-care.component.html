@@ -1,0 +1,260 @@
+<!-- Launcher: the AI Care robot wanders around the screen; clicking it opens the chat -->
+<button
+  type="button"
+  class="robot-launcher"
+  [class.is-flying]="flying()"
+  [style.transform]="'translate3d(' + pos().x + 'px,' + pos().y + 'px,0)'"
+  [style.transition-duration]="travelMs() + 'ms'"
+  (click)="toggle()"
+  (mouseenter)="pause()"
+  (mouseleave)="resume()"
+  (focus)="pause()"
+  (blur)="resume()"
+  [attr.aria-expanded]="open()"
+  [attr.aria-label]="open() ? 'Đóng trợ lý AI Care' : 'Mở trợ lý AI Care'"
+>
+  <span class="robot-tip">{{ open() ? 'Đóng AI Care' : 'Hỏi AI Care' }}</span>
+  <span class="robot-body" [style.--tilt]="tilt() + 'deg'">
+    <svg viewBox="0 0 140 160" aria-hidden="true">
+      <defs>
+        <linearGradient id="aic-shell" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color: var(--rb-shell-1)" />
+          <stop offset="1" style="stop-color: var(--rb-shell-2)" />
+        </linearGradient>
+        <radialGradient id="aic-visor" cx="0.5" cy="0.35" r="0.8">
+          <stop offset="0" style="stop-color: var(--rb-visor-1)" />
+          <stop offset="1" style="stop-color: var(--rb-visor-2)" />
+        </radialGradient>
+        <linearGradient id="aic-band" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" style="stop-color: var(--rb-accent-1)" />
+          <stop offset="1" style="stop-color: var(--rb-accent-2)" />
+        </linearGradient>
+        <radialGradient id="aic-flame" cx="0.5" cy="0.2" r="0.8">
+          <stop offset="0" style="stop-color: var(--rb-flame)" />
+          <stop offset="0.45" style="stop-color: var(--rb-eye)" />
+          <stop offset="1" style="stop-color: var(--rb-accent-1)" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
+      <!-- Jet flame (visible while flying) -->
+      <ellipse class="robot-flame" cx="74" cy="142" rx="9" ry="16" fill="url(#aic-flame)" />
+
+      <!-- Idea bubble -->
+      <g class="robot-bubble">
+        <path
+          d="M6 8h28a8 8 0 0 1 8 8v16a8 8 0 0 1-8 8H22l-8 7v-7H6a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z"
+          transform="translate(4 0)"
+          fill="url(#aic-band)"
+        />
+        <g
+          fill="none"
+          stroke="#fff"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          transform="translate(4 0)"
+        >
+          <path
+            d="M20 31c0-3-4-4.5-4-9a6 6 0 0 1 12 0c0 4.5-4 6-4 9z"
+            fill="#fff"
+            fill-opacity="0.25"
+          />
+          <path d="M20 34.5h4" />
+        </g>
+      </g>
+
+      <!-- Arm down (viewer's right) -->
+      <ellipse
+        cx="104"
+        cy="104"
+        rx="7.5"
+        ry="16"
+        transform="rotate(-18 104 104)"
+        fill="url(#aic-shell)"
+        style="stroke: var(--rb-edge)"
+      />
+
+      <!-- Body -->
+      <path
+        d="M74 72c17 0 28 12 28 30 0 18-12 32-28 32S46 120 46 102c0-18 11-30 28-30z"
+        fill="url(#aic-shell)"
+        style="stroke: var(--rb-edge)"
+      />
+      <circle class="robot-core" cx="74" cy="96" r="4.5" style="fill: var(--rb-eye)" />
+      <rect x="66" y="66" width="16" height="8" rx="3" style="fill: var(--rb-edge)" />
+
+      <!-- Waving arm (viewer's left) -->
+      <g class="robot-arm">
+        <ellipse
+          cx="42"
+          cy="78"
+          rx="7.5"
+          ry="17"
+          transform="rotate(28 42 78)"
+          fill="url(#aic-shell)"
+          style="stroke: var(--rb-edge)"
+        />
+        <circle cx="34" cy="60" r="8.5" fill="url(#aic-shell)" style="stroke: var(--rb-edge)" />
+      </g>
+
+      <!-- Head -->
+      <g class="robot-head">
+        <rect
+          x="38"
+          y="12"
+          width="72"
+          height="58"
+          rx="26"
+          fill="url(#aic-shell)"
+          style="stroke: var(--rb-edge)"
+        />
+        <rect x="46" y="23" width="56" height="37" rx="17" fill="url(#aic-visor)" />
+        <g class="robot-eyes" style="fill: var(--rb-eye)">
+          <ellipse cx="63" cy="39" rx="5" ry="6.5" />
+          <ellipse cx="85" cy="39" rx="5" ry="6.5" />
+        </g>
+        <!-- Blush and visor shine -->
+        <ellipse cx="55" cy="49" rx="4.5" ry="2.6" style="fill: var(--rb-blush)" />
+        <ellipse cx="93" cy="49" rx="4.5" ry="2.6" style="fill: var(--rb-blush)" />
+        <path
+          d="M53 33q3-5 10-6"
+          fill="none"
+          stroke="#fff"
+          stroke-opacity="0.35"
+          stroke-width="2.4"
+          stroke-linecap="round"
+        />
+        <path
+          d="M66 49q8 6 16 0"
+          fill="none"
+          style="stroke: var(--rb-eye)"
+          stroke-width="2.6"
+          stroke-linecap="round"
+        />
+        <!-- Headset -->
+        <path
+          d="M38 40a36 36 0 0 1 72 0"
+          fill="none"
+          stroke="url(#aic-band)"
+          stroke-width="5"
+          stroke-linecap="round"
+        />
+        <rect x="31" y="30" width="11" height="23" rx="5.5" fill="url(#aic-band)" />
+        <rect x="106" y="30" width="11" height="23" rx="5.5" fill="url(#aic-band)" />
+        <path
+          d="M36 52q2 13 18 12"
+          fill="none"
+          style="stroke: var(--rb-accent-2)"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <circle cx="55" cy="64" r="3.2" style="fill: var(--rb-accent-2)" />
+      </g>
+    </svg>
+  </span>
+  <span class="robot-shadow"></span>
+</button>
+
+<!-- Panel -->
+<section
+  *ngIf="open()"
+  class="fixed z-50 bottom-32 right-4 left-4 sm:left-auto sm:right-5 sm:w-[420px] h-[min(640px,calc(100vh-8rem))] bg-white rounded-xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden"
+  role="dialog"
+  aria-label="Trợ lý AI Care"
+>
+  <header class="px-4 py-3 bg-violet-600 text-white flex items-center gap-3">
+    <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-bold">
+      AI
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="font-semibold leading-tight">AI Care</div>
+      <div class="text-xs text-white/80 truncate">
+        Trợ lý dành cho {{ profile()?.roleLabel || '...' }}
+      </div>
+    </div>
+    <button
+      *ngIf="messages().length"
+      type="button"
+      (click)="reset()"
+      class="text-xs px-2 py-1 rounded-md bg-white/15 hover:bg-white/25"
+      title="Bắt đầu cuộc trò chuyện mới"
+    >
+      Làm mới
+    </button>
+  </header>
+
+  <div #scroller class="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-slate-50 text-sm">
+    <!-- Welcome: what AI Care does for this role -->
+    <div *ngIf="!messages().length" class="space-y-3">
+      <div class="bg-white border border-slate-200 rounded-lg p-3">
+        <p class="text-slate-800">
+          Xin chào! Tôi là <strong>AI Care</strong>.
+          <ng-container *ngIf="profile() as p">{{ p.focus }}</ng-container>
+        </p>
+        <div *ngIf="profile()?.capabilities?.length" class="mt-2">
+          <div class="text-xs font-semibold text-slate-500 uppercase mb-1">Tôi có thể tra cứu</div>
+          <ul class="list-disc pl-5 text-slate-700 space-y-0.5">
+            <li *ngFor="let c of profile()!.capabilities">{{ c }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button
+          *ngFor="let s of profile()?.suggestions"
+          type="button"
+          (click)="send(s)"
+          class="text-left px-3 py-2 rounded-lg border border-violet-200 bg-white text-violet-700 hover:bg-violet-50"
+        >
+          {{ s }}
+        </button>
+      </div>
+    </div>
+
+    <ng-container *ngFor="let m of messages()">
+      <div *ngIf="m.role === 'user'" class="flex justify-end">
+        <div class="max-w-[85%] px-3 py-2 rounded-lg bg-violet-600 text-white whitespace-pre-wrap">
+          {{ m.content }}
+        </div>
+      </div>
+      <div *ngIf="m.role === 'assistant'" class="flex">
+        <div
+          class="max-w-[92%] px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-800 space-y-1.5"
+          [innerHTML]="m.html"
+        ></div>
+      </div>
+    </ng-container>
+
+    <div *ngIf="loading()" class="flex">
+      <div class="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-500">
+        AI Care đang tra cứu dữ liệu…
+      </div>
+    </div>
+    <div
+      *ngIf="error()"
+      class="px-3 py-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-700"
+    >
+      {{ error() }}
+    </div>
+  </div>
+
+  <form class="p-3 border-t border-slate-200 flex gap-2 bg-white" (ngSubmit)="send()">
+    <textarea
+      name="draft"
+      [(ngModel)]="draft"
+      (keydown)="onKeydown($event)"
+      rows="1"
+      maxlength="4000"
+      placeholder="Hỏi AI Care…"
+      class="flex-1 resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-violet-400"
+    ></textarea>
+    <button
+      type="submit"
+      [disabled]="loading() || !draft.trim()"
+      class="px-4 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-50"
+    >
+      Gửi
+    </button>
+  </form>
+  <p class="px-3 pb-2 text-[11px] text-slate-400 bg-white">
+    AI có thể sai sót; hãy kiểm tra lại trước khi quyết định.
+  </p>
+</section>

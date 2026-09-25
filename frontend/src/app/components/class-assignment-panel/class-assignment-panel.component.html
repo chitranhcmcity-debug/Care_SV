@@ -1,0 +1,312 @@
+<div class="space-y-6">
+  <div class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-5">
+    <div class="border-b border-slate-200 pb-4 flex items-start justify-between flex-wrap gap-4">
+      <div>
+        <h3 class="text-lg md:text-xl font-bold text-slate-900">🏫 Phân lớp hành chính cho CSKH</h3>
+        <p class="text-xs text-slate-500 font-medium mt-0.5 max-w-2xl">
+          Mỗi lớp do một nhân viên phụ trách; nhân viên chỉ xem và chăm sóc sinh viên các lớp của
+          mình. Khi chuyển lớp, cuộc gọi đang mở đi theo lớp và lịch sử phân công được lưu lại.
+        </p>
+      </div>
+      <button
+        *ngIf="canEdit"
+        type="button"
+        (click)="openTransfer()"
+        class="px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold text-sm rounded-xl shadow-md"
+      >
+        🔄 Bàn giao lớp
+      </button>
+    </div>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+        <div class="text-xs font-bold text-slate-500 uppercase">Lớp hành chính</div>
+        <div class="text-2xl font-bold text-slate-900">{{ overview()?.classes?.length || 0 }}</div>
+      </div>
+      <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+        <div class="text-xs font-bold text-amber-800 uppercase">Chưa phân công</div>
+        <div class="text-2xl font-bold text-amber-900">{{ unassignedCount }}</div>
+      </div>
+      <div class="p-4 rounded-xl bg-blue-50 border border-blue-200">
+        <div class="text-xs font-bold text-blue-800 uppercase">Nhân viên CSKH</div>
+        <div class="text-2xl font-bold text-blue-900">{{ activeStaff.length }}</div>
+      </div>
+      <a
+        routerLink="/call-tasks"
+        class="p-4 rounded-xl border block"
+        [ngClass]="
+          overview()?.unassignedQueue
+            ? 'bg-rose-50 border-rose-300 hover:bg-rose-100'
+            : 'bg-emerald-50 border-emerald-200'
+        "
+      >
+        <div
+          class="text-xs font-bold uppercase"
+          [ngClass]="overview()?.unassignedQueue ? 'text-rose-800' : 'text-emerald-800'"
+        >
+          Hàng chờ cuộc gọi
+        </div>
+        <div
+          class="text-2xl font-bold"
+          [ngClass]="overview()?.unassignedQueue ? 'text-rose-900' : 'text-emerald-900'"
+        >
+          {{ overview()?.unassignedQueue || 0 }}
+        </div>
+      </a>
+    </div>
+
+    <!-- Class table -->
+    <div class="flex flex-wrap items-center gap-3">
+      <input
+        [(ngModel)]="search"
+        placeholder="Tìm mã lớp…"
+        class="px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white w-52"
+      />
+      <label class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <input type="checkbox" [(ngModel)]="onlyUnassigned" class="w-4 h-4" />
+        Chỉ lớp chưa phân công
+      </label>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-slate-200">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr
+            class="bg-slate-50 text-slate-700 uppercase text-xs font-bold border-b border-slate-200"
+          >
+            <th class="p-3">Lớp</th>
+            <th class="p-3 text-center">Sĩ số</th>
+            <th class="p-3">Nhân viên phụ trách</th>
+            <th class="p-3">Từ ngày</th>
+            <th class="p-3 text-right">Lịch sử</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white">
+          <tr *ngFor="let c of filteredClasses" [class.bg-amber-50]="!c.staff">
+            <td class="p-3 font-bold text-slate-900 tabular-nums">{{ c.classCode }}</td>
+            <td class="p-3 text-center">{{ c.studentCount }}</td>
+            <td class="p-3">
+              <select
+                *ngIf="canEdit; else readOnlyStaff"
+                [ngModel]="c.staff?._id || ''"
+                (ngModelChange)="assign(c.classCode, $event, c.staff?._id || null)"
+                class="px-3 py-2 rounded-lg border text-sm bg-white min-w-56"
+                [ngClass]="c.staff ? 'border-slate-300' : 'border-amber-400 text-amber-800'"
+              >
+                <option value="">— Chưa phân công —</option>
+                <option *ngFor="let s of activeStaff" [value]="s._id">
+                  {{ s.fullName }} ({{ s.managedClasses.length }} lớp)
+                </option>
+              </select>
+              <ng-template #readOnlyStaff>
+                <span [class.text-amber-700]="!c.staff" class="font-semibold">
+                  {{ c.staff?.fullName || 'Chưa phân công' }}
+                </span>
+              </ng-template>
+            </td>
+            <td class="p-3 text-xs text-slate-500">
+              {{ c.since ? (c.since | date: 'dd/MM/yyyy') : '—' }}
+            </td>
+            <td class="p-3 text-right">
+              <button
+                type="button"
+                (click)="openHistory({ classCode: c.classCode })"
+                class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold hover:bg-slate-50"
+              >
+                🕘 Xem
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!filteredClasses.length">
+            <td colspan="5" class="p-8 text-center text-slate-400 text-sm">
+              Không có lớp phù hợp. Lớp hành chính lấy từ dữ liệu sinh viên đã nhập.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Staff workload -->
+  <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+    <h4 class="font-bold text-slate-900 text-sm uppercase">Nhân viên CSKH & khối lượng</h4>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div
+        *ngFor="let s of overview()?.staffs"
+        class="p-4 rounded-xl border border-slate-200 space-y-3"
+        [class.opacity-60]="s.status !== 'active'"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="font-bold text-slate-900">{{ s.fullName }}</div>
+            <div class="text-xs text-slate-500">{{ s.email }}</div>
+          </div>
+          <span
+            class="text-xs font-bold px-2 py-0.5 rounded-full"
+            [ngClass]="
+              s.openTasks ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800'
+            "
+            >{{ s.openTasks }} cuộc gọi mở</span
+          >
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          <span
+            *ngFor="let code of s.managedClasses"
+            class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-300 text-xs font-bold tabular-nums"
+            >{{ code }}</span
+          >
+          <span *ngIf="!s.managedClasses.length" class="text-xs text-slate-400 italic"
+            >Chưa phụ trách lớp nào</span
+          >
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            (click)="openHistory({ staff: s })"
+            class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold hover:bg-slate-50"
+          >
+            🕘 Lịch sử
+          </button>
+          <button
+            *ngIf="canEdit && s.managedClasses.length"
+            type="button"
+            (click)="openTransfer(s)"
+            class="px-3 py-1.5 rounded-lg border border-amber-400 text-amber-900 bg-amber-50 text-xs font-bold"
+          >
+            🔄 Bàn giao
+          </button>
+          <button
+            *ngIf="canAssessStaff"
+            type="button"
+            (click)="assess(s)"
+            class="px-3 py-1.5 rounded-lg border border-violet-300 text-violet-800 bg-violet-50 text-xs font-bold"
+          >
+            🤖 Đánh giá AI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History modal -->
+  <div
+    *ngIf="history() as list"
+    class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4"
+    (click)="history.set(null)"
+  >
+    <div
+      class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-lg font-bold text-slate-900">{{ historyTitle }}</h3>
+        <button type="button" (click)="history.set(null)" class="text-slate-400 text-xl">✖</button>
+      </div>
+      <ol class="relative border-l-2 border-slate-200 ml-2 space-y-4">
+        <li *ngFor="let h of list" class="ml-4">
+          <span
+            class="absolute -left-[7px] w-3 h-3 rounded-full"
+            [ngClass]="h.active ? 'bg-emerald-500' : 'bg-slate-300'"
+          ></span>
+          <div class="text-sm font-bold text-slate-900">
+            {{ h.classCode }} — {{ h.staffName }}
+            <span
+              *ngIf="h.active"
+              class="ml-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"
+              >Đang phụ trách</span
+            >
+          </div>
+          <div class="text-xs text-slate-600">
+            {{ h.startedAt | date: 'dd/MM/yyyy HH:mm' }} →
+            {{ h.endedAt ? (h.endedAt | date: 'dd/MM/yyyy HH:mm') : 'nay' }}
+            <span *ngIf="h.assignedBy"> · giao bởi {{ h.assignedBy.fullName }}</span>
+          </div>
+          <div *ngIf="h.endReason" class="text-xs text-slate-500 italic">
+            Kết thúc: {{ h.endReason }}<span *ngIf="h.endedBy"> ({{ h.endedBy.fullName }})</span>
+          </div>
+        </li>
+      </ol>
+      <p *ngIf="!list.length" class="text-sm text-slate-400 text-center py-6">Chưa có lịch sử.</p>
+    </div>
+  </div>
+
+  <!-- Transfer modal -->
+  <div
+    *ngIf="showTransfer"
+    class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4"
+  >
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 class="text-lg font-bold text-slate-900">🔄 Bàn giao lớp</h3>
+        <button type="button" (click)="showTransfer = false" class="text-slate-400 text-xl">
+          ✖
+        </button>
+      </div>
+      <label class="block">
+        <span class="block text-xs font-bold text-slate-700 uppercase mb-1"
+          >Nhân viên bàn giao</span
+        >
+        <select
+          [(ngModel)]="transferFrom"
+          (ngModelChange)="onTransferFromChange()"
+          class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white"
+        >
+          <option value="">— Chọn —</option>
+          <option
+            *ngFor="let s of overview()?.staffs"
+            [value]="s._id"
+            [disabled]="!s.managedClasses.length"
+          >
+            {{ s.fullName }} ({{ s.managedClasses.length }} lớp)
+          </option>
+        </select>
+      </label>
+      <div *ngIf="transferSource" class="flex flex-wrap gap-2">
+        <button
+          *ngFor="let code of transferSource.managedClasses"
+          type="button"
+          (click)="toggleTransferClass(code)"
+          class="px-3 py-1.5 rounded-lg border text-xs font-bold"
+          [ngClass]="
+            transferClasses.includes(code)
+              ? 'bg-blue-500 text-white border-blue-500'
+              : 'bg-white text-slate-700 border-slate-300'
+          "
+        >
+          {{ code }}
+        </button>
+      </div>
+      <label class="block">
+        <span class="block text-xs font-bold text-slate-700 uppercase mb-1"
+          >Nhân viên tiếp nhận</span
+        >
+        <select
+          [(ngModel)]="transferTo"
+          class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white"
+        >
+          <option value="">— Chọn —</option>
+          <option *ngFor="let s of activeStaff" [value]="s._id" [disabled]="s._id === transferFrom">
+            {{ s.fullName }} ({{ s.managedClasses.length }} lớp)
+          </option>
+        </select>
+      </label>
+      <div class="flex justify-end gap-2 border-t border-slate-200 pt-4">
+        <button
+          type="button"
+          (click)="showTransfer = false"
+          class="px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-bold"
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          (click)="executeTransfer()"
+          [disabled]="transferring || !transferFrom || !transferTo || !transferClasses.length"
+          class="px-5 py-2.5 rounded-lg bg-amber-500 text-white text-sm font-bold disabled:opacity-50"
+        >
+          {{ transferring ? 'Đang bàn giao…' : 'Bàn giao ' + transferClasses.length + ' lớp' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

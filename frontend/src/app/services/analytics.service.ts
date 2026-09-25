@@ -2,6 +2,29 @@ import { API_BASE_URL } from '../config/api';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { WarningLevel } from '../models/types';
+
+export interface WarningRow {
+  student: {
+    _id: string;
+    studentCode: string;
+    fullName: string;
+    classCode: string;
+    major: string;
+    phone?: string;
+    parentPhone?: string;
+  };
+  courseCode: string;
+  courseName?: string;
+  absentCount: number;
+  absentPeriods: number;
+  absentPercent: number | null;
+  warningLevel: WarningLevel;
+  isAtRisk: boolean;
+  lastCallStatus: string;
+  lastCallNote: string;
+  assignedStaff: string;
+}
 
 export interface AnalyticsSummary {
   metrics: {
@@ -9,8 +32,13 @@ export interface AnalyticsSummary {
     completedTasks: number;
     pendingTasks: number;
     retryTasks: number;
+    unassignedTasks: number;
     examBanRiskCount: number;
+    warningCount: number;
   };
+  /** Configured levels (mildest first) with how many students reached each. */
+  warningLevels: (WarningLevel & { count: number })[];
+  warningList: WarningRow[];
   courseAbsenceStats: { courseCode: string; absentCount: number }[];
   reasonStats: { reason: string; count: number }[];
   examBanRiskList: {

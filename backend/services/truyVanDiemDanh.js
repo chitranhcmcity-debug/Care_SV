@@ -1,9 +1,10 @@
 const DiemDanh = require('../models/DiemDanh');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const NhomHocPhan = require('../models/NhomHocPhan');
-const CaiDatHeThong = require('../models/CaiDatHeThong');
+const { getWarningLevels, periodInfo, evaluate } = require('./dichVuCanhBao');
 const { dayBounds, dateKey } = require('../utils/kiemTra');
 const { WEEKDAY_INDEX } = require('../utils/hangSo');
+const { seesAllCourses } = require('../middleware/phanQuyen');
 
 const attendancePopulation = [
   { path: 'absentStudents', select: 'studentCode fullName classCode phone parentPhone' },
@@ -15,7 +16,8 @@ async function listCourseGroups(query, user) {
   const { shift, search } = query;
   const filter = {};
 
-  if (user.role !== 'admin') filter.teacherId = user.id;
+  // Teachers see the groups they teach; overseers (Trưởng phòng, admin read-only) see all.
+  if (!seesAllCourses(user)) filter.teacherId = user.id;
 
   if (shift) {
     filter.shift = shift;
@@ -183,9 +185,9 @@ async function getSummary(group) {
     }
   }
 
-  // Get exam ban threshold from settings
-  const settings = await CaiDatHeThong.findOne();
-  const examBanThreshold = settings?.examBanThreshold ?? 3;
+  // Absences are counted in periods (tiết) and ranked by the configured warning levels.
+  const levels = await getWarningLevels();
+  const info = periodInfo(group);
 
   // Build summary per student
   const students = Array.isArray(group.students) ? group.students : [];
@@ -204,18 +206,17 @@ async function getSummary(group) {
       excusedCount,
       attendCount,
       attendRate,
-      isAtRisk: absentCount >= examBanThreshold,
+      ...evaluate(absentCount, info, levels),
       callStatus: latestTask?.status || null,
       callNote: latestTask?.callNote || null,
       assignedStaff: latestTask?.assignedStaffId?.fullName || null,
     };
   });
 
-  // Sort: at-risk first, then by absent count desc
-  summary.sort((a, b) => {
-    if (b.isAtRisk !== a.isAtRisk) return b.isAtRisk ? 1 : -1;
-    return b.absentCount - a.absentCount;
-  });
+  // Sort: most severe warning level first, then by absent count desc
+  const rank = (row) =>
+    row.warningLevel ? levels.findIndex((l) => l.name === row.warningLevel.name) + 1 : 0;
+  summary.sort((a, b) => rank(b) - rank(a) || b.absentCount - a.absentCount);
 
   return {
     courseGroup: {
@@ -226,7 +227,9 @@ async function getSummary(group) {
       room: group.room,
     },
     totalSessions,
-    examBanThreshold,
+    periodsPerSession: info.periodsPerSession,
+    totalPeriods: info.totalPeriods,
+    warningLevels: levels,
     summary,
   };
 }

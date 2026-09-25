@@ -30,7 +30,9 @@
         <div class="font-semibold">{{ g.groupCode }}</div>
         <div *ngIf="g.courseName" class="text-slate-700">{{ g.courseName }}</div>
         <div class="text-slate-600">
-          Ca {{ g.shift | viLabel }}<span *ngIf="g.room"> · Phòng {{ g.room }}</span>
+          Ca {{ g.shift | viLabel
+          }}<span *ngIf="g.startTime && g.endTime"> {{ g.startTime }}–{{ g.endTime }}</span
+          ><span *ngIf="g.room"> · Phòng {{ g.room }}</span>
         </div>
         <div class="text-slate-600">{{ g.teacherName || 'Chưa phân công GV' }}</div>
         <div class="text-slate-500">

@@ -2,7 +2,7 @@
   <section class="bg-white rounded-xl p-5 flex flex-wrap items-center justify-between gap-3">
     <p class="text-sm text-slate-600">
       {{
-        auth.isManagement()
+        auth.can('callTasks.viewAll')
           ? 'Toàn bộ cuộc gọi thực hiện trên hệ thống.'
           : 'Các cuộc gọi bạn đã thực hiện trên hệ thống.'
       }}
@@ -16,7 +16,7 @@
       <thead>
         <tr class="text-left text-slate-500 border-b border-slate-200">
           <th class="p-4 font-medium">Thời gian</th>
-          <th *ngIf="auth.isManagement()" class="p-4 font-medium">Người gọi</th>
+          <th *ngIf="auth.can('callTasks.viewAll')" class="p-4 font-medium">Người gọi</th>
           <th class="p-4 font-medium">Sinh viên</th>
           <th class="p-4 font-medium">Gọi cho</th>
           <th class="p-4 font-medium">Kết quả</th>
@@ -39,7 +39,7 @@
                 {{ c.method === 'stringee' ? 'Qua tổng đài' : 'Điện thoại' }}
               </div>
             </td>
-            <td *ngIf="auth.isManagement()" class="p-4">
+            <td *ngIf="auth.can('callTasks.viewAll')" class="p-4">
               {{ caller(c).name }}
               <div class="text-xs text-slate-500">{{ caller(c).role }}</div>
             </td>

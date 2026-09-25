@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CourseGroup } from '../models/types';
+import { AttendanceWindow, CourseGroup } from '../models/types';
 
 import {
   AttendanceHistoryItem,
@@ -64,6 +64,11 @@ export class AttendanceService {
 
   getTodayAttendance(courseGroupId: string): Observable<AttendanceHistoryItem | null> {
     return this.http.get<AttendanceHistoryItem | null>(`${this.apiUrl}/today/${courseGroupId}`);
+  }
+
+  /** Whether attendance can be taken right now (timetable window, or override). */
+  getWindow(courseGroupId: string): Observable<AttendanceWindow> {
+    return this.http.get<AttendanceWindow>(`${this.apiUrl}/window/${courseGroupId}`);
   }
 
   getScheduleSessions(courseGroupId: string): Observable<ScheduleData> {

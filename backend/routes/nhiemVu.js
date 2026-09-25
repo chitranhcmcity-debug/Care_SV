@@ -6,10 +6,11 @@ const crypto = require('node:crypto');
 const multer = require('multer');
 const NhiemVu = require('../models/NhiemVu');
 const NguoiDung = require('../models/NguoiDung');
-const { TASK_STATUS, TASK_STATUSES, isManagement } = require('../utils/hangSo');
+const { TASK_STATUS, TASK_STATUSES } = require('../utils/hangSo');
+const { can } = require('../services/dichVuPhanQuyen');
 const {
   verifyToken,
-  requireManagement,
+  requirePermission,
   requireSignedIn,
   requireRoles,
 } = require('../middleware/xacThuc');
@@ -68,7 +69,7 @@ async function loadTask(req, res, next) {
   }
 }
 function requireTaskOwnerOrAdmin(req, res, next) {
-  const allowed = isManagement(req.user) || String(req.task.assignedTo) === req.user.id;
+  const allowed = can(req.user, 'tasks.manage') || String(req.task.assignedTo) === req.user.id;
   if (!allowed)
     return res.status(403).json({ message: 'Bạn không có quyền truy cập nhiệm vụ này' });
   next();
@@ -81,7 +82,7 @@ const taskPopulation = [
 ];
 
 // POST /api/tasks (Admin: create & assign a task to a staff member)
-router.post('/', verifyToken, requireManagement, async (req, res, next) => {
+router.post('/', verifyToken, requirePermission('tasks.manage'), async (req, res, next) => {
   try {
     const { title, description, assignedTo, dueDate } = req.body;
     assert(typeof title === 'string' && title.trim(), 'Tiêu đề là bắt buộc');
@@ -107,7 +108,7 @@ router.post('/', verifyToken, requireManagement, async (req, res, next) => {
 });
 
 // GET /api/tasks/admin-all (Admin: list every task, optional status/assignedTo filters)
-router.get('/admin-all', verifyToken, requireManagement, async (req, res, next) => {
+router.get('/admin-all', verifyToken, requirePermission('tasks.manage'), async (req, res, next) => {
   try {
     const { status, assignedTo } = req.query;
     const filter = {};
@@ -179,41 +180,53 @@ router.get(
 );
 
 // PUT /api/tasks/:id (Admin: edit title/description/due date before work is submitted)
-router.put('/:id', verifyToken, requireManagement, loadTask, async (req, res, next) => {
-  try {
-    const { task } = req;
-    assert(
-      [TASK_STATUS.PENDING, TASK_STATUS.ACKNOWLEDGED].includes(task.status),
-      'Chỉ có thể sửa nhiệm vụ khi chưa nộp minh chứng',
-    );
-    const { title, description, dueDate } = req.body;
-    if (title !== undefined) {
-      assert(typeof title === 'string' && title.trim(), 'Tiêu đề không hợp lệ');
-      task.title = title.trim();
+router.put(
+  '/:id',
+  verifyToken,
+  requirePermission('tasks.manage'),
+  loadTask,
+  async (req, res, next) => {
+    try {
+      const { task } = req;
+      assert(
+        [TASK_STATUS.PENDING, TASK_STATUS.ACKNOWLEDGED].includes(task.status),
+        'Chỉ có thể sửa nhiệm vụ khi chưa nộp minh chứng',
+      );
+      const { title, description, dueDate } = req.body;
+      if (title !== undefined) {
+        assert(typeof title === 'string' && title.trim(), 'Tiêu đề không hợp lệ');
+        task.title = title.trim();
+      }
+      if (description !== undefined) {
+        assert(typeof description === 'string' && description.trim(), 'Mô tả không hợp lệ');
+        task.description = description.trim();
+      }
+      if (dueDate !== undefined) task.dueDate = parseOptionalDate(dueDate, 'Hạn chót không hợp lệ');
+      await task.save();
+      await task.populate(taskPopulation);
+      res.json({ message: 'Đã cập nhật nhiệm vụ', task });
+    } catch (error) {
+      next(error);
     }
-    if (description !== undefined) {
-      assert(typeof description === 'string' && description.trim(), 'Mô tả không hợp lệ');
-      task.description = description.trim();
-    }
-    if (dueDate !== undefined) task.dueDate = parseOptionalDate(dueDate, 'Hạn chót không hợp lệ');
-    await task.save();
-    await task.populate(taskPopulation);
-    res.json({ message: 'Đã cập nhật nhiệm vụ', task });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // DELETE /api/tasks/:id (Admin: cancel a task and clean up its evidence files)
-router.delete('/:id', verifyToken, requireManagement, loadTask, async (req, res, next) => {
-  try {
-    await req.task.deleteOne();
-    removeFiles(req.task.evidenceFiles);
-    res.json({ message: 'Đã xóa nhiệm vụ' });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  '/:id',
+  verifyToken,
+  requirePermission('tasks.manage'),
+  loadTask,
+  async (req, res, next) => {
+    try {
+      await req.task.deleteOne();
+      removeFiles(req.task.evidenceFiles);
+      res.json({ message: 'Đã xóa nhiệm vụ' });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // PUT /api/tasks/:id/acknowledge (Staff: confirm receipt of the task)
 router.put(
@@ -285,27 +298,33 @@ router.put(
 );
 
 // PUT /api/tasks/:id/review (Admin: approve & close, or reject back to the assignee)
-router.put('/:id/review', verifyToken, requireManagement, loadTask, async (req, res, next) => {
-  try {
-    const { task } = req;
-    assert(task.status === TASK_STATUS.SUBMITTED, 'Nhiệm vụ chưa được nộp minh chứng để duyệt');
-    const { approve, reviewNote } = req.body;
-    assert(typeof approve === 'boolean', 'Vui lòng chọn Duyệt hoặc Từ chối');
-    assert(reviewNote === undefined || typeof reviewNote === 'string', 'Ghi chú không hợp lệ');
-    task.status = approve ? TASK_STATUS.COMPLETED : TASK_STATUS.REJECTED;
-    task.reviewNote = reviewNote ? reviewNote.trim() : '';
-    task.reviewedBy = req.user.id;
-    task.completedAt = approve ? new Date() : null;
-    await task.save();
-    await task.populate(taskPopulation);
-    res.json({
-      message: approve ? 'Đã duyệt và đóng nhiệm vụ!' : 'Đã từ chối, yêu cầu nhân viên làm lại.',
-      task,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.put(
+  '/:id/review',
+  verifyToken,
+  requirePermission('tasks.manage'),
+  loadTask,
+  async (req, res, next) => {
+    try {
+      const { task } = req;
+      assert(task.status === TASK_STATUS.SUBMITTED, 'Nhiệm vụ chưa được nộp minh chứng để duyệt');
+      const { approve, reviewNote } = req.body;
+      assert(typeof approve === 'boolean', 'Vui lòng chọn Duyệt hoặc Từ chối');
+      assert(reviewNote === undefined || typeof reviewNote === 'string', 'Ghi chú không hợp lệ');
+      task.status = approve ? TASK_STATUS.COMPLETED : TASK_STATUS.REJECTED;
+      task.reviewNote = reviewNote ? reviewNote.trim() : '';
+      task.reviewedBy = req.user.id;
+      task.completedAt = approve ? new Date() : null;
+      await task.save();
+      await task.populate(taskPopulation);
+      res.json({
+        message: approve ? 'Đã duyệt và đóng nhiệm vụ!' : 'Đã từ chối, yêu cầu nhân viên làm lại.',
+        task,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // GET /api/tasks/:id/evidence/:fileId (stream one evidence file — admin or the assignee only)
 router.get(

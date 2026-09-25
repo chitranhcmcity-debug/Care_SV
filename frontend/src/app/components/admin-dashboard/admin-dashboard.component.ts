@@ -1,5 +1,7 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AdminTab, visibleDashboardTabs } from './dashboard-tabs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -11,6 +13,12 @@ import { CourseGroupService } from '../../services/course-group.service';
 import { TaskService } from '../../services/task.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService, ToastType } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
+import { BrandingService } from '../../services/branding.service';
+import { PermissionService } from '../../services/permission.service';
+import { ClassAssignmentPanelComponent } from '../class-assignment-panel/class-assignment-panel.component';
+import { WarningConfigComponent } from '../warning-config/warning-config.component';
+import { IntegrationsPanelComponent } from '../integrations-panel/integrations-panel.component';
 import {
   User,
   SystemSettings,
@@ -22,6 +30,10 @@ import {
   SHIFT,
   WEEKDAYS_BY_JS_DAY,
   DEFAULT_SCHEDULE_DAYS,
+  ConfigurableRole,
+  Permission,
+  PermissionConfig,
+  PermissionMatrix,
 } from '../../models/types';
 import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
 import {
@@ -31,50 +43,21 @@ import {
   taskUserName,
 } from '../../utils/task-utils';
 
-type AdminTab = 'excel' | 'staff' | 'analytics' | 'courses' | 'settings' | 'tasks';
-
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ViLabelPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ViLabelPipe,
+    ClassAssignmentPanelComponent,
+    WarningConfigComponent,
+    IntegrationsPanelComponent,
+  ],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   activeTab: AdminTab = 'courses';
-  // Tab order + 24px stroke icon paths (Tabler-style) for the tab bar.
-  readonly adminTabs: { id: AdminTab; label: string; icon: string }[] = [
-    {
-      id: 'courses',
-      label: 'Cấu hình học phần',
-      icon: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 11h18',
-    },
-    {
-      id: 'excel',
-      label: 'Nhập sinh viên (Excel)',
-      icon: 'M14 3v4a1 1 0 0 0 1 1h4M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2zM9 12l6 6M15 12l-6 6',
-    },
-    {
-      id: 'staff',
-      label: 'Nhân sự CSKH',
-      icon: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
-    },
-    {
-      id: 'tasks',
-      label: 'Giao việc',
-      icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2zM9 14l2 2 4-4',
-    },
-    {
-      id: 'analytics',
-      label: 'Thống kê & cấm thi',
-      icon: 'M3 3v18h18M7 15l4-4 3 3 5-6',
-    },
-    {
-      id: 'settings',
-      label: 'Cấu hình',
-      icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
-    },
-  ];
-
   triggerToast(type: ToastType, title: string, message: string) {
     this.notify.show(type, message, title);
   }
@@ -95,6 +78,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     shift: SHIFT.MORNING as Shift,
     scheduleDays: [...DEFAULT_SCHEDULE_DAYS],
     room: 'A.101',
+    startTime: '',
+    endTime: '',
+    periodsPerSession: 4,
+    totalPeriods: 0,
     startDate: '',
     endDate: '',
     teacherId: '',
@@ -115,15 +102,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     departmentName: 'Phòng Đào Tạo & Chăm Sóc Sinh Viên',
     supportHotline: '028 3965 1114',
     supportEmail: 'cskh@itc.edu.vn',
-    examBanThreshold: 3,
-    parentWarningThreshold: 2,
-    taskAssignmentRule: 'round-robin',
-    absenceReasons: ['Bệnh/Sức khỏe', 'Việc gia đình', 'Bận đi làm', 'Lý do cá nhân', 'Khác'],
-    tags: ['#KhóKhănHọcPhí', '#HọcBổng', '#ĐiLàmĐêm', '#CảnhBáoVắng', '#CầnHỗTrợĐặcBiệt'],
+    logoDataUrl: '',
+    primaryColor: '#673ab7',
+    warningLevels: [],
+    absenceReasons: [],
+    tags: [],
   };
   isSavingSettings = false;
   settingsSaveAlert = '';
-  newReasonInput = '';
 
   // Excel State (legacy)
   isDownloadingExcel = false;
@@ -155,27 +141,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   editStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
   isUpdatingStaff = false;
 
-  // System settings tag input
-  newTagInput = '';
-
-  // Class & Exception Student Assignment & Handover State
-  availableHomeClasses: string[] = [];
-  showAssignClassModal = false;
-  selectedStaffForClassAssign: User | null = null;
-  selectedHomeClassesForAssign: string[] = [];
-
-  allAvailableStudents: any[] = [];
-  showAssignStudentModal = false;
-  selectedStaffForStudentAssign: User | null = null;
-  selectedStudentsForAssign: string[] = [];
-  studentSearchQuery = '';
-
-  showHandoverModal = false;
-  handoverFromStaffId = '';
-  handoverToStaffId = '';
-  handoverClassesToTransfer: string[] = [];
-  isExecutingHandover = false;
-
   // Task (Giao Việc) State
   taskList: WorkTask[] = [];
   taskFilterStatus: TaskStatus | '' = '';
@@ -196,6 +161,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   // Analytics State
   analyticsData: AnalyticsSummary | null = null;
+  /** Warning level name shown in the warning table ('' = all levels). */
+  warningFilter = '';
   isExportingCareReport = false;
   isRefreshingAnalytics = false;
   lastAnalyticsUpdate: Date | null = null;
@@ -213,14 +180,17 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  /** Tabs this route shows: all for the admin; route data narrows it for other roles
-   *  (Trưởng phòng: giao việc + báo cáo; Nhân viên: báo cáo). */
+  private readonly auth = inject(AuthService);
+  private readonly permissionService = inject(PermissionService);
+  private readonly branding = inject(BrandingService);
+  readonly visibleTabs = visibleDashboardTabs(this.auth);
   private readonly route = inject(ActivatedRoute);
-  readonly visibleTabs = this.adminTabs.filter((tab) => {
-    const allowed = this.route.snapshot.data['tabs'] as AdminTab[] | undefined;
-    return !allowed || allowed.includes(tab.id);
-  });
-  readonly isFullAdmin = !this.route.snapshot.data['tabs'];
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  /** AI staff assessment belongs to whoever manages tasks (Trưởng phòng). */
+  readonly canAssessStaff = this.auth.can('tasks.manage');
+  readonly isFullAdmin = this.auth.isAdmin();
+  readonly isManager = this.auth.isManager();
 
   private hasTab(tab: AdminTab) {
     return this.visibleTabs.some((t) => t.id === tab);
@@ -229,11 +199,30 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Load only what the visible tabs need (other roles cannot read admin-only data).
     this.activeTab = this.visibleTabs[0]?.id ?? 'analytics';
-    if (this.hasTab('staff') || this.hasTab('tasks')) this.loadStaffList();
+    if (this.hasTab('staff') || this.hasTab('tasks') || this.hasTab('courses'))
+      this.loadStaffList();
     if (this.hasTab('analytics')) this.loadAnalytics();
     if (this.hasTab('settings')) this.loadSettings();
     if (this.hasTab('courses') || this.hasTab('excel')) this.loadCourseGroups();
-    if (this.activeTab === 'tasks') this.loadTasks();
+    // The sidebar selects the tab through ?tab=; a missing or unknown tab falls back to the first.
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const requested = params.get('tab') as AdminTab | null;
+      if (requested && this.hasTab(requested)) {
+        if (requested !== this.activeTab || !this.tabOpened) this.switchTab(requested);
+        this.tabOpened = true;
+        // Zoneless: a router emission is not a template event, so re-render explicitly.
+        this.cdr.markForCheck();
+      } else if (this.visibleTabs.length) {
+        this.openTab(this.visibleTabs[0].id, true);
+      }
+    });
+  }
+
+  private tabOpened = false;
+
+  /** Navigates to a tab (the sidebar highlights it and the URL can be shared). */
+  openTab(tab: AdminTab, replaceUrl = false) {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { tab }, replaceUrl });
   }
 
   ngOnDestroy(): void {
@@ -253,6 +242,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.analyticsInterval = setInterval(() => this.loadAnalytics(), 60000);
     } else if (tab === 'settings') {
       this.loadSettings();
+    } else if (tab === 'permissions') {
+      this.loadPermissions();
     } else if (tab === 'courses' || tab === 'excel') {
       this.loadCourseGroups();
     } else if (tab === 'tasks') {
@@ -478,6 +469,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         shift: group.shift || SHIFT.MORNING,
         scheduleDays: group.scheduleDays ? [...group.scheduleDays] : [...DEFAULT_SCHEDULE_DAYS],
         room: group.room || 'A.101',
+        startTime: group.startTime || '',
+        endTime: group.endTime || '',
+        periodsPerSession: group.periodsPerSession || 4,
+        totalPeriods: group.totalPeriods || 0,
         startDate: formatDateStr(group.startDate),
         endDate: formatDateStr(group.endDate),
         teacherId: tId,
@@ -496,6 +491,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         shift: SHIFT.MORNING,
         scheduleDays: [...DEFAULT_SCHEDULE_DAYS],
         room: 'A.101',
+        startTime: '',
+        endTime: '',
+        periodsPerSession: 4,
+        totalPeriods: 0,
         startDate: todayStr,
         endDate: endStr,
         teacherId: '',
@@ -688,6 +687,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         if (s) {
           this.sysSettings = s;
         }
+        this.cdr.markForCheck();
       },
       error: (err) => console.error('Load settings error:', err),
     });
@@ -697,201 +697,147 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.isSavingSettings = true;
     this.settingsSaveAlert = '';
 
-    this.settingsService.updateSettings(this.sysSettings).subscribe({
-      next: (res) => {
-        this.isSavingSettings = false;
-        this.settingsSaveAlert = res.message || 'Đã lưu cấu hình thành công!';
-        setTimeout(() => (this.settingsSaveAlert = ''), 4000);
-      },
-      error: (err) => {
-        this.isSavingSettings = false;
-        this.notify.error(err.error?.message || 'Lỗi khi lưu cấu hình');
-      },
-    });
-  }
-
-  addAbsenceReason() {
-    const val = this.newReasonInput.trim();
-    if (!this.sysSettings.absenceReasons) this.sysSettings.absenceReasons = [];
-    if (val && !this.sysSettings.absenceReasons.includes(val)) {
-      this.sysSettings.absenceReasons.push(val);
-      this.newReasonInput = '';
-    }
-  }
-
-  removeAbsenceReason(reason: string) {
-    if (this.sysSettings.absenceReasons) {
-      this.sysSettings.absenceReasons = this.sysSettings.absenceReasons.filter((r) => r !== reason);
-    }
-  }
-
-  addTag() {
-    let val = this.newTagInput.trim();
-    if (!val) return;
-    if (!val.startsWith('#')) val = '#' + val;
-    if (!this.sysSettings.tags) this.sysSettings.tags = [];
-    if (!this.sysSettings.tags.includes(val)) {
-      this.sysSettings.tags.push(val);
-      this.newTagInput = '';
-    }
-  }
-
-  removeTag(tag: string) {
-    if (this.sysSettings.tags) {
-      this.sysSettings.tags = this.sysSettings.tags.filter((t) => t !== tag);
-    }
-  }
-
-  // Class Assignment & Handover Logic
-  loadClassAssignments() {
-    this.staffService.getClassAssignments().subscribe({
-      next: (res) => {
-        this.staffList = res.staffs;
-        this.availableHomeClasses = res.availableClasses;
-        this.allAvailableStudents = res.allStudents || [];
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Load class assignments error:', err),
-    });
-  }
-
-  openAssignClassModal(staff: User) {
-    this.selectedStaffForClassAssign = staff;
-    this.selectedHomeClassesForAssign = [...(staff.managedClasses || [])];
-    this.showAssignClassModal = true;
-    this.cdr.detectChanges();
-  }
-
-  toggleClassSelectionForAssign(classCode: string) {
-    if (this.selectedHomeClassesForAssign.includes(classCode)) {
-      this.selectedHomeClassesForAssign = this.selectedHomeClassesForAssign.filter(
-        (c) => c !== classCode,
-      );
-    } else {
-      this.selectedHomeClassesForAssign.push(classCode);
-    }
-  }
-
-  saveClassAssignment() {
-    if (!this.selectedStaffForClassAssign) return;
-    const staffId =
-      this.selectedStaffForClassAssign._id || this.selectedStaffForClassAssign.id || '';
-    this.staffService.assignManagedClasses(staffId, this.selectedHomeClassesForAssign).subscribe({
-      next: (res) => {
-        this.showAssignClassModal = false;
-        this.triggerToast('success', 'Phân Công Lớp Thành Công!', res.message);
-        this.loadClassAssignments();
-      },
-      error: (err) =>
-        this.triggerToast('error', 'Lỗi Phân Công Lớp', err.error?.message || 'Lỗi gán lớp'),
-    });
-  }
-
-  // Student Exception Assignment Methods
-  openAssignStudentModal(staff: User) {
-    this.selectedStaffForStudentAssign = staff;
-    this.selectedStudentsForAssign = (staff.managedStudents || []).map((s: any) =>
-      typeof s === 'string' ? s : s._id || s.id,
-    );
-    this.studentSearchQuery = '';
-    this.showAssignStudentModal = true;
-    this.cdr.detectChanges();
-  }
-
-  toggleStudentSelectionForAssign(studentId: string) {
-    if (this.selectedStudentsForAssign.includes(studentId)) {
-      this.selectedStudentsForAssign = this.selectedStudentsForAssign.filter(
-        (id) => id !== studentId,
-      );
-    } else {
-      this.selectedStudentsForAssign.push(studentId);
-    }
-  }
-
-  saveStudentAssignment() {
-    if (!this.selectedStaffForStudentAssign) return;
-    const staffId =
-      this.selectedStaffForStudentAssign._id || this.selectedStaffForStudentAssign.id || '';
-    this.staffService.assignManagedStudents(staffId, this.selectedStudentsForAssign).subscribe({
-      next: (res) => {
-        this.showAssignStudentModal = false;
-        this.triggerToast('success', 'Phân Công Ngoại Lệ SV Thành Công!', res.message);
-        this.loadClassAssignments();
-      },
-      error: (err) =>
-        this.triggerToast(
-          'error',
-          'Lỗi Phân Công SV Ngoại Lệ',
-          err.error?.message || 'Lỗi gán sinh viên',
-        ),
-    });
-  }
-
-  get filteredStudentsForAssign(): any[] {
-    if (!this.studentSearchQuery) return this.allAvailableStudents;
-    const q = this.studentSearchQuery.toLowerCase().trim();
-    return this.allAvailableStudents.filter(
-      (st) =>
-        (st.studentCode && st.studentCode.toLowerCase().includes(q)) ||
-        (st.fullName && st.fullName.toLowerCase().includes(q)) ||
-        (st.classCode && st.classCode.toLowerCase().includes(q)),
-    );
-  }
-
-  getStudentCodeDisplay(st: any): string {
-    if (!st) return '';
-    return typeof st === 'string' ? st : st.studentCode || st._id;
-  }
-
-  getStudentDisplayName(st: any): string {
-    if (!st || typeof st === 'string') return '';
-    return `${st.studentCode} - ${st.fullName} (${st.classCode})`;
-  }
-
-  openHandoverModal(staff?: User) {
-    this.handoverFromStaffId = staff ? staff._id || staff.id || '' : '';
-    this.handoverToStaffId = '';
-    this.onHandoverFromStaffChange();
-    this.showHandoverModal = true;
-    this.cdr.detectChanges();
-  }
-
-  onHandoverFromStaffChange() {
-    const fromStaff = this.staffList.find((s) => (s._id || s.id) === this.handoverFromStaffId);
-    this.handoverClassesToTransfer = fromStaff ? [...(fromStaff.managedClasses || [])] : [];
-  }
-
-  executeHandover() {
-    if (!this.handoverFromStaffId || !this.handoverToStaffId) {
-      this.triggerToast('error', 'Bàn Giao Lớp', 'Vui lòng chọn nhân viên giao và nhân viên nhận!');
-      return;
-    }
-    if (this.handoverFromStaffId === this.handoverToStaffId) {
-      this.triggerToast('error', 'Bàn Giao Lớp', 'Nhân viên bàn giao và tiếp nhận phải khác nhau!');
-      return;
-    }
-    this.isExecutingHandover = true;
-    this.staffService
-      .transferClasses({
-        fromStaffId: this.handoverFromStaffId,
-        toStaffId: this.handoverToStaffId,
-        classCodes: this.handoverClassesToTransfer,
+    const {
+      systemTitle,
+      schoolName,
+      departmentName,
+      supportHotline,
+      supportEmail,
+      logoDataUrl,
+      primaryColor,
+    } = this.sysSettings;
+    this.settingsService
+      .updateSettings({
+        systemTitle,
+        schoolName,
+        departmentName,
+        supportHotline,
+        supportEmail,
+        logoDataUrl,
+        primaryColor,
       })
       .subscribe({
         next: (res) => {
-          this.isExecutingHandover = false;
-          this.showHandoverModal = false;
-          this.triggerToast('success', 'Bàn Giao Thành Công!', res.message);
-          this.loadClassAssignments();
+          this.isSavingSettings = false;
+          this.settingsSaveAlert = res.message || 'Đã lưu cấu hình thành công!';
+          this.notify.success(this.settingsSaveAlert);
+          this.branding.apply(res.settings);
+          this.cdr.markForCheck();
+          setTimeout(() => (this.settingsSaveAlert = ''), 4000);
         },
         error: (err) => {
-          this.isExecutingHandover = false;
-          this.triggerToast('error', 'Lỗi Bàn Giao', err.error?.message || 'Bàn giao lớp thất bại');
+          this.isSavingSettings = false;
+          this.cdr.markForCheck();
+          this.notify.error(err.error?.message || 'Lỗi khi lưu cấu hình');
         },
       });
   }
 
-  // Analytics & Care Report logic
+  /** Reads the chosen logo as a data URL (kept small: it is stored in the settings). */
+  onLogoSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (file.size > 300 * 1024) {
+      this.notify.error('Logo tối đa 300 KB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.sysSettings.logoDataUrl = String(reader.result);
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Role permission matrix (Phân quyền)
+  permissionConfig: PermissionConfig | null = null;
+  /** Working copy edited by the checkboxes; saved with savePermissions(). */
+  permissionDraft: PermissionMatrix | null = null;
+  isSavingPermissions = false;
+
+  loadPermissions() {
+    this.permissionService.getConfig().subscribe({
+      next: (config) => this.applyPermissionConfig(config),
+      error: (err) => this.notify.error(err.error?.message || 'Không tải được bảng phân quyền'),
+    });
+  }
+
+  private applyPermissionConfig(config: PermissionConfig) {
+    this.permissionConfig = config;
+    this.permissionDraft = this.copyMatrix(config.matrix);
+    this.cdr.detectChanges();
+  }
+
+  private copyMatrix(matrix: PermissionMatrix): PermissionMatrix {
+    return {
+      manager: [...matrix.manager],
+      staff: [...matrix.staff],
+      teacher: [...matrix.teacher],
+    };
+  }
+
+  /** Permissions grouped for display, in catalogue order. */
+  get permissionGroups(): { group: string; items: PermissionConfig['permissions'] }[] {
+    const groups: { group: string; items: PermissionConfig['permissions'] }[] = [];
+    for (const item of this.permissionConfig?.permissions ?? []) {
+      const last = groups[groups.length - 1];
+      if (last?.group === item.group) last.items.push(item);
+      else groups.push({ group: item.group, items: [item] });
+    }
+    return groups;
+  }
+
+  hasPermission(role: ConfigurableRole, key: Permission): boolean {
+    return Boolean(this.permissionDraft?.[role].includes(key));
+  }
+
+  togglePermission(role: ConfigurableRole, key: Permission) {
+    if (!this.permissionDraft) return;
+    const list = this.permissionDraft[role];
+    this.permissionDraft[role] = list.includes(key)
+      ? list.filter((k) => k !== key)
+      : [...list, key];
+  }
+
+  isDefaultPermission(role: ConfigurableRole, key: Permission): boolean {
+    return Boolean(this.permissionConfig?.defaults[role].includes(key));
+  }
+
+  get permissionsChanged(): boolean {
+    const saved = this.permissionConfig?.matrix;
+    const draft = this.permissionDraft;
+    if (!saved || !draft) return false;
+    return (Object.keys(saved) as ConfigurableRole[]).some(
+      (role) =>
+        saved[role].length !== draft[role].length ||
+        saved[role].some((key) => !draft[role].includes(key)),
+    );
+  }
+
+  resetPermissionsToDefault() {
+    if (this.permissionConfig)
+      this.permissionDraft = this.copyMatrix(this.permissionConfig.defaults);
+  }
+
+  discardPermissionChanges() {
+    if (this.permissionConfig) this.permissionDraft = this.copyMatrix(this.permissionConfig.matrix);
+  }
+
+  savePermissions() {
+    if (!this.permissionDraft) return;
+    this.isSavingPermissions = true;
+    this.permissionService
+      .updateMatrix(this.permissionDraft)
+      .pipe(finalize(() => (this.isSavingPermissions = false)))
+      .subscribe({
+        next: (res) => {
+          this.applyPermissionConfig(res);
+          this.notify.success(res.message || 'Đã cập nhật phân quyền!');
+        },
+        error: (err) => this.notify.error(err.error?.message || 'Lỗi khi lưu phân quyền'),
+      });
+  }
+
   loadAnalytics() {
     this.isRefreshingAnalytics = true;
     this.cdr.detectChanges();
@@ -908,6 +854,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  get filteredWarningList() {
+    const list = this.analyticsData?.warningList ?? [];
+    return this.warningFilter
+      ? list.filter((w) => w.warningLevel.name === this.warningFilter)
+      : list;
   }
 
   get maxAbsenceCount(): number {

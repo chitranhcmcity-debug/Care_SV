@@ -8,6 +8,16 @@ export interface ChatMessage {
   content: string;
 }
 
+/** What AI Care helps the signed-in user with (depends on role and permissions). */
+export interface AiCareProfile {
+  name: string;
+  role: string;
+  roleLabel: string;
+  focus: string;
+  capabilities: string[];
+  suggestions: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -31,6 +41,16 @@ export class AiService {
   /** Trợ lý chat hỏi-đáp chung dựa trên số liệu hệ thống (Admin). */
   chat(messages: ChatMessage[]): Observable<{ reply: string }> {
     return this.http.post<{ reply: string }>(`${this.apiUrl}/chat`, { messages });
+  }
+
+  /** AI Care: hồ sơ trợ lý theo vai trò (năng lực + câu hỏi gợi ý). */
+  getCareProfile(): Observable<AiCareProfile> {
+    return this.http.get<AiCareProfile>(`${this.apiUrl}/care`);
+  }
+
+  /** AI Care: hỏi đáp theo vai trò; client gửi lại toàn bộ hội thoại mỗi lượt. */
+  careChat(messages: ChatMessage[]): Observable<{ reply: string }> {
+    return this.http.post<{ reply: string }>(`${this.apiUrl}/care`, { messages });
   }
 
   /** Đánh giá năng lực 1 nhân viên CSKH dựa trên lịch sử xử lý. */

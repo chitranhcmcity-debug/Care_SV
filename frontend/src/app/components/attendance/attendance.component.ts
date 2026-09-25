@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  HostListener,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,8 +32,11 @@ import {
   CALL_STATUS,
   SHIFT,
   WEEKDAYS_BY_JS_DAY,
+  AttendanceWindow,
+  WarningLevel,
 } from '../../models/types';
 import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
+import { BrandingService } from '../../services/branding.service';
 
 @Component({
   selector: 'app-attendance',
@@ -35,6 +45,8 @@ import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
   templateUrl: './attendance.component.html',
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
+  protected readonly branding = inject(BrandingService);
+
   activeTab: 'home' | 'attendance' | 'calls' | 'profile' = 'attendance';
   showQuickMenu = false;
   showLookupModal = false;
@@ -76,7 +88,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   isSubmitting = false;
   successMsg = '';
-  allowFlexibleAttendance = false;
+  /** Whether attendance can be written now (timetable window, or the manager's override). */
+  attendanceWindow: AttendanceWindow | null = null;
 
   private pollTimer?: ReturnType<typeof setInterval>;
 
@@ -231,8 +244,39 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.isAttendanceLocked = false;
     this.activeSession = null;
 
+    this.attendanceWindow = null;
+    this.loadWindow();
     this.loadHistory();
     if (!this.attendanceSummary) this.loadAttendanceSummary();
+  }
+
+  loadWindow() {
+    if (!this.selectedGroupId) return;
+    this.attendanceService.getWindow(this.selectedGroupId).subscribe({
+      next: (w) => {
+        this.attendanceWindow = w;
+        this.cdr.detectChanges();
+      },
+      error: () => (this.attendanceWindow = null),
+    });
+  }
+
+  get periodsPerSession(): number {
+    return this.attendanceSummary?.periodsPerSession || 4;
+  }
+
+  /** Highest configured warning level the student reached (periods / % of total periods). */
+  warningFor(studentId: string): WarningLevel | null {
+    const summary = this.attendanceSummary;
+    if (!summary?.warningLevels?.length) return null;
+    const periods = this.getTotalAbsentForStudent(studentId) * this.periodsPerSession;
+    const percent = summary.totalPeriods ? (periods / summary.totalPeriods) * 100 : null;
+    let reached: WarningLevel | null = null;
+    for (const level of summary.warningLevels) {
+      const value = level.unit === 'percent' ? percent : periods;
+      if (value !== null && value >= level.threshold) reached = level;
+    }
+    return reached;
   }
 
   switchAttendanceMode(mode: 'new' | 'history' | 'summary') {
@@ -666,14 +710,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   isSessionLocked(session: ScheduleSession): boolean {
     if (!session) return false;
 
-    // Nếu công tắc "Điểm danh linh hoạt" được bật -> Mở khóa tất cả các buổi
-    if (this.allowFlexibleAttendance) return false;
-
     // Buổi học chưa tới ngày (status === 'future') -> Bị khóa 🔒
     if (session.status === 'future') return true;
 
-    // Buổi học đã chốt sổ / đã lưu (status === 'recorded') và KHÔNG có thay đổi chưa lưu -> Bị khóa 🔒
+    // Giảng viên: chỉ buổi hôm nay, trong khung giờ của thời khóa biểu (server quyết định).
+    // Trưởng phòng (quyền điều chỉnh) được sửa mọi buổi đã qua.
     const key = this.getSessionKey(session);
+    if (!this.attendanceWindow?.canOverride) {
+      const today = this.getSessionKey({
+        scheduledDate: new Date().toISOString(),
+      } as ScheduleSession);
+      if (key !== today || !this.attendanceWindow?.open) return true;
+      return false;
+    }
+
+    // Buổi học đã chốt sổ / đã lưu (status === 'recorded') và KHÔNG có thay đổi chưa lưu -> Bị khóa 🔒
     if (session.status === 'recorded' && !this.dirtySessions.has(key)) {
       return true;
     }

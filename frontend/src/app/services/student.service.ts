@@ -12,6 +12,8 @@ export interface TimetableEntry {
   shift?: 'sang' | 'chieu' | 'toi';
   scheduleDays?: string[];
   room?: string;
+  startTime?: string;
+  endTime?: string;
   startDate?: string | null;
   endDate?: string | null;
   teacherName?: string;

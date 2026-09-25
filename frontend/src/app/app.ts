@@ -6,7 +6,9 @@ import { filter, map } from 'rxjs';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
 import { CallDialogComponent } from './components/call-dialog/call-dialog.component';
+import { AiCareComponent } from './components/ai-care/ai-care.component';
 import { AuthService } from './services/auth.service';
+import { BrandingService } from './services/branding.service';
 
 // Pages rendered full-width without the signed-in sidebar shell.
 const PUBLIC_PATHS = [
@@ -27,6 +29,7 @@ const PUBLIC_PATHS = [
     NavbarComponent,
     NotificationsComponent,
     CallDialogComponent,
+    AiCareComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -47,5 +50,8 @@ export class App {
     return this.authService.isLoggedIn() && !PUBLIC_PATHS.includes(path);
   }
 
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService) {
+    // Admin-configured name, logo and colour, loaded before sign-in for the login page.
+    inject(BrandingService).load();
+  }
 }

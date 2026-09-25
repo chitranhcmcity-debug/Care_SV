@@ -6,7 +6,8 @@ const NhiemVuGoiDienSchema = new mongoose.Schema(
     attendanceId: { type: mongoose.Schema.Types.ObjectId, ref: 'DiemDanh' },
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'SinhVien', required: true },
     courseGroupId: { type: mongoose.Schema.Types.ObjectId, ref: 'NhomHocPhan', required: true },
-    assignedStaffId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', required: true },
+    // null = lớp hành chính chưa có nhân viên phụ trách → hàng chờ của Trưởng phòng.
+    assignedStaffId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null },
     absenceDate: { type: Date, required: true },
     status: {
       type: String,

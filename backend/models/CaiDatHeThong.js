@@ -8,13 +8,26 @@ const CaiDatHeThongSchema = new mongoose.Schema(
     supportHotline: { type: String, default: '028 3965 1114' },
     supportEmail: { type: String, default: 'cskh@itc.edu.vn' },
 
-    // DiemDanh & Exam Ban Rules
-    examBanThreshold: { type: Number, default: 3 }, // Absent >= 3 sessions triggers ban
-    parentWarningThreshold: { type: Number, default: 2 }, // Absent >= 2 sessions triggers parent warning
-    taskAssignmentRule: {
-      type: String,
-      enum: ['round-robin', 'least-tasks', 'admin-only'],
-      default: 'round-robin',
+    // Giao diện web (Admin)
+    logoDataUrl: { type: String, default: '' },
+    primaryColor: { type: String, default: '#673ab7' },
+
+    // Khóa API tích hợp (Admin), mã hóa AES-GCM; xem services/dichVuCauHinhApi.js.
+    integrations: { type: mongoose.Schema.Types.Mixed, default: null },
+
+    // Mức cảnh báo vắng (Trưởng phòng / PHT). null = DEFAULT_WARNING_LEVELS.
+    warningLevels: {
+      type: [
+        {
+          _id: false,
+          name: { type: String, required: true, trim: true, maxlength: 50 },
+          unit: { type: String, enum: ['percent', 'periods'], required: true },
+          threshold: { type: Number, required: true, min: 0.1, max: 1000 },
+          color: { type: String, required: true, match: /^#[0-9a-fA-F]{6}$/ },
+          examBan: { type: Boolean, default: false },
+        },
+      ],
+      default: undefined,
     },
 
     // Custom Absence Reasons for staff selection
@@ -26,6 +39,10 @@ const CaiDatHeThongSchema = new mongoose.Schema(
     // Gói sử dụng hệ thống: hệ thống dùng được tới thời điểm này (null = chưa khởi tạo dùng thử).
     subscriptionExpiresAt: { type: Date, default: null },
     subscriptionPlan: { type: String, default: 'dung_thu' },
+
+    // Bảng phân quyền { manager: [key], staff: [key], teacher: [key] }; vai trò chưa lưu
+    // dùng DEFAULT_ROLE_PERMISSIONS (xem services/dichVuPhanQuyen.js).
+    rolePermissions: { type: mongoose.Schema.Types.Mixed, default: null },
 
     // SinhVien Tags list
     tags: {

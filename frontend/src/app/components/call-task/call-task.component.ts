@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CallTaskService } from '../../services/call-task.service';
@@ -7,7 +7,8 @@ import { SettingsService } from '../../services/settings.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService } from '../../services/notification.service';
 import { CallService, CallTarget } from '../../services/call.service';
-import { CallTask, CALL_STATUS, Student360Profile, SystemSettings } from '../../models/types';
+import { CallTask, CALL_STATUS, Student360Profile, SystemSettings, User } from '../../models/types';
+import { StaffService } from '../../services/staff.service';
 
 @Component({
   selector: 'app-call-task',
@@ -38,7 +39,10 @@ export class CallTaskComponent implements OnInit {
     private aiService: AiService,
     private notify: NotificationService,
     private calls: CallService,
+    private staffService: StaffService,
   ) {}
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   /** Calls go through the app's call dialog, so each one is logged (and can be recorded). */
   callStudent(
@@ -60,12 +64,38 @@ export class CallTaskComponent implements OnInit {
     if (student?._id) this.calls.open({ student, target, ...context });
   }
 
-  /** Management sees every staff member's tasks; the manager only has that view. */
+  /** 'callTasks.viewAll' shows every staff member's tasks; without 'callTasks.update' that is
+   *  the only view. */
   viewAll = false;
 
-  /** Updating a task is for its assignee (or the admin); the manager's overview is read-only. */
+  /** Both views are available: the user may update their own tasks and oversee everyone's. */
+  canToggleView(): boolean {
+    return this.authService.can('callTasks.viewAll') && this.authService.can('callTasks.update');
+  }
+
+  /** Updating a task is for its assignee; the overview is read-only. */
   canUpdate(): boolean {
-    return !this.viewAll || this.authService.isAdmin();
+    return this.authService.can('callTasks.update') && !this.viewAll;
+  }
+
+  /** Trưởng phòng: the queue of calls whose class has no responsible staff member. */
+  get canAssign(): boolean {
+    return this.authService.can('classes.assign');
+  }
+  filterAssignee = '';
+  activeStaff: User[] = [];
+  assignTo: Record<string, string> = {};
+
+  assignTask(task: CallTask) {
+    const staffId = this.assignTo[task._id];
+    if (!staffId) return;
+    this.callTaskService.assignTask(task._id, staffId).subscribe({
+      next: (res) => {
+        this.notify.success(res.message);
+        this.loadTasks();
+      },
+      error: (err) => this.notify.error(err.error?.message || 'Không giao được cuộc gọi'),
+    });
   }
 
   setViewAll(value: boolean) {
@@ -74,7 +104,14 @@ export class CallTaskComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.viewAll = this.authService.isManager();
+    this.viewAll = !this.authService.can('callTasks.update');
+    if (this.canAssign)
+      this.staffService.getStaffList().subscribe({
+        next: (list) => {
+          this.activeStaff = list.filter((u) => u.role === 'staff' && u.status === 'active');
+          this.cdr.markForCheck();
+        },
+      });
     this.loadTasks();
     this.loadSystemSettings();
   }
@@ -91,12 +128,16 @@ export class CallTaskComponent implements OnInit {
       classCode: this.filterClassCode,
       groupCode: this.filterGroupCode,
       status: this.filterStatus,
+      assignedTo: this.viewAll ? this.filterAssignee : '',
     };
     (this.viewAll
       ? this.callTaskService.getAllTasks(filters)
       : this.callTaskService.getMyTasks(filters)
     ).subscribe({
-      next: (list) => (this.tasks = list),
+      next: (list) => {
+        this.tasks = list;
+        this.cdr.markForCheck();
+      },
       error: (err) => console.error('Load call tasks error:', err),
     });
   }

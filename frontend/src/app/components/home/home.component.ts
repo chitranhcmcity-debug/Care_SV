@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { ROLE_HOME } from '../../models/types';
+import { BrandingService } from '../../services/branding.service';
 
 // 24px stroke icon paths (Tabler-style).
 const ICONS = {
@@ -30,6 +30,8 @@ const ICONS = {
   templateUrl: './home.component.html',
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
+  protected readonly branding = inject(BrandingService);
+
   readonly navLinks = [
     { id: 'tinh-nang', label: 'Tính năng' },
     { id: 'quy-trinh', label: 'Quy trình' },
@@ -193,7 +195,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
-    const role = this.authService.currentUser()?.role;
-    this.router.navigate([(role && ROLE_HOME[role]) || '/login']);
+    this.router.navigate([this.authService.homePath()]);
   }
 }

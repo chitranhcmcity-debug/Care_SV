@@ -16,6 +16,18 @@
 
 /* Shared typography and theme tokens. */
 :root {
+  /* Accent palette (Tailwind 'violet'); BrandingService overrides it with the admin's colour. */
+  --brand-50: 237 231 246;
+  --brand-100: 209 196 233;
+  --brand-200: 179 157 219;
+  --brand-300: 149 117 205;
+  --brand-400: 126 87 194;
+  --brand-500: 103 58 183;
+  --brand-600: 94 53 177;
+  --brand-700: 81 45 168;
+  --brand-800: 69 39 160;
+  --brand-900: 49 27 146;
+  --brand-950: 36 20 107;
   --font-sans: 'Roboto', 'Segoe UI', Arial, sans-serif;
   --primary-color: #673ab7;
   --primary-hover: #5e35b1;

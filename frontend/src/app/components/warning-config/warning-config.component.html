@@ -1,0 +1,184 @@
+<div class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
+  <div class="border-b border-slate-200 pb-4 flex items-start justify-between flex-wrap gap-4">
+    <div>
+      <h3 class="text-lg md:text-xl font-bold text-slate-900">
+        ⚠️ Mức cảnh báo vắng & danh mục chăm sóc
+      </h3>
+      <p class="text-xs text-slate-500 font-medium mt-0.5 max-w-2xl">
+        Hệ thống tự tính số tiết nghỉ không phép của mỗi sinh viên trong từng học phần và xếp vào
+        mức cao nhất đã chạm. Sắp xếp các mức từ nhẹ đến nặng; màu sắc được dùng ở báo cáo, điểm
+        danh và chăm sóc. AI Care cũng dùng đúng các mức này khi trả lời.
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving()"
+      class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-xl shadow-md disabled:opacity-60"
+    >
+      {{ saving() ? 'Đang lưu...' : '💾 Lưu cấu hình' }}
+    </button>
+  </div>
+
+  <!-- Warning levels -->
+  <section class="space-y-3">
+    <div class="flex items-center justify-between">
+      <h4 class="font-bold text-slate-900 text-sm uppercase">Các mức cảnh báo (nhẹ → nặng)</h4>
+      <button
+        type="button"
+        (click)="addLevel()"
+        [disabled]="levels.length >= 10"
+        class="px-3 py-2 rounded-lg border border-blue-300 text-blue-700 text-xs font-bold hover:bg-blue-50 disabled:opacity-50"
+      >
+        ➕ Thêm mức
+      </button>
+    </div>
+
+    <div
+      *ngFor="let level of levels; let i = index"
+      class="p-4 rounded-xl border bg-white grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
+      [style.borderLeft]="'6px solid ' + level.color"
+    >
+      <div class="md:col-span-1 flex md:flex-col gap-1">
+        <button
+          type="button"
+          (click)="move(i, -1)"
+          [disabled]="i === 0"
+          class="text-slate-400 hover:text-slate-700 disabled:opacity-30 text-xs"
+          title="Lên"
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          (click)="move(i, 1)"
+          [disabled]="i === levels.length - 1"
+          class="text-slate-400 hover:text-slate-700 disabled:opacity-30 text-xs"
+          title="Xuống"
+        >
+          ▼
+        </button>
+      </div>
+      <label class="md:col-span-3 block">
+        <span class="block text-[11px] font-bold text-slate-500 uppercase">Tên mức</span>
+        <input
+          [(ngModel)]="level.name"
+          maxlength="50"
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
+        />
+      </label>
+      <label class="md:col-span-2 block">
+        <span class="block text-[11px] font-bold text-slate-500 uppercase">Ngưỡng</span>
+        <input
+          type="number"
+          min="0.1"
+          [max]="level.unit === 'percent' ? 100 : 1000"
+          step="0.5"
+          [(ngModel)]="level.threshold"
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
+        />
+      </label>
+      <label class="md:col-span-2 block">
+        <span class="block text-[11px] font-bold text-slate-500 uppercase">Tính theo</span>
+        <select
+          [(ngModel)]="level.unit"
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+        >
+          <option value="percent">% tổng số tiết</option>
+          <option value="periods">Số tiết nghỉ</option>
+        </select>
+      </label>
+      <label class="md:col-span-1 block">
+        <span class="block text-[11px] font-bold text-slate-500 uppercase">Màu</span>
+        <input
+          type="color"
+          [(ngModel)]="level.color"
+          class="w-full h-9 rounded-lg border border-slate-300 bg-white cursor-pointer"
+        />
+      </label>
+      <label class="md:col-span-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <input type="checkbox" [(ngModel)]="level.examBan" class="w-4 h-4" />
+        Mức cấm thi
+      </label>
+      <div class="md:col-span-1 text-right">
+        <button
+          type="button"
+          (click)="removeLevel(i)"
+          [disabled]="levels.length === 1"
+          class="px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50 disabled:opacity-40"
+        >
+          Xóa
+        </button>
+      </div>
+      <div class="md:col-span-12 text-xs text-slate-600 flex items-center gap-2">
+        <span
+          class="px-2 py-0.5 rounded-full text-white font-bold"
+          [style.backgroundColor]="level.color"
+          >{{ level.name || '…' }}</span
+        >
+        <span>{{ describe(level) }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Absence reasons -->
+  <section class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+    <h4 class="font-bold text-slate-900 text-sm uppercase">📋 Danh mục lý do vắng</h4>
+    <p class="text-xs text-slate-500">Nhân viên CSKH chọn các lý do này khi ghi nhận cuộc gọi.</p>
+    <div class="flex flex-wrap gap-2">
+      <span
+        *ngFor="let r of absenceReasons"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold"
+      >
+        {{ r }}
+        <button type="button" (click)="removeItem('absenceReasons', r)" class="text-rose-500">
+          ✖
+        </button>
+      </span>
+    </div>
+    <div class="flex gap-2">
+      <input
+        [(ngModel)]="newReason"
+        (keyup.enter)="addItem('absenceReasons', newReason)"
+        placeholder="Lý do mới…"
+        class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+      />
+      <button
+        type="button"
+        (click)="addItem('absenceReasons', newReason)"
+        class="px-4 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold"
+      >
+        Thêm
+      </button>
+    </div>
+  </section>
+
+  <!-- Student tags -->
+  <section class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+    <h4 class="font-bold text-slate-900 text-sm uppercase">🏷️ Nhãn phân loại sinh viên</h4>
+    <div class="flex flex-wrap gap-2">
+      <span
+        *ngFor="let t of tags"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-50 border border-violet-200 text-violet-900 text-xs font-bold"
+      >
+        {{ t }}
+        <button type="button" (click)="removeItem('tags', t)" class="text-rose-500">✖</button>
+      </span>
+    </div>
+    <div class="flex gap-2">
+      <input
+        [(ngModel)]="newTag"
+        (keyup.enter)="addItem('tags', newTag)"
+        placeholder="#NhãnMới"
+        class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+      />
+      <button
+        type="button"
+        (click)="addItem('tags', newTag)"
+        class="px-4 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold"
+      >
+        Thêm
+      </button>
+    </div>
+  </section>
+</div>

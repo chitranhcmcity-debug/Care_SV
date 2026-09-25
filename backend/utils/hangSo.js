@@ -70,8 +70,163 @@ const ROLE_LABEL = Object.freeze({
   staff: 'Nhân viên CSKH',
   teacher: 'Giảng viên',
 });
-const MANAGEMENT_ROLES = Object.freeze(['admin', 'manager']);
-const isManagement = (user) => MANAGEMENT_ROLES.includes(user?.role);
+
+// --- Phân quyền theo vai trò
+// Mô hình vai trò:
+// - Admin: quản trị hệ thống (tài khoản, phân quyền, cấu hình hệ thống / API / giao diện, gói
+//   dịch vụ). Được XEM dữ liệu nghiệp vụ (ADMIN_PERMISSIONS) nhưng không thao tác nghiệp vụ.
+// - Trưởng phòng / Phó hiệu trưởng: giao việc, phân lớp cho CSKH, cấu hình mức cảnh báo, tổng quan.
+// - Nhân viên CSKH: chăm sóc sinh viên thuộc các lớp hành chính được phân công.
+// - Giảng viên: điểm danh học phần mình dạy, đúng giờ trong thời khóa biểu.
+// Admin bật/tắt các quyền dưới đây cho từng vai trò (trừ admin) trong bảng phân quyền.
+const PERMISSIONS = Object.freeze([
+  {
+    key: 'students.view',
+    group: 'Sinh viên',
+    label: 'Xem hồ sơ toàn bộ sinh viên',
+    description:
+      'Danh sách sinh viên, hồ sơ 360° của mọi sinh viên (không chỉ lớp được phân công).',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'attendance.take',
+    group: 'Điểm danh',
+    label: 'Điểm danh lớp học',
+    description:
+      'Điểm danh học phần mình dạy, chỉ trong giờ học theo thời khóa biểu; được sửa đến hết ngày.',
+    defaultRoles: ['teacher'],
+  },
+  {
+    key: 'attendance.override',
+    group: 'Điểm danh',
+    label: 'Điểm danh / sửa điểm danh ngoài giờ',
+    description: 'Ghi, sửa, xóa điểm danh của mọi học phần vào bất kỳ ngày nào (xử lý ngoại lệ).',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'courses.manage',
+    group: 'Điểm danh',
+    label: 'Quản lý nhóm học phần & thời khóa biểu',
+    description:
+      'Thêm, sửa, xóa nhóm học phần, giờ học, số tiết; thêm sinh viên hoặc cả lớp vào nhóm.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'excel.import',
+    group: 'Điểm danh',
+    label: 'Nhập / xuất Excel',
+    description: 'Tải biểu mẫu, nhập dữ liệu sinh viên và nhóm học phần từ Excel.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'callTasks.update',
+    group: 'Chăm sóc sinh viên',
+    label: 'Chăm sóc sinh viên lớp được phân công',
+    description:
+      'Gọi điện, cập nhật kết quả, lý do vắng, lịch gọi lại cho sinh viên các lớp mình phụ trách.',
+    defaultRoles: ['staff'],
+  },
+  {
+    key: 'callTasks.viewAll',
+    group: 'Chăm sóc sinh viên',
+    label: 'Giám sát mọi nhiệm vụ gọi điện',
+    description: 'Xem nhiệm vụ gọi điện và lịch sử cuộc gọi của tất cả nhân viên.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'classes.assign',
+    group: 'Chăm sóc sinh viên',
+    label: 'Phân lớp phụ trách cho nhân viên CSKH',
+    description:
+      'Giao / chuyển lớp hành chính cho nhân viên (có lưu lịch sử), xử lý hàng chờ cuộc gọi chưa phân công.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'warnings.configure',
+    group: 'Chăm sóc sinh viên',
+    label: 'Cấu hình mức cảnh báo & danh mục chăm sóc',
+    description:
+      'Các mức cảnh báo vắng (ngưỡng, màu sắc, mức cấm thi), lý do vắng, nhãn sinh viên.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'tasks.manage',
+    group: 'Giao việc',
+    label: 'Giao và duyệt nhiệm vụ',
+    description: 'Giao việc cho nhân viên CSKH, duyệt minh chứng, đánh giá hiệu suất bằng AI.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'reports.view',
+    group: 'Báo cáo',
+    label: 'Xem thống kê & xuất báo cáo',
+    description:
+      'Thống kê chuyên cần, cảnh báo vắng, xuất báo cáo chăm sóc (.xlsx). Nhân viên CSKH chỉ thấy lớp mình phụ trách.',
+    defaultRoles: ['manager', 'staff'],
+  },
+  {
+    key: 'ai.chat',
+    group: 'Báo cáo',
+    label: 'Trợ lý AI phân tích dữ liệu toàn trường',
+    description: 'Hỏi đáp với trợ lý AI về tình hình điểm danh và chăm sóc sinh viên toàn trường.',
+    defaultRoles: ['manager'],
+  },
+]);
+const PERMISSION_KEYS = Object.freeze(PERMISSIONS.map((p) => p.key));
+// Vai trò có thể phân quyền; admin có bộ quyền cố định (chỉ xem) + các chức năng hệ thống.
+const CONFIGURABLE_ROLES = Object.freeze(['manager', 'staff', 'teacher']);
+const ADMIN_PERMISSIONS = Object.freeze([
+  'students.view',
+  'callTasks.viewAll',
+  'reports.view',
+  'ai.chat',
+]);
+const DEFAULT_ROLE_PERMISSIONS = Object.freeze(
+  Object.fromEntries(
+    CONFIGURABLE_ROLES.map((role) => [
+      role,
+      Object.freeze(PERMISSIONS.filter((p) => p.defaultRoles.includes(role)).map((p) => p.key)),
+    ]),
+  ),
+);
+
+// --- Thời khóa biểu & điểm danh
+// Giờ học mặc định theo ca khi học phần chưa nhập giờ riêng (HH:mm, giờ địa phương máy chủ).
+const DEFAULT_SHIFT_TIMES = Object.freeze({
+  sang: Object.freeze({ startTime: '07:00', endTime: '11:30' }),
+  chieu: Object.freeze({ startTime: '13:00', endTime: '17:30' }),
+  toi: Object.freeze({ startTime: '18:00', endTime: '21:00' }),
+});
+const DEFAULT_PERIODS_PER_SESSION = 4;
+// Giảng viên được mở điểm danh sớm hơn giờ vào lớp bấy nhiêu phút.
+const ATTENDANCE_EARLY_MINUTES = 10;
+
+// --- Mức cảnh báo vắng mặc định (Trưởng phòng / PHT tự cấu hình lại).
+// unit: 'percent' = % tổng số tiết của học phần; 'periods' = số tiết nghỉ. Mức sau nặng hơn mức trước.
+const WARNING_UNITS = Object.freeze(['percent', 'periods']);
+const DEFAULT_WARNING_LEVELS = Object.freeze([
+  Object.freeze({
+    name: 'Nhắc nhở',
+    unit: 'percent',
+    threshold: 10,
+    color: '#eab308',
+    examBan: false,
+  }),
+  Object.freeze({
+    name: 'Báo phụ huynh',
+    unit: 'percent',
+    threshold: 15,
+    color: '#f97316',
+    examBan: false,
+  }),
+  Object.freeze({
+    name: 'Cấm thi',
+    unit: 'percent',
+    threshold: 20,
+    color: '#dc2626',
+    examBan: true,
+  }),
+]);
 
 // --- Gói sử dụng hệ thống (thanh toán qua PayOS)
 // Giá tính bằng VND. Đây là giá của nhà cung cấp phần mềm, nên chỉ sửa ở đây, không cho admin tự đặt.
@@ -123,8 +278,16 @@ module.exports = {
   WEEKDAYS,
   DEFAULT_SCHEDULE_DAYS,
   ROLE_LABEL,
-  MANAGEMENT_ROLES,
-  isManagement,
+  PERMISSIONS,
+  PERMISSION_KEYS,
+  CONFIGURABLE_ROLES,
+  DEFAULT_ROLE_PERMISSIONS,
+  ADMIN_PERMISSIONS,
+  DEFAULT_SHIFT_TIMES,
+  DEFAULT_PERIODS_PER_SESSION,
+  ATTENDANCE_EARLY_MINUTES,
+  WARNING_UNITS,
+  DEFAULT_WARNING_LEVELS,
   SUBSCRIPTION_PLANS,
   ORDER_STATUS,
   ORDER_STATUS_LABEL,

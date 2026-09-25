@@ -3,9 +3,9 @@
   <header class="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
       <a routerLink="/" class="flex items-center gap-3">
-        <img src="logo_truong.png" alt="Logo ITC" width="44" height="44" class="object-contain" />
+        <img [src]="branding.logo()" alt="Logo ITC" width="44" height="44" class="object-contain" />
         <div class="leading-tight">
-          <div class="font-bold text-slate-900">ITC CARE</div>
+          <div class="font-bold text-slate-900">{{ branding.title() }}</div>
           <div class="hidden sm:block text-xs text-slate-500 whitespace-nowrap">
             Hệ thống quản lý &amp; điểm danh sinh viên
           </div>
@@ -167,8 +167,8 @@
           <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/80 overflow-hidden">
             <!-- window bar -->
             <div class="h-14 px-4 flex items-center gap-3 border-b border-slate-100">
-              <img src="logo_truong.png" alt="" width="24" height="24" class="object-contain" />
-              <span class="text-sm font-bold text-slate-900">ITC CARE</span>
+              <img [src]="branding.logo()" alt="" width="24" height="24" class="object-contain" />
+              <span class="text-sm font-bold text-slate-900">{{ branding.title() }}</span>
               <span class="ml-2 w-7 h-7 rounded-md bg-violet-50"></span>
               <span class="h-8 flex-1 max-w-[180px] rounded-md border border-slate-200"></span>
               <span class="ml-auto w-7 h-7 rounded-md bg-amber-50"></span>
@@ -484,13 +484,13 @@
       <div class="space-y-4">
         <div class="flex items-center gap-3">
           <img
-            src="logo_truong.png"
+            [src]="branding.logo()"
             alt="Logo ITC"
             width="44"
             height="44"
             class="object-contain bg-white rounded-full"
           />
-          <span class="font-bold text-white">ITC CARE</span>
+          <span class="font-bold text-white">{{ branding.title() }}</span>
         </div>
         <p class="text-sm leading-relaxed max-w-xs">
           Hệ thống quản lý điểm danh và chăm sóc sinh viên của Trường Cao Đẳng Công Nghệ Thông Tin

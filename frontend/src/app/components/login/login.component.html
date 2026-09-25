@@ -1,17 +1,20 @@
 <div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] bg-white">
   <!-- Left: form -->
-  <div class="relative flex flex-col px-6 sm:px-12 py-8">
+  <div class="relative flex flex-col px-6 sm:px-12" [ngClass]="mode === 'login' ? 'py-4' : 'py-8'">
     <!-- Brand -->
     <a routerLink="/" class="flex items-center gap-3 w-fit">
-      <img src="logo_truong.png" alt="Logo ITC" width="40" height="40" class="object-contain" />
+      <img [src]="branding.logo()" alt="Logo ITC" width="40" height="40" class="object-contain" />
       <div class="leading-tight">
-        <div class="font-bold text-slate-900">ITC CARE</div>
+        <div class="font-bold text-slate-900">{{ branding.title() }}</div>
         <div class="text-xs text-slate-500">Student Care System</div>
       </div>
     </a>
 
-    <div class="flex-1 flex items-center justify-center py-10">
-      <div class="w-full max-w-[420px] space-y-7">
+    <div
+      class="flex-1 flex items-center justify-center"
+      [ngClass]="mode === 'login' ? 'py-4' : 'py-10'"
+    >
+      <div class="w-full max-w-[420px]" [ngClass]="mode === 'login' ? 'space-y-4' : 'space-y-7'">
         <!-- Heading -->
         <div class="space-y-2" [ngSwitch]="mode">
           <ng-container *ngSwitchCase="'register'">
@@ -111,7 +114,8 @@
                 name="password"
                 required
                 placeholder="Nhập mật khẩu"
-                class="w-full h-12 pl-11 pr-12 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+                [ngClass]="mode === 'login' ? 'h-11' : 'h-12'"
+                class="w-full pl-11 pr-12 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
               />
               <button
                 type="button"
@@ -180,7 +184,8 @@
           <button
             type="submit"
             [disabled]="loading"
-            class="w-full h-12 bg-violet-600 hover:bg-violet-700 disabled:opacity-70 text-white font-semibold rounded-lg text-sm transition-all shadow-[0_8px_20px_-8px_rgba(103,58,183,0.7)] flex items-center justify-center gap-2"
+            [ngClass]="mode === 'login' ? 'h-11' : 'h-12'"
+            class="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-70 text-white font-semibold rounded-lg text-sm transition-all shadow-[0_8px_20px_-8px_rgba(103,58,183,0.7)] flex items-center justify-center gap-2"
           >
             <svg *ngIf="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle
@@ -203,7 +208,7 @@
 
         <!-- ============ LOGIN ============ -->
         <ng-container *ngIf="mode === 'login'">
-          <form (ngSubmit)="onLogin()" class="space-y-5" novalidate>
+          <form (ngSubmit)="onLogin()" class="space-y-3" novalidate>
             <div class="space-y-1.5">
               <label for="login-email" class="block text-sm font-medium text-slate-700"
                 >Tài khoản đăng nhập</label
@@ -227,7 +232,7 @@
                   name="email"
                   required
                   placeholder="Nhập tài khoản hoặc email"
-                  class="w-full h-12 pl-11 pr-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
+                  class="w-full h-11 pl-11 pr-4 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm placeholder:text-slate-400 transition-colors hover:border-slate-400"
                 />
               </div>
             </div>
@@ -269,13 +274,13 @@
           </p>
 
           <!-- Quick login (dev builds only) -->
-          <div *ngIf="quickAccounts.length" class="space-y-3">
+          <div *ngIf="quickAccounts.length" class="space-y-2">
             <div class="flex items-center gap-3 text-xs text-slate-400">
               <span class="h-px flex-1 bg-slate-200"></span>
               Đăng nhập nhanh
               <span class="h-px flex-1 bg-slate-200"></span>
             </div>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 gap-2">
               <button
                 *ngFor="let account of quickAccounts"
                 type="button"
@@ -283,7 +288,7 @@
                 [title]="account.email"
                 [attr.aria-pressed]="email === account.email"
                 [disabled]="loading"
-                class="group flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border transition-all"
+                class="group flex items-center gap-2 py-2 px-2 rounded-lg border transition-all text-left"
                 [ngClass]="
                   email === account.email
                     ? 'border-violet-500 bg-violet-50'
@@ -291,14 +296,16 @@
                 "
               >
                 <span
-                  class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                  class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold"
                   [ngClass]="account.tone"
                   >{{ account.initial }}</span
                 >
-                <span class="text-xs font-medium text-slate-700 leading-tight text-center">{{
-                  account.label
-                }}</span>
-                <span class="text-xs text-slate-500">{{ account.email }}</span>
+                <span class="min-w-0 flex flex-col gap-0.5">
+                  <span class="text-xs font-medium text-slate-700 leading-tight">{{
+                    account.label
+                  }}</span>
+                  <span class="text-xs text-slate-500">{{ account.email }}</span>
+                </span>
               </button>
             </div>
             <p class="text-xs text-slate-400 text-center">

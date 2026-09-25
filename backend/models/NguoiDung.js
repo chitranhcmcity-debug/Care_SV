@@ -15,8 +15,8 @@ const NguoiDungSchema = new mongoose.Schema(
     verifyTokenExpires: { type: Date, default: null },
     resetTokenHash: { type: String, default: null },
     resetTokenExpires: { type: Date, default: null },
+    // Lớp hành chính đang phụ trách (nhân viên CSKH); lịch sử ở LichSuPhanCong.
     managedClasses: [{ type: String }],
-    managedStudents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SinhVien' }],
   },
   { timestamps: true },
 );

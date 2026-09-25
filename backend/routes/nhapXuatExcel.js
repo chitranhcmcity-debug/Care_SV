@@ -4,7 +4,7 @@ const multer = require('multer');
 const ExcelJS = require('exceljs');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
-const { verifyToken, requireAdmin } = require('../middleware/xacThuc');
+const { verifyToken, requirePermission } = require('../middleware/xacThuc');
 
 // Multer memory storage configuration
 const storage = multer.memoryStorage();
@@ -15,76 +15,81 @@ const upload = multer({ storage });
 // Xuất file Excel mẫu theo từng học phần đã cấu hình
 // Mỗi sheet = 1 groupCode, pre-fill SV hiện có
 // =========================================================
-router.get('/course-template', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const courseGroups = await NhomHocPhan.find({})
-      .populate('students', 'studentCode fullName phone parentPhone classCode')
-      .sort({ groupCode: 1 });
+router.get(
+  '/course-template',
+  verifyToken,
+  requirePermission('excel.import'),
+  async (req, res, next) => {
+    try {
+      const courseGroups = await NhomHocPhan.find({})
+        .populate('students', 'studentCode fullName phone parentPhone classCode')
+        .sort({ groupCode: 1 });
 
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'ITC Student Care System';
-    workbook.created = new Date();
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'ITC Student Care System';
+      workbook.created = new Date();
 
-    if (courseGroups.length === 0) {
-      // Tạo sheet mẫu nếu chưa có học phần nào
-      const sheet = workbook.addWorksheet('VD_MMT_HK1_26.27');
-      setupCourseSheetColumns(sheet, 'VD_MMT_HK1_26.27');
-      sheet.addRow({
-        studentCode: '501250001',
-        fullName: 'Nguyễn Văn A',
-        phone: '0901234567',
-        parentPhone: '0987654321',
-      });
-    } else {
-      for (const group of courseGroups) {
-        // Excel worksheet name max 31 chars, clean special chars
-        const sheetName = (group.groupCode || 'HocPhan')
-          .replace(/[*?:/\\[\]]/g, '_')
-          .substring(0, 31);
+      if (courseGroups.length === 0) {
+        // Tạo sheet mẫu nếu chưa có học phần nào
+        const sheet = workbook.addWorksheet('VD_MMT_HK1_26.27');
+        setupCourseSheetColumns(sheet, 'VD_MMT_HK1_26.27');
+        sheet.addRow({
+          studentCode: '501250001',
+          fullName: 'Nguyễn Văn A',
+          phone: '0901234567',
+          parentPhone: '0987654321',
+        });
+      } else {
+        for (const group of courseGroups) {
+          // Excel worksheet name max 31 chars, clean special chars
+          const sheetName = (group.groupCode || 'HocPhan')
+            .replace(/[*?:/\\[\]]/g, '_')
+            .substring(0, 31);
 
-        const sheet = workbook.addWorksheet(sheetName);
-        setupCourseSheetColumns(sheet, group.groupCode, group.courseName);
+          const sheet = workbook.addWorksheet(sheetName);
+          setupCourseSheetColumns(sheet, group.groupCode, group.courseName);
 
-        // Pre-fill sinh viên đã đăng ký
-        const students = Array.isArray(group.students) ? group.students : [];
-        for (const st of students) {
-          if (!st || typeof st !== 'object') continue;
-          sheet.addRow({
-            studentCode: st.studentCode || '',
-            fullName: st.fullName || '',
-            phone: st.phone || '',
-            parentPhone: st.parentPhone || '',
-          });
-        }
+          // Pre-fill sinh viên đã đăng ký
+          const students = Array.isArray(group.students) ? group.students : [];
+          for (const st of students) {
+            if (!st || typeof st !== 'object') continue;
+            sheet.addRow({
+              studentCode: st.studentCode || '',
+              fullName: st.fullName || '',
+              phone: st.phone || '',
+              parentPhone: st.parentPhone || '',
+            });
+          }
 
-        // Nếu chưa có SV thì thêm dòng mẫu
-        if (students.length === 0) {
-          const exRow = sheet.addRow({
-            studentCode: '501250001',
-            fullName: 'Nguyễn Văn A (Ví dụ)',
-            phone: '0901234567',
-            parentPhone: '0987654321',
-          });
-          exRow.font = { italic: true, color: { argb: 'FF9CA3AF' } };
+          // Nếu chưa có SV thì thêm dòng mẫu
+          if (students.length === 0) {
+            const exRow = sheet.addRow({
+              studentCode: '501250001',
+              fullName: 'Nguyễn Văn A (Ví dụ)',
+              phone: '0901234567',
+              parentPhone: '0987654321',
+            });
+            exRow.font = { italic: true, color: { argb: 'FF9CA3AF' } };
+          }
         }
       }
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="Mau_Nhap_SV_Theo_HocPhan_${new Date().toISOString().split('T')[0]}.xlsx"`,
+      );
+
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      next(error);
     }
-
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="Mau_Nhap_SV_Theo_HocPhan_${new Date().toISOString().split('T')[0]}.xlsx"`,
-    );
-
-    await workbook.xlsx.write(res);
-    res.end();
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 function setupCourseSheetColumns(sheet, groupCode, courseName) {
   // Title row
@@ -129,7 +134,7 @@ function setupCourseSheetColumns(sheet, groupCode, courseName) {
 router.post(
   '/import-by-course',
   verifyToken,
-  requireAdmin,
+  requirePermission('excel.import'),
   upload.single('file'),
   async (req, res, next) => {
     try {
@@ -319,68 +324,73 @@ function escapeRegex(str) {
 // =========================================================
 // GET /api/excel/export-template (cũ — giữ backward compat)
 // =========================================================
-router.get('/export-template', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const students = await SinhVien.find({}).sort({ classCode: 1, studentCode: 1 });
+router.get(
+  '/export-template',
+  verifyToken,
+  requirePermission('excel.import'),
+  async (req, res, next) => {
+    try {
+      const students = await SinhVien.find({}).sort({ classCode: 1, studentCode: 1 });
 
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'ITC Student Care System';
-    workbook.created = new Date();
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'ITC Student Care System';
+      workbook.created = new Date();
 
-    const groupedByClass = {};
-    for (const student of students) {
-      const cls = student.classCode || 'KHOA_CHUNG';
-      if (!groupedByClass[cls]) groupedByClass[cls] = [];
-      groupedByClass[cls].push(student);
-    }
+      const groupedByClass = {};
+      for (const student of students) {
+        const cls = student.classCode || 'KHOA_CHUNG';
+        if (!groupedByClass[cls]) groupedByClass[cls] = [];
+        groupedByClass[cls].push(student);
+      }
 
-    const classKeys = Object.keys(groupedByClass);
+      const classKeys = Object.keys(groupedByClass);
 
-    if (classKeys.length === 0) {
-      const sheet = workbook.addWorksheet('CD25CT1');
-      setupLegacySheetColumns(sheet);
-      sheet.addRow({
-        studentCode: '501250001',
-        fullName: 'Nguyen Van A',
-        dob: '01/01/2007',
-        major: 'Công nghệ Thông tin',
-        phone: '0901234567',
-        parentPhone: '0987654321',
-        courseGroups: '501_MMT_HK1_26.27_CD25LM',
-      });
-    } else {
-      for (const cls of classKeys) {
-        const sheetName = cls.replace(/[*?:/\\[\]]/g, '').substring(0, 31) || 'Lop';
-        const sheet = workbook.addWorksheet(sheetName);
+      if (classKeys.length === 0) {
+        const sheet = workbook.addWorksheet('CD25CT1');
         setupLegacySheetColumns(sheet);
-        for (const st of groupedByClass[cls]) {
-          sheet.addRow({
-            studentCode: st.studentCode,
-            fullName: st.fullName,
-            dob: st.dob || '',
-            major: st.major || '',
-            phone: st.phone || '',
-            parentPhone: st.parentPhone || '',
-            courseGroups: (st.courseGroups || []).join(', '),
-          });
+        sheet.addRow({
+          studentCode: '501250001',
+          fullName: 'Nguyen Van A',
+          dob: '01/01/2007',
+          major: 'Công nghệ Thông tin',
+          phone: '0901234567',
+          parentPhone: '0987654321',
+          courseGroups: '501_MMT_HK1_26.27_CD25LM',
+        });
+      } else {
+        for (const cls of classKeys) {
+          const sheetName = cls.replace(/[*?:/\\[\]]/g, '').substring(0, 31) || 'Lop';
+          const sheet = workbook.addWorksheet(sheetName);
+          setupLegacySheetColumns(sheet);
+          for (const st of groupedByClass[cls]) {
+            sheet.addRow({
+              studentCode: st.studentCode,
+              fullName: st.fullName,
+              dob: st.dob || '',
+              major: st.major || '',
+              phone: st.phone || '',
+              parentPhone: st.parentPhone || '',
+              courseGroups: (st.courseGroups || []).join(', '),
+            });
+          }
         }
       }
-    }
 
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Danh_Sach_Sinh_Vien_Theo_Lop.xlsx"',
-    );
-    await workbook.xlsx.write(res);
-    res.end();
-  } catch (error) {
-    next(error);
-  }
-});
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename="Danh_Sach_Sinh_Vien_Theo_Lop.xlsx"',
+      );
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 function setupLegacySheetColumns(sheet) {
   sheet.columns = [
@@ -403,7 +413,7 @@ function setupLegacySheetColumns(sheet) {
 router.post(
   '/import-data',
   verifyToken,
-  requireAdmin,
+  requirePermission('excel.import'),
   upload.single('file'),
   async (req, res, next) => {
     try {

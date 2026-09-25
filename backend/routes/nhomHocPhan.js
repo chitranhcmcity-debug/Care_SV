@@ -6,8 +6,22 @@ const SinhVien = require('../models/SinhVien');
 const NguoiDung = require('../models/NguoiDung');
 const DiemDanh = require('../models/DiemDanh');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
-const { verifyToken, requireAdmin, requireSignedIn } = require('../middleware/xacThuc');
+const { verifyToken, requirePermission, requireSignedIn } = require('../middleware/xacThuc');
 const { SHIFT, DEFAULT_SCHEDULE_DAYS } = require('../utils/hangSo');
+const { assert } = require('../utils/kiemTra');
+const { classHours } = require('../services/dichVuCanhBao');
+
+const TIMETABLE_FIELDS = ['startTime', 'endTime', 'periodsPerSession', 'totalPeriods'];
+
+/** Class hours and periods from the request body; the class must end after it starts. */
+function applyTimetable(group, body) {
+  for (const field of TIMETABLE_FIELDS) {
+    if (body[field] === undefined) continue;
+    group[field] = field.endsWith('Time') ? String(body[field] || '') : Number(body[field]) || 0;
+  }
+  const { startTime, endTime } = classHours(group);
+  assert(startTime < endTime, 'Giờ tan học phải sau giờ vào học');
+}
 
 // GET /api/course-groups/timetable (every role) — schedule only, no student personal data.
 router.get('/timetable', verifyToken, requireSignedIn, async (req, res, next) => {
@@ -21,6 +35,10 @@ router.get('/timetable', verifyToken, requireSignedIn, async (req, res, next) =>
           shift: 1,
           scheduleDays: 1,
           room: 1,
+          startTime: 1,
+          endTime: 1,
+          periodsPerSession: 1,
+          totalPeriods: 1,
           startDate: 1,
           endDate: 1,
           teacherId: 1,
@@ -37,35 +55,40 @@ router.get('/timetable', verifyToken, requireSignedIn, async (req, res, next) =>
 });
 
 // GET /api/course-groups (List all course groups with student & teacher details)
-router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const { shift, search } = req.query;
-    const filter = {};
-    if (shift) filter.shift = shift;
+router.get(
+  '/',
+  verifyToken,
+  requirePermission('courses.manage', 'excel.import'),
+  async (req, res, next) => {
+    try {
+      const { shift, search } = req.query;
+      const filter = {};
+      if (shift) filter.shift = shift;
 
-    let groups = await NhomHocPhan.find(filter)
-      .populate('students', 'studentCode fullName classCode major phone parentPhone')
-      .populate('teacherId', 'fullName email role status')
-      .sort({ createdAt: -1 });
+      let groups = await NhomHocPhan.find(filter)
+        .populate('students', 'studentCode fullName classCode major phone parentPhone')
+        .populate('teacherId', 'fullName email role status')
+        .sort({ createdAt: -1 });
 
-    if (search) {
-      const term = String(search).toLowerCase();
-      groups = groups.filter(
-        (g) =>
-          g.groupCode.toLowerCase().includes(term) ||
-          g.courseName.toLowerCase().includes(term) ||
-          g.courseCode.toLowerCase().includes(term),
-      );
+      if (search) {
+        const term = String(search).toLowerCase();
+        groups = groups.filter(
+          (g) =>
+            g.groupCode.toLowerCase().includes(term) ||
+            g.courseName.toLowerCase().includes(term) ||
+            g.courseCode.toLowerCase().includes(term),
+        );
+      }
+
+      res.json(groups);
+    } catch (error) {
+      next(error);
     }
-
-    res.json(groups);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // POST /api/course-groups (Create new Course Group with schedule & teacher)
-router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
+router.post('/', verifyToken, requirePermission('courses.manage'), async (req, res, next) => {
   try {
     const {
       courseCode,
@@ -100,7 +123,10 @@ router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
       }
     }
 
+    const draft = new NhomHocPhan({ groupCode: groupCode.trim(), shift: shift || SHIFT.MORNING });
+    applyTimetable(draft, req.body);
     const newGroup = await NhomHocPhan.create({
+      ...Object.fromEntries(TIMETABLE_FIELDS.map((f) => [f, draft[f]])),
       courseCode: courseCode || '',
       courseName: courseName || groupCode,
       groupCode: groupCode.trim(),
@@ -131,7 +157,7 @@ router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
 });
 
 // PUT /api/course-groups/:id (Update Course Group schedule & info)
-router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
+router.put('/:id', verifyToken, requirePermission('courses.manage'), async (req, res, next) => {
   try {
     const {
       courseCode,
@@ -157,6 +183,7 @@ router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
     if (room !== undefined) group.room = room;
     if (startDate !== undefined) group.startDate = startDate ? new Date(startDate) : null;
     if (endDate !== undefined) group.endDate = endDate ? new Date(endDate) : null;
+    applyTimetable(group, req.body);
 
     if (teacherId !== undefined) {
       if (teacherId && mongoose.Types.ObjectId.isValid(teacherId)) {
@@ -183,7 +210,7 @@ router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
 });
 
 // DELETE /api/course-groups/:id (Delete Course Group)
-router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
+router.delete('/:id', verifyToken, requirePermission('courses.manage'), async (req, res, next) => {
   try {
     const deleted = await NhomHocPhan.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -210,57 +237,62 @@ router.delete('/:id', verifyToken, requireAdmin, async (req, res, next) => {
 });
 
 // POST /api/course-groups/:id/assign-student (Enroll individual student by MSSV or ID)
-router.post('/:id/assign-student', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const { studentCode, studentId } = req.body;
+router.post(
+  '/:id/assign-student',
+  verifyToken,
+  requirePermission('courses.manage'),
+  async (req, res, next) => {
+    try {
+      const { studentCode, studentId } = req.body;
 
-    const group = await NhomHocPhan.findById(req.params.id);
-    if (!group) {
-      return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
+      const group = await NhomHocPhan.findById(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
+      }
+
+      let student;
+      if (studentId) {
+        student = await SinhVien.findById(studentId);
+      } else if (studentCode) {
+        student = await SinhVien.findOne({ studentCode: studentCode.trim() });
+      }
+
+      if (!student) {
+        return res.status(404).json({ message: 'Không tìm thấy sinh viên với MSSV này' });
+      }
+
+      // Add to group.students if not present
+      if (!group.students.includes(student._id)) {
+        group.students.push(student._id);
+        await group.save();
+      }
+
+      // Add groupCode to student.courseGroups if not present
+      if (!student.courseGroups.includes(group.groupCode)) {
+        student.courseGroups.push(group.groupCode);
+        await student.save();
+      }
+
+      const updatedGroup = await NhomHocPhan.findById(group._id).populate(
+        'students',
+        'studentCode fullName classCode major phone parentPhone',
+      );
+
+      res.json({
+        message: `Đã đăng ký thành công SV ${student.fullName} (${student.studentCode}) vào học phần!`,
+        group: updatedGroup,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    let student;
-    if (studentId) {
-      student = await SinhVien.findById(studentId);
-    } else if (studentCode) {
-      student = await SinhVien.findOne({ studentCode: studentCode.trim() });
-    }
-
-    if (!student) {
-      return res.status(404).json({ message: 'Không tìm thấy sinh viên với MSSV này' });
-    }
-
-    // Add to group.students if not present
-    if (!group.students.includes(student._id)) {
-      group.students.push(student._id);
-      await group.save();
-    }
-
-    // Add groupCode to student.courseGroups if not present
-    if (!student.courseGroups.includes(group.groupCode)) {
-      student.courseGroups.push(group.groupCode);
-      await student.save();
-    }
-
-    const updatedGroup = await NhomHocPhan.findById(group._id).populate(
-      'students',
-      'studentCode fullName classCode major phone parentPhone',
-    );
-
-    res.json({
-      message: `Đã đăng ký thành công SV ${student.fullName} (${student.studentCode}) vào học phần!`,
-      group: updatedGroup,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // DELETE /api/course-groups/:id/remove-student/:studentId (Unenroll student)
 router.delete(
   '/:id/remove-student/:studentId',
   verifyToken,
-  requireAdmin,
+  requirePermission('courses.manage'),
   async (req, res, next) => {
     try {
       const group = await NhomHocPhan.findById(req.params.id);
@@ -292,53 +324,58 @@ router.delete(
 );
 
 // POST /api/course-groups/:id/assign-class (Enroll all students of an entire Class into this Course Group)
-router.post('/:id/assign-class', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const { classCode } = req.body;
-    if (!classCode) {
-      return res.status(400).json({ message: 'Mã lớp sinh hoạt là bắt buộc' });
-    }
-
-    const group = await NhomHocPhan.findById(req.params.id);
-    if (!group) {
-      return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
-    }
-
-    const classStudents = await SinhVien.find({ classCode: classCode.trim() });
-    if (classStudents.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `Không tìm thấy sinh viên nào thuộc lớp ${classCode}` });
-    }
-
-    let addedCount = 0;
-    for (const st of classStudents) {
-      if (!group.students.includes(st._id)) {
-        group.students.push(st._id);
-        addedCount++;
+router.post(
+  '/:id/assign-class',
+  verifyToken,
+  requirePermission('courses.manage'),
+  async (req, res, next) => {
+    try {
+      const { classCode } = req.body;
+      if (!classCode) {
+        return res.status(400).json({ message: 'Mã lớp sinh hoạt là bắt buộc' });
       }
 
-      if (!st.courseGroups.includes(group.groupCode)) {
-        st.courseGroups.push(group.groupCode);
-        await st.save();
+      const group = await NhomHocPhan.findById(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
       }
+
+      const classStudents = await SinhVien.find({ classCode: classCode.trim() });
+      if (classStudents.length === 0) {
+        return res
+          .status(404)
+          .json({ message: `Không tìm thấy sinh viên nào thuộc lớp ${classCode}` });
+      }
+
+      let addedCount = 0;
+      for (const st of classStudents) {
+        if (!group.students.includes(st._id)) {
+          group.students.push(st._id);
+          addedCount++;
+        }
+
+        if (!st.courseGroups.includes(group.groupCode)) {
+          st.courseGroups.push(group.groupCode);
+          await st.save();
+        }
+      }
+
+      await group.save();
+
+      const updatedGroup = await NhomHocPhan.findById(group._id).populate(
+        'students',
+        'studentCode fullName classCode major phone parentPhone',
+      );
+
+      res.json({
+        message: `Đã đăng ký thành công toàn bộ ${addedCount} sinh viên của lớp ${classCode} vào học phần!`,
+        group: updatedGroup,
+        addedCount,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    await group.save();
-
-    const updatedGroup = await NhomHocPhan.findById(group._id).populate(
-      'students',
-      'studentCode fullName classCode major phone parentPhone',
-    );
-
-    res.json({
-      message: `Đã đăng ký thành công toàn bộ ${addedCount} sinh viên của lớp ${classCode} vào học phần!`,
-      group: updatedGroup,
-      addedCount,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 module.exports = router;

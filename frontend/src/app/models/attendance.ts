@@ -1,4 +1,4 @@
-import { CourseGroup, Student } from './types';
+import { CourseGroup, Student, WarningLevel } from './types';
 
 export interface ExcusedStudentItem {
   studentId: Student | string;
@@ -25,6 +25,11 @@ export interface StudentSummary {
   excusedCount?: number;
   attendCount: number;
   attendRate: number;
+  /** Absent periods (sessions x periods per session), share of the course's total periods. */
+  absentPeriods: number;
+  absentPercent: number | null;
+  warningLevel: WarningLevel | null;
+  /** Reached a level marked as exam ban. */
   isAtRisk: boolean;
   callStatus: string | null;
   callNote: string | null;
@@ -40,7 +45,9 @@ export interface AttendanceSummary {
     room: string;
   };
   totalSessions: number;
-  examBanThreshold: number;
+  periodsPerSession: number;
+  totalPeriods: number | null;
+  warningLevels: WarningLevel[];
   summary: StudentSummary[];
 }
 
@@ -51,6 +58,8 @@ export interface SubmitAttendanceResult {
   createdTasksCount: number;
   taskAssignments: {
     staffName: string;
+    /** Class without a responsible staff member: the call waits in the manager's queue. */
+    unassigned?: boolean;
     studentName: string;
     studentCode: string;
     classCode: string;

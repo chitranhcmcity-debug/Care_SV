@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "create:manager": "node scripts/taoTaiKhoanQuanLy.js",
     "test": "node --test tests/*.test.js",
     "test:submit": "node --test tests/kiemThuApi.test.js"
   },

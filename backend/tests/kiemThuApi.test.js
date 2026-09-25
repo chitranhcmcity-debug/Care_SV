@@ -106,11 +106,22 @@ before(async () => {
     { studentCode: 'TEST001', fullName: 'Student A', classCode: 'TEST' },
     { studentCode: 'TEST002', fullName: 'Student B', classCode: 'OTHER' },
   ]);
+  // Scheduled every day, all day, so the teacher's attendance window is open whenever tests run.
   group = await NhomHocPhan.create({
     groupCode: 'TEST-GROUP',
     teacherId: users.teacher._id,
     students: [students[0]._id],
+    scheduleDays: ['thu_2', 'thu_3', 'thu_4', 'thu_5', 'thu_6', 'thu_7', 'chu_nhat'],
+    startTime: '00:00',
+    endTime: '23:59',
   });
+  // Class TEST is cared for by users.staff; class OTHER has nobody (manager queue).
+  await require('../services/dichVuPhanCongLop').assignClass({
+    classCode: 'TEST',
+    staffId: users.staff._id,
+    by: users.manager._id,
+  });
+  users.staff = await NguoiDung.findById(users.staff._id);
   otherGroup = await NhomHocPhan.create({
     groupCode: 'OTHER-GROUP',
     teacherName: 'teacher',
@@ -128,10 +139,10 @@ after(async () => {
 });
 
 test('staff cannot use global administrative APIs', async () => {
-  for (const path of ['/call-tasks/admin-all', '/course-groups', '/auth/class-assignments']) {
+  for (const path of ['/call-tasks/admin-all', '/course-groups', '/class-assignments']) {
     assert.equal((await request(path, tokens.staff)).status, 403, path);
   }
-  // Staff may read reports; teachers may not.
+  // Staff may read reports (their own classes); teachers may not.
   assert.equal((await request('/analytics/summary', tokens.staff)).status, 200);
   assert.equal((await request('/analytics/summary', tokens.teacher)).status, 403);
   assert.equal(
@@ -154,7 +165,7 @@ test('all=true cannot bypass course assignment and name matching does not grant 
   }
 });
 test('invalid IDs and invalid login payloads return 400', async () => {
-  assert.equal((await request('/attendance/history/not-an-id', tokens.admin)).status, 400);
+  assert.equal((await request('/attendance/history/not-an-id', tokens.manager)).status, 400);
   assert.equal(
     (await request('/auth/login', null, 'POST', { email: {}, password: {} })).status,
     400,
@@ -167,13 +178,18 @@ test('attendance rejects nonmembers, duplicates, overlap and invalid dates', asy
     { absentStudentIds: [String(students[0]._id), String(students[0]._id)] },
     { absentStudentIds: 'bad' },
     { excusedStudents: [{ studentId: String(students[0]._id) }] },
-    { date: 'invalid' },
   ])
     assert.equal(
       (await request('/attendance/submit', tokens.teacher, 'POST', { ...valid, ...changes }))
         .status,
       400,
     );
+  // Only attendance.override may choose a date, and it must be valid.
+  assert.equal(
+    (await request('/attendance/submit', tokens.manager, 'POST', { ...valid, date: 'invalid' }))
+      .status,
+    400,
+  );
   assert.equal(await DiemDanh.countDocuments(), 0);
 });
 test('past attendance preserves date and recorder; repeated/concurrent submits do not duplicate tasks', async () => {
@@ -183,44 +199,60 @@ test('past attendance preserves date and recorder; repeated/concurrent submits d
     date: '2026-01-12T12:00:00',
     teacherId: String(users.admin._id),
   };
-  const result = await request('/attendance/submit', tokens.teacher, 'POST', payload);
+  // Back-dated attendance needs attendance.override (Trưởng phòng); the teacher's date is ignored.
+  const result = await request('/attendance/submit', tokens.manager, 'POST', payload);
   assert.equal(result.status, 201);
-  assert.equal(result.body.attendance.recordedBy, String(users.teacher._id));
+  assert.equal(result.body.attendance.recordedBy, String(users.manager._id));
   for (const response of await Promise.all([
-    request('/attendance/submit', tokens.teacher, 'POST', payload),
-    request('/attendance/submit', tokens.teacher, 'POST', payload),
+    request('/attendance/submit', tokens.manager, 'POST', payload),
+    request('/attendance/submit', tokens.manager, 'POST', payload),
   ]))
     assert.equal(response.status, 200);
   assert.equal(await DiemDanh.countDocuments(), 1);
   assert.equal(await NhiemVuGoiDien.countDocuments(), 1);
   const task = await NhiemVuGoiDien.findOne();
   assert.equal(dateKey(task.absenceDate), '2026-01-12');
+  // Student A's class TEST is assigned to users.staff, so the call goes to them.
+  assert.equal(String(task.assignedStaffId), String(users.staff._id));
 });
 test('task ownership prevents modifying another staff task or student profile', async () => {
   const task = await NhiemVuGoiDien.findOne();
-  const other = String(task.assignedStaffId) === String(users.staff._id) ? 'other' : 'staff';
   assert.equal(
     (
-      await request(`/call-tasks/${task._id}/update`, tokens[other], 'PUT', {
+      await request(`/call-tasks/${task._id}/update`, tokens.other, 'PUT', {
         status: CALL_STATUS.CONTACTED,
       })
     ).status,
     403,
   );
   assert.equal(
-    (await request(`/call-tasks/student-360/${students[0]._id}`, tokens[other])).status,
+    (await request(`/call-tasks/student-360/${students[0]._id}`, tokens.other)).status,
     403,
   );
   assert.equal(
     (
-      await request(`/call-tasks/student-tags/${students[0]._id}`, tokens[other], 'PUT', {
+      await request(`/call-tasks/student-tags/${students[0]._id}`, tokens.other, 'PUT', {
+        tags: ['x'],
+      })
+    ).status,
+    403,
+  );
+  // The admin only views business data: no call updates, no tag edits.
+  assert.equal(
+    (await request(`/call-tasks/${task._id}/update`, tokens.admin, 'PUT', { status: 'contacted' }))
+      .status,
+    403,
+  );
+  assert.equal(
+    (
+      await request(`/call-tasks/student-tags/${students[0]._id}`, tokens.admin, 'PUT', {
         tags: ['x'],
       })
     ).status,
     403,
   );
   assert.equal(
-    (await request(`/call-tasks/${task._id}/update`, tokens.admin, 'PUT', { status: 'invalid' }))
+    (await request(`/call-tasks/${task._id}/update`, tokens.staff, 'PUT', { status: 'invalid' }))
       .status,
     400,
   );
@@ -239,9 +271,27 @@ test('attendance history edits enforce ownership and reconcile untouched tasks',
     (await request(`/attendance/history/${record._id}`, tokens.other, 'DELETE')).status,
     403,
   );
+  // A past record is outside the teacher's same-day window.
   assert.equal(
     (
       await request(`/attendance/history/${record._id}`, tokens.teacher, 'PUT', {
+        absentStudentIds: [],
+      })
+    ).status,
+    403,
+  );
+  // The admin cannot write attendance either.
+  assert.equal(
+    (
+      await request(`/attendance/history/${record._id}`, tokens.admin, 'PUT', {
+        absentStudentIds: [],
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await request(`/attendance/history/${record._id}`, tokens.manager, 'PUT', {
         absentStudentIds: [],
       })
     ).status,
@@ -249,30 +299,188 @@ test('attendance history edits enforce ownership and reconcile untouched tasks',
   );
   assert.equal(await NhiemVuGoiDien.countDocuments(), 0);
 });
-test('admin-only assignment sends tasks to admin and deletion cleans untouched tasks', async () => {
-  // Settings is a singleton (the subscription check may already have created it).
-  await Settings.updateOne({}, { taskAssignmentRule: 'admin-only' }, { upsert: true });
-  const result = await request('/attendance/submit', tokens.admin, 'POST', {
-    courseGroupId: String(group._id),
-    absentStudentIds: [String(students[0]._id)],
+test('absences of a class without a responsible staff member go to the manager queue', async () => {
+  const result = await request('/attendance/submit', tokens.manager, 'POST', {
+    courseGroupId: String(otherGroup._id),
+    absentStudentIds: [String(students[1]._id)],
     date: '2026-01-13T12:00:00',
   });
   assert.equal(result.status, 201);
-  assert.equal(String((await NhiemVuGoiDien.findOne()).assignedStaffId), String(users.admin._id));
+  assert.equal(result.body.taskAssignments[0].unassigned, true);
+  const task = await NhiemVuGoiDien.findOne({ studentId: students[1]._id });
+  assert.equal(task.assignedStaffId, null);
+  const queue = await request('/call-tasks/admin-all?assignedTo=unassigned', tokens.manager);
+  assert.deepEqual(
+    queue.body.map((t) => t._id),
+    [String(task._id)],
+  );
+  // The manager hands the queued call to a staff member.
   assert.equal(
-    (await request(`/attendance/history/${result.body.attendance._id}`, tokens.admin, 'DELETE'))
+    (
+      await request(`/call-tasks/${task._id}/assign`, tokens.staff, 'PUT', {
+        staffId: String(users.other._id),
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await request(`/call-tasks/${task._id}/assign`, tokens.manager, 'PUT', {
+        staffId: String(users.other._id),
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    String((await NhiemVuGoiDien.findById(task._id)).assignedStaffId),
+    String(users.other._id),
+  );
+  assert.equal(
+    (await request(`/attendance/history/${result.body.attendance._id}`, tokens.manager, 'DELETE'))
       .status,
     200,
   );
   assert.equal(await NhiemVuGoiDien.countDocuments(), 0);
 });
-test('invalid settings do not silently save defaults', async () => {
-  for (const value of [0, -1, 'no', 2.5])
+test('warning levels are configured by the manager and validated', async () => {
+  const levels = [
+    { name: 'Nhắc nhở', unit: 'periods', threshold: 4, color: '#eab308' },
+    { name: 'Cấm thi', unit: 'percent', threshold: 20, color: '#dc2626', examBan: true },
+  ];
+  for (const token of [tokens.admin, tokens.staff, tokens.teacher])
     assert.equal(
-      (await request('/settings', tokens.admin, 'PUT', { examBanThreshold: value })).status,
+      (await request('/settings/care', token, 'PUT', { warningLevels: levels })).status,
+      403,
+    );
+  for (const bad of [
+    [],
+    [{ ...levels[0], color: 'red' }],
+    [{ ...levels[0], unit: 'days' }],
+    [{ ...levels[1], threshold: 150 }],
+    [levels[0], { ...levels[0] }],
+  ])
+    assert.equal(
+      (await request('/settings/care', tokens.manager, 'PUT', { warningLevels: bad })).status,
       400,
     );
+  const saved = await request('/settings/care', tokens.manager, 'PUT', { warningLevels: levels });
+  assert.equal(saved.status, 200);
+  assert.equal(saved.body.settings.warningLevels.length, 2);
+  assert.equal((await request('/settings', tokens.teacher)).body.warningLevels[1].examBan, true);
+  // System settings stay with the admin; bad values are rejected, not silently defaulted.
+  assert.equal(
+    (await request('/settings', tokens.manager, 'PUT', { systemTitle: 'X' })).status,
+    403,
+  );
+  assert.equal(
+    (await request('/settings', tokens.admin, 'PUT', { primaryColor: 'blue' })).status,
+    400,
+  );
+  // Restore defaults for the following tests.
+  await Settings.updateOne({}, { $unset: { warningLevels: 1 } });
+  require('../services/dichVuCanhBao').clearWarningCache();
 });
+test('attendance window: only on class days, from class time, editable until end of day', () => {
+  const { attendanceWindow, periodInfo, evaluate } = require('../services/dichVuCanhBao');
+  // Mondays 07:00–11:30, 1 Jun – 31 Jul 2026.
+  const g = {
+    shift: 'sang',
+    scheduleDays: ['thu_2'],
+    startTime: '07:00',
+    endTime: '11:30',
+    startDate: new Date(2026, 5, 1, 12),
+    endDate: new Date(2026, 6, 31, 12),
+    periodsPerSession: 5,
+  };
+  const at = (d, h, m) => new Date(2026, 5, d, h, m);
+  assert.equal(attendanceWindow(g, { now: at(2, 8, 0) }).open, false); // Tuesday: no class
+  assert.equal(attendanceWindow(g, { now: at(1, 6, 40) }).open, false); // too early
+  assert.equal(attendanceWindow(g, { now: at(1, 6, 50) }).open, true); // 10 minutes early
+  assert.equal(attendanceWindow(g, { now: at(1, 9, 0) }).open, true);
+  assert.equal(attendanceWindow(g, { now: at(1, 13, 0) }).open, false); // class over, never taken
+  assert.equal(attendanceWindow(g, { now: at(1, 22, 0), hasRecordToday: true }).open, true);
+  assert.equal(
+    attendanceWindow({ ...g, endDate: new Date(2026, 4, 1) }, { now: at(1, 9, 0) }).open,
+    false,
+  );
+
+  // 9 Mondays x 5 periods = 45 periods; each absence is 5 periods.
+  const info = periodInfo(g);
+  assert.deepEqual(info, { periodsPerSession: 5, totalPeriods: 45 });
+  const levels = [
+    { name: 'Nhắc nhở', unit: 'periods', threshold: 5, color: '#eab308', examBan: false },
+    { name: 'Cấm thi', unit: 'percent', threshold: 20, color: '#dc2626', examBan: true },
+  ];
+  assert.equal(evaluate(0, info, levels).warningLevel, null);
+  assert.equal(evaluate(1, info, levels).warningLevel.name, 'Nhắc nhở');
+  const banned = evaluate(2, info, levels); // 10 periods = 22.2 %
+  assert.equal(banned.absentPeriods, 10);
+  assert.equal(banned.absentPercent, 22.2);
+  assert.equal(banned.warningLevel.name, 'Cấm thi');
+  assert.equal(banned.isAtRisk, true);
+});
+
+test('teachers cannot take attendance outside the timetable', async () => {
+  const closed = await NhomHocPhan.create({
+    groupCode: 'CLOSED-GROUP',
+    teacherId: users.teacher._id,
+    students: [students[0]._id],
+    scheduleDays: ['thu_2'],
+    startDate: new Date(2020, 0, 6),
+    endDate: new Date(2020, 0, 13),
+  });
+  const window = await request(`/attendance/window/${closed._id}`, tokens.teacher);
+  assert.equal(window.status, 200);
+  assert.equal(window.body.open, false);
+  const denied = await request('/attendance/submit', tokens.teacher, 'POST', {
+    courseGroupId: String(closed._id),
+    absentStudentIds: [],
+  });
+  assert.equal(denied.status, 403);
+  assert.match(denied.body.message, /lịch học/);
+  // The manager's override is not bound to the timetable.
+  assert.equal((await request(`/attendance/window/${closed._id}`, tokens.manager)).body.open, true);
+  await NhomHocPhan.deleteOne({ _id: closed._id });
+});
+
+test('API keys are admin-only, stored encrypted and never returned in clear', async () => {
+  assert.equal((await request('/settings/integrations', tokens.manager)).status, 403);
+  const saved = await request('/settings/integrations', tokens.admin, 'PUT', {
+    values: { STRINGEE_KEY_SECRET: 'super-secret-value-123', STRINGEE_HOTLINE: '0901234567' },
+  });
+  assert.equal(saved.status, 200);
+  const secret = saved.body.items.find((i) => i.key === 'STRINGEE_KEY_SECRET');
+  assert.equal(secret.source, 'database');
+  assert.ok(!secret.value.includes('super-secret'));
+  assert.equal(saved.body.items.find((i) => i.key === 'STRINGEE_HOTLINE').value, '0901234567');
+  assert.equal(process.env.STRINGEE_KEY_SECRET, 'super-secret-value-123');
+  const stored = (await Settings.findOne().lean()).integrations.STRINGEE_KEY_SECRET;
+  assert.ok(!stored.includes('super-secret'));
+  // Settings never leak the encrypted blob either.
+  assert.equal((await request('/settings', tokens.admin)).body.integrations, undefined);
+  assert.equal(
+    (await request('/settings/integrations', tokens.admin, 'PUT', { values: { NOPE: 'x' } }))
+      .status,
+    400,
+  );
+  // Clearing falls back to .env (unset in tests).
+  await request('/settings/integrations', tokens.admin, 'PUT', {
+    values: { STRINGEE_KEY_SECRET: '', STRINGEE_HOTLINE: '' },
+  });
+  assert.equal(process.env.STRINGEE_KEY_SECRET, undefined);
+  // Branding is public (login page) and admin-editable.
+  assert.equal(
+    (
+      await request('/settings', tokens.admin, 'PUT', {
+        systemTitle: 'ITC CARE',
+        primaryColor: '#123456',
+      })
+    ).status,
+    200,
+  );
+  assert.equal((await request('/settings/branding')).body.primaryColor, '#123456');
+});
+
 test('disabled and re-enabled accounts cannot reuse old tokens', async () => {
   assert.equal(
     (
@@ -480,11 +688,19 @@ test('attendance read endpoints preserve schedules, off-schedule records and sum
   const today = await request(`/attendance/today/${course._id}`, tokens.teacher);
   assert.equal(today.status, 200);
   assert.equal(today.body, null);
-  const updated = await request(`/attendance/history/${records[0]._id}`, tokens.teacher, 'PUT', {
+  assert.equal(
+    (
+      await request(`/attendance/history/${records[0]._id}`, tokens.teacher, 'PUT', {
+        absentStudentIds: [],
+      })
+    ).status,
+    403,
+  );
+  const updated = await request(`/attendance/history/${records[0]._id}`, tokens.manager, 'PUT', {
     absentStudentIds: [],
   });
   assert.equal(updated.status, 200);
-  assert.equal(updated.body.attendance.recordedBy.email, users.teacher.email);
+  assert.equal(updated.body.attendance.recordedBy.email, users.manager.email);
   assert.equal(updated.body.attendance.recordedBy.password, undefined);
   assert.equal(updated.body.attendance.recordedBy.tokenVersion, undefined);
   const fallback = await request(`/attendance/schedule/${group._id}`, tokens.teacher);
@@ -494,20 +710,21 @@ test('attendance read endpoints preserve schedules, off-schedule records and sum
 });
 
 test('call updates accept every schema status and reject invalid values without saving', async () => {
+  const { staff: caller, token: callerToken } = await createTaskStaff('call-status');
   const task = await NhiemVuGoiDien.create({
     studentId: students[0]._id,
     courseGroupId: group._id,
-    assignedStaffId: users.admin._id,
+    assignedStaffId: caller._id,
     absenceDate: new Date(),
   });
   for (const status of CALL_STATUSES) {
-    const response = await request(`/call-tasks/${task._id}/update`, tokens.admin, 'PUT', {
+    const response = await request(`/call-tasks/${task._id}/update`, callerToken, 'PUT', {
       status,
     });
     assert.equal(response.status, 200);
     assert.equal(response.body.task.callStatus, status);
   }
-  const invalid = await request(`/call-tasks/${task._id}/update`, tokens.admin, 'PUT', {
+  const invalid = await request(`/call-tasks/${task._id}/update`, callerToken, 'PUT', {
     status: 'Ch?a g?i',
   });
   assert.equal(invalid.status, 400);
@@ -516,7 +733,7 @@ test('call updates accept every schema status and reject invalid values without 
   // PENDING -> PENDING is not a call; UNREACHABLE and CONTACTED each count once.
   assert.equal(saved.callAttempts, CALL_STATUSES.length - 1);
 
-  const noteOnly = await request(`/call-tasks/${task._id}/update`, tokens.admin, 'PUT', {
+  const noteOnly = await request(`/call-tasks/${task._id}/update`, callerToken, 'PUT', {
     status: CALL_STATUS.CONTACTED,
     callNote: 'edited note',
   });
@@ -543,7 +760,7 @@ test('excel import keeps existing phones and home class when cells are blank', a
   form.append('file', new Blob([await workbook.xlsx.writeBuffer()]), 'import.xlsx');
   const response = await fetch(base + '/excel/import-by-course', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${tokens.admin}` },
+    headers: { Authorization: `Bearer ${tokens.manager}` },
     body: form,
   });
   assert.equal(response.status, 200);
@@ -582,37 +799,87 @@ test('reason analytics prefers category and matches whole words only', async () 
   assert.equal(counts['Ốm / Sức khỏe'], 1);
 });
 
-test('round-robin call task assignment rotates instead of always picking the first staff', async () => {
-  const rrGroup = await NhomHocPhan.create({ groupCode: 'RR_GROUP' });
-  const rrStudents = await SinhVien.create([
-    { studentCode: 'RR000001', fullName: 'RR One', classCode: 'RRCLS' },
-    { studentCode: 'RR000002', fullName: 'RR Two', classCode: 'RRCLS' },
+test('call tasks follow the administrative class; transfers move open calls and keep history', async () => {
+  const { staff: first } = await createTaskStaff('class-first');
+  const { staff: second, token: secondToken } = await createTaskStaff('class-second');
+  const ccGroup = await NhomHocPhan.create({ groupCode: 'CC_GROUP' });
+  const ccStudents = await SinhVien.create([
+    { studentCode: 'CC000001', fullName: 'CC One', classCode: 'CCCLS' },
+    { studentCode: 'CC000002', fullName: 'CC Two', classCode: 'CCCLS' },
   ]);
-  rrGroup.students = rrStudents.map((s) => s._id);
-  await rrGroup.save();
-  await Settings.updateOne({}, { taskAssignmentRule: 'round-robin' }, { upsert: true });
+  ccGroup.students = ccStudents.map((s) => s._id);
+  await ccGroup.save();
 
-  // Each submission has exactly one absentee, so with the old `index % staff.length`
-  // (index always 0) the same staff member would be picked every single time.
-  const staffNames = [];
-  for (const [i, student] of rrStudents.entries()) {
-    const res = await request('/attendance/submit', tokens.admin, 'POST', {
-      courseGroupId: String(rrGroup._id),
+  // Only the manager assigns classes.
+  assert.equal(
+    (await request('/class-assignments/CCCLS', tokens.admin, 'PUT', { staffId: String(first._id) }))
+      .status,
+    403,
+  );
+  const assigned = await request('/class-assignments/CCCLS', tokens.manager, 'PUT', {
+    staffId: String(first._id),
+  });
+  assert.equal(assigned.status, 200);
+
+  for (const [i, student] of ccStudents.entries()) {
+    const res = await request('/attendance/submit', tokens.manager, 'POST', {
+      courseGroupId: String(ccGroup._id),
       absentStudentIds: [String(student._id)],
-      date: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
+      date: new Date(2025, 5, 2 + i, 12).toISOString(),
     });
     assert.equal(res.status, 201);
-    staffNames.push(res.body.taskAssignments[0]?.staffName);
+    assert.equal(res.body.taskAssignments[0].staffName, first.fullName);
   }
-  assert.notEqual(staffNames[0], staffNames[1]);
+  // The second staff member cannot see this class yet.
+  assert.equal(
+    (await request(`/call-tasks/student-360/${ccStudents[0]._id}`, secondToken)).status,
+    403,
+  );
+
+  const transfer = await request('/class-assignments/transfer', tokens.manager, 'POST', {
+    fromStaffId: String(first._id),
+    toStaffId: String(second._id),
+  });
+  assert.equal(transfer.status, 200);
+  assert.equal(transfer.body.reassignedTaskCount, 2);
+  assert.equal(
+    await NhiemVuGoiDien.countDocuments({
+      studentId: { $in: ccStudents.map((s) => s._id) },
+      assignedStaffId: second._id,
+    }),
+    2,
+  );
+  assert.equal(
+    (await request(`/call-tasks/student-360/${ccStudents[0]._id}`, secondToken)).status,
+    200,
+  );
+
+  // History keeps both periods; exactly one assignment is active.
+  const history = await request('/class-assignments/history?classCode=cccls', tokens.manager);
+  assert.equal(history.status, 200);
+  assert.equal(history.body.length, 2);
+  assert.equal(history.body.filter((h) => h.active).length, 1);
+  assert.equal(String(history.body.find((h) => h.active).staffId), String(second._id));
+  assert.ok(history.body.find((h) => !h.active).endedAt);
+
+  const overview = await request('/class-assignments', tokens.manager);
+  assert.equal(
+    overview.body.classes.find((c) => c.classCode === 'CCCLS').staff.fullName,
+    second.fullName,
+  );
+  // The admin may look but not change.
+  assert.equal((await request('/class-assignments', tokens.admin)).status, 200);
 });
 
-test('deleting staff hands off their open call tasks to the deleting admin', async () => {
+test('deleting staff releases their classes (history kept) and sends open calls to the queue', async () => {
   const doomedStaff = await NguoiDung.create({
     fullName: 'Doomed Staff',
     email: 'doomed-staff@example.test',
     password: await bcrypt.hash('x', 4),
     role: 'staff',
+  });
+  await request('/class-assignments/DOOMCLS', tokens.manager, 'PUT', {
+    staffId: String(doomedStaff._id),
   });
   const openTask = await NhiemVuGoiDien.create({
     studentId: students[0]._id,
@@ -630,10 +897,7 @@ test('deleting staff hands off their open call tasks to the deleting admin', asy
 
   const response = await request(`/auth/staff/${doomedStaff._id}`, tokens.admin, 'DELETE');
   assert.equal(response.status, 200);
-  assert.equal(
-    (await NhiemVuGoiDien.findById(openTask._id)).assignedStaffId.toString(),
-    users.admin.id,
-  );
+  assert.equal((await NhiemVuGoiDien.findById(openTask._id)).assignedStaffId, null);
   // Completed tasks are historical: left pointing at the deleted user, not reassigned.
   assert.equal(
     (await NhiemVuGoiDien.findById(doneTask._id)).assignedStaffId.toString(),
@@ -680,7 +944,7 @@ test('deleting a course group cascades to its attendance, call tasks and student
     absenceDate: new Date(),
   });
 
-  const response = await request(`/course-groups/${doomedGroup._id}`, tokens.admin, 'DELETE');
+  const response = await request(`/course-groups/${doomedGroup._id}`, tokens.manager, 'DELETE');
   assert.equal(response.status, 200);
   assert.equal(await DiemDanh.countDocuments({ _id: attendance._id }), 0);
   assert.equal(await NhiemVuGoiDien.countDocuments({ _id: task._id }), 0);
@@ -715,7 +979,7 @@ test('task creation is admin-only and requires an active staff assignee', async 
   );
   assert.equal(
     (
-      await request('/tasks', tokens.admin, 'POST', {
+      await request('/tasks', tokens.manager, 'POST', {
         title: '',
         description: 'y',
         assignedTo: String(staff._id),
@@ -725,7 +989,7 @@ test('task creation is admin-only and requires an active staff assignee', async 
   );
   assert.equal(
     (
-      await request('/tasks', tokens.admin, 'POST', {
+      await request('/tasks', tokens.manager, 'POST', {
         title: 'x',
         description: 'y',
         assignedTo: String(users.teacher._id), // not a 'staff' role
@@ -739,7 +1003,7 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   const { staff: assignee, token: assigneeToken } = await createTaskStaff('lifecycle-assignee');
   const { token: bystanderToken } = await createTaskStaff('lifecycle-bystander');
 
-  const create = await request('/tasks', tokens.admin, 'POST', {
+  const create = await request('/tasks', tokens.manager, 'POST', {
     title: 'Gọi nhắc học phí học kỳ mới',
     description: 'Gọi cho danh sách sinh viên còn nợ học phí trước ngày 30/09.',
     assignedTo: String(assignee._id),
@@ -751,8 +1015,13 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
 
   // Another staff member cannot act on someone else's task.
   assert.equal((await request(`/tasks/${taskId}/acknowledge`, bystanderToken, 'PUT')).status, 403);
-  // The admin who assigned it cannot acknowledge on the assignee's behalf either.
-  assert.equal((await request(`/tasks/${taskId}/acknowledge`, tokens.admin, 'PUT')).status, 403);
+  // The manager who assigned it cannot acknowledge on the assignee's behalf either, and the
+  // admin (system administration only) cannot manage tasks at all.
+  assert.equal((await request(`/tasks/${taskId}/acknowledge`, tokens.manager, 'PUT')).status, 403);
+  assert.equal(
+    (await request(`/tasks/${taskId}/review`, tokens.admin, 'PUT', { approve: true })).status,
+    403,
+  );
 
   const ack = await request(`/tasks/${taskId}/acknowledge`, assigneeToken, 'PUT');
   assert.equal(ack.status, 200);
@@ -794,7 +1063,7 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(fileRes.headers.get('content-type'), 'image/png');
 
   // Reject once: the task bounces back for rework.
-  const reject = await request(`/tasks/${taskId}/review`, tokens.admin, 'PUT', {
+  const reject = await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', {
     approve: false,
     reviewNote: 'Thiếu ảnh chụp danh sách đã gọi.',
   });
@@ -811,7 +1080,9 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(resubmit.status, 200);
   assert.equal((await resubmit.json()).task.status, TASK_STATUS.SUBMITTED);
 
-  const approve = await request(`/tasks/${taskId}/review`, tokens.admin, 'PUT', { approve: true });
+  const approve = await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', {
+    approve: true,
+  });
   assert.equal(approve.status, 200);
   assert.equal(approve.body.task.status, TASK_STATUS.COMPLETED);
   assert.ok(approve.body.task.completedAt);
@@ -826,7 +1097,7 @@ test('deleting a task removes its evidence files from disk', async () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const { staff, token } = await createTaskStaff('delete-cleanup');
-  const create = await request('/tasks', tokens.admin, 'POST', {
+  const create = await request('/tasks', tokens.manager, 'POST', {
     title: 'Nhiệm vụ sẽ bị xóa',
     description: 'Kiểm tra dọn file khi xóa nhiệm vụ.',
     assignedTo: String(staff._id),
@@ -847,7 +1118,7 @@ test('deleting a task removes its evidence files from disk', async () => {
   const diskPath = path.join(__dirname, '..', 'uploads', 'tasks', storedName);
   assert.ok(fs.existsSync(diskPath));
 
-  assert.equal((await request(`/tasks/${taskId}`, tokens.admin, 'DELETE')).status, 200);
+  assert.equal((await request(`/tasks/${taskId}`, tokens.manager, 'DELETE')).status, 200);
   assert.ok(!fs.existsSync(diskPath));
 });
 
@@ -877,7 +1148,7 @@ test('AI call-advice enforces call-task ownership and fails gracefully without a
     callTaskId: String(callTask._id),
   });
   assert.equal(ok.status, 503);
-  assert.match(ok.body.message, /ANTHROPIC_API_KEY/);
+  assert.match(ok.body.message, /API key/);
 });
 
 test('AI review-task-evidence is admin-only and requires submitted evidence', async () => {
@@ -899,7 +1170,7 @@ test('AI review-task-evidence is admin-only and requires submitted evidence', as
   );
   assert.equal(
     (
-      await request('/ai/review-task-evidence', tokens.admin, 'POST', {
+      await request('/ai/review-task-evidence', tokens.manager, 'POST', {
         taskId: String(workTask._id),
       })
     ).status,
@@ -909,7 +1180,7 @@ test('AI review-task-evidence is admin-only and requires submitted evidence', as
   workTask.status = TASK_STATUS.SUBMITTED;
   workTask.evidenceNote = 'Đã hoàn thành.';
   await workTask.save();
-  const ok = await request('/ai/review-task-evidence', tokens.admin, 'POST', {
+  const ok = await request('/ai/review-task-evidence', tokens.manager, 'POST', {
     taskId: String(workTask._id),
   });
   assert.equal(ok.status, 503);
@@ -940,6 +1211,87 @@ test('AI chat is admin-only and validates the conversation shape', async () => {
   assert.equal(ok.status, 503);
 });
 
+test('AI Care: every role gets its own tools, and each tool stays within the caller scope', async () => {
+  await ensureCskh();
+  const aiCare = require('../services/dichVuAiCare');
+  const { permissionsForRole } = require('../services/dichVuPhanQuyen');
+  const asUser = async (key) => ({
+    ...users[key].toObject(),
+    id: String(users[key]._id),
+    permissions: await permissionsForRole(users[key].role),
+  });
+  const toolNames = async (key) => aiCare.toolDefinitions(await asUser(key)).map((t) => t.name);
+
+  const profiles = {};
+  for (const key of ['admin', 'manager', 'cskh', 'teacher']) {
+    const res = await request('/ai/care', tokens[key]);
+    assert.equal(res.status, 200, key);
+    assert.equal(res.body.name, 'AI Care');
+    assert.ok(res.body.suggestions.length > 0);
+    profiles[key] = res.body;
+  }
+  assert.notDeepEqual(profiles.teacher.capabilities, profiles.cskh.capabilities);
+
+  const teacherTools = await toolNames('teacher');
+  assert.ok(teacherTools.includes('hoc_phan_cua_toi'));
+  assert.ok(!teacherTools.includes('tong_quan_he_thong'));
+  assert.ok(!teacherTools.includes('nhiem_vu_goi_dien_cua_toi'));
+  const staffTools = await toolNames('cskh');
+  assert.ok(staffTools.includes('nhiem_vu_goi_dien_cua_toi'));
+  assert.ok(!staffTools.includes('khoi_luong_nhan_vien'));
+  const managerTools = await toolNames('manager');
+  assert.ok(managerTools.includes('khoi_luong_nhan_vien'));
+  assert.ok(!managerTools.includes('goi_dich_vu'));
+  assert.ok((await toolNames('admin')).includes('goi_dich_vu'));
+  assert.ok((await toolNames('admin')).includes('cau_hinh_ket_noi'));
+  assert.ok(!managerTools.includes('cau_hinh_ket_noi'));
+  assert.ok(managerTools.includes('phan_cong_lop'));
+  assert.ok(staffTools.includes('lop_phu_trach_cua_toi'));
+  // The system prompt carries the manager-configured warning levels.
+  const prompt = await aiCare.systemPromptFor(await asUser('cskh'));
+  assert.match(prompt, /Cấm thi/);
+  assert.match(prompt, /tiết/);
+
+  // A tool outside the caller's set is refused even if the model asks for it.
+  const refused = await aiCare.executeTool(await asUser('teacher'), 'khoi_luong_nhan_vien', {});
+  assert.ok(refused.loi);
+
+  // A teacher only sees their own course groups and students.
+  const teacher = await asUser('teacher');
+  const mine = await aiCare.executeTool(teacher, 'hoc_phan_cua_toi', {});
+  const mineCodes = mine.hocPhan.map((g) => g.maNhom);
+  assert.ok(mineCodes.includes('TEST-GROUP'));
+  assert.ok(!mineCodes.includes('OTHER-GROUP'));
+  assert.ok(
+    (await aiCare.executeTool(teacher, 'thong_ke_hoc_phan', { groupCode: 'OTHER-GROUP' })).loi,
+  );
+  const found = await aiCare.executeTool(teacher, 'tra_cuu_sinh_vien', { keyword: 'Student' });
+  const foundCodes = found.ketQua.map((s) => s.mssv);
+  assert.ok(foundCodes.includes('TEST001'));
+  assert.ok(!foundCodes.includes('TEST002'));
+  // The manager can look up every student.
+  const all = await aiCare.executeTool(await asUser('manager'), 'tra_cuu_sinh_vien', {
+    keyword: 'Student',
+  });
+  const allCodes = all.ketQua.map((s) => s.mssv);
+  assert.ok(allCodes.includes('TEST001') && allCodes.includes('TEST002'));
+
+  // Chat validation, then 503 without an API key.
+  assert.equal((await request('/ai/care', tokens.teacher, 'POST', { messages: [] })).status, 400);
+  assert.equal(
+    (
+      await request('/ai/care', tokens.teacher, 'POST', {
+        messages: [{ role: 'assistant', content: 'x' }],
+      })
+    ).status,
+    400,
+  );
+  const noKey = await request('/ai/care', tokens.cskh, 'POST', {
+    messages: [{ role: 'user', content: 'Hôm nay tôi nên gọi cho ai trước?' }],
+  });
+  assert.equal(noKey.status, 503);
+});
+
 test('AI staff-performance is admin-only', async () => {
   const { staff, token } = await createTaskStaff('ai-perf');
   assert.equal(
@@ -950,7 +1302,7 @@ test('AI staff-performance is admin-only', async () => {
     ).status,
     403,
   );
-  const ok = await request('/ai/staff-performance', tokens.admin, 'POST', {
+  const ok = await request('/ai/staff-performance', tokens.manager, 'POST', {
     staffId: String(staff._id),
   });
   assert.equal(ok.status, 503);
@@ -1140,11 +1492,14 @@ test('manager (Trưởng phòng/PHT): student records, call overview and task as
   );
   await NhiemVu.deleteOne({ _id: task.body.task._id });
 
+  // The manager runs the business side: courses, class assignment, warning levels.
+  assert.equal((await request('/course-groups', token)).status, 200);
+  assert.equal((await request('/class-assignments', token)).status, 200);
   // System administration stays with the admin.
   for (const [path, method] of [
-    ['/course-groups', 'GET'],
-    ['/auth/class-assignments', 'GET'],
     ['/billing/orders', 'GET'],
+    ['/permissions', 'GET'],
+    ['/settings/integrations', 'GET'],
     ['/settings', 'PUT'],
     ['/auth/create-staff', 'POST'],
   ])
@@ -1155,6 +1510,63 @@ test('manager (Trưởng phòng/PHT): student records, call overview and task as
     );
   // Teachers and staff cannot browse every student.
   assert.equal((await request('/students', tokens.teacher)).status, 403);
+  assert.equal((await request('/students', tokens.cskh)).status, 403);
+});
+
+test('permission matrix: admin grants and revokes role permissions, taking effect immediately', async () => {
+  await ensureCskh();
+  // Only the admin may read or change the matrix.
+  for (const key of ['manager', 'cskh', 'teacher']) {
+    assert.equal((await request('/permissions', tokens[key])).status, 403, key);
+    assert.equal((await request('/permissions', tokens[key], 'PUT', { matrix: {} })).status, 403);
+  }
+  const initial = await request('/permissions', tokens.admin);
+  assert.equal(initial.status, 200);
+  assert.deepEqual(initial.body.matrix, initial.body.defaults);
+  assert.ok(initial.body.matrix.manager.includes('students.view'));
+
+  // Unknown roles or keys are rejected; the admin role itself is not configurable.
+  for (const matrix of [{ admin: [] }, { staff: ['accounts.manage'] }, { staff: 'reports.view' }])
+    assert.equal((await request('/permissions', tokens.admin, 'PUT', { matrix })).status, 400);
+
+  // /auth/me reports the live permissions; the admin has a fixed, view-only set.
+  const me = await request('/auth/me', tokens.cskh);
+  assert.equal(me.status, 200);
+  assert.equal(me.body.user.role, 'staff');
+  assert.ok(me.body.permissions.includes('reports.view'));
+  assert.ok(!me.body.permissions.includes('students.view'));
+  assert.deepEqual((await request('/auth/me', tokens.admin)).body.permissions.sort(), [
+    'ai.chat',
+    'callTasks.viewAll',
+    'reports.view',
+    'students.view',
+  ]);
+
+  try {
+    // Grant staff the student list and course management; revoke reports; manager untouched.
+    const saved = await request('/permissions', tokens.admin, 'PUT', {
+      matrix: { staff: ['students.view', 'courses.manage', 'callTasks.update'] },
+    });
+    assert.equal(saved.status, 200);
+    assert.deepEqual(saved.body.matrix.manager, initial.body.matrix.manager);
+    assert.equal((await request('/students', tokens.cskh)).status, 200);
+    assert.equal((await request('/course-groups', tokens.cskh)).status, 200);
+    assert.equal((await request('/analytics/summary', tokens.cskh)).status, 403);
+    // Admin-only areas stay admin-only whatever the matrix says.
+    assert.equal((await request('/permissions', tokens.cskh)).status, 403);
+    assert.equal((await request('/settings', tokens.cskh, 'PUT', {})).status, 403);
+
+    // Revoking the manager's student access applies on their next request.
+    await request('/permissions', tokens.admin, 'PUT', { matrix: { manager: [] } });
+    assert.equal((await request('/students', tokens.manager)).status, 403);
+    assert.equal((await request('/tasks/admin-all', tokens.manager)).status, 403);
+    assert.equal((await request('/auth/me', tokens.manager)).body.permissions.length, 0);
+    // The admin keeps its read-only view whatever the matrix says.
+    assert.equal((await request('/students', tokens.admin)).status, 200);
+  } finally {
+    await request('/permissions', tokens.admin, 'PUT', { matrix: initial.body.defaults });
+  }
+  assert.equal((await request('/students', tokens.manager)).status, 200);
   assert.equal((await request('/students', tokens.cskh)).status, 403);
 });
 

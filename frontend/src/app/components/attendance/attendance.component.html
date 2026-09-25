@@ -7,14 +7,14 @@
   >
     <div class="flex items-center space-x-3">
       <img
-        src="logo_truong.png"
+        [src]="branding.logo()"
         alt="Logo ITC"
         width="40"
         height="40"
         class="shrink-0 object-contain bg-white rounded-full"
       />
       <div>
-        <h1 class="font-bold text-sm leading-tight tracking-tight">ITC CARE</h1>
+        <h1 class="font-bold text-sm leading-tight tracking-tight">{{ branding.title() }}</h1>
         <p class="text-xs text-blue-200 font-medium">Cổng Giảng Viên Mobile</p>
       </div>
     </div>
@@ -491,42 +491,30 @@
             </div>
           </div>
 
-          <!-- Schedule Status & Lock Toggle -->
+          <!-- Attendance window from the timetable (teachers: class hours only, edits same day) -->
           <div
             class="pt-2 border-t border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
           >
             <div class="flex items-center gap-2 flex-wrap">
               <span
                 class="px-3 py-1 rounded-full text-xs font-bold border tracking-wide shadow-sm"
-                [ngClass]="getScheduleCheck(selectedGroup).badgeClass"
+                [ngClass]="
+                  attendanceWindow?.open
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-rose-50 text-rose-800 border-rose-300'
+                "
               >
-                {{ getScheduleCheck(selectedGroup).badgeText }}
+                {{ attendanceWindow?.open ? '🟢 Đang mở điểm danh' : '🔒 Đang khóa điểm danh' }}
               </span>
-              <span
-                *ngIf="!getScheduleCheck(selectedGroup).isValid"
-                class="text-xs text-slate-700 font-medium"
-              >
-                {{ getScheduleCheck(selectedGroup).reason }}
+              <span *ngIf="attendanceWindow" class="text-xs text-slate-700 font-medium">
+                Giờ học {{ attendanceWindow.startTime }}–{{ attendanceWindow.endTime }} ·
+                {{
+                  attendanceWindow.canOverride
+                    ? 'Bạn có quyền điểm danh / sửa ngoài giờ.'
+                    : attendanceWindow.reason
+                }}
               </span>
             </div>
-
-            <button
-              *ngIf="!getScheduleCheck(selectedGroup).isValid"
-              type="button"
-              (click)="allowFlexibleAttendance = !allowFlexibleAttendance"
-              class="px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all touch-target cursor-pointer"
-              [ngClass]="
-                allowFlexibleAttendance
-                  ? 'bg-emerald-700 text-white'
-                  : 'bg-amber-600 hover:bg-amber-700 text-white'
-              "
-            >
-              {{
-                allowFlexibleAttendance
-                  ? '✅ Đã Bật Điểm Danh Linh Hoạt (Học Bù)'
-                  : '🔓 Bật Điểm Danh Linh Hoạt'
-              }}
-            </button>
           </div>
         </div>
       </div>
@@ -770,22 +758,12 @@
                 <tr
                   *ngFor="let student of selectedGroup.students; let i = index"
                   class="even:bg-slate-50/40 hover:bg-blue-50/40 transition-colors group"
-                  [ngClass]="
-                    getTotalAbsentForStudent(student._id) >=
-                    (attendanceSummary?.examBanThreshold || 2)
-                      ? 'bg-rose-50/20'
-                      : ''
-                  "
+                  [ngClass]="warningFor(student._id) ? 'bg-rose-50/20' : ''"
                 >
                   <!-- Sticky Left Column 1: Mã SV -->
                   <td
                     class="p-2.5 px-3 sticky left-0 z-10 border-r border-slate-200/80 min-w-[110px] font-sans tabular-nums text-xs font-bold text-slate-700 transition-colors group-hover:bg-blue-50/80"
-                    [ngClass]="
-                      getTotalAbsentForStudent(student._id) >=
-                      (attendanceSummary?.examBanThreshold || 2)
-                        ? 'bg-rose-50/90'
-                        : 'bg-white'
-                    "
+                    [ngClass]="warningFor(student._id) ? 'bg-rose-50/90' : 'bg-white'"
                   >
                     {{ student.studentCode }}
                   </td>
@@ -793,12 +771,7 @@
                   <!-- Sticky Left Column 2: Họ và Tên -->
                   <td
                     class="p-2.5 px-3 sticky left-[110px] z-10 border-r border-slate-200/80 min-w-[190px] shadow-[4px_0_10px_-2px_rgba(0,0,0,0.06)] transition-colors group-hover:bg-blue-50/80"
-                    [ngClass]="
-                      getTotalAbsentForStudent(student._id) >=
-                      (attendanceSummary?.examBanThreshold || 2)
-                        ? 'bg-rose-50/90'
-                        : 'bg-white'
-                    "
+                    [ngClass]="warningFor(student._id) ? 'bg-rose-50/90' : 'bg-white'"
                   >
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-2 truncate">
@@ -814,14 +787,12 @@
                         </span>
                       </div>
                       <span
-                        *ngIf="
-                          getTotalAbsentForStudent(student._id) >=
-                          (attendanceSummary?.examBanThreshold || 2)
-                        "
-                        class="text-xs font-bold text-rose-600 bg-rose-100 border border-rose-300 px-1 py-0.2 rounded flex-shrink-0"
-                        title="Nguy cơ cấm thi"
+                        *ngIf="warningFor(student._id)"
+                        class="text-[10px] font-bold text-white px-1.5 py-0.5 rounded flex-shrink-0"
+                        [style.backgroundColor]="warningFor(student._id)?.color"
+                        [title]="warningFor(student._id)?.name"
                       >
-                        ⚠️
+                        {{ warningFor(student._id)?.name }}
                       </span>
                     </div>
                   </td>
@@ -925,12 +896,7 @@
                   <!-- Sticky Right Column: Total Absent -->
                   <td
                     class="p-2.5 text-center sticky right-0 z-10 border-l border-slate-200/80 min-w-[100px] shadow-[-4px_0_10px_-2px_rgba(0,0,0,0.06)] transition-colors group-hover:bg-blue-50/80"
-                    [ngClass]="
-                      getTotalAbsentForStudent(student._id) >=
-                      (attendanceSummary?.examBanThreshold || 2)
-                        ? 'bg-rose-50/90'
-                        : 'bg-white'
-                    "
+                    [ngClass]="warningFor(student._id) ? 'bg-rose-50/90' : 'bg-white'"
                   >
                     <div class="flex flex-col items-center justify-center gap-0.5">
                       <span
@@ -938,14 +904,17 @@
                         [ngClass]="
                           getTotalAbsentForStudent(student._id) === 0
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : getTotalAbsentForStudent(student._id) >=
-                                (attendanceSummary?.examBanThreshold || 2)
-                              ? 'bg-rose-600 text-white shadow-sm'
+                            : warningFor(student._id)
+                              ? 'text-white shadow-sm'
                               : 'bg-amber-50 text-amber-900 border border-amber-200'
                         "
                         title="Vắng không phép"
+                        [style.backgroundColor]="warningFor(student._id)?.color"
                       >
                         {{ getTotalAbsentForStudent(student._id) }} ✕
+                      </span>
+                      <span class="text-[10px] text-slate-500 font-semibold">
+                        {{ getTotalAbsentForStudent(student._id) * periodsPerSession }} tiết
                       </span>
                       <span
                         *ngIf="getTotalExcusedForStudent(student._id) > 0"
@@ -1110,7 +1079,16 @@
                   <span
                     class="bg-rose-50 text-rose-700 px-2.5 py-1 rounded-lg border border-rose-200/60 font-bold"
                   >
-                    Ngưỡng cấm thi: {{ attendanceSummary?.examBanThreshold || 2 }} buổi
+                    {{ attendanceSummary?.periodsPerSession || 0 }} tiết/buổi ·
+                    {{ attendanceSummary?.totalPeriods || '?' }} tiết cả học phần
+                  </span>
+                  <span
+                    *ngFor="let level of attendanceSummary?.warningLevels"
+                    class="px-2.5 py-1 rounded-lg font-bold text-white"
+                    [style.backgroundColor]="level.color"
+                  >
+                    {{ level.name }}: từ {{ level.threshold
+                    }}{{ level.unit === 'percent' ? '%' : ' tiết' }}
                   </span>
                 </div>
               </div>
@@ -1171,6 +1149,7 @@
                   *ngFor="let row of attendanceSummary.summary; let idx = index"
                   class="hover:bg-slate-50/90 transition-colors"
                   [ngClass]="row.isAtRisk ? 'bg-rose-50/40' : ''"
+                  [style.borderLeft]="row.warningLevel ? '4px solid ' + row.warningLevel.color : ''"
                 >
                   <td class="p-4 font-bold text-slate-400 text-xs">{{ idx + 1 }}</td>
                   <td class="p-4">
@@ -1192,15 +1171,24 @@
                     <span
                       class="px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 shadow-2xs"
                       [ngClass]="
-                        row.isAtRisk
-                          ? 'bg-rose-600 text-white shadow-md shadow-rose-500/30'
+                        row.warningLevel
+                          ? 'text-white shadow-md'
                           : row.absentCount > 0
                             ? 'bg-amber-50 text-amber-800 border border-amber-200'
                             : 'bg-slate-100 text-slate-600'
                       "
+                      [style.backgroundColor]="row.warningLevel?.color"
                     >
-                      {{ row.isAtRisk ? '⚠️ ' : '' }}{{ row.absentCount }}
+                      {{ row.absentCount }} buổi · {{ row.absentPeriods }} tiết
                     </span>
+                    <div
+                      *ngIf="row.warningLevel"
+                      class="mt-1 text-[11px] font-bold"
+                      [style.color]="row.warningLevel.color"
+                    >
+                      {{ row.warningLevel.name
+                      }}{{ row.absentPercent !== null ? ' · ' + row.absentPercent + '%' : '' }}
+                    </div>
                   </td>
                   <td class="p-4 text-center">
                     <div class="flex items-center gap-2.5">

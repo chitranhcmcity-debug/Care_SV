@@ -1,0 +1,208 @@
+/* AI Care robot launcher: wandering is driven by the component (transform + duration);
+   everything else (bobbing, waving, blinking, jet flame) is pure CSS. */
+/* Palette: warm pink/coral accents so the robot stands out against the violet app shell. */
+.robot-launcher {
+  --rb-accent-1: #ff4fa3;
+  --rb-accent-2: #ff8a3d;
+  --rb-eye: #5ff5e0;
+  --rb-flame: #fff4c2;
+  --rb-visor-1: #2b2466;
+  --rb-visor-2: #0f0c2e;
+  --rb-shell-1: #ffffff;
+  --rb-shell-2: #e9ecfb;
+  --rb-edge: #cfd4ee;
+  --rb-blush: rgba(255, 110, 170, 0.75);
+  --rb-glow: rgba(255, 79, 163, 0.45);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 92px;
+  height: 105px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.45, 0, 0.3, 1);
+  will-change: transform;
+}
+.robot-launcher:focus-visible {
+  outline: 3px solid var(--rb-accent-1);
+  outline-offset: 4px;
+  border-radius: 24px;
+}
+
+.robot-body {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.6s ease;
+  filter: drop-shadow(0 0 10px var(--rb-glow)) drop-shadow(0 10px 12px rgba(15, 23, 42, 0.18));
+}
+.robot-body svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: robot-bob 2.6s ease-in-out infinite;
+}
+.robot-launcher:hover .robot-body svg {
+  animation-duration: 1.4s;
+}
+
+.robot-arm {
+  transform-box: fill-box;
+  transform-origin: 85% 95%;
+  animation: robot-wave 1.6s ease-in-out infinite;
+}
+.robot-eyes ellipse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: robot-blink 4.2s infinite;
+}
+.robot-bubble {
+  transform-box: fill-box;
+  transform-origin: 80% 100%;
+  animation: robot-pop 3.2s ease-in-out infinite;
+}
+.robot-core {
+  animation: robot-glow 1.8s ease-in-out infinite;
+}
+.robot-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  opacity: 0;
+  transform: scaleY(0.3);
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+.is-flying .robot-flame {
+  opacity: 1;
+  transform: scaleY(1);
+  animation: robot-flicker 0.18s ease-in-out infinite alternate;
+}
+
+.robot-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 46px;
+  height: 8px;
+  margin-left: -23px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.18);
+  filter: blur(3px);
+  animation: robot-shadow 2.6s ease-in-out infinite;
+}
+.is-flying .robot-shadow {
+  opacity: 0;
+}
+
+.robot-tip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--rb-accent-1), var(--rb-accent-2));
+  box-shadow: 0 4px 12px var(--rb-glow);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+.robot-launcher:hover .robot-tip,
+.robot-launcher:focus-visible .robot-tip {
+  opacity: 1;
+  transform: translate(-50%, -2px);
+}
+
+@keyframes robot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes robot-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-22deg);
+  }
+}
+@keyframes robot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes robot-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08) rotate(-4deg);
+  }
+}
+@keyframes robot-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes robot-flicker {
+  from {
+    transform: scaleY(0.85) scaleX(0.9);
+  }
+  to {
+    transform: scaleY(1.1) scaleX(1.05);
+  }
+}
+@keyframes robot-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(0.8);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-launcher,
+  .robot-body {
+    transition: none !important;
+  }
+  .robot-body svg,
+  .robot-arm,
+  .robot-eyes ellipse,
+  .robot-bubble,
+  .robot-core,
+  .robot-shadow,
+  .is-flying .robot-flame {
+    animation: none !important;
+  }
+}
