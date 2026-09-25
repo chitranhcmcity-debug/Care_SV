@@ -8,7 +8,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'isolated-test-secret-with-at-least-32-characters';
 // AI routes must fail gracefully (503) rather than call a real API in tests.
-delete process.env.ANTHROPIC_API_KEY;
+delete process.env.OPENAI_API_KEY;
 // Account emails must never reach a real SMTP server from tests.
 delete process.env.SMTP_USER;
 delete process.env.SMTP_PASS;
@@ -1676,16 +1676,18 @@ test('calls: teacher calls own students, the call is logged, a recording can be 
   assert.equal(asTeacher.status, 200);
   assert.equal(asTeacher.headers.get('content-type'), 'audio/mpeg');
   assert.equal(await asTeacher.text(), 'ID3fake-mp3-bytes');
-  assert.equal((await play(tokens.manager)).status, 200);
+  assert.equal((await play(tokens.manager)).status, 403);
+  assert.equal((await play(tokens.admin)).status, 403);
   assert.equal((await play(tokens.cskh)).status, 403);
 
-  // History: callers see their own calls, management sees everyone's.
-  const own = await request('/calls', tokens.teacher);
-  assert.ok(own.body.items.some((c) => c._id === callId));
-  assert.equal((await request('/calls', tokens.cskh)).body.items.length, 0);
-  const all = await request(`/calls?studentId=${students[0]._id}`, tokens.manager);
-  assert.equal(all.body.items[0]._id, callId);
-  assert.equal(all.body.items[0].callerId.fullName, 'teacher');
+  // History: everyone — management included — sees only their own calls.
+  const own = await request(`/calls?studentId=${students[0]._id}`, tokens.teacher);
+  assert.equal(own.body.items[0]._id, callId);
+  assert.equal(own.body.items[0].callerId.fullName, 'teacher');
+  for (const role of ['cskh', 'manager', 'admin']) {
+    const others = await request(`/calls?studentId=${students[0]._id}`, tokens[role]);
+    assert.equal(others.body.items.length, 0);
+  }
 
   const saved = await CuocGoi.findById(callId);
   await fs.promises.unlink(
@@ -1776,4 +1778,20 @@ test('configuration rejects missing secrets and production demo mode', () => {
     if (oldMemory === undefined) delete process.env.USE_MEMORY_DB;
     else process.env.USE_MEMORY_DB = oldMemory;
   }
+});
+
+test('system overview is admin-only and summarises accounts, data, activity and integrations', async () => {
+  for (const role of ['manager', 'cskh', 'teacher'])
+    assert.equal((await request('/overview', tokens[role])).status, 403);
+  const res = await request('/overview', tokens.admin);
+  assert.equal(res.status, 200);
+  const { users, data, activity, integrations, subscription } = res.body;
+  assert.equal(users.total, await NguoiDung.countDocuments());
+  assert.ok(users.byRole.admin >= 1);
+  assert.ok(users.recent.length <= 5 && !('password' in users.recent[0]));
+  assert.equal(data.students, await SinhVien.countDocuments());
+  assert.equal(activity.length, 7);
+  assert.ok(activity.every((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date)));
+  assert.ok(integrations.some((g) => g.name === 'Email (SMTP)'));
+  assert.equal(typeof subscription.active, 'boolean');
 });

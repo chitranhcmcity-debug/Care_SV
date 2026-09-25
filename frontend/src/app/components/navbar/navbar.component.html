@@ -201,7 +201,8 @@
         <ng-container *ngFor="let item of navItems">
           <a
             [routerLink]="item.path"
-            routerLinkActive="!bg-violet-50 !text-violet-600 font-medium"
+            [queryParams]="item.queryParams"
+            [ngClass]="isActive(item) ? '!bg-violet-50 !text-violet-600 font-medium' : ''"
             (click)="closeSidebar()"
             class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
           >

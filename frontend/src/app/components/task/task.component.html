@@ -1,4 +1,4 @@
-<div class="max-w-5xl mx-auto px-4 py-6 space-y-5 bg-slate-50">
+<div class="mx-4 md:mx-6 my-5 space-y-5">
   <!-- Title Header -->
   <div
     class="bg-white border border-slate-200 p-5 rounded-md shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
@@ -18,7 +18,7 @@
     </div>
     <button
       (click)="loadTasks()"
-      class="px-3.5 py-2 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition-all"
+      class="px-3.5 py-2 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all"
     >
       🔄 Cập nhật danh sách
     </button>
@@ -168,7 +168,7 @@
       <div *ngIf="task.status === 'moi_giao'" class="flex justify-end">
         <button
           (click)="acknowledge(task)"
-          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
+          class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
         >
           ▶️ XÁC NHẬN NHẬN VIỆC
         </button>
@@ -201,12 +201,12 @@
           multiple
           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
           (change)="onFilesSelected(task._id, $event)"
-          class="w-full text-xs font-semibold text-slate-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-800 file:text-white file:text-xs file:font-bold"
+          class="w-full text-xs font-semibold text-slate-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-700 file:text-xs file:font-bold"
         />
         <div class="flex justify-end">
           <button
             (click)="submitEvidence(task)"
-            class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
+            class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
           >
             📤 NỘP MINH CHỨNG & ĐÓNG NHIỆM VỤ
           </button>

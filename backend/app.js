@@ -18,6 +18,7 @@ const billingRoutes = require('./routes/thanhToan');
 const studentRoutes = require('./routes/sinhVien');
 const callRoutes = require('./routes/cuocGoi');
 const classAssignmentRoutes = require('./routes/phanCongLop');
+const overviewRoutes = require('./routes/tongQuan');
 const { requireActiveSubscription } = require('./middleware/goiDichVu');
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/overview', overviewRoutes);
 // Business features: locked with 402 once the subscription has expired.
 app.use('/api/excel', requireActiveSubscription, excelRoutes);
 app.use('/api/attendance', requireActiveSubscription, attendanceRoutes);

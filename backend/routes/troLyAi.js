@@ -45,7 +45,7 @@ router.get('/care', verifyToken, requireSignedIn, (req, res) => {
   res.json(aiCare.profileFor(req.user));
 });
 
-// POST /api/ai/care (every role) — role-aware assistant. Claude looks data up through tools that
+// POST /api/ai/care (every role) — role-aware assistant. ChatGPT (OpenAI) looks data up through tools that
 // are filtered, and scoped, by the caller's role and permissions.
 router.post('/care', verifyToken, requireSignedIn, async (req, res, next) => {
   try {
@@ -174,7 +174,7 @@ Trả lời bằng tiếng Việt, súc tích, dưới 120 từ.`;
 );
 
 // POST /api/ai/chat (Admin only) — stateless: the client resends the full
-// conversation each turn, same pattern the Messages API itself uses.
+// conversation each turn, using the Responses API with explicit history.
 router.post('/chat', verifyToken, requirePermission('ai.chat'), async (req, res, next) => {
   try {
     const { messages } = req.body;

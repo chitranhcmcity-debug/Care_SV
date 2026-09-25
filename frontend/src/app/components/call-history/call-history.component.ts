@@ -1,13 +1,11 @@
 import { Component, OnDestroy, effect, inject, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth.service';
 import { CALL_OUTCOME_LABELS, CallLog, CallService } from '../../services/call.service';
 import { NotificationService } from '../../services/notification.service';
-import { ROLE_LABELS, Role } from '../../models/types';
 
 const PAGE_SIZE = 20;
 
-/** Call log with recordings. Management sees every call; others see their own. */
+/** The signed-in user's own call log, with recordings. */
 @Component({
   selector: 'app-call-history',
   standalone: true,
@@ -17,7 +15,6 @@ const PAGE_SIZE = 20;
 export class CallHistoryComponent implements OnDestroy {
   private readonly calls = inject(CallService);
   private readonly notify = inject(NotificationService);
-  readonly auth = inject(AuthService);
 
   readonly items = signal<CallLog[]>([]);
   readonly total = signal(0);
@@ -28,7 +25,6 @@ export class CallHistoryComponent implements OnDestroy {
   readonly loadingRecording = signal<string | null>(null);
   readonly uploading = signal<string | null>(null);
   readonly outcomeLabels: Record<string, string> = CALL_OUTCOME_LABELS;
-  readonly roleLabels: Record<string, string> = ROLE_LABELS;
 
   constructor() {
     // First load, and again whenever a call is saved from the dialog.
@@ -57,20 +53,6 @@ export class CallHistoryComponent implements OnDestroy {
       },
       error: () => this.loading.set(false),
     });
-  }
-
-  isMine(call: CallLog): boolean {
-    const id = typeof call.callerId === 'string' ? call.callerId : call.callerId._id;
-    const me = this.auth.currentUser();
-    return !!me && (id === me.id || id === me._id);
-  }
-
-  caller(call: CallLog): { name: string; role: string } {
-    if (typeof call.callerId === 'string') return { name: '', role: '' };
-    return {
-      name: call.callerId.fullName,
-      role: this.roleLabels[call.callerId.role as Role] ?? '',
-    };
   }
 
   student(call: CallLog) {

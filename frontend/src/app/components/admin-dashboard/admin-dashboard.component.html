@@ -1,4 +1,4 @@
-<div class="max-w-[1440px] mx-auto px-4 md:px-8 py-6 space-y-6">
+<div class="mx-4 md:mx-6 my-5 space-y-5">
   <!-- Admin Header Banner -->
   <div class="relative overflow-hidden rounded-2xl bg-violet-600 p-6 md:p-8 text-white">
     <!-- decorative circles, Berry "Total Earning" card style -->
@@ -74,23 +74,6 @@
       </button>
     </div>
   </div>
-
-  <nav *ngIf="isManager" aria-label="Chức năng quản lý" class="flex flex-wrap gap-2">
-    <button
-      *ngFor="let tab of visibleTabs"
-      type="button"
-      (click)="openTab(tab.id)"
-      [attr.aria-current]="activeTab === tab.id ? 'page' : null"
-      class="px-4 py-2 rounded-lg text-sm font-medium border transition-colors"
-      [ngClass]="
-        activeTab === tab.id
-          ? 'bg-violet-600 border-violet-600 text-white'
-          : 'bg-white border-slate-200 text-slate-600 hover:bg-violet-50'
-      "
-    >
-      {{ tab.label }}
-    </button>
-  </nav>
 
   <!-- COMPONENT 2: EXCEL IMPORT BY COURSE -->
   <div *ngIf="activeTab === 'excel'" class="space-y-6">
@@ -481,7 +464,7 @@
     <!-- Prominent Persistent Generated Password Display Card with 1-Click Copy -->
     <div
       *ngIf="staffCreatedMsg || staffGeneratedPass"
-      class="p-5 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white shadow-xl space-y-3 animate-fade-in border border-blue-700"
+      class="p-5 rounded-2xl bg-emerald-50 text-emerald-900 space-y-3 animate-fade-in border border-emerald-200"
     >
       <div class="flex items-center justify-between">
         <span class="font-bold text-sm flex items-center gap-2"
@@ -489,28 +472,28 @@
         >
         <button
           (click)="staffCreatedMsg = ''; staffGeneratedPass = ''"
-          class="text-white/70 hover:text-white font-bold text-xl p-1"
+          class="text-emerald-700/70 hover:text-emerald-900 font-bold text-xl p-1"
         >
           ✖
         </button>
       </div>
       <div
         *ngIf="staffGeneratedPass"
-        class="bg-white/10 p-4 rounded-xl border border-white/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        class="bg-white p-4 rounded-xl border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
       >
         <div>
-          <span class="text-xs text-blue-200 block font-medium uppercase mb-1"
+          <span class="text-xs text-emerald-700 block font-medium uppercase mb-1"
             >🔑 MẬT KHẨU ĐĂNG NHẬP KHỞI TẠO (HÃY LƯU VÀ SAO CHÉP):</span
           >
           <span
-            class="font-sans tabular-nums text-xl font-bold text-amber-300 tracking-wider bg-black/30 px-3 py-1 rounded border border-amber-400/40 select-all"
+            class="font-sans tabular-nums text-xl font-bold text-slate-900 tracking-wider bg-slate-50 px-3 py-1 rounded border border-slate-200 select-all"
             >{{ staffGeneratedPass }}</span
           >
         </div>
         <button
           type="button"
           (click)="copyPasswordToClipboard(staffGeneratedPass)"
-          class="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+          class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 touch-target cursor-pointer"
         >
           📋 SAO CHÉP MẬT KHẨU
         </button>
@@ -706,7 +689,7 @@
         <button
           (click)="createTask()"
           [disabled]="isCreatingTask"
-          class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm"
+          class="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm"
         >
           {{ isCreatingTask ? 'Đang giao việc...' : '📤 GIAO NHIỆM VỤ' }}
         </button>
@@ -1100,7 +1083,7 @@
             class="px-3 py-1.5 rounded-full text-xs font-bold border"
             [ngClass]="
               warningFilter === ''
-                ? 'bg-slate-900 text-white border-slate-900'
+                ? 'bg-violet-600 text-white border-violet-600'
                 : 'bg-white text-slate-700 border-slate-300'
             "
           >
@@ -2147,6 +2130,8 @@
   </div>
 
   <!-- ADMIN: API INTEGRATIONS -->
+  <app-system-overview *ngIf="activeTab === 'overview'"></app-system-overview>
+
   <app-integrations-panel *ngIf="activeTab === 'integrations'"></app-integrations-panel>
 
   <!-- MANAGER: CLASS ASSIGNMENT (lớp hành chính → nhân viên CSKH) -->
@@ -2208,7 +2193,7 @@
       <div class="pt-2 flex justify-end border-t border-slate-200">
         <button
           (click)="showStaffAiModal = false"
-          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl"
+          class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl"
         >
           Đóng
         </button>

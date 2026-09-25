@@ -4,6 +4,7 @@ import { Permission } from '../../models/types';
 // Tabs of the admin / management dashboard. The sidebar lists them under the dashboard entry and
 // the dashboard reads the active one from the ?tab= query parameter.
 export type AdminTab =
+  | 'overview'
   | 'excel'
   | 'staff'
   | 'analytics'
@@ -17,12 +18,17 @@ export type AdminTab =
 
 /** The admin runs the system (accounts, permissions, config, API, look) and only views reports. */
 export const ADMIN_TABS: AdminTab[] = [
+  'overview',
   'staff',
   'permissions',
   'settings',
   'integrations',
   'analytics',
 ];
+
+/** The admin's sidebar splits its tabs into two groups: running the system and configuring it. */
+export const ADMIN_SYSTEM_TABS: AdminTab[] = ['overview', 'staff', 'analytics', 'permissions'];
+export const ADMIN_CONFIG_TABS: AdminTab[] = ['integrations', 'settings'];
 
 /** Permission that unlocks each tab for non-admins; tabs without one are admin-only. */
 export const TAB_PERMISSION: Partial<Record<AdminTab, Permission>> = {
@@ -42,6 +48,11 @@ export interface DashboardTab {
 }
 
 export const DASHBOARD_TABS: DashboardTab[] = [
+  {
+    id: 'overview',
+    label: 'Tổng quan hệ thống',
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6',
+  },
   {
     id: 'courses',
     label: 'Cấu hình học phần',
@@ -94,6 +105,14 @@ export const DASHBOARD_TABS: DashboardTab[] = [
   },
 ];
 
+/** The manager's landing tab: the analytics tab under its own name. Created once, because the
+ *  sidebar calls visibleDashboardTabs on every render and a fresh object each time makes *ngFor
+ *  rebuild the link endlessly (the page freezes). */
+const MANAGER_OVERVIEW_TAB: DashboardTab = {
+  ...DASHBOARD_TABS.find((tab) => tab.id === 'analytics')!,
+  label: 'Tổng quan & cảnh báo',
+};
+
 /** The admin sees the system tabs; other roles see the tabs their permissions unlock. */
 export function visibleDashboardTabs(auth: AuthService): DashboardTab[] {
   const tabs = DASHBOARD_TABS.filter((tab) => {
@@ -101,13 +120,8 @@ export function visibleDashboardTabs(auth: AuthService): DashboardTab[] {
     const permission = TAB_PERMISSION[tab.id];
     return permission !== undefined && auth.can(permission);
   });
-  if (auth.isManager()) {
-    return [
-      ...tabs
-        .filter((tab) => tab.id === 'analytics')
-        .map((tab) => ({ ...tab, label: 'Tổng quan & cảnh báo' })),
-      ...tabs.filter((tab) => tab.id !== 'analytics'),
-    ];
+  if (auth.isManager() && tabs.some((tab) => tab.id === 'analytics')) {
+    return [MANAGER_OVERVIEW_TAB, ...tabs.filter((tab) => tab.id !== 'analytics')];
   }
   return tabs;
 }

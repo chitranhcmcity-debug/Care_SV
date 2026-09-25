@@ -1,111 +1,100 @@
-const Anthropic = require('@anthropic-ai/sdk');
+﻿const OpenAI = require('openai');
 const { assert } = require('../utils/kiemTra');
 
-// Key and model are read per call: an admin can change them in the UI (dichVuCauHinhApi).
-const model = () => process.env.AI_MODEL || 'claude-opus-5';
-let client = null;
-let clientKey = '';
-
-function isConfigured() {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
-}
+// Read configuration per call so admin changes take effect immediately.
+const model = () => process.env.OPENAI_MODEL?.trim() || 'gpt-4.1-mini';
+let client;
+let clientKey;
 
 function getClient() {
-  if (!client || clientKey !== process.env.ANTHROPIC_API_KEY) {
-    clientKey = process.env.ANTHROPIC_API_KEY;
-    client = new Anthropic({ apiKey: clientKey });
+  const key = process.env.OPENAI_API_KEY?.trim();
+  assert(
+    key,
+    'Trợ lý AI chưa được cấu hình. Quản trị viên cần nhập API key OpenAI trong Quản trị → Cấu hình API.',
+    503,
+  );
+  if (!client || clientKey !== key) {
+    clientKey = key;
+    client = new OpenAI({ apiKey: key });
   }
   return client;
 }
 
-/**
- * Single call to Claude. Every /api/ai/* route builds its own system + messages
- * from DB data and goes through this one function, so the model/config/error
- * handling only lives in one place.
- */
-async function chat({ system, messages, maxTokens = 1024, effort = 'low' }) {
-  assert(
-    isConfigured(),
-    'Trợ lý AI chưa được cấu hình. Quản trị viên cần nhập API key Claude trong Quản trị → Cấu hình API.',
-    503,
-  );
+async function createResponse(options) {
+  const api = getClient();
   let response;
   try {
-    response = await getClient().messages.create({
-      model: model(),
-      max_tokens: maxTokens,
-      thinking: { type: 'adaptive' },
-      output_config: { effort },
-      system,
-      messages,
-    });
-  } catch (error) {
-    // Surface Anthropic SDK errors as a clean 502 instead of a raw 500 stack trace.
-    throw Object.assign(new Error(`Lỗi gọi trợ lý AI: ${error.message}`), { status: 502 });
+    response = await api.responses.create({ model: model(), store: false, ...options });
+  } catch {
+    // Do not expose credentials or request details from SDK errors.
+    throw Object.assign(
+      new Error('Lỗi gọi trợ lý AI OpenAI. Vui lòng kiểm tra API key, model và hạn mức sử dụng.'),
+      { status: 502 },
+    );
   }
-  if (response.stop_reason === 'refusal') {
+  if (response.output?.some((item) => item.content?.some((part) => part.type === 'refusal'))) {
     throw Object.assign(new Error('Trợ lý AI từ chối yêu cầu này.'), { status: 422 });
   }
-  const textBlock = response.content.find((b) => b.type === 'text');
-  return textBlock ? textBlock.text : '';
+  if (response.status !== 'completed') {
+    throw Object.assign(
+      new Error('Trợ lý AI chưa hoàn tất câu trả lời. Vui lòng thử lại với câu hỏi ngắn hơn.'),
+      { status: 502 },
+    );
+  }
+  return response;
 }
 
-/**
- * Chat with client-side tools: loops while Claude asks for tools, running each through
- * `execute(name, input)` (which must enforce the caller's permissions), and returns the final text.
- */
-async function chatWithTools({ system, messages, tools, execute, maxTurns = 6, effort = 'low' }) {
-  assert(
-    isConfigured(),
-    'Trợ lý AI chưa được cấu hình. Quản trị viên cần nhập API key Claude trong Quản trị → Cấu hình API.',
-    503,
+function responseText(response) {
+  const text = response.output_text?.trim();
+  assert(text, 'Trợ lý AI không trả về nội dung. Vui lòng thử lại.', 502);
+  return text;
+}
+
+async function chat({ system, messages, maxTokens = 1024 }) {
+  return responseText(
+    await createResponse({ instructions: system, input: messages, max_output_tokens: maxTokens }),
   );
+}
+
+// execute(name, input) continues to enforce the caller's data permissions.
+async function chatWithTools({ system, messages, tools, execute, maxTurns = 6 }) {
   const history = [...messages];
+  const functions = tools.map(({ name, description, input_schema }) => ({
+    type: 'function',
+    name,
+    description,
+    parameters: input_schema,
+    // Existing tools have optional filters; preserve those schemas.
+    strict: false,
+  }));
   for (let turn = 0; turn < maxTurns; turn++) {
-    let response;
-    try {
-      response = await getClient().messages.create({
-        model: model(),
-        max_tokens: 16000,
-        thinking: { type: 'adaptive' },
-        output_config: { effort },
-        system,
-        tools,
-        messages: history,
-      });
-    } catch (error) {
-      throw Object.assign(new Error(`Lỗi gọi trợ lý AI: ${error.message}`), { status: 502 });
-    }
-    if (response.stop_reason === 'refusal') {
-      throw Object.assign(new Error('Trợ lý AI từ chối yêu cầu này.'), { status: 422 });
-    }
-    const toolUses = response.content.filter((b) => b.type === 'tool_use');
-    if (response.stop_reason !== 'tool_use' || !toolUses.length) {
-      return response.content
-        .filter((b) => b.type === 'text')
-        .map((b) => b.text)
-        .join('\n')
-        .trim();
-    }
-    // Keep the whole assistant turn (thinking + tool_use blocks), then answer every tool call
-    // in a single user message.
-    history.push({ role: 'assistant', content: response.content });
+    const response = await createResponse({
+      instructions: system,
+      input: history,
+      tools: functions,
+      max_output_tokens: 16000,
+    });
+    const calls = response.output.filter((item) => item.type === 'function_call');
+    if (!calls.length) return responseText(response);
+    // Preserve all output items, including reasoning, before sending tool results.
+    history.push(...response.output);
     const results = await Promise.all(
-      toolUses.map(async (block) => {
+      calls.map(async (call) => {
+        let output;
         try {
-          const output = await execute(block.name, block.input);
-          return { type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(output) };
+          assert(
+            functions.some((tool) => tool.name === call.name),
+            'Công cụ không được phép',
+            403,
+          );
+          output = JSON.stringify(await execute(call.name, JSON.parse(call.arguments)));
         } catch (error) {
-          return {
-            type: 'tool_result',
-            tool_use_id: block.id,
-            content: `Lỗi khi truy vấn dữ liệu: ${error.message}`,
-            is_error: true,
-          };
+          output = JSON.stringify({ error: `Lỗi khi truy vấn dữ liệu: ${error.message}` });
         }
+        return { type: 'function_call_output', call_id: call.call_id, output: output ?? 'null' };
       }),
     );
-    history.push({ role: 'user', content: results });
+    history.push(...results);
   }
   throw Object.assign(new Error('Trợ lý AI cần quá nhiều bước, vui lòng hỏi cụ thể hơn.'), {
     status: 422,

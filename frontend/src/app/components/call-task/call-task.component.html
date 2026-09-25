@@ -1,4 +1,4 @@
-<div class="max-w-6xl mx-auto px-4 py-6 space-y-5 bg-slate-50">
+<div class="mx-4 md:mx-6 my-5 space-y-5">
   <!-- Title Header -->
   <div
     class="bg-white border border-slate-200 p-5 rounded-md shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
@@ -18,7 +18,7 @@
     </div>
     <button
       (click)="loadTasks()"
-      class="px-3.5 py-2 rounded-md bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold shadow-sm transition-all"
+      class="px-3.5 py-2 rounded-md bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all"
     >
       🔄 Cập nhật danh sách
     </button>
@@ -128,7 +128,7 @@
       <!-- Priority Status Header Tag -->
       <div class="flex items-center justify-between flex-wrap gap-3 border-b border-slate-200 pb-3">
         <div class="flex items-center space-x-2 flex-wrap gap-2">
-          <span class="text-xs font-bold px-2.5 py-1 rounded bg-slate-900 text-white"
+          <span class="text-xs font-bold px-2.5 py-1 rounded bg-slate-100 text-slate-600"
             >#{{ i + 1 }}</span
           >
 
@@ -282,7 +282,7 @@
             *ngIf="task.student?.parentPhone"
             [href]="'tel:' + task.student?.parentPhone"
             (click)="callStudent($event, task.student, 'phu_huynh', { callTaskId: task._id })"
-            class="px-4 py-3 rounded-xl bg-blue-800 hover:bg-blue-900 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm touch-target min-h-[48px]"
+            class="px-4 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm touch-target min-h-[48px]"
           >
             👨‍👩‍👦 Gọi Phụ Huynh: {{ task.student?.parentPhone }}
           </a>
@@ -409,7 +409,7 @@
         <div class="flex justify-end">
           <button
             (click)="saveTaskUpdate(task)"
-            class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm flex items-center gap-2"
+            class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm flex items-center gap-2"
           >
             💾 LƯU KẾT QUẢ & CẬP NHẬT CRM
           </button>
@@ -578,7 +578,7 @@
       <div class="pt-4 flex justify-end border-t border-slate-200">
         <button
           (click)="show360Modal = false"
-          class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl"
+          class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl"
         >
           Đóng Hồ Sơ 360°
         </button>

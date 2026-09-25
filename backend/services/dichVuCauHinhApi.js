@@ -1,4 +1,4 @@
-// Khóa API tích hợp do Admin cấu hình trên giao diện (Claude, Stringee, SMTP).
+// Khóa API tích hợp do Admin cấu hình trên giao diện (ChatGPT (OpenAI), Stringee, SMTP).
 // Giá trị lưu trong CaiDatHeThong.integrations, mã hóa AES-256-GCM bằng khóa suy ra từ
 // CONFIG_SECRET (hoặc JWT_SECRET). Khi nạp, giá trị trong database được phủ lên process.env nên
 // các dịch vụ hiện có đọc process.env như cũ; xóa giá trị trong database thì quay về giá trị .env.
@@ -8,8 +8,13 @@ const CaiDatHeThong = require('../models/CaiDatHeThong');
 const { assert } = require('../utils/kiemTra');
 
 const CATALOG = Object.freeze([
-  { key: 'ANTHROPIC_API_KEY', group: 'Trợ lý AI (Claude)', label: 'API key', secret: true },
-  { key: 'AI_MODEL', group: 'Trợ lý AI (Claude)', label: 'Model', placeholder: 'claude-opus-5' },
+  { key: 'OPENAI_API_KEY', group: 'Trợ lý AI (ChatGPT (OpenAI))', label: 'API key', secret: true },
+  {
+    key: 'OPENAI_MODEL',
+    group: 'Trợ lý AI (ChatGPT (OpenAI))',
+    label: 'Model',
+    placeholder: 'gpt-4.1-mini',
+  },
   { key: 'STRINGEE_KEY_SID', group: 'Tổng đài Stringee', label: 'Key SID' },
   { key: 'STRINGEE_KEY_SECRET', group: 'Tổng đài Stringee', label: 'Key Secret', secret: true },
   { key: 'STRINGEE_HOTLINE', group: 'Tổng đài Stringee', label: 'Số hotline' },

@@ -139,6 +139,11 @@ export class AiCareComponent {
     else this.pos.update(({ x, y }) => ({ x: Math.min(x, maxX), y: Math.min(y, maxY) }));
   }
 
+  @HostListener('document:keydown.escape')
+  onEscape() {
+    if (this.open()) this.toggle();
+  }
+
   @HostListener('document:visibilitychange')
   onVisibilityChange() {
     if (document.hidden) clearTimeout(this.wanderTimer);

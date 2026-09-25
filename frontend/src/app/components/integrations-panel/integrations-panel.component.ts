@@ -5,7 +5,7 @@ import { SettingsService } from '../../services/settings.service';
 import { NotificationService } from '../../services/notification.service';
 import { IntegrationItem } from '../../models/types';
 
-/** Admin: API keys for Claude (AI Care), Stringee (calls) and SMTP (email). */
+/** Admin: API keys for ChatGPT (OpenAI) (AI Care), Stringee (calls) and SMTP (email). */
 @Component({
   selector: 'app-integrations-panel',
   standalone: true,

@@ -8,7 +8,13 @@ import { TaskService } from '../../services/task.service';
 import { BillingService } from '../../services/billing.service';
 import { ROLE_LABELS } from '../../models/types';
 import { BrandingService } from '../../services/branding.service';
-import { DashboardTab, visibleDashboardTabs } from '../admin-dashboard/dashboard-tabs';
+import {
+  ADMIN_CONFIG_TABS,
+  ADMIN_SYSTEM_TABS,
+  AdminTab,
+  DashboardTab,
+  visibleDashboardTabs,
+} from '../admin-dashboard/dashboard-tabs';
 
 interface NavItem {
   path: string;
@@ -16,13 +22,25 @@ interface NavItem {
   /** 24px stroke icon path (Tabler-style). */
   icon: string;
   badge?: 'unread' | 'pendingTasks';
+  /** Dashboard entries: the ?tab= sections listed under it (all visible tabs when omitted). */
+  tabs?: AdminTab[];
+  /** Tab the entry itself opens. */
+  queryParams?: { tab: AdminTab };
 }
 
 const NAV_ITEMS: NavItem[] = [
   {
     path: '/admin',
     label: 'Quản trị hệ thống',
+    tabs: ADMIN_SYSTEM_TABS,
     icon: 'M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1zM15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1zM15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z',
+  },
+  {
+    path: '/admin',
+    label: 'Cấu hình hệ thống',
+    tabs: ADMIN_CONFIG_TABS,
+    queryParams: { tab: 'integrations' },
+    icon: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 12h2M18 12h2M12 4v2M12 18v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4',
   },
   {
     path: '/management',
@@ -165,18 +183,33 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return role ? ROLE_LABELS[role] : '';
   }
 
-  /** Plain pages first; the dashboard entry with its sections goes at the bottom of the list. */
+  /** Plain pages, then the dashboard entries with their sections. The admin lands on
+   *  "Quản trị hệ thống" (system overview first), so that group leads the list instead. */
   get navItems(): NavItem[] {
     const items = NAV_ITEMS.filter((item) => this.authService.canOpen(item.path));
-    return [
-      ...items.filter((item) => !DASHBOARD_PATHS.includes(item.path)),
-      ...items.filter((item) => DASHBOARD_PATHS.includes(item.path)),
-    ];
+    const plain = items.filter((item) => !DASHBOARD_PATHS.includes(item.path));
+    const dashboards = items.filter((item) => DASHBOARD_PATHS.includes(item.path));
+    return this.authService.isAdmin()
+      ? [dashboards[0], ...plain, ...dashboards.slice(1)]
+      : [...plain, ...dashboards];
   }
 
-  /** Dashboard sections shown under the dashboard entry of the sidebar. */
+  /** Dashboard sections shown under a dashboard entry of the sidebar. */
   tabsFor(item: NavItem): DashboardTab[] {
-    return DASHBOARD_PATHS.includes(item.path) ? visibleDashboardTabs(this.authService) : [];
+    if (!DASHBOARD_PATHS.includes(item.path)) return [];
+    const tabs = visibleDashboardTabs(this.authService);
+    return item.tabs ? tabs.filter((tab) => item.tabs!.includes(tab.id)) : tabs;
+  }
+
+  /** A dashboard entry is active when the open tab is one of its sections (no ?tab= means the
+   *  dashboard's first tab); other entries match their path. */
+  isActive(item: NavItem): boolean {
+    const tree = this.router.parseUrl(this.router.url);
+    const path = this.router.url.split(/[?#]/)[0];
+    if (path !== item.path && !path.startsWith(item.path + '/')) return false;
+    if (!item.tabs) return true;
+    const tab = tree.queryParams['tab'] ?? visibleDashboardTabs(this.authService)[0]?.id;
+    return item.tabs.includes(tab);
   }
 
   badgeCount(item: NavItem): number {
@@ -205,7 +238,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!item) return;
     this.searchTerm = '';
     this.closeSidebar();
-    this.router.navigate([item.path]);
+    this.router.navigate([item.path], { queryParams: item.queryParams });
   }
 
   toggleSidebar() {

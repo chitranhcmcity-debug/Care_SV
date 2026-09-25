@@ -19,6 +19,7 @@ import { PermissionService } from '../../services/permission.service';
 import { ClassAssignmentPanelComponent } from '../class-assignment-panel/class-assignment-panel.component';
 import { WarningConfigComponent } from '../warning-config/warning-config.component';
 import { IntegrationsPanelComponent } from '../integrations-panel/integrations-panel.component';
+import { SystemOverviewComponent } from '../system-overview/system-overview.component';
 import {
   User,
   SystemSettings,
@@ -53,6 +54,7 @@ import {
     ClassAssignmentPanelComponent,
     WarningConfigComponent,
     IntegrationsPanelComponent,
+    SystemOverviewComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
 })

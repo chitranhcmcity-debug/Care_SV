@@ -15,13 +15,14 @@ const {
   requireRoles,
 } = require('../middleware/xacThuc');
 const { assert, validateId, parseOptionalDate } = require('../utils/kiemTra');
+const { getUploadDir } = require('../utils/moiTruong');
 
 // Only the assigned staff member acts on a task (acknowledge / submit) — not admins.
 const requireStaff = requireRoles('staff');
 
 // ---- Evidence file upload (disk storage; served back through an authenticated route,
 // never express.static, so evidence isn't reachable by anyone who guesses the URL) ----
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads', 'tasks');
+const UPLOAD_DIR = path.join(getUploadDir(), 'tasks');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const ALLOWED_MIME = new Set([

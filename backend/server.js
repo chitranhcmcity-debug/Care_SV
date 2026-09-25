@@ -21,6 +21,10 @@ async function startServer() {
     // API keys an admin saved in the UI take precedence over .env.
     await require('./services/dichVuCauHinhApi').applyIntegrations();
     if (config.seedDemo) await require('./scripts/taoDuLieuMau')();
+    const admin = await require('./scripts/taoTaiKhoanQuanTri').ensureInitialAdmin();
+    if (admin.created) console.log('Created the first admin account:', admin.user.email);
+    else if (admin.reason === 'not-configured')
+      console.warn('No admin account yet: set ADMIN_EMAIL and ADMIN_PASSWORD, then restart.');
     server = await new Promise((resolve, reject) => {
       const listener = app.listen(config.port, '0.0.0.0', () => resolve(listener));
       listener.on('error', reject);

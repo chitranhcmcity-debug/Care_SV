@@ -1,9 +1,9 @@
-<div class="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20 md:pb-12">
+<div class="font-sans text-slate-800 pb-20 md:pb-0">
   <!-- ========================================================= -->
   <!-- MOBILE ONLY TOP HEADER (HIDDEN ON DESKTOP PC)             -->
   <!-- ========================================================= -->
   <header
-    class="md:hidden sticky top-0 z-40 bg-blue-950 text-white px-4 py-3 shadow-md flex items-center justify-between"
+    class="md:hidden sticky top-0 z-40 bg-violet-700 text-white px-4 py-3 shadow-md flex items-center justify-between"
   >
     <div class="flex items-center space-x-3">
       <img
@@ -33,7 +33,7 @@
   <!-- ========================================================= -->
   <!-- MAIN CONTAINER: ADAPTIVE MOBILE & DESKTOP PC UI           -->
   <!-- ========================================================= -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6">
+  <main class="mx-4 md:mx-6 my-5 space-y-5">
     <!-- DESKTOP PC HEADER BANNER (HIDDEN ON MOBILE) -->
     <div
       class="hidden md:flex bg-white border border-slate-200 p-6 rounded-3xl shadow-sm items-center justify-between gap-6"
@@ -61,7 +61,7 @@
           (click)="activeTab = 'home'"
           [ngClass]="
             activeTab === 'home'
-              ? 'bg-blue-900 text-white font-bold shadow-sm'
+              ? 'bg-violet-600 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
@@ -73,7 +73,7 @@
           (click)="activeTab = 'attendance'"
           [ngClass]="
             activeTab === 'attendance'
-              ? 'bg-blue-900 text-white font-bold shadow-sm'
+              ? 'bg-violet-600 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
@@ -85,7 +85,7 @@
           (click)="activeTab = 'calls'"
           [ngClass]="
             activeTab === 'calls'
-              ? 'bg-blue-900 text-white font-bold shadow-sm'
+              ? 'bg-violet-600 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
           class="px-4 py-2 text-xs rounded-xl transition-all relative cursor-pointer"
@@ -107,11 +107,11 @@
     <div *ngIf="activeTab === 'home'" class="space-y-5 animate-fade-in">
       <!-- Welcome Hero Banner (Mobile) -->
       <div
-        class="md:hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white p-5 rounded-3xl shadow-xl relative overflow-hidden"
+        class="md:hidden bg-violet-600 text-white p-5 rounded-3xl shadow-sm relative overflow-hidden"
       >
         <div class="relative z-10 space-y-2">
           <div
-            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 text-xs font-bold border border-blue-400/30"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-800 text-violet-100 text-xs font-bold border border-violet-500/40"
           >
             <span>👋 Chào ngày mới</span>
           </div>
@@ -231,7 +231,7 @@
             <button
               type="button"
               (click)="goToAttendanceForGroup(g._id)"
-              class="w-full py-2.5 rounded-xl bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs shadow-sm transition-all touch-target cursor-pointer flex items-center justify-center gap-1.5"
+              class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm transition-all touch-target cursor-pointer flex items-center justify-center gap-1.5"
             >
               <span>⚡ Điểm Danh Lớp Này</span>
             </button>
@@ -299,7 +299,7 @@
             (click)="switchAttendanceMode('history')"
             [ngClass]="
               attendanceMode === 'history'
-                ? 'bg-blue-900 text-white font-bold shadow-sm'
+                ? 'bg-violet-600 text-white font-bold shadow-sm'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold'
             "
             class="px-4 py-2 text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2"
@@ -345,7 +345,7 @@
               (click)="toggleShowAllCourses(false)"
               [ngClass]="
                 !showAllCourses
-                  ? 'bg-blue-900 text-white font-bold'
+                  ? 'bg-violet-600 text-white font-bold'
                   : 'bg-slate-100 text-slate-600 font-bold'
               "
               class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-300 cursor-pointer"
@@ -357,7 +357,7 @@
               (click)="toggleShowAllCourses(true)"
               [ngClass]="
                 showAllCourses
-                  ? 'bg-indigo-900 text-white font-bold'
+                  ? 'bg-violet-700 text-white font-bold'
                   : 'bg-slate-100 text-slate-600 font-bold'
               "
               class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-300 cursor-pointer"
@@ -373,7 +373,7 @@
             *ngFor="let g of displayCourseGroups"
             (click)="selectCourseGroup(g._id)"
             [ngClass]="{
-              'ring-2 ring-blue-900 border-blue-900 bg-gradient-to-br from-blue-50/90 via-indigo-50/30 to-white shadow-md':
+              'ring-2 ring-violet-500 border-violet-500 bg-violet-50/60 shadow-md':
                 selectedGroupId === g._id,
               'bg-white border-slate-200 hover:border-blue-400 hover:shadow-sm':
                 selectedGroupId !== g._id,
@@ -564,7 +564,7 @@
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-900/20 flex-shrink-0"
+                class="w-10 h-10 rounded-2xl bg-violet-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-violet-600/20 flex-shrink-0"
               >
                 📋
               </div>
@@ -613,17 +613,17 @@
             <table class="w-full text-xs border-collapse min-w-max">
               <thead>
                 <!-- Hàng Header 1: Sticky Left | Sessions | Sticky Right -->
-                <tr class="bg-slate-900 text-white border-b border-slate-800">
+                <tr class="bg-slate-50 text-slate-700 border-b border-slate-200">
                   <!-- Sticky Left Column 1: Mã SV -->
                   <th
-                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-0 z-30 bg-slate-900 min-w-[110px] border-r border-slate-800 shadow-[2px_0_6px_rgba(0,0,0,0.2)]"
+                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-0 z-30 bg-slate-50 min-w-[110px] border-r border-slate-200"
                   >
                     Mã SV
                   </th>
 
                   <!-- Sticky Left Column 2: Họ và Tên -->
                   <th
-                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-[110px] z-30 bg-slate-900 min-w-[190px] border-r border-slate-800 shadow-[4px_0_10px_rgba(0,0,0,0.25)]"
+                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-[110px] z-30 bg-slate-50 min-w-[190px] border-r border-slate-200 shadow-[4px_0_8px_-4px_rgba(15,23,42,0.12)]"
                   >
                     Họ và Tên
                   </th>
@@ -632,15 +632,15 @@
                   <th
                     *ngFor="let session of allSessions"
                     (click)="setActiveSession(session)"
-                    class="p-3 text-center min-w-[105px] border-r border-slate-800 cursor-pointer select-none transition-all relative group"
+                    class="p-3 text-center min-w-[105px] border-r border-slate-200 cursor-pointer select-none transition-all relative group"
                     [ngClass]="{
-                      'bg-blue-900/95 text-blue-100 border-x-2 border-blue-400':
+                      'bg-violet-50 text-violet-800 border-x-2 border-violet-400':
                         isTodaySession(session),
-                      'ring-2 ring-blue-400/80 bg-indigo-950/90':
+                      'ring-2 ring-inset ring-violet-400 bg-violet-100':
                         activeSession &&
                         getSessionKey(activeSession) === getSessionKey(session) &&
                         !isTodaySession(session),
-                      'bg-slate-900 hover:bg-slate-800 text-white':
+                      'bg-slate-50 hover:bg-slate-100 text-slate-700':
                         (!activeSession ||
                           getSessionKey(activeSession) !== getSessionKey(session)) &&
                         !isTodaySession(session),
@@ -650,16 +650,16 @@
                       <!-- Today Badge -->
                       <span
                         *ngIf="isTodaySession(session)"
-                        class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm animate-pulse"
+                        class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"
                       >
                         🔥 Hôm Nay
                       </span>
 
                       <!-- Scheduled Date -->
-                      <div class="font-bold text-sm text-white tracking-tight">
+                      <div class="font-bold text-sm text-slate-900 tracking-tight">
                         {{ session.scheduledDate | date: 'dd/MM' }}
                       </div>
-                      <div class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      <div class="text-xs font-bold uppercase tracking-wider text-slate-500">
                         {{ formatVietnameseDay(session.scheduledDate) }}
                       </div>
 
@@ -667,7 +667,7 @@
                       <div class="mt-0.5">
                         <span
                           *ngIf="isSessionDirty(session)"
-                          class="inline-flex items-center gap-0.5 bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded text-xs font-bold"
+                          class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs font-bold"
                         >
                           ✏️ Đổi
                         </span>
@@ -677,7 +677,7 @@
                             isSessionLocked(session) &&
                             session.status === 'recorded'
                           "
-                          class="inline-flex items-center text-emerald-400 text-xs font-bold gap-0.5"
+                          class="inline-flex items-center text-emerald-700 text-xs font-bold gap-0.5"
                         >
                           🔒 Đã chốt
                         </span>
@@ -687,13 +687,13 @@
                             !isSessionLocked(session) &&
                             session.status === 'recorded'
                           "
-                          class="inline-flex items-center text-emerald-400 text-xs font-bold gap-0.5"
+                          class="inline-flex items-center text-emerald-700 text-xs font-bold gap-0.5"
                         >
                           🟢 Đã lưu
                         </span>
                         <span
                           *ngIf="!isSessionDirty(session) && session.status === 'missing'"
-                          class="inline-flex items-center text-amber-300 text-xs font-bold"
+                          class="inline-flex items-center text-amber-700 text-xs font-bold"
                         >
                           🟡 Chưa ghi
                         </span>
@@ -703,7 +703,7 @@
                             isSessionLocked(session) &&
                             session.status === 'future'
                           "
-                          class="inline-flex items-center text-slate-400 text-xs font-bold gap-0.5"
+                          class="inline-flex items-center text-slate-500 text-xs font-bold gap-0.5"
                         >
                           🔒 Sắp tới
                         </span>
@@ -713,43 +713,43 @@
 
                   <!-- Sticky Right Column: Tổng Vắng -->
                   <th
-                    class="p-3.5 text-center font-bold uppercase tracking-wider bg-slate-950 text-slate-200 min-w-[100px] sticky right-0 z-30 border-l border-slate-800 shadow-[-4px_0_10px_rgba(0,0,0,0.25)]"
+                    class="p-3.5 text-center font-bold uppercase tracking-wider bg-slate-100 text-slate-700 min-w-[100px] sticky right-0 z-30 border-l border-slate-200 shadow-[-4px_0_8px_-4px_rgba(15,23,42,0.12)]"
                   >
                     Tổng Vắng
                   </th>
                 </tr>
 
                 <!-- Hàng Header 2: Tổng SV vắng từng buổi -->
-                <tr class="bg-slate-800/90 text-slate-300 border-b border-slate-700/80">
+                <tr class="bg-white text-slate-600 border-b border-slate-200">
                   <td
-                    class="p-2.5 px-3 font-bold text-xs sticky left-0 z-30 bg-slate-800 border-r border-slate-700/80 shadow-[2px_0_6px_rgba(0,0,0,0.15)] text-slate-300"
+                    class="p-2.5 px-3 font-bold text-xs sticky left-0 z-30 bg-white border-r border-slate-200 text-slate-700"
                   >
                     Tổng vắng
                   </td>
                   <td
-                    class="p-2.5 px-3 font-semibold text-xs sticky left-[110px] z-30 bg-slate-800 border-r border-slate-700/80 shadow-[4px_0_10px_rgba(0,0,0,0.2)] text-slate-400"
+                    class="p-2.5 px-3 font-semibold text-xs sticky left-[110px] z-30 bg-white border-r border-slate-200 shadow-[4px_0_8px_-4px_rgba(15,23,42,0.12)] text-slate-500"
                   >
                     từng buổi học
                   </td>
                   <td
                     *ngFor="let session of allSessions"
                     (click)="setActiveSession(session)"
-                    class="p-2 text-center border-r border-slate-700/60 cursor-pointer"
-                    [ngClass]="isTodaySession(session) ? 'bg-blue-900/60' : ''"
+                    class="p-2 text-center border-r border-slate-200 cursor-pointer"
+                    [ngClass]="isTodaySession(session) ? 'bg-violet-50' : ''"
                   >
                     <span
                       class="px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-0.5 border"
                       [ngClass]="
                         getAbsentCountForSession(session) > 0
-                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       "
                     >
                       {{ getAbsentCountForSession(session) }} SV
                     </span>
                   </td>
                   <td
-                    class="p-2 text-center sticky right-0 z-30 bg-slate-900 border-l border-slate-800"
+                    class="p-2 text-center sticky right-0 z-30 bg-slate-100 border-l border-slate-200"
                   ></td>
                 </tr>
               </thead>
@@ -962,36 +962,36 @@
           class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
         >
           <div
-            class="bg-slate-900 text-white px-5 py-2.5 rounded-md shadow-2xl border border-slate-700 flex items-center gap-3 sm:gap-4 flex-wrap justify-center"
+            class="bg-white text-slate-800 px-5 py-2.5 rounded-xl shadow-[0_8px_30px_rgba(15,23,42,0.18)] border border-slate-200 flex items-center gap-3 sm:gap-4 flex-wrap justify-center"
           >
             <!-- Session Label & Counter -->
-            <div class="flex items-center gap-2 pr-3 border-r border-slate-700">
+            <div class="flex items-center gap-2 pr-3 border-r border-slate-200">
               <div
-                class="w-7 h-7 rounded-md bg-slate-800 border border-slate-600 text-slate-200 flex items-center justify-center text-xs font-bold"
+                class="w-7 h-7 rounded-md bg-violet-50 border border-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold"
               >
                 📅
               </div>
               <div class="text-xs">
-                <div class="font-bold text-white flex items-center gap-1.5">
+                <div class="font-bold text-slate-900 flex items-center gap-1.5">
                   <span>Buổi {{ activeSession.scheduledDate | date: 'dd/MM/yyyy' }}</span>
                   <span
                     *ngIf="isTodaySession(activeSession)"
-                    class="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.2 rounded-md uppercase"
+                    class="bg-violet-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-md uppercase"
                     >Hôm Nay</span
                   >
                 </div>
-                <div class="text-xs text-slate-300 font-medium">
-                  <span class="text-red-400 font-bold">{{
+                <div class="text-xs text-slate-500 font-medium">
+                  <span class="text-rose-600 font-bold">{{
                     getAbsentCountForSession(activeSession)
                   }}</span>
                   Vắng
                   <span
                     *ngIf="getExcusedCountForSession(activeSession) > 0"
-                    class="text-amber-300 font-bold"
+                    class="text-amber-700 font-bold"
                   >
                     • {{ getExcusedCountForSession(activeSession) }} Có phép</span
                   >
-                  <span *ngIf="isSessionDirty(activeSession)" class="text-amber-400 font-bold ml-1"
+                  <span *ngIf="isSessionDirty(activeSession)" class="text-amber-700 font-bold ml-1"
                     >• Chưa lưu</span
                   >
                 </div>
@@ -1003,7 +1003,7 @@
               <button
                 type="button"
                 (click)="markAllPresentInSession(activeSession)"
-                class="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 transition-all cursor-pointer flex items-center gap-1"
+                class="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all cursor-pointer flex items-center gap-1"
                 title="Đánh dấu tất cả CÓ MẶT"
               >
                 ✓ Tất cả Có mặt
@@ -1011,23 +1011,24 @@
               <button
                 type="button"
                 (click)="markAllAbsentInSession(activeSession)"
-                class="px-2.5 py-1 rounded-md text-xs font-semibold bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 transition-all cursor-pointer flex items-center gap-1"
+                class="px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all cursor-pointer flex items-center gap-1"
                 title="Đánh dấu tất cả VẮNG"
               >
                 V Tất cả Vắng
               </button>
             </div>
 
-            <!-- Primary Navy Save Button -->
+            <!-- Primary Save Button -->
             <button
               type="button"
               (click)="submitMatrixSession(activeSession)"
               [disabled]="savingSessionKey === getSessionKey(activeSession)"
-              class="px-4 py-1.5 rounded-md text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              [ngClass]="{
-                'ring-1 ring-emerald-400 bg-emerald-900 hover:bg-emerald-800':
-                  isSessionDirty(activeSession),
-              }"
+              class="px-4 py-1.5 rounded-md text-xs font-bold text-white shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              [ngClass]="
+                isSessionDirty(activeSession)
+                  ? 'bg-emerald-600 hover:bg-emerald-700 ring-2 ring-emerald-200'
+                  : 'bg-violet-600 hover:bg-violet-700'
+              "
             >
               <span *ngIf="savingSessionKey === getSessionKey(activeSession)">⏳</span>
               <span *ngIf="savingSessionKey !== getSessionKey(activeSession)"
@@ -1131,7 +1132,7 @@
             <table class="w-full text-sm border-collapse">
               <thead>
                 <tr
-                  class="bg-slate-900 text-slate-200 uppercase text-xs font-bold border-b border-slate-800"
+                  class="bg-slate-50 text-slate-600 uppercase text-xs font-bold border-b border-slate-200"
                 >
                   <th class="p-4 text-left min-w-[50px]">#</th>
                   <th class="p-4 text-left min-w-[180px]">Sinh Viên</th>
@@ -1469,7 +1470,7 @@
             (click)="taskFilterStatus = ''"
             [ngClass]="
               taskFilterStatus === ''
-                ? 'bg-slate-900 text-white font-bold'
+                ? 'bg-violet-600 text-white font-bold'
                 : 'bg-slate-100 text-slate-600 font-bold'
             "
             class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
@@ -1637,7 +1638,7 @@
       <button
         (click)="activeTab = 'attendance'"
         [ngClass]="
-          activeTab === 'attendance' ? 'text-blue-900 font-bold' : 'text-slate-500 font-semibold'
+          activeTab === 'attendance' ? 'text-violet-700 font-bold' : 'text-slate-500 font-semibold'
         "
         class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer"
       >
@@ -1648,7 +1649,7 @@
       <!-- Tab 3: Center (+) Quick Action Button -->
       <button
         (click)="showQuickMenu = true"
-        class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-900 via-indigo-800 to-blue-700 text-white font-bold text-2xl flex items-center justify-center shadow-xl -mt-5 border-2 border-white transform active:scale-95 transition-all cursor-pointer"
+        class="w-12 h-12 rounded-2xl bg-violet-600 text-white font-bold text-2xl flex items-center justify-center shadow-xl -mt-5 border-2 border-white transform active:scale-95 transition-all cursor-pointer"
         title="Thao tác nhanh"
       >
         ➕
@@ -1781,7 +1782,7 @@
           />
           <button
             (click)="doStudentLookup()"
-            class="px-4 py-3 rounded-2xl bg-blue-900 text-white font-bold text-xs whitespace-nowrap touch-target"
+            class="px-4 py-3 rounded-2xl bg-violet-600 text-white font-bold text-xs whitespace-nowrap touch-target"
           >
             Tìm
           </button>
@@ -1872,7 +1873,7 @@
           </button>
           <button
             (click)="saveMyNewPassword()"
-            class="px-5 py-2.5 rounded-xl bg-blue-900 text-white font-bold text-xs shadow-md touch-target"
+            class="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-bold text-xs shadow-md touch-target"
           >
             💾 Lưu Mật Khẩu
           </button>

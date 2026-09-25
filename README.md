@@ -66,7 +66,7 @@ guard Angular chỉ phục vụ điều hướng. Dùng các hằng trạng thá
 ## Vai trò và nghiệp vụ
 
 - **Admin**: quản trị hệ thống — tài khoản, phân quyền, cấu hình hệ thống, cấu hình API
-  (Claude, Stringee, SMTP; khóa mã hóa trong database, ghi đè `.env`), giao diện web (tên, logo, màu).
+  (ChatGPT (OpenAI), Stringee, SMTP; khóa mã hóa trong database, ghi đè `.env`), giao diện web (tên, logo, màu).
   Chỉ **xem** dữ liệu nghiệp vụ.
 - **Trưởng phòng / Phó hiệu trưởng**: giao việc, phân lớp hành chính cho CSKH (có lịch sử),
   xử lý hàng chờ cuộc gọi chưa phân công, học phần & thời khóa biểu, cấu hình **mức cảnh báo**
@@ -120,3 +120,22 @@ từ `frontend/dist/frontend/browser`. `/api/health` trả 200 khi MongoDB đã 
 múi giờ nhất quán (ví dụ `Asia/Ho_Chi_Minh`). Khóa sửa cùng buổi chỉ có hiệu lực
 trong một tiến trình; unique index chống bản ghi trùng, nhưng lưu điểm danh và
 đồng bộ cuộc gọi chưa phải một transaction xuyên nhiều tiến trình.
+
+### Railway
+
+`railway.json` và `package.json` ở thư mục gốc đã cấu hình sẵn: Railway chạy `npm run build`
+(cài backend, cài frontend kèm devDependencies, build Angular) rồi `npm start`, health check
+`/api/health`. Biến cần đặt cho service:
+
+| Biến                            | Giá trị                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `NODE_ENV`                      | `production`                                                                      |
+| `MONGO_URI`                     | chuỗi kết nối MongoDB (vd. `${{MongoDB.MONGO_URL}}` nếu dùng MongoDB của Railway) |
+| `JWT_SECRET`                    | chuỗi ngẫu nhiên ≥ 32 ký tự                                                       |
+| `APP_URL`                       | tên miền public của service, vd. `https://<app>.up.railway.app`                   |
+| `TZ`                            | `Asia/Ho_Chi_Minh` (điểm danh tính ngày theo múi giờ tiến trình)                  |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | tài khoản admin đầu tiên (mật khẩu 12–128 ký tự), chỉ tạo khi chưa có admin       |
+
+Gắn một Volume cho service (mount path tùy ý, vd. `/data`): file ghi âm và minh chứng được lưu
+vào `<mount path>/uploads` nên không mất khi deploy lại. Không có Volume thì các file này mất sau
+mỗi lần deploy. SMTP, OpenAI, Stringee, PayOS là tùy chọn (xem `backend/.env.example`).

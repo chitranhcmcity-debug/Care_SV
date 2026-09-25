@@ -12,11 +12,10 @@ const stringee = require('../services/dichVuStringee');
 const { verifyToken, requireSignedIn, requireOperator } = require('../middleware/xacThuc');
 const { canAccessStudent } = require('../middleware/phanQuyen');
 const { assert, validateId } = require('../utils/kiemTra');
-const { can } = require('../services/dichVuPhanQuyen');
-const { getAppUrl } = require('../utils/moiTruong');
+const { getAppUrl, getUploadDir } = require('../utils/moiTruong');
 
 // ---- Recordings live on disk and are only served through the authenticated route below.
-const RECORDING_DIR = path.join(__dirname, '..', 'uploads', 'recordings');
+const RECORDING_DIR = path.join(getUploadDir(), 'recordings');
 fs.mkdirSync(RECORDING_DIR, { recursive: true });
 const AUDIO_MIME = new Set([
   'audio/mpeg',
@@ -66,15 +65,13 @@ const callPopulation = [
   { path: 'courseGroupId', select: 'groupCode courseName' },
 ];
 
-/** Loads :id; readers are the caller and holders of callTasks.viewAll, writers only the caller. */
-const loadCall = (mode) => async (req, res, next) => {
+/** Loads :id; only the caller may read or change a call. */
+const loadCall = async (req, res, next) => {
   try {
     validateId(req.params.id);
     const call = await CuocGoi.findById(req.params.id);
     assert(call, 'Không tìm thấy cuộc gọi', 404);
-    const isCaller = String(call.callerId) === req.user.id;
-    const allowed = mode === 'read' ? isCaller || can(req.user, 'callTasks.viewAll') : isCaller;
-    assert(allowed, 'Bạn không có quyền với cuộc gọi này', 403);
+    assert(String(call.callerId) === req.user.id, 'Bạn không có quyền với cuộc gọi này', 403);
     req.call = call;
     next();
   } catch (error) {
@@ -205,7 +202,7 @@ router.post('/', requireOperator, async (req, res, next) => {
 });
 
 // PUT /api/calls/:id/end — outcome, note and duration once the call is over.
-router.put('/:id/end', loadCall('write'), async (req, res, next) => {
+router.put('/:id/end', loadCall, async (req, res, next) => {
   try {
     const { outcome = '', note = '', durationSec, stringeeCallId } = req.body ?? {};
     assert(OUTCOMES.includes(outcome), 'Kết quả cuộc gọi không hợp lệ');
@@ -233,7 +230,7 @@ router.put('/:id/end', loadCall('write'), async (req, res, next) => {
 });
 
 // POST /api/calls/:id/recording — attach a recording made on the phone (multipart "file").
-router.post('/:id/recording', loadCall('write'), (req, res, next) => {
+router.post('/:id/recording', loadCall, (req, res, next) => {
   upload.single('file')(req, res, async (uploadError) => {
     try {
       if (uploadError)
@@ -260,7 +257,7 @@ router.post('/:id/recording', loadCall('write'), (req, res, next) => {
 });
 
 // GET /api/calls/:id/recording — stream the recording (fetched from Stringee on first use).
-router.get('/:id/recording', loadCall('read'), async (req, res, next) => {
+router.get('/:id/recording', loadCall, async (req, res, next) => {
   try {
     const call = req.call;
     if (!call.recording && call.stringeeCallId) {
@@ -289,19 +286,14 @@ router.get('/:id/recording', loadCall('read'), async (req, res, next) => {
   }
 });
 
-// GET /api/calls — history. Management sees everyone's calls; others only their own.
-// Query: studentId, callerId (management only), page, limit.
+// GET /api/calls — history of the signed-in user's own calls, whatever their role.
+// Query: studentId, page, limit.
 router.get('/', async (req, res, next) => {
   try {
-    const { studentId, callerId } = req.query;
+    const { studentId } = req.query;
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
     const page = Math.max(Number(req.query.page) || 1, 1);
-    const filter = {};
-    if (!can(req.user, 'callTasks.viewAll')) filter.callerId = req.user.id;
-    else if (callerId) {
-      validateId(callerId);
-      filter.callerId = callerId;
-    }
+    const filter = { callerId: req.user.id };
     if (studentId) {
       validateId(studentId);
       filter.studentId = studentId;

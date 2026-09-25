@@ -1,0 +1,257 @@
+<div class="space-y-6">
+  <!-- Refresh bar -->
+  <div
+    class="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm"
+  >
+    <div class="text-xs text-slate-500 font-medium">
+      <ng-container *ngIf="updatedAt() as at; else firstLoad">
+        Cập nhật lúc <strong class="text-slate-700">{{ at | date: 'HH:mm:ss dd/MM' }}</strong>
+        <span class="text-slate-300 mx-1">•</span>
+        <span class="text-slate-400">Tự động làm mới mỗi 60 giây</span>
+      </ng-container>
+      <ng-template #firstLoad>Đang tải dữ liệu...</ng-template>
+    </div>
+    <button
+      type="button"
+      (click)="load()"
+      [disabled]="loading()"
+      class="px-4 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl"
+    >
+      {{ loading() ? 'Đang tải...' : 'Làm mới' }}
+    </button>
+  </div>
+
+  <div
+    *ngIf="error()"
+    class="p-4 rounded-2xl border border-rose-200 bg-rose-50 text-sm text-rose-800 font-medium"
+  >
+    {{ error() }}
+  </div>
+
+  <ng-container *ngIf="data() as d">
+    <!-- Needs attention -->
+    <div
+      *ngIf="
+        !d.subscription.active ||
+        d.subscription.daysLeft <= 7 ||
+        pendingUsers ||
+        missingIntegrations.length ||
+        d.data.classesWithoutStaff
+      "
+      class="p-5 rounded-2xl border border-amber-200 bg-amber-50 space-y-2"
+    >
+      <h3 class="text-sm font-bold text-amber-900">⚠️ Cần chú ý</h3>
+      <ul class="text-sm text-amber-900 space-y-1 list-disc pl-5">
+        <li *ngIf="!d.subscription.active">
+          Gói dịch vụ đã hết hạn — các chức năng nghiệp vụ đang bị khóa.
+          <a routerLink="/billing" class="font-semibold underline">Gia hạn</a>
+        </li>
+        <li *ngIf="d.subscription.active && d.subscription.daysLeft <= 7">
+          Gói dịch vụ còn {{ d.subscription.daysLeft }} ngày.
+          <a routerLink="/billing" class="font-semibold underline">Gia hạn</a>
+        </li>
+        <li *ngIf="pendingUsers">
+          {{ pendingUsers }} tài khoản chưa xác thực email.
+          <a routerLink="/admin" [queryParams]="{ tab: 'staff' }" class="font-semibold underline"
+            >Xem tài khoản</a
+          >
+        </li>
+        <li *ngIf="d.data.classesWithoutStaff">
+          {{ d.data.classesWithoutStaff }} lớp hành chính chưa có nhân viên CSKH phụ trách.
+        </li>
+        <li *ngIf="missingIntegrations.length">
+          Chưa cấu hình: {{ missingIntegrations.join(', ') }}.
+          <a
+            routerLink="/admin"
+            [queryParams]="{ tab: 'integrations' }"
+            class="font-semibold underline"
+            >Cấu hình API</a
+          >
+        </li>
+      </ul>
+    </div>
+
+    <!-- Headline numbers -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <div class="text-xs text-slate-500 font-bold uppercase">Tài khoản</div>
+        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">{{ d.users.total }}</div>
+        <div class="text-xs text-slate-500 mt-1">
+          {{ d.users.byStatus.active || 0 }} hoạt động · {{ d.users.byStatus.inactive || 0 }} vô
+          hiệu hóa
+        </div>
+      </div>
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <div class="text-xs text-slate-500 font-bold uppercase">Sinh viên</div>
+        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">
+          {{ d.data.students }}
+        </div>
+        <div class="text-xs text-slate-500 mt-1">{{ d.data.classes }} lớp hành chính</div>
+      </div>
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <div class="text-xs text-slate-500 font-bold uppercase">Nhóm học phần</div>
+        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">
+          {{ d.data.courseGroups }}
+        </div>
+        <div class="text-xs text-slate-500 mt-1">
+          {{ d.data.groupsWithoutTeacher }} chưa gán giảng viên
+        </div>
+      </div>
+      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+        <div class="text-xs text-slate-500 font-bold uppercase">Nhiệm vụ gọi điện</div>
+        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">
+          {{ d.callTasks.open }}
+        </div>
+        <div class="text-xs text-slate-500 mt-1">
+          đang mở · {{ d.callTasks.contacted }} đã liên hệ
+        </div>
+      </div>
+    </div>
+
+    <!-- 7-day activity: two single-series charts (different measures, so no shared axis) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section
+        *ngFor="
+          let chart of [
+            { key: 'attendance', title: 'Buổi điểm danh', unit: 'buổi' },
+            { key: 'calls', title: 'Cuộc gọi chăm sóc', unit: 'cuộc gọi' },
+          ]
+        "
+        class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4"
+      >
+        <div class="flex items-baseline justify-between border-b border-slate-100 pb-3">
+          <h4 class="font-bold text-slate-900 text-base">{{ chart.title }} · 7 ngày qua</h4>
+          <span class="text-sm text-slate-600 tabular-nums">
+            <strong class="text-slate-900">{{ total($any(chart.key)) }}</strong> {{ chart.unit }}
+          </span>
+        </div>
+        <div class="relative h-40 flex items-end gap-2" role="list" [attr.aria-label]="chart.title">
+          <div
+            *ngFor="let day of d.activity; let i = index"
+            role="listitem"
+            class="relative flex-1 h-full flex flex-col justify-end items-center cursor-default"
+            [attr.aria-label]="dayLabel(day.date) + ': ' + $any(day)[chart.key] + ' ' + chart.unit"
+            (mouseenter)="hovered.set({ chart: $any(chart.key), index: i })"
+            (mouseleave)="hovered.set(null)"
+          >
+            <div
+              *ngIf="hovered()?.chart === chart.key && hovered()?.index === i"
+              class="absolute -top-1 -translate-y-full z-10 px-2 py-1 rounded-md bg-slate-900 text-white text-xs whitespace-nowrap shadow"
+            >
+              {{ dayLabel(day.date) }}: <strong>{{ $any(day)[chart.key] }}</strong>
+              {{ chart.unit }}
+            </div>
+            <div
+              class="w-full max-w-10 rounded-t transition-all duration-300"
+              [ngClass]="
+                hovered()?.chart === chart.key && hovered()?.index === i
+                  ? 'bg-violet-700'
+                  : 'bg-violet-500'
+              "
+              [style.height.%]="barHeight($any(chart.key), $any(day)[chart.key])"
+              [style.minHeight.px]="$any(day)[chart.key] ? 4 : 0"
+            ></div>
+          </div>
+          <div class="absolute inset-x-0 bottom-0 h-px bg-slate-200"></div>
+        </div>
+        <div class="flex gap-2 text-[11px] text-slate-500">
+          <span *ngFor="let day of d.activity" class="flex-1 text-center">{{
+            dayLabel(day.date)
+          }}</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Accounts by role -->
+      <section class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h4 class="font-bold text-slate-900 text-base">Tài khoản theo vai trò</h4>
+          <a
+            routerLink="/admin"
+            [queryParams]="{ tab: 'staff' }"
+            class="text-xs font-semibold text-violet-700 hover:underline"
+            >Quản lý</a
+          >
+        </div>
+        <div *ngFor="let role of roles" class="flex items-center justify-between text-sm">
+          <span class="text-slate-700">{{ roleLabels[role] }}</span>
+          <strong class="text-slate-900 tabular-nums">{{ d.users.byRole[role] || 0 }}</strong>
+        </div>
+        <div class="pt-3 border-t border-slate-100">
+          <div class="text-xs font-bold text-slate-500 uppercase mb-2">Mới tạo gần đây</div>
+          <div *ngFor="let u of d.users.recent" class="flex items-center justify-between py-1">
+            <div class="min-w-0">
+              <div class="text-sm font-medium text-slate-900 truncate">{{ u.fullName }}</div>
+              <div class="text-xs text-slate-500 truncate">
+                {{ u.email }} · {{ roleLabels[u.role] }}
+              </div>
+            </div>
+            <span class="text-xs text-slate-400 shrink-0 ml-2">{{
+              u.createdAt | date: 'dd/MM'
+            }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subscription -->
+      <section class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h4 class="font-bold text-slate-900 text-base">Gói dịch vụ</h4>
+          <a routerLink="/billing" class="text-xs font-semibold text-violet-700 hover:underline"
+            >Chi tiết</a
+          >
+        </div>
+        <span
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border"
+          [ngClass]="
+            d.subscription.active
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-rose-50 text-rose-800 border-rose-200'
+          "
+        >
+          {{ d.subscription.active ? '✓ Đang hoạt động' : '✕ Đã hết hạn' }}
+        </span>
+        <div class="text-sm text-slate-700">
+          {{ d.subscription.isTrial ? 'Dùng thử' : 'Gói trả phí' }} · hết hạn
+          <strong>{{ d.subscription.expiresAt | date: 'dd/MM/yyyy' }}</strong>
+        </div>
+        <div class="text-3xl font-bold text-slate-900 tabular-nums">
+          {{ d.subscription.daysLeft }}
+          <span class="text-sm font-medium text-slate-500">ngày còn lại</span>
+        </div>
+        <div class="text-xs text-slate-500">
+          Thanh toán PayOS: {{ d.subscription.payosConfigured ? 'đã kết nối' : 'chưa cấu hình' }}
+        </div>
+      </section>
+
+      <!-- Integrations -->
+      <section class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h4 class="font-bold text-slate-900 text-base">Kết nối hệ thống</h4>
+          <a
+            routerLink="/admin"
+            [queryParams]="{ tab: 'integrations' }"
+            class="text-xs font-semibold text-violet-700 hover:underline"
+            >Cấu hình</a
+          >
+        </div>
+        <div *ngFor="let item of d.integrations" class="flex items-center justify-between gap-2">
+          <span class="text-sm text-slate-700">{{ item.name }}</span>
+          <span
+            class="shrink-0 px-2 py-0.5 rounded-full text-[11px] font-semibold border"
+            [ngClass]="
+              item.configured
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : 'bg-slate-100 text-slate-600 border-slate-200'
+            "
+            >{{ item.configured ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}</span
+          >
+        </div>
+        <div class="pt-3 border-t border-slate-100 text-xs text-slate-500">
+          {{ d.callsWithRecording }} cuộc gọi có ghi âm trong 7 ngày qua.
+        </div>
+      </section>
+    </div>
+  </ng-container>
+</div>

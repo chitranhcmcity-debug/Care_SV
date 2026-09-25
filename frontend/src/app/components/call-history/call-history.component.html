@@ -1,11 +1,7 @@
 <div class="mx-4 md:mx-6 my-5 space-y-5">
   <section class="bg-white rounded-xl p-5 flex flex-wrap items-center justify-between gap-3">
     <p class="text-sm text-slate-600">
-      {{
-        auth.can('callTasks.viewAll')
-          ? 'Toàn bộ cuộc gọi thực hiện trên hệ thống.'
-          : 'Các cuộc gọi bạn đã thực hiện trên hệ thống.'
-      }}
+      Các cuộc gọi bạn đã thực hiện trên hệ thống.
       Mỗi lần gọi từ app đều được lưu lại.
     </p>
     <span class="text-sm text-slate-500">{{ total() }} cuộc gọi</span>
@@ -16,7 +12,6 @@
       <thead>
         <tr class="text-left text-slate-500 border-b border-slate-200">
           <th class="p-4 font-medium">Thời gian</th>
-          <th *ngIf="auth.can('callTasks.viewAll')" class="p-4 font-medium">Người gọi</th>
           <th class="p-4 font-medium">Sinh viên</th>
           <th class="p-4 font-medium">Gọi cho</th>
           <th class="p-4 font-medium">Kết quả</th>
@@ -26,10 +21,10 @@
       </thead>
       <tbody>
         <tr *ngIf="loading() && !items().length">
-          <td colspan="7" class="p-6 text-center text-slate-400">Đang tải...</td>
+          <td colspan="6" class="p-6 text-center text-slate-400">Đang tải...</td>
         </tr>
         <tr *ngIf="!loading() && !items().length">
-          <td colspan="7" class="p-6 text-center text-slate-400">Chưa có cuộc gọi nào.</td>
+          <td colspan="6" class="p-6 text-center text-slate-400">Chưa có cuộc gọi nào.</td>
         </tr>
         <ng-container *ngFor="let c of items()">
           <tr class="border-b border-slate-100 align-top">
@@ -38,10 +33,6 @@
               <div class="text-xs text-slate-500">
                 {{ c.method === 'stringee' ? 'Qua tổng đài' : 'Điện thoại' }}
               </div>
-            </td>
-            <td *ngIf="auth.can('callTasks.viewAll')" class="p-4">
-              {{ caller(c).name }}
-              <div class="text-xs text-slate-500">{{ caller(c).role }}</div>
             </td>
             <td class="p-4">
               <ng-container *ngIf="student(c) as s">
@@ -87,21 +78,16 @@
                 {{ loadingRecording() === c._id ? 'Đang tải...' : '▶ Nghe' }}
               </button>
               <label
-                *ngIf="!c.recording && c.method === 'dien_thoai' && isMine(c)"
+                *ngIf="!c.recording && c.method === 'dien_thoai'"
                 class="inline-block px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
               >
                 {{ uploading() === c._id ? 'Đang tải lên...' : '⬆ Tải ghi âm' }}
                 <input type="file" accept="audio/*" class="hidden" (change)="upload(c, $event)" />
               </label>
-              <span
-                *ngIf="!c.recording && c.method === 'dien_thoai' && !isMine(c)"
-                class="text-xs text-slate-400"
-                >Không có</span
-              >
             </td>
           </tr>
           <tr *ngIf="playing()?.id === c._id" class="border-b border-slate-100">
-            <td colspan="7" class="px-4 pb-4">
+            <td colspan="6" class="px-4 pb-4">
               <audio [src]="playing()!.url" controls autoplay class="w-full"></audio>
             </td>
           </tr>

@@ -130,7 +130,7 @@ const PERMISSIONS = Object.freeze([
     key: 'callTasks.viewAll',
     group: 'Chăm sóc sinh viên',
     label: 'Giám sát mọi nhiệm vụ gọi điện',
-    description: 'Xem nhiệm vụ gọi điện và lịch sử cuộc gọi của tất cả nhân viên.',
+    description: 'Xem nhiệm vụ gọi điện của tất cả nhân viên.',
     defaultRoles: ['manager'],
   },
   {

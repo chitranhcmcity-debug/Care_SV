@@ -1,0 +1,12 @@
+{
+  "name": "itc-care",
+  "private": true,
+  "description": "ITC Student Care: Express API (backend/) serving the Angular app (frontend/) from one process.",
+  "scripts": {
+    "build": "npm ci --prefix backend --omit=dev && npm ci --prefix frontend --include=dev && npm run build --prefix frontend",
+    "start": "npm start --prefix backend"
+  },
+  "engines": {
+    "node": ">=24.15.0 <25"
+  }
+}
