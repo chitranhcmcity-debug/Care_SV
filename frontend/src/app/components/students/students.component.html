@@ -25,6 +25,14 @@
       </select>
     </div>
     <div class="text-sm text-slate-500 pb-3">{{ total() }} sinh viên</div>
+    <button
+      *ngIf="canManage"
+      type="button"
+      (click)="openForm()"
+      class="ml-auto h-11 px-4 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold"
+    >
+      + Thêm sinh viên
+    </button>
   </section>
 
   <!-- List -->
@@ -72,6 +80,22 @@
             >
               📞 Gọi
             </button>
+            <ng-container *ngIf="canManage">
+              <button
+                type="button"
+                (click)="openForm(s)"
+                class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-xs font-semibold"
+              >
+                Sửa
+              </button>
+              <button
+                type="button"
+                (click)="remove(s)"
+                class="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold"
+              >
+                Xóa
+              </button>
+            </ng-container>
           </td>
         </tr>
       </tbody>
@@ -209,4 +233,118 @@
       </div>
     </section>
   </aside>
+</div>
+
+<!-- Add / edit form -->
+<div
+  *ngIf="form as f"
+  class="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4"
+  (click)="form = null"
+>
+  <form
+    class="w-full max-w-lg bg-white rounded-xl p-6 space-y-4 max-h-full overflow-y-auto"
+    (click)="$event.stopPropagation()"
+    (ngSubmit)="saveForm()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="editingId ? 'Sửa sinh viên' : 'Thêm sinh viên'"
+  >
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-slate-900">
+        {{ editingId ? 'Sửa sinh viên' : 'Thêm sinh viên' }}
+      </h2>
+      <button
+        type="button"
+        (click)="form = null"
+        aria-label="Đóng"
+        class="w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100"
+      >
+        ✕
+      </button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <label class="space-y-1 text-sm font-medium text-slate-700">
+        MSSV *
+        <input
+          name="studentCode"
+          [(ngModel)]="f.studentCode"
+          required
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+      </label>
+      <label class="space-y-1 text-sm font-medium text-slate-700">
+        Lớp *
+        <input
+          name="classCode"
+          [(ngModel)]="f.classCode"
+          required
+          list="student-class-options"
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+        <datalist id="student-class-options">
+          <option *ngFor="let c of classes()" [value]="c"></option>
+        </datalist>
+      </label>
+      <label class="space-y-1 text-sm font-medium text-slate-700 sm:col-span-2">
+        Họ và tên *
+        <input
+          name="fullName"
+          [(ngModel)]="f.fullName"
+          required
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+      </label>
+      <label class="space-y-1 text-sm font-medium text-slate-700">
+        Ngày sinh
+        <input
+          name="dob"
+          [(ngModel)]="f.dob"
+          placeholder="dd/mm/yyyy"
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+      </label>
+      <label class="space-y-1 text-sm font-medium text-slate-700">
+        Ngành
+        <input
+          name="major"
+          [(ngModel)]="f.major"
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+      </label>
+      <label class="space-y-1 text-sm font-medium text-slate-700">
+        SĐT sinh viên
+        <input
+          name="phone"
+          type="tel"
+          [(ngModel)]="f.phone"
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+      </label>
+      <label class="space-y-1 text-sm font-medium text-slate-700">
+        SĐT phụ huynh
+        <input
+          name="parentPhone"
+          type="tel"
+          [(ngModel)]="f.parentPhone"
+          class="w-full h-10 px-3 rounded-lg border border-slate-300 font-normal"
+        />
+      </label>
+    </div>
+    <div class="flex justify-end gap-2 pt-2">
+      <button
+        type="button"
+        (click)="form = null"
+        class="h-10 px-4 rounded-lg border border-slate-200 hover:bg-slate-100 text-sm font-semibold"
+      >
+        Hủy
+      </button>
+      <button
+        type="submit"
+        [disabled]="saving() || !f.studentCode.trim() || !f.fullName.trim() || !f.classCode.trim()"
+        class="h-10 px-5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold disabled:opacity-50"
+      >
+        {{ saving() ? 'Đang lưu...' : 'Lưu' }}
+      </button>
+    </div>
+  </form>
 </div>

@@ -1838,3 +1838,70 @@ test('notifications: the bell marks everything seen, a page marks its own kind; 
   assert.equal((await request('/notifications/seen', token, 'PUT', { scope: 'x' })).status, 400);
   await NhiemVu.deleteMany({ assignedTo: staff._id });
 });
+
+test('students can be added, edited and deleted by the manager only, with cascade', async () => {
+  const CuocGoi = require('../models/CuocGoi');
+  const body = {
+    studentCode: 'CRUD001',
+    fullName: 'Nguyễn Văn A',
+    classCode: 'CRUD',
+    phone: '0912 345 678',
+  };
+  for (const token of [tokens.admin, tokens.teacher]) {
+    assert.equal((await request('/students', token, 'POST', body)).status, 403);
+  }
+  for (const bad of [
+    { ...body, fullName: '  ' },
+    { ...body, phone: 'abc' },
+    { ...body, classCode: 5 },
+  ]) {
+    assert.equal((await request('/students', tokens.manager, 'POST', bad)).status, 400);
+  }
+  const created = await request('/students', tokens.manager, 'POST', body);
+  assert.equal(created.status, 201);
+  assert.equal(created.body.phone, '0912 345 678');
+  assert.equal((await request('/students', tokens.manager, 'POST', body)).status, 409);
+
+  const id = created.body._id;
+  const edited = await request(`/students/${id}`, tokens.manager, 'PUT', {
+    fullName: ' Nguyễn Văn B ',
+    parentPhone: '0987654321',
+  });
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.fullName, 'Nguyễn Văn B');
+  assert.equal(edited.body.studentCode, 'CRUD001');
+  assert.equal(
+    (await request(`/students/${id}`, tokens.manager, 'PUT', { studentCode: 'TEST001' })).status,
+    409,
+  );
+
+  await NhomHocPhan.updateOne({ _id: group._id }, { $push: { students: id } });
+  const attendance = await DiemDanh.create({
+    courseGroupId: group._id,
+    absentStudents: [id],
+    excusedStudents: [{ studentId: id, reason: 'x' }],
+  });
+  await NhiemVuGoiDien.create({
+    studentId: id,
+    courseGroupId: group._id,
+    assignedStaffId: users.manager._id,
+    absenceDate: new Date(),
+  });
+  await CuocGoi.create({
+    callerId: users.manager._id,
+    callerRole: 'manager',
+    studentId: id,
+    target: 'sinh_vien',
+    phoneNumber: '0912345678',
+    method: 'dien_thoai',
+  });
+
+  assert.equal((await request(`/students/${id}`, tokens.manager, 'DELETE')).status, 200);
+  assert.equal(await SinhVien.countDocuments({ _id: id }), 0);
+  assert.ok(!(await NhomHocPhan.findById(group._id)).students.map(String).includes(id));
+  const left = await DiemDanh.findById(attendance._id);
+  assert.equal(left.absentStudents.length + left.excusedStudents.length, 0);
+  assert.equal(await NhiemVuGoiDien.countDocuments({ studentId: id }), 0);
+  assert.equal(await CuocGoi.countDocuments({ studentId: id }), 0);
+  assert.equal((await request(`/students/${id}`, tokens.manager, 'DELETE')).status, 404);
+});

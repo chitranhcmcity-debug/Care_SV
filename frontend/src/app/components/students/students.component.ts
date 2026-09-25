@@ -2,11 +2,22 @@ import { Component, OnInit, effect, inject, signal, untracked } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Student, Student360Profile } from '../../models/types';
-import { StudentService } from '../../services/student.service';
+import { StudentInput, StudentService } from '../../services/student.service';
+import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
 import { CallTaskService } from '../../services/call-task.service';
 import { CallLog, CallService, CALL_OUTCOME_LABELS } from '../../services/call.service';
 
 const PAGE_SIZE = 20;
+const EMPTY_FORM: StudentInput = {
+  studentCode: '',
+  fullName: '',
+  classCode: '',
+  dob: '',
+  major: '',
+  phone: '',
+  parentPhone: '',
+};
 
 /** Admin / Trưởng phòng / Phó hiệu trưởng: every student's record, history and calls. */
 @Component({
@@ -19,6 +30,14 @@ export class StudentsComponent implements OnInit {
   private readonly studentsApi = inject(StudentService);
   private readonly callTasks = inject(CallTaskService);
   readonly calls = inject(CallService);
+  private readonly notify = inject(NotificationService);
+  /** Add / edit / delete students (same permission as the Excel import). */
+  readonly canManage = inject(AuthService).can('excel.import');
+
+  /** Add/edit form: null = closed; editingId '' = adding a new student. */
+  form: StudentInput | null = null;
+  editingId = '';
+  readonly saving = signal(false);
 
   search = '';
   classCode = '';
@@ -79,6 +98,60 @@ export class StudentsComponent implements OnInit {
     this.profile.set(null);
     this.callTasks.getStudent360Profile(student._id).subscribe((p) => this.profile.set(p));
     this.loadStudentCalls(student._id);
+  }
+
+  openForm(student?: Student) {
+    this.editingId = student?._id ?? '';
+    this.form = { ...EMPTY_FORM };
+    if (student)
+      for (const key of Object.keys(EMPTY_FORM) as (keyof StudentInput)[])
+        this.form[key] = student[key] ?? '';
+  }
+
+  saveForm() {
+    if (!this.form) return;
+    this.saving.set(true);
+    const request = this.editingId
+      ? this.studentsApi.update(this.editingId, this.form)
+      : this.studentsApi.create(this.form);
+    request.subscribe({
+      next: (saved) => {
+        this.saving.set(false);
+        this.notify.success(this.editingId ? 'Đã cập nhật sinh viên' : 'Đã thêm sinh viên');
+        if (this.selected()?._id === saved._id) this.selected.set(saved);
+        this.form = null;
+        this.refresh();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.notify.error(err.error?.message || 'Không lưu được sinh viên');
+      },
+    });
+  }
+
+  async remove(student: Student) {
+    const ok = await this.notify.confirm({
+      title: `Xóa sinh viên ${student.fullName}?`,
+      message:
+        'Sinh viên sẽ bị gỡ khỏi các học phần; điểm danh, nhiệm vụ gọi điện và lịch sử cuộc gọi của sinh viên cũng bị xóa. Không thể hoàn tác.',
+      confirmText: 'Xóa',
+      danger: true,
+    });
+    if (!ok) return;
+    this.studentsApi.remove(student._id).subscribe({
+      next: (res) => {
+        this.notify.success(res.message);
+        if (this.selected()?._id === student._id) this.selected.set(null);
+        // Step back a page when the last row of the last page was removed.
+        this.refresh(this.items().length === 1 && this.page() > 1 ? this.page() - 1 : this.page());
+      },
+      error: (err) => this.notify.error(err.error?.message || 'Không xóa được sinh viên'),
+    });
+  }
+
+  private refresh(page = this.page()) {
+    this.studentsApi.classes().subscribe((c) => this.classes.set(c));
+    this.load(page);
   }
 
   call(student: Student) {

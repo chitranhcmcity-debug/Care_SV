@@ -3,9 +3,9 @@
     <div>
       <h3 class="text-lg md:text-xl font-bold text-slate-900">🔌 Cấu hình API</h3>
       <p class="text-xs text-slate-500 font-medium mt-0.5 max-w-2xl">
-        Khóa kết nối cho trợ lý AI Care (ChatGPT (OpenAI)), tổng đài gọi điện (Stringee) và email
-        (SMTP). Khóa bí mật được mã hóa khi lưu và không bao giờ hiển thị lại; để trống ô bí mật
-        nghĩa là giữ nguyên giá trị cũ.
+        Khóa kết nối cho trợ lý AI Care (ChatGPT (OpenAI) hoặc Gemini), tổng đài gọi điện (Stringee)
+        và email (SMTP). Khóa bí mật được mã hóa khi lưu và không bao giờ hiển thị lại; để trống ô
+        bí mật nghĩa là giữ nguyên giá trị cũ.
       </p>
     </div>
     <button
@@ -24,45 +24,62 @@
       class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4"
     >
       <h4 class="font-bold text-slate-900 text-sm uppercase">{{ group.name }}</h4>
-      <div *ngFor="let item of group.items" class="space-y-1">
-        <div class="flex items-center justify-between gap-2">
-          <label [for]="item.key" class="text-xs font-bold text-slate-700">{{ item.label }}</label>
-          <span
-            class="text-[11px] font-semibold px-2 py-0.5 rounded-full border"
-            [ngClass]="{
-              'bg-emerald-50 text-emerald-800 border-emerald-200': item.source === 'database',
-              'bg-blue-50 text-blue-800 border-blue-200': item.source === 'env',
-              'bg-slate-100 text-slate-500 border-slate-200': item.source === 'none',
-            }"
-            >{{ sourceLabel(item) }}</span
-          >
+      <ng-container *ngFor="let item of group.items">
+        <div *ngIf="!item.provider || item.provider === aiProvider(group.items)" class="space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <label [for]="item.key" class="text-xs font-bold text-slate-700">{{
+              item.label
+            }}</label>
+            <span
+              class="text-[11px] font-semibold px-2 py-0.5 rounded-full border"
+              [ngClass]="{
+                'bg-emerald-50 text-emerald-800 border-emerald-200': item.source === 'database',
+                'bg-blue-50 text-blue-800 border-blue-200': item.source === 'env',
+                'bg-slate-100 text-slate-500 border-slate-200': item.source === 'none',
+              }"
+              >{{ sourceLabel(item) }}</span
+            >
+          </div>
+          <div class="flex gap-2">
+            <select
+              *ngIf="item.allowed; else textInput"
+              [id]="item.key"
+              [ngModel]="aiProvider(group.items)"
+              (ngModelChange)="draft[item.key] = $event"
+              class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+            >
+              <option *ngFor="let option of item.allowed" [value]="option">
+                {{ optionLabels[option] || option }}
+              </option>
+            </select>
+            <ng-template #textInput>
+              <input
+                [id]="item.key"
+                [type]="item.secret ? 'password' : 'text'"
+                [(ngModel)]="draft[item.key]"
+                [placeholder]="
+                  item.secret
+                    ? item.value
+                      ? 'Đã có: ' + item.value + ' — nhập để thay'
+                      : 'Nhập khóa bí mật'
+                    : item.value || item.placeholder || ''
+                "
+                autocomplete="off"
+                class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white font-mono"
+              />
+            </ng-template>
+            <button
+              *ngIf="item.source === 'database'"
+              type="button"
+              (click)="clear(item)"
+              class="px-2.5 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50"
+              title="Xóa giá trị đã lưu, quay về .env"
+            >
+              ✖
+            </button>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <input
-            [id]="item.key"
-            [type]="item.secret ? 'password' : 'text'"
-            [(ngModel)]="draft[item.key]"
-            [placeholder]="
-              item.secret
-                ? item.value
-                  ? 'Đã có: ' + item.value + ' — nhập để thay'
-                  : 'Nhập khóa bí mật'
-                : item.value || item.placeholder || ''
-            "
-            autocomplete="off"
-            class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white font-mono"
-          />
-          <button
-            *ngIf="item.source === 'database'"
-            type="button"
-            (click)="clear(item)"
-            class="px-2.5 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50"
-            title="Xóa giá trị đã lưu, quay về .env"
-          >
-            ✖
-          </button>
-        </div>
-      </div>
+      </ng-container>
     </section>
   </div>
 

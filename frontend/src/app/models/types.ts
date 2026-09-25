@@ -172,6 +172,10 @@ export interface IntegrationItem {
   label: string;
   secret: boolean;
   placeholder?: string;
+  /** Values accepted (rendered as a dropdown). */
+  allowed?: string[];
+  /** AI provider this field belongs to; shown only when that provider is selected. */
+  provider?: string;
   source: 'database' | 'env' | 'none';
   value: string;
 }

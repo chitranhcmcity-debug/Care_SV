@@ -113,9 +113,10 @@ const PERMISSIONS = Object.freeze([
   },
   {
     key: 'excel.import',
-    group: 'Điểm danh',
-    label: 'Nhập / xuất Excel',
-    description: 'Tải biểu mẫu, nhập dữ liệu sinh viên và nhóm học phần từ Excel.',
+    group: 'Sinh viên',
+    label: 'Quản lý dữ liệu sinh viên & nhập / xuất Excel',
+    description:
+      'Thêm, sửa, xóa sinh viên; tải biểu mẫu, nhập dữ liệu sinh viên và nhóm học phần từ Excel.',
     defaultRoles: ['manager'],
   },
   {

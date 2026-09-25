@@ -8,30 +8,33 @@ const CaiDatHeThong = require('../models/CaiDatHeThong');
 const { assert } = require('../utils/kiemTra');
 
 const CATALOG = Object.freeze([
+  // AI: one group; `provider` tags the fields shown only when that provider is selected.
   {
     key: 'AI_PROVIDER',
     group: 'Trợ lý AI',
-    label: 'Nhà cung cấp (openai hoặc gemini)',
-    placeholder: 'Tự động: OpenAI nếu có key, không thì Gemini',
+    label: 'Nhà cung cấp',
     allowed: ['openai', 'gemini'],
   },
-  { key: 'OPENAI_API_KEY', group: 'Trợ lý AI (ChatGPT (OpenAI))', label: 'API key', secret: true },
+  { key: 'OPENAI_API_KEY', group: 'Trợ lý AI', provider: 'openai', label: 'API key', secret: true },
   {
     key: 'OPENAI_MODEL',
-    group: 'Trợ lý AI (ChatGPT (OpenAI))',
+    group: 'Trợ lý AI',
+    provider: 'openai',
     label: 'Model',
     placeholder: 'gpt-4.1-mini',
   },
   {
     key: 'OPENAI_BASE_URL',
-    group: 'Trợ lý AI (ChatGPT (OpenAI))',
+    group: 'Trợ lý AI',
+    provider: 'openai',
     label: 'Địa chỉ API (Base URL)',
     placeholder: 'https://api.openai.com/v1',
   },
-  { key: 'GEMINI_API_KEY', group: 'Trợ lý AI (Gemini)', label: 'API key', secret: true },
+  { key: 'GEMINI_API_KEY', group: 'Trợ lý AI', provider: 'gemini', label: 'API key', secret: true },
   {
     key: 'GEMINI_MODEL',
-    group: 'Trợ lý AI (Gemini)',
+    group: 'Trợ lý AI',
+    provider: 'gemini',
     label: 'Model',
     placeholder: 'gemini-2.5-flash',
   },

@@ -4,6 +4,12 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Student } from '../models/types';
 
+/** Fields an operator can edit on a student record. */
+export type StudentInput = Pick<
+  Student,
+  'studentCode' | 'fullName' | 'classCode' | 'dob' | 'major' | 'phone' | 'parentPhone'
+>;
+
 export interface TimetableEntry {
   _id: string;
   groupCode: string;
@@ -40,6 +46,18 @@ export class StudentService {
       `${this.baseUrl}/students`,
       { params },
     );
+  }
+
+  create(data: StudentInput): Observable<Student> {
+    return this.http.post<Student>(`${this.baseUrl}/students`, data);
+  }
+
+  update(id: string, data: StudentInput): Observable<Student> {
+    return this.http.put<Student>(`${this.baseUrl}/students/${id}`, data);
+  }
+
+  remove(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/students/${id}`);
   }
 
   classes(): Observable<string[]> {

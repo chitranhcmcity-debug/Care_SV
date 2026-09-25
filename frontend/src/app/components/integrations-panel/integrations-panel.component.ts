@@ -39,6 +39,20 @@ export class IntegrationsPanelComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  readonly optionLabels: Record<string, string> = {
+    openai: 'ChatGPT (OpenAI)',
+    gemini: 'Google Gemini',
+  };
+
+  /** AI provider whose fields are shown: the typed/saved choice, else what the server picks. */
+  aiProvider(items: IntegrationItem[]): string {
+    const chosen =
+      this.draft['AI_PROVIDER'] || items.find((i) => i.key === 'AI_PROVIDER')?.value || '';
+    if (chosen) return chosen.toLowerCase();
+    const has = (key: string) => items.some((i) => i.key === key && i.source !== 'none');
+    return !has('OPENAI_API_KEY') && has('GEMINI_API_KEY') ? 'gemini' : 'openai';
+  }
+
   sourceLabel(item: IntegrationItem): string {
     return item.source === 'database'
       ? 'Đã lưu trên giao diện'
