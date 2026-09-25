@@ -212,3 +212,9 @@ a:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
+
+/* Tailwind (built at compile time; theme in tailwind.config.js). Kept last so utilities
+   win over the base rules above, as with the former CDN script. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
