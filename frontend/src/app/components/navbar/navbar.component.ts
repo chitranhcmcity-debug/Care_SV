@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
-import { InboxService } from '../../services/inbox.service';
+import { InboxScope, InboxService, InboxSummary } from '../../services/inbox.service';
 import { BillingService } from '../../services/billing.service';
 import { ROLE_LABELS } from '../../models/types';
 import { BrandingService } from '../../services/branding.service';
@@ -103,11 +104,14 @@ const normalize = (text: string) =>
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly branding = inject(BrandingService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  /** Sidebar badges: call tasks not yet called, assigned tasks needing action. */
+  /** Work still to do (listed in the bell). */
   unreadCount = 0;
   pendingTaskCount = 0;
-  /** Bell badge: work that appeared since the bell was last opened. */
+  /** Unseen work per kind (sidebar badges) and in total (bell badge). */
+  callTasksNew = 0;
+  tasksNew = 0;
   unseenCount = 0;
   /** What was new when the bell was opened, so the list can still mark it. */
   newCallTasks = 0;
@@ -122,6 +126,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private sessionIntervalId: ReturnType<typeof setInterval> | null = null;
+  private navigation?: Subscription;
 
   constructor(
     public authService: AuthService,
@@ -134,6 +139,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.billing.refreshStatus().subscribe({ error: () => {} });
     this.authService.refreshSession().subscribe();
     this.fetchNotifications();
+    // Opening a work page marks that kind of work as seen.
+    this.navigation = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.markPageSeen());
     // Poll the bell and sidebar counts every 15 seconds
     this.intervalId = setInterval(() => this.fetchNotifications(), 15000);
     // Pick up permission changes made by the admin while this tab stays open.
@@ -146,6 +155,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.intervalId) clearInterval(this.intervalId);
     if (this.sessionIntervalId) clearInterval(this.sessionIntervalId);
+    this.navigation?.unsubscribe();
   }
 
   // The navbar is only rendered inside the signed-in shell (app.html), so no login checks here.
@@ -153,16 +163,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!this.showNotifications) return;
     this.inbox.summary().subscribe({
       next: (res) => {
-        this.unreadCount = res.callTasks.pending;
-        this.pendingTaskCount = res.tasks.pending;
-        this.unseenCount = res.unseen;
-        if (!this.notificationsOpen) {
-          this.newCallTasks = res.callTasks.new;
-          this.newTasks = res.tasks.new;
-        }
+        this.apply(res);
+        this.markPageSeen();
       },
       error: () => {},
     });
+  }
+
+  private apply(res: InboxSummary) {
+    this.unreadCount = res.callTasks.pending;
+    this.pendingTaskCount = res.tasks.pending;
+    this.callTasksNew = res.callTasks.new;
+    this.tasksNew = res.tasks.new;
+    this.unseenCount = res.unseen;
+    if (!this.notificationsOpen) {
+      this.newCallTasks = res.callTasks.new;
+      this.newTasks = res.tasks.new;
+    }
+    // Zoneless: an HTTP response is not a template event, so re-render explicitly.
+    this.cdr.markForCheck();
+  }
+
+  /** On the call-task or task page, new work of that kind is seen as soon as it shows up. */
+  private markPageSeen() {
+    const path = this.router.url.split(/[?#]/)[0];
+    const scope: InboxScope | null =
+      path === '/call-tasks' ? 'callTasks' : path === '/tasks' ? 'tasks' : null;
+    const pending =
+      scope === 'callTasks' ? this.callTasksNew : scope === 'tasks' ? this.tasksNew : 0;
+    if (!scope || !pending) return;
+    this.inbox.markSeen(scope).subscribe({ next: (res) => this.apply(res), error: () => {} });
   }
 
   /** Opening the bell marks everything as seen; the list keeps showing what was new. */
@@ -171,7 +201,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.notificationsOpen = true;
     this.profileMenuOpen = false;
     if (!this.unseenCount) return;
-    this.unseenCount = 0;
+    this.unseenCount = this.callTasksNew = this.tasksNew = 0;
     this.inbox.markSeen().subscribe({ error: () => {} });
   }
 
@@ -235,8 +265,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   badgeCount(item: NavItem): number {
-    if (item.badge === 'unread') return this.unreadCount;
-    if (item.badge === 'pendingTasks') return this.pendingTaskCount;
+    if (item.badge === 'unread') return this.callTasksNew;
+    if (item.badge === 'pendingTasks') return this.tasksNew;
     return 0;
   }
 

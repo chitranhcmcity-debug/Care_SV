@@ -1607,6 +1607,13 @@ test('admin can create a manager account; timetable is readable by every role wi
 
 test('calls: teacher calls own students, the call is logged, a recording can be attached and played', async () => {
   await ensureCskh();
+  const adminCall = await request('/calls', tokens.admin, 'POST', {
+    studentId: String(students[0]._id),
+    target: 'sinh_vien',
+    method: 'dien_thoai',
+  });
+  assert.equal(adminCall.status, 403);
+  assert.match(adminCall.body.message, /Quản trị viên chỉ được xem/);
   await SinhVien.updateOne(
     { _id: students[0]._id },
     { phone: '0912345678', parentPhone: '0987654321' },
@@ -1796,27 +1803,38 @@ test('system overview is admin-only and summarises accounts, data, activity and 
   assert.equal(typeof subscription.active, 'boolean');
 });
 
-test('notification bell: opening it marks current work as seen; new work shows up again', async () => {
+test('notifications: the bell marks everything seen, a page marks its own kind; new work shows again', async () => {
   const { staff, token } = await createTaskStaff('bell');
+  const newTask = async (title) => {
+    const created = await request('/tasks', tokens.manager, 'POST', {
+      title,
+      description: 'Nhiệm vụ để kiểm tra thông báo.',
+      assignedTo: String(staff._id),
+    });
+    assert.equal(created.status, 201);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  };
+  await newTask('Việc thứ nhất');
   const before = await request('/notifications', token);
   assert.equal(before.status, 200);
-  assert.equal(before.body.unseen, before.body.callTasks.pending + before.body.tasks.pending);
+  assert.deepEqual(before.body.tasks, { pending: 1, new: 1 });
+  assert.equal(before.body.unseen, 1);
 
+  // Opening the bell: nothing unseen, but the work is still pending.
   const seen = await request('/notifications/seen', token, 'PUT');
   assert.equal(seen.body.unseen, 0);
-  // Seeing is not doing: the work itself is still pending.
-  assert.equal(seen.body.tasks.pending, before.body.tasks.pending);
+  assert.deepEqual(seen.body.tasks, { pending: 1, new: 0 });
 
+  // New work appears again; opening the call-task page does not clear it, the tasks page does.
   await new Promise((resolve) => setTimeout(resolve, 5));
-  const created = await request('/tasks', tokens.manager, 'POST', {
-    title: 'Thông báo mới',
-    description: 'Nhiệm vụ giao sau lần xem chuông gần nhất.',
-    assignedTo: String(staff._id),
-  });
-  assert.equal(created.status, 201);
-  const after = await request('/notifications', token);
-  assert.equal(after.body.unseen, 1);
-  assert.equal(after.body.tasks.new, 1);
-  assert.equal(after.body.tasks.pending, before.body.tasks.pending + 1);
-  await NhiemVu.deleteOne({ _id: created.body.task?._id ?? created.body._id });
+  await newTask('Việc thứ hai');
+  assert.equal((await request('/notifications', token)).body.tasks.new, 1);
+  assert.equal(
+    (await request('/notifications/seen', token, 'PUT', { scope: 'callTasks' })).body.tasks.new,
+    1,
+  );
+  const tasksSeen = await request('/notifications/seen', token, 'PUT', { scope: 'tasks' });
+  assert.deepEqual(tasksSeen.body.tasks, { pending: 2, new: 0 });
+  assert.equal((await request('/notifications/seen', token, 'PUT', { scope: 'x' })).status, 400);
+  await NhiemVu.deleteMany({ assignedTo: staff._id });
 });

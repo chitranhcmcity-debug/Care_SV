@@ -8,8 +8,10 @@ export interface InboxSummary {
   callTasks: { pending: number; new: number };
   tasks: { pending: number; new: number };
   unseen: number;
-  seenAt: string | null;
 }
+
+/** Kinds of work; each is marked seen by the bell or by opening its page. */
+export type InboxScope = 'callTasks' | 'tasks';
 
 /** The header bell (GET /api/notifications). */
 @Injectable({ providedIn: 'root' })
@@ -21,8 +23,8 @@ export class InboxService {
     return this.http.get<InboxSummary>(this.apiUrl);
   }
 
-  /** The user opened the bell: everything so far counts as seen. */
-  markSeen(): Observable<InboxSummary> {
-    return this.http.put<InboxSummary>(`${this.apiUrl}/seen`, {});
+  /** Marks work as seen: one kind (its page was opened) or, without a scope, all (the bell). */
+  markSeen(scope?: InboxScope): Observable<InboxSummary> {
+    return this.http.put<InboxSummary>(`${this.apiUrl}/seen`, scope ? { scope } : {});
   }
 }

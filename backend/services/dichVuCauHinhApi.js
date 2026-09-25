@@ -1,4 +1,4 @@
-// Khóa API tích hợp do Admin cấu hình trên giao diện (ChatGPT (OpenAI), Stringee, SMTP).
+// Khóa API tích hợp do Admin cấu hình trên giao diện (ChatGPT (OpenAI), Gemini, Stringee, SMTP).
 // Giá trị lưu trong CaiDatHeThong.integrations, mã hóa AES-256-GCM bằng khóa suy ra từ
 // CONFIG_SECRET (hoặc JWT_SECRET). Khi nạp, giá trị trong database được phủ lên process.env nên
 // các dịch vụ hiện có đọc process.env như cũ; xóa giá trị trong database thì quay về giá trị .env.
@@ -8,12 +8,32 @@ const CaiDatHeThong = require('../models/CaiDatHeThong');
 const { assert } = require('../utils/kiemTra');
 
 const CATALOG = Object.freeze([
+  {
+    key: 'AI_PROVIDER',
+    group: 'Trợ lý AI',
+    label: 'Nhà cung cấp (openai hoặc gemini)',
+    placeholder: 'Tự động: OpenAI nếu có key, không thì Gemini',
+    allowed: ['openai', 'gemini'],
+  },
   { key: 'OPENAI_API_KEY', group: 'Trợ lý AI (ChatGPT (OpenAI))', label: 'API key', secret: true },
   {
     key: 'OPENAI_MODEL',
     group: 'Trợ lý AI (ChatGPT (OpenAI))',
     label: 'Model',
     placeholder: 'gpt-4.1-mini',
+  },
+  {
+    key: 'OPENAI_BASE_URL',
+    group: 'Trợ lý AI (ChatGPT (OpenAI))',
+    label: 'Địa chỉ API (Base URL)',
+    placeholder: 'https://api.openai.com/v1',
+  },
+  { key: 'GEMINI_API_KEY', group: 'Trợ lý AI (Gemini)', label: 'API key', secret: true },
+  {
+    key: 'GEMINI_MODEL',
+    group: 'Trợ lý AI (Gemini)',
+    label: 'Model',
+    placeholder: 'gemini-2.5-flash',
   },
   { key: 'STRINGEE_KEY_SID', group: 'Tổng đài Stringee', label: 'Key SID' },
   { key: 'STRINGEE_KEY_SECRET', group: 'Tổng đài Stringee', label: 'Key Secret', secret: true },
@@ -102,6 +122,11 @@ async function updateIntegrations(values) {
     assert(value === null || typeof value === 'string', `Giá trị ${key} không hợp lệ`);
     const trimmed = (value || '').trim();
     assert(trimmed.length <= 500, `Giá trị ${key} quá dài`);
+    const { allowed } = CATALOG.find((c) => c.key === key);
+    assert(
+      !trimmed || !allowed || allowed.includes(trimmed.toLowerCase()),
+      `Giá trị ${key} phải là: ${allowed?.join(', ')}`,
+    );
     if (trimmed) next[key] = encrypt(trimmed);
     else delete next[key];
   }

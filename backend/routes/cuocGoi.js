@@ -127,79 +127,91 @@ router.get('/config', (req, res) => {
 
 // POST /api/calls — start a call to a student or their parent; returns the number to dial
 // (and a Stringee client token when calling through the switchboard).
-router.post('/', requireOperator, async (req, res, next) => {
-  try {
-    const { studentId, target, method, callTaskId, courseGroupId } = req.body ?? {};
-    validateId(studentId);
-    assert(['sinh_vien', 'phu_huynh'].includes(target), 'Chọn gọi sinh viên hoặc phụ huynh');
-    assert(['dien_thoai', 'stringee'].includes(method), 'Phương thức gọi không hợp lệ');
-    assert(
-      method !== 'stringee' || stringee.isConfigured(),
-      'Máy chủ chưa cấu hình tổng đài Stringee',
-      503,
-    );
-
-    const student = await SinhVien.findById(studentId);
-    assert(student, 'Không tìm thấy sinh viên', 404);
-    assert(
-      await canAccessStudent(req.user, student),
-      'Bạn không được phân công sinh viên này',
-      403,
-    );
-    const phoneNumber = (target === 'phu_huynh' ? student.parentPhone : student.phone)?.trim();
-    assert(
-      phoneNumber,
-      target === 'phu_huynh' ? 'Sinh viên chưa có SĐT phụ huynh' : 'Sinh viên chưa có SĐT',
-    );
-
-    // Optional context must belong to the same student / the caller.
-    if (callTaskId) {
-      validateId(callTaskId);
-      assert(
-        await NhiemVuGoiDien.exists({ _id: callTaskId, studentId: student._id }),
-        'Nhiệm vụ gọi điện không khớp sinh viên',
-      );
+router.post(
+  '/',
+  (req, res, next) => {
+    if (req.user.role === 'admin') {
+      return res.status(403).json({
+        message:
+          'Tài khoản Quản trị viên chỉ được xem dữ liệu nghiệp vụ. Hãy dùng tài khoản Trưởng phòng, Nhân viên CSKH hoặc Giảng viên để gọi điện.',
+      });
     }
-    if (courseGroupId) {
-      validateId(courseGroupId);
-      const group = await NhomHocPhan.findById(courseGroupId);
+    requireOperator(req, res, next);
+  },
+  async (req, res, next) => {
+    try {
+      const { studentId, target, method, callTaskId, courseGroupId } = req.body ?? {};
+      validateId(studentId);
+      assert(['sinh_vien', 'phu_huynh'].includes(target), 'Chọn gọi sinh viên hoặc phụ huynh');
+      assert(['dien_thoai', 'stringee'].includes(method), 'Phương thức gọi không hợp lệ');
       assert(
-        group && group.students.some((s) => String(s) === String(student._id)),
-        'Học phần không khớp sinh viên',
+        method !== 'stringee' || stringee.isConfigured(),
+        'Máy chủ chưa cấu hình tổng đài Stringee',
+        503,
       );
+
+      const student = await SinhVien.findById(studentId);
+      assert(student, 'Không tìm thấy sinh viên', 404);
       assert(
-        req.user.role !== 'teacher' || String(group.teacherId) === req.user.id,
-        'Bạn không được phân công học phần này',
+        await canAccessStudent(req.user, student),
+        'Bạn không được phân công sinh viên này',
         403,
       );
-    }
+      const phoneNumber = (target === 'phu_huynh' ? student.parentPhone : student.phone)?.trim();
+      assert(
+        phoneNumber,
+        target === 'phu_huynh' ? 'Sinh viên chưa có SĐT phụ huynh' : 'Sinh viên chưa có SĐT',
+      );
 
-    const call = await CuocGoi.create({
-      callerId: req.user.id,
-      callerRole: req.user.role,
-      studentId: student._id,
-      target,
-      phoneNumber,
-      method,
-      callTaskId: callTaskId || null,
-      courseGroupId: courseGroupId || null,
-    });
-    res.status(201).json({
-      call,
-      phoneNumber,
-      stringee:
-        method === 'stringee'
-          ? {
-              accessToken: stringee.clientToken(req.user.id),
-              from: stringee.hotline(),
-              to: stringee.toInternational(phoneNumber),
-            }
-          : null,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      // Optional context must belong to the same student / the caller.
+      if (callTaskId) {
+        validateId(callTaskId);
+        assert(
+          await NhiemVuGoiDien.exists({ _id: callTaskId, studentId: student._id }),
+          'Nhiệm vụ gọi điện không khớp sinh viên',
+        );
+      }
+      if (courseGroupId) {
+        validateId(courseGroupId);
+        const group = await NhomHocPhan.findById(courseGroupId);
+        assert(
+          group && group.students.some((s) => String(s) === String(student._id)),
+          'Học phần không khớp sinh viên',
+        );
+        assert(
+          req.user.role !== 'teacher' || String(group.teacherId) === req.user.id,
+          'Bạn không được phân công học phần này',
+          403,
+        );
+      }
+
+      const call = await CuocGoi.create({
+        callerId: req.user.id,
+        callerRole: req.user.role,
+        studentId: student._id,
+        target,
+        phoneNumber,
+        method,
+        callTaskId: callTaskId || null,
+        courseGroupId: courseGroupId || null,
+      });
+      res.status(201).json({
+        call,
+        phoneNumber,
+        stringee:
+          method === 'stringee'
+            ? {
+                accessToken: stringee.clientToken(req.user.id),
+                from: stringee.hotline(),
+                to: stringee.toInternational(phoneNumber),
+              }
+            : null,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // PUT /api/calls/:id/end — outcome, note and duration once the call is over.
 router.put('/:id/end', loadCall, async (req, res, next) => {

@@ -10,6 +10,7 @@ import {
   CallTarget,
 } from '../../services/call.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
 
 const STRINGEE_SDK_URL = 'https://cdn.stringee.com/sdk/web/latest/stringee-web-sdk.min.js';
 // StringeeCall "signalingstate" codes that mean the call is over (busy / ended).
@@ -62,6 +63,10 @@ function loadStringeeSdk(): Promise<void> {
 export class CallDialogComponent implements OnDestroy {
   readonly calls = inject(CallService);
   private readonly notify = inject(NotificationService);
+  private readonly auth = inject(AuthService);
+  readonly canStartCall = computed(() =>
+    ['manager', 'staff', 'teacher'].includes(this.auth.currentUser()?.role ?? ''),
+  );
 
   readonly request = this.calls.request;
   readonly outcomes = Object.entries(CALL_OUTCOME_LABELS) as [Exclude<CallOutcome, ''>, string][];
@@ -91,14 +96,18 @@ export class CallDialogComponent implements OnDestroy {
   private stringeeCallId = '';
 
   constructor() {
-    this.calls.config().subscribe({
-      next: (c) => this.stringeeAvailable.set(c.stringee),
-      error: () => this.stringeeAvailable.set(false),
-    });
     // Reset whenever a new call request opens the dialog.
     effect(() => {
       const req = this.request();
       if (!req) return;
+      this.calls.config().subscribe({
+        next: (c) => {
+          this.stringeeAvailable.set(c.stringee);
+          // Prefer the real switchboard call (recorded) whenever the server supports it.
+          if (c.stringee && this.step() === 'setup') this.method.set('stringee');
+        },
+        error: () => this.stringeeAvailable.set(false),
+      });
       this.step.set('setup');
       this.target.set(req.target ?? (req.student.phone ? 'sinh_vien' : 'phu_huynh'));
       this.method.set('dien_thoai');
@@ -118,7 +127,7 @@ export class CallDialogComponent implements OnDestroy {
 
   start() {
     const req = this.request();
-    if (!req || !this.selectedPhone() || this.busy()) return;
+    if (!req || !this.selectedPhone() || this.busy() || !this.canStartCall()) return;
     this.busy.set(true);
     this.calls
       .start({
