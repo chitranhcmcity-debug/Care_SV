@@ -1,14 +1,6 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectorRef,
-  HostListener,
-  inject,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import {
   AttendanceService,
@@ -36,7 +28,6 @@ import {
   WarningLevel,
 } from '../../models/types';
 import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
-import { BrandingService } from '../../services/branding.service';
 
 @Component({
   selector: 'app-attendance',
@@ -45,10 +36,7 @@ import { BrandingService } from '../../services/branding.service';
   templateUrl: './attendance.component.html',
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
-  protected readonly branding = inject(BrandingService);
-
   activeTab: 'home' | 'attendance' | 'calls' | 'profile' = 'attendance';
-  showQuickMenu = false;
   showLookupModal = false;
   lookupTerm = '';
   lookupResult: Student | null = null;
@@ -99,7 +87,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     private callTaskService: CallTaskService,
     private staffService: StaffService,
     private notify: NotificationService,
-    private router: Router,
     private cdr: ChangeDetectorRef,
     private calls: CallService,
   ) {}
@@ -136,11 +123,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   get currentUser() {
     return this.authService.currentUser();
-  }
-
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/login']);
   }
 
   get todayName(): string {

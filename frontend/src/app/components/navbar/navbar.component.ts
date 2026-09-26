@@ -18,6 +18,8 @@ import {
 interface NavItem {
   path: string;
   label: string;
+  /** Short label for the mobile bottom tab bar. */
+  short?: string;
   /** 24px stroke icon path (Tabler-style). */
   icon: string;
   badge?: 'unread' | 'pendingTasks';
@@ -45,38 +47,45 @@ const NAV_ITEMS: NavItem[] = [
   {
     path: '/students',
     label: 'Hồ sơ sinh viên',
+    short: 'Sinh viên',
     icon: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
   },
   {
     path: '/attendance',
     label: 'Điểm danh lớp học',
+    short: 'Điểm danh',
     icon: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 11h18M9 16l2 2 4-4',
   },
   {
     path: '/call-tasks',
     label: 'Nhiệm vụ gọi điện',
+    short: 'Gọi điện',
     icon: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
     badge: 'unread',
   },
   {
     path: '/tasks',
     label: 'Nhiệm vụ được giao',
+    short: 'Nhiệm vụ',
     icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2zM9 12h6M9 16h4',
     badge: 'pendingTasks',
   },
   {
     path: '/timetable',
     label: 'Thời khóa biểu',
+    short: 'Lịch học',
     icon: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 11h18M8 15h2M14 15h2',
   },
   {
     path: '/calls',
     label: 'Lịch sử cuộc gọi',
+    short: 'Cuộc gọi',
     icon: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2M15 3h6v6M21 3l-6 6',
   },
   {
     path: '/billing',
     label: 'Gói dịch vụ',
+    short: 'Gói DV',
     icon: 'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zM3 10h18M7 15h2M12 15h4',
   },
 ];
@@ -253,6 +262,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
             .map((tab) => ({
               path,
               label: tab.label,
+              short: tab.short,
               icon: tab.icon,
               queryParams: { tab: tab.id },
             }))
@@ -269,6 +279,25 @@ export class NavbarComponent implements OnInit, OnDestroy {
         ];
     return sections.filter((section) => section.links.length);
   }
+
+  /** Mobile bottom tab bar: the role's first link (its home), then pages, then dashboard
+   *  sections; whatever does not fit stays in the Menu drawer. */
+  get bottomTabs(): NavItem[] {
+    const sections = this.navSections;
+    if (sections !== this.tabsFor) {
+      this.tabsFor = sections;
+      const links = sections.flatMap((section) => section.links);
+      const [home, ...rest] = links;
+      this.tabs = [
+        ...(home ? [home] : []),
+        ...rest.filter((item) => !item.queryParams),
+        ...rest.filter((item) => item.queryParams),
+      ].slice(0, 4);
+    }
+    return this.tabs;
+  }
+  private tabsFor: NavSection[] = [];
+  private tabs: NavItem[] = [];
 
   /** Section links match path and ?tab= (no tab = the dashboard's first); pages match path. */
   isActive(item: NavItem): boolean {

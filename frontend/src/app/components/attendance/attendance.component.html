@@ -1,44 +1,13 @@
-<div class="font-sans text-slate-800 pb-20 md:pb-0">
-  <!-- ========================================================= -->
-  <!-- MOBILE ONLY TOP HEADER (HIDDEN ON DESKTOP PC)             -->
-  <!-- ========================================================= -->
-  <header
-    class="md:hidden sticky top-0 z-40 bg-violet-700 text-white px-4 py-3 shadow-md flex items-center justify-between"
-  >
-    <div class="flex items-center space-x-3">
-      <img
-        [src]="branding.logo()"
-        alt="Logo ITC"
-        width="40"
-        height="40"
-        class="shrink-0 object-contain bg-white rounded-full"
-      />
-      <div>
-        <h1 class="font-bold text-sm leading-tight tracking-tight">{{ branding.title() }}</h1>
-        <p class="text-xs text-blue-200 font-medium">Cổng Giảng Viên Mobile</p>
-      </div>
-    </div>
-
-    <div class="flex items-center space-x-2">
-      <button
-        (click)="logout()"
-        class="px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/30 text-xs font-bold transition-all touch-target"
-        title="Đăng xuất"
-      >
-        🚪
-      </button>
-    </div>
-  </header>
-
+<div class="font-sans text-slate-800">
   <!-- ========================================================= -->
   <!-- MAIN CONTAINER: ADAPTIVE MOBILE & DESKTOP PC UI           -->
   <!-- ========================================================= -->
   <main class="mx-4 md:mx-6 my-5 space-y-5">
-    <!-- DESKTOP PC HEADER BANNER (HIDDEN ON MOBILE) -->
+    <!-- Header banner (PC); on mobile only the tab switcher shows, pinned under the app bar -->
     <div
-      class="hidden md:flex bg-white border border-slate-200 p-6 rounded-3xl shadow-sm items-center justify-between gap-6"
+      class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 md:static md:flex md:bg-white md:border md:border-slate-200 md:p-6 md:rounded-3xl md:shadow-sm items-center justify-between gap-6"
     >
-      <div class="space-y-1">
+      <div class="hidden md:block space-y-1">
         <div
           class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200"
         >
@@ -55,7 +24,7 @@
 
       <!-- PC Quick Mode Selector Tabs -->
       <div
-        class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200"
+        class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-sm md:shadow-none"
       >
         <button
           (click)="activeTab = 'home'"
@@ -64,7 +33,7 @@
               ? 'bg-violet-600 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
+          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
         >
           🏠 Tổng Quan
         </button>
@@ -76,9 +45,9 @@
               ? 'bg-violet-600 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
+          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
         >
-          📝 Điểm Danh Lớp
+          📝 Điểm Danh<span class="hidden md:inline"> Lớp</span>
         </button>
 
         <button
@@ -88,7 +57,7 @@
               ? 'bg-violet-600 text-white font-bold shadow-sm'
               : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all relative cursor-pointer"
+          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all relative cursor-pointer"
         >
           <span>📞 Nhiệm Vụ Gọi</span>
           <span
@@ -959,7 +928,7 @@
         <!-- BOTTOM FLOATING ACTION BAR -->
         <div
           *ngIf="selectedGroup && activeSession"
-          class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+          class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-4 left-1/2 -translate-x-1/2 z-50"
         >
           <div
             class="bg-white text-slate-800 px-5 py-2.5 rounded-xl shadow-[0_8px_30px_rgba(15,23,42,0.18)] border border-slate-200 flex items-center gap-3 sm:gap-4 flex-wrap justify-center"
@@ -1614,141 +1583,6 @@
       </div>
     </div>
   </main>
-
-  <!-- ========================================================= -->
-  <!-- TIKTOK-STYLE STICKY BOTTOM TASKBAR (MOBILE ONLY md:hidden) -->
-  <!-- ========================================================= -->
-  <nav
-    class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl px-2 py-2"
-  >
-    <div class="max-w-md mx-auto flex items-center justify-around text-center">
-      <!-- Tab 1: Trang chủ -->
-      <button
-        (click)="activeTab = 'home'"
-        [ngClass]="
-          activeTab === 'home' ? 'text-blue-900 font-bold' : 'text-slate-500 font-semibold'
-        "
-        class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer"
-      >
-        <div class="text-xl leading-none">🏠</div>
-        <div class="text-xs mt-1">Trang chủ</div>
-      </button>
-
-      <!-- Tab 2: Điểm danh -->
-      <button
-        (click)="activeTab = 'attendance'"
-        [ngClass]="
-          activeTab === 'attendance' ? 'text-violet-700 font-bold' : 'text-slate-500 font-semibold'
-        "
-        class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer"
-      >
-        <div class="text-xl leading-none">📝</div>
-        <div class="text-xs mt-1">Điểm danh</div>
-      </button>
-
-      <!-- Tab 3: Center (+) Quick Action Button -->
-      <button
-        (click)="showQuickMenu = true"
-        class="w-12 h-12 rounded-2xl bg-violet-600 text-white font-bold text-2xl flex items-center justify-center shadow-xl -mt-5 border-2 border-white transform active:scale-95 transition-all cursor-pointer"
-        title="Thao tác nhanh"
-      >
-        ➕
-      </button>
-
-      <!-- Tab 4: Nhiệm vụ gọi điện -->
-      <button
-        (click)="activeTab = 'calls'"
-        [ngClass]="
-          activeTab === 'calls' ? 'text-blue-900 font-bold' : 'text-slate-500 font-semibold'
-        "
-        class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors relative cursor-pointer"
-      >
-        <div class="text-xl leading-none">📞</div>
-        <div class="text-xs mt-1">Hộp thư gọi</div>
-        <span
-          *ngIf="unreadCallsCount > 0"
-          class="absolute top-0 right-3 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-xs font-bold animate-pulse shadow-sm"
-        >
-          {{ unreadCallsCount }}
-        </span>
-      </button>
-
-      <!-- Tab 5: Hồ sơ -->
-      <button
-        (click)="showPasswordModal = true"
-        class="flex-1 flex flex-col items-center justify-center py-1 touch-target transition-colors cursor-pointer text-slate-500 font-semibold"
-      >
-        <div class="text-xl leading-none">🔑</div>
-        <div class="text-xs mt-1">Đổi MK</div>
-      </button>
-    </div>
-  </nav>
-
-  <!-- ========================================================= -->
-  <!-- MODAL 1: CENTER QUICK ACTION (+) MENU BOTTOM SHEET         -->
-  <!-- ========================================================= -->
-  <div
-    *ngIf="showQuickMenu"
-    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-  >
-    <div
-      class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-2xl animate-slide-up"
-    >
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-          <span>⚡</span>
-          <span>THAO TÁC NHANH THẦN TỐC</span>
-        </h3>
-        <button
-          (click)="showQuickMenu = false"
-          class="text-slate-400 hover:text-slate-700 font-bold text-lg"
-        >
-          ✖
-        </button>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <button
-          (click)="showQuickMenu = false; activeTab = 'attendance'"
-          class="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <span class="text-3xl">⚡</span>
-          <span>Điểm Danh Ca Học</span>
-        </button>
-
-        <button
-          (click)="showQuickMenu = false; activeTab = 'calls'"
-          class="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <span class="text-3xl">📞</span>
-          <span>Nhiệm Vụ Gọi Điện</span>
-        </button>
-
-        <button
-          (click)="showQuickMenu = false; showLookupModal = true"
-          class="p-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <span class="text-3xl">🔍</span>
-          <span>Tra Cứu Sinh Viên</span>
-        </button>
-
-        <button
-          (click)="showQuickMenu = false; showPasswordModal = true"
-          class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <span class="text-3xl">🔑</span>
-          <span>Đổi Mật Khẩu</span>
-        </button>
-      </div>
-
-      <button
-        (click)="showQuickMenu = false"
-        class="w-full py-3 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs touch-target cursor-pointer"
-      >
-        Đóng Menu
-      </button>
-    </div>
-  </div>
 
   <!-- ========================================================= -->
   <!-- MODAL 2: INSTANT STUDENT LOOKUP MODAL                     -->

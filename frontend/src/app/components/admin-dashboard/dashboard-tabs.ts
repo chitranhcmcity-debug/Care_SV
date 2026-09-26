@@ -43,6 +43,8 @@ export const TAB_PERMISSION: Partial<Record<AdminTab, Permission>> = {
 export interface DashboardTab {
   id: AdminTab;
   label: string;
+  /** Short label for the mobile bottom tab bar. */
+  short?: string;
   /** 24px stroke icon path (Tabler-style). */
   icon: string;
 }
@@ -51,6 +53,7 @@ export const DASHBOARD_TABS: DashboardTab[] = [
   {
     id: 'overview',
     label: 'Tổng quan hệ thống',
+    short: 'Tổng quan',
     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6',
   },
   {
@@ -111,6 +114,7 @@ export const DASHBOARD_TABS: DashboardTab[] = [
 const MANAGER_OVERVIEW_TAB: DashboardTab = {
   ...DASHBOARD_TABS.find((tab) => tab.id === 'analytics')!,
   label: 'Tổng quan & cảnh báo',
+  short: 'Tổng quan',
 };
 
 /** The admin sees the system tabs; other roles see the tabs their permissions unlock. */
