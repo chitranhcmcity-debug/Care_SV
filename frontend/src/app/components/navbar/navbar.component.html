@@ -335,7 +335,7 @@
 
   <!-- ===== Content area ===== -->
   <main
-    class="flex-1 min-w-0 min-h-[calc(100vh-80px)] bg-slate-100 md:rounded-t-xl md:mr-5 transition-[margin] pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0"
+    class="flex-1 min-w-0 min-h-[calc(100vh-80px)] bg-slate-100 md:rounded-t-xl md:mr-5 transition-[margin] pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0"
     [ngClass]="sidebarCollapsed ? 'md:ml-5' : ''"
   >
     <!-- Breadcrumb card (mobile shows the title in the app bar instead) -->
@@ -403,9 +403,9 @@
   </main>
 </div>
 
-<!-- ===== Mobile bottom tab bar: main pages + "Menu" for everything else ===== -->
+<!-- ===== Mobile bottom tab bar (floating): main pages + "Menu" for everything else ===== -->
 <nav
-  class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 pb-[env(safe-area-inset-bottom)]"
+  class="md:hidden fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 rounded-3xl bg-white/90 backdrop-blur-xl ring-1 ring-slate-900/5 shadow-[0_10px_30px_-6px_rgba(76,29,149,0.28)] p-1.5"
   aria-label="Điều hướng nhanh"
 >
   <div class="flex">
@@ -413,47 +413,62 @@
       *ngFor="let item of bottomTabs"
       [routerLink]="item.path"
       [queryParams]="item.queryParams"
-      [ngClass]="isActive(item) ? 'text-violet-600 font-semibold' : 'text-slate-500'"
+      [ngClass]="isActive(item) ? 'text-violet-700 font-semibold' : 'text-slate-500'"
       [attr.aria-current]="isActive(item) ? 'page' : null"
-      class="relative flex-1 min-w-0 h-16 flex flex-col items-center justify-center gap-1 text-[11px]"
+      class="flex-1 min-w-0 py-1 flex flex-col items-center gap-0.5 text-[11px] active:scale-95 transition-transform"
     >
-      <svg
-        class="w-6 h-6"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path [attr.d]="item.icon" />
-      </svg>
-      <span class="max-w-full px-1 truncate">{{ item.short || item.label }}</span>
       <span
-        *ngIf="badgeCount(item) > 0"
-        class="absolute top-1.5 left-1/2 ml-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white"
+        class="relative w-14 h-8 rounded-full flex items-center justify-center transition-colors"
+        [ngClass]="
+          isActive(item)
+            ? 'bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-md shadow-violet-500/40'
+            : ''
+        "
       >
-        {{ badgeCount(item) }}
+        <svg
+          class="w-[22px] h-[22px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          [attr.stroke-width]="isActive(item) ? 2 : 1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path [attr.d]="item.icon" />
+        </svg>
+        <span
+          *ngIf="badgeCount(item) > 0"
+          class="absolute -top-1 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white"
+        >
+          {{ badgeCount(item) }}
+        </span>
       </span>
+      <span class="max-w-full px-1 truncate">{{ item.short || item.label }}</span>
     </a>
     <button
       type="button"
       (click)="sidebarOpen = true"
-      class="flex-1 min-w-0 h-16 flex flex-col items-center justify-center gap-1 text-[11px] text-slate-500"
       [attr.aria-expanded]="sidebarOpen"
+      [ngClass]="sidebarOpen ? 'text-violet-700 font-semibold' : 'text-slate-500'"
+      class="flex-1 min-w-0 py-1 flex flex-col items-center gap-0.5 text-[11px] active:scale-95 transition-transform"
     >
-      <svg
-        class="w-6 h-6"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        aria-hidden="true"
+      <span
+        class="w-14 h-8 rounded-full flex items-center justify-center"
+        [ngClass]="sidebarOpen ? 'bg-violet-100' : ''"
       >
-        <path d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
+        <svg
+          class="w-[22px] h-[22px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 6h16M4 12h10M4 18h16" />
+        </svg>
+      </span>
       <span>Menu</span>
     </button>
   </div>
