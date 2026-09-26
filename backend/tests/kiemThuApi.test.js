@@ -12,6 +12,7 @@ delete process.env.OPENAI_API_KEY;
 // Account emails must never reach a real SMTP server from tests.
 delete process.env.SMTP_USER;
 delete process.env.SMTP_PASS;
+delete process.env.BREVO_API_KEY;
 // Tests that need email switch SMTP "on" and read what would have been sent from here.
 const sentMails = [];
 require('nodemailer').createTransport = () => ({

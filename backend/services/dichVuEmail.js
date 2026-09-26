@@ -41,11 +41,39 @@ const escapeHtml = (value) =>
     (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch],
   );
 
+const SENDER_NAME = 'Hệ thống Quản lý ITC Care';
+
+// Brevo's HTTP API goes out over 443, so it works on hosts that block SMTP ports (e.g. Railway).
+async function deliverViaBrevo({ to, subject, html, text }) {
+  const sender = process.env.MAIL_FROM || process.env.SMTP_USER;
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        sender: { name: SENDER_NAME, email: sender },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    console.log(`[Email] Đã gửi "${subject}" tới ${to} (Brevo).`);
+    return true;
+  } catch (error) {
+    console.warn(`[Email] Gửi email tới ${to} qua Brevo thất bại:`, error.message);
+    return false;
+  }
+}
+
 /**
- * Sends one email. Never throws: returns true when the SMTP server accepted it,
- * false when SMTP is not configured or delivery failed.
+ * Sends one email. Never throws: returns true when the provider accepted it,
+ * false when email is not configured or delivery failed.
  */
 async function deliver({ to, subject, html, text }) {
+  if (process.env.BREVO_API_KEY) return deliverViaBrevo({ to, subject, html, text });
   const transporter = getTransporter();
   if (!transporter) {
     console.warn(`[Email] SMTP chưa cấu hình, không gửi được email tới ${to}.`);
@@ -53,7 +81,7 @@ async function deliver({ to, subject, html, text }) {
   }
   try {
     await transporter.sendMail({
-      from: `"Hệ thống Quản lý ITC Care" <${process.env.SMTP_USER}>`,
+      from: `"${SENDER_NAME}" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
