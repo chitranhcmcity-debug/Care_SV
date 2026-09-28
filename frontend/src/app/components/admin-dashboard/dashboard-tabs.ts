@@ -11,6 +11,7 @@ export type AdminTab =
   | 'courses'
   | 'settings'
   | 'tasks'
+  | 'progress'
   | 'permissions'
   | 'integrations'
   | 'classes'
@@ -37,6 +38,7 @@ export const TAB_PERMISSION: Partial<Record<AdminTab, Permission>> = {
   courses: 'courses.manage',
   excel: 'excel.import',
   tasks: 'tasks.manage',
+  progress: 'tasks.manage',
   analytics: 'reports.view',
 };
 
@@ -85,6 +87,12 @@ export const DASHBOARD_TABS: DashboardTab[] = [
     id: 'tasks',
     label: 'Giao việc',
     icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2zM9 14l2 2 4-4',
+  },
+  {
+    id: 'progress',
+    label: 'Tiến độ nhân viên',
+    short: 'Tiến độ',
+    icon: 'M4 19h16M7 16V10M12 16V5M17 16v-4',
   },
   {
     id: 'analytics',

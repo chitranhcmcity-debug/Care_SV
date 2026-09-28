@@ -2,7 +2,13 @@ import { API_BASE_URL } from '../config/api';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { WorkTask, TaskStatus } from '../models/types';
+import {
+  WorkTask,
+  TaskStatus,
+  TaskCategory,
+  TaskPriority,
+  StaffProgressRow,
+} from '../models/types';
 import { NotificationService } from './notification.service';
 
 @Injectable({
@@ -20,8 +26,36 @@ export class TaskService {
     description: string;
     assignedTo: string;
     dueDate?: string | null;
+    category?: TaskCategory;
+    priority?: TaskPriority;
   }): Observable<{ message: string; task: WorkTask }> {
     return this.http.post<{ message: string; task: WorkTask }>(this.apiUrl, payload);
+  }
+
+  /** Manager: progress & KPI of every staff member over tasks created in [from, to]. */
+  getStaffProgress(period: {
+    from?: string;
+    to?: string;
+  }): Observable<{ from: string | null; to: string | null; staff: StaffProgressRow[] }> {
+    let params = new HttpParams();
+    if (period.from) params = params.set('from', period.from);
+    if (period.to) params = params.set('to', period.to);
+    return this.http.get<{ from: string | null; to: string | null; staff: StaffProgressRow[] }>(
+      `${this.apiUrl}/staff-progress`,
+      { params },
+    );
+  }
+
+  /** Staff: report how far along a task is (0–99%; submitting evidence completes it). */
+  updateProgress(
+    id: string,
+    percent: number,
+    note?: string,
+  ): Observable<{ message: string; task: WorkTask }> {
+    return this.http.put<{ message: string; task: WorkTask }>(`${this.apiUrl}/${id}/progress`, {
+      percent,
+      note,
+    });
   }
 
   /** Admin: cancel/delete a task. */
@@ -74,10 +108,12 @@ export class TaskService {
     id: string,
     approve: boolean,
     reviewNote?: string,
+    score?: number | null,
   ): Observable<{ message: string; task: WorkTask }> {
     return this.http.put<{ message: string; task: WorkTask }>(`${this.apiUrl}/${id}/review`, {
       approve,
       reviewNote,
+      score: approve ? (score ?? null) : undefined,
     });
   }
 

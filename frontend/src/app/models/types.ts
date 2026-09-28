@@ -204,6 +204,30 @@ export const TASK_STATUS = {
 } as const;
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 
+/** Loại công việc (mirrors TASK_CATEGORY_LABEL in the backend). */
+export const TASK_CATEGORY_LABELS = {
+  hanh_chinh: 'Hành chính - Văn thư',
+  dao_tao: 'Đào tạo - Học vụ',
+  tuyen_sinh: 'Tuyển sinh - Truyền thông',
+  cong_tac_sv: 'Công tác sinh viên',
+  cham_soc_sv: 'Chăm sóc sinh viên',
+  su_kien: 'Sự kiện - Hoạt động',
+  bao_cao: 'Báo cáo - Thống kê',
+  khac: 'Công việc khác',
+} as const;
+export type TaskCategory = keyof typeof TASK_CATEGORY_LABELS;
+export const TASK_CATEGORIES = Object.keys(TASK_CATEGORY_LABELS) as TaskCategory[];
+
+/** Mức độ ưu tiên (mirrors TASK_PRIORITY_LABEL in the backend). */
+export const TASK_PRIORITY_LABELS = {
+  thap: 'Thấp',
+  trung_binh: 'Trung bình',
+  cao: 'Cao',
+  khan_cap: 'Khẩn cấp',
+} as const;
+export type TaskPriority = keyof typeof TASK_PRIORITY_LABELS;
+export const TASK_PRIORITIES = Object.keys(TASK_PRIORITY_LABELS) as TaskPriority[];
+
 export const CALL_STATUS = {
   PENDING: 'chua_goi',
   UNREACHABLE: 'khong_bat_may',
@@ -228,6 +252,8 @@ export type Weekday = (typeof WEEKDAYS_BY_JS_DAY)[number];
 export const DEFAULT_SCHEDULE_DAYS: Weekday[] = ['thu_2', 'thu_4', 'thu_6'];
 
 export const VI_LABELS: Record<string, string> = {
+  ...TASK_CATEGORY_LABELS,
+  ...TASK_PRIORITY_LABELS,
   moi_giao: 'Mới giao',
   da_xac_nhan: 'Đã xác nhận',
   cho_duyet: 'Chờ duyệt',
@@ -263,6 +289,12 @@ export interface WorkTask {
   assignedTo: { fullName: string; email: string } | string;
   dueDate?: string | null;
   status: TaskStatus;
+  category?: TaskCategory;
+  priority?: TaskPriority;
+  progress?: number;
+  progressLog?: { percent: number; note: string; at: string }[];
+  reviewScore?: number | null;
+  reworkCount?: number;
   evidenceNote?: string;
   evidenceLink?: string;
   evidenceFiles?: TaskEvidenceFile[];
@@ -273,6 +305,44 @@ export interface WorkTask {
   completedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+/** One row of GET /api/tasks/staff-progress (see backend services/dichVuTienDoNhanVien.js). */
+export interface StaffProgressRow {
+  staff: { _id: string; fullName: string; email: string; status: string };
+  tasks: {
+    total: number;
+    byStatus: Record<TaskStatus, number>;
+    open: number;
+    waitingReview: number;
+    completed: number;
+    overdue: number;
+    completedOnTime: number;
+    completedLate: number;
+    urgentOpen: number;
+    avgProgress: number | null;
+    avgScore: number | null;
+    scoredCount: number;
+    reworkCount: number;
+    avgCompletionDays: number | null;
+    byCategory: Partial<Record<TaskCategory, { total: number; completed: number }>>;
+  };
+  calls: {
+    total: number;
+    contacted: number;
+    unreachable: number;
+    pending: number;
+    avgAttempts: number | null;
+  };
+  /** Percentages 0–100, null = no data for that part. */
+  rates: {
+    completion: number | null;
+    onTime: number | null;
+    quality: number | null;
+    care: number | null;
+  };
+  kpiScore: number | null;
+  kpiRating: string;
 }
 
 export interface Student360Profile {

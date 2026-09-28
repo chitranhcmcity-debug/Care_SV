@@ -11,7 +11,7 @@ describe('Manager dashboard', () => {
 
   it('opens on the overview and excludes system administration', () => {
     const tabs = visibleDashboardTabs(manager(['reports.view', 'tasks.manage', 'classes.assign']));
-    expect(tabs.map((tab) => tab.id)).toEqual(['analytics', 'classes', 'tasks']);
+    expect(tabs.map((tab) => tab.id)).toEqual(['analytics', 'classes', 'tasks', 'progress']);
   });
 
   it('returns the same tab objects on every call (the sidebar re-renders with them)', () => {
@@ -21,7 +21,10 @@ describe('Manager dashboard', () => {
   });
 
   it('does not expose the overview after report permission is revoked', () => {
-    expect(visibleDashboardTabs(manager(['tasks.manage'])).map((tab) => tab.id)).toEqual(['tasks']);
+    expect(visibleDashboardTabs(manager(['tasks.manage'])).map((tab) => tab.id)).toEqual([
+      'tasks',
+      'progress',
+    ]);
   });
 });
 

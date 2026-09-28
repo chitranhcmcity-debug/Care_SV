@@ -13,6 +13,17 @@ export function isTaskOverdue(task: WorkTask): boolean {
   return new Date(task.dueDate).getTime() < Date.now();
 }
 
+/** Percent done; handed-in work counts as 100% (tasks created before progress tracking have none). */
+export function taskProgress(task: WorkTask): number {
+  if (task.status === TASK_STATUS.SUBMITTED || task.status === TASK_STATUS.COMPLETED) return 100;
+  return task.progress ?? 0;
+}
+
+/** The latest progress report that carries a note, if any. */
+export function lastProgressNote(task: WorkTask) {
+  return [...(task.progressLog ?? [])].reverse().find((entry) => entry.note) ?? null;
+}
+
 export function countTasksByStatus(tasks: WorkTask[], ...statuses: TaskStatus[]): number {
   return tasks.filter((t) => statuses.includes(t.status)).length;
 }

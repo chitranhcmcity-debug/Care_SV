@@ -1,0 +1,318 @@
+<div class="space-y-5">
+  <!-- Header + period -->
+  <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-4">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 uppercase tracking-tight">
+          📈 Theo dõi tiến độ & năng lực nhân viên
+        </h3>
+        <p class="text-xs text-slate-500">
+          Tính trên công việc được giao (mọi loại nghiệp vụ) và nhiệm vụ chăm sóc sinh viên phát
+          sinh trong kỳ.
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="load()"
+        [disabled]="loading()"
+        class="self-start px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-sm"
+      >
+        {{ loading() ? '⏳ Đang tải...' : '🔄 Làm mới' }}
+      </button>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        *ngFor="
+          let p of [
+            { id: 'month', label: 'Tháng này' },
+            { id: '30d', label: '30 ngày qua' },
+            { id: 'quarter', label: 'Quý này' },
+            { id: 'year', label: 'Năm nay' },
+            { id: 'all', label: 'Tất cả' },
+          ]
+        "
+        type="button"
+        (click)="applyPreset($any(p.id))"
+        class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all"
+        [ngClass]="
+          preset === p.id
+            ? 'bg-violet-600 border-violet-600 text-white'
+            : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+        "
+      >
+        {{ p.label }}
+      </button>
+      <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+        <input
+          type="date"
+          [(ngModel)]="from"
+          (change)="onCustomDate()"
+          aria-label="Từ ngày"
+          class="px-2 py-1.5 rounded-lg border border-slate-300 text-xs"
+        />
+        <span>→</span>
+        <input
+          type="date"
+          [(ngModel)]="to"
+          (change)="onCustomDate()"
+          aria-label="Đến ngày"
+          class="px-2 py-1.5 rounded-lg border border-slate-300 text-xs"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Totals -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+    <div class="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-sm">
+      <div class="text-lg font-bold text-slate-900">{{ totals().staff }}</div>
+      <div class="text-[11px] font-bold text-slate-500 uppercase">Nhân viên</div>
+    </div>
+    <div class="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-sm">
+      <div class="text-lg font-bold text-slate-900">{{ totals().tasks }}</div>
+      <div class="text-[11px] font-bold text-slate-500 uppercase">Công việc</div>
+    </div>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center shadow-sm">
+      <div class="text-lg font-bold text-blue-900">{{ totals().open }}</div>
+      <div class="text-[11px] font-bold text-blue-700 uppercase">Đang làm</div>
+    </div>
+    <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center shadow-sm">
+      <div class="text-lg font-bold text-purple-900">{{ totals().waitingReview }}</div>
+      <div class="text-[11px] font-bold text-purple-700 uppercase">Chờ duyệt</div>
+    </div>
+    <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center shadow-sm">
+      <div class="text-lg font-bold text-rose-900">{{ totals().overdue }}</div>
+      <div class="text-[11px] font-bold text-rose-700 uppercase">Quá hạn</div>
+    </div>
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center shadow-sm">
+      <div class="text-lg font-bold text-emerald-900">{{ totals().avgKpi ?? '—' }}</div>
+      <div class="text-[11px] font-bold text-emerald-700 uppercase">KPI trung bình</div>
+    </div>
+  </div>
+
+  <!-- Staff table -->
+  <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm min-w-[860px]">
+        <thead class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase">
+          <tr>
+            <th class="p-3 text-left">Nhân viên</th>
+            <th class="p-3 text-center">KPI</th>
+            <th class="p-3 text-center">Hoàn thành</th>
+            <th class="p-3 text-left">Đang làm · tiến độ TB</th>
+            <th class="p-3 text-center">Quá hạn</th>
+            <th class="p-3 text-center">Đúng hạn</th>
+            <th class="p-3 text-center">Chất lượng</th>
+            <th class="p-3 text-center">Liên hệ SV</th>
+            <th class="p-3 text-right"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let r of rows()">
+            <tr
+              class="border-t border-slate-100 hover:bg-slate-50 cursor-pointer"
+              (click)="toggle(r)"
+            >
+              <td class="p-3">
+                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                  <span class="text-slate-400 text-xs">{{
+                    expandedId() === r.staff._id ? '▾' : '▸'
+                  }}</span>
+                  {{ r.staff.fullName }}
+                  <span
+                    *ngIf="r.staff.status !== 'active'"
+                    class="px-1.5 py-0.5 rounded text-[10px] bg-slate-200 text-slate-600"
+                    >Đã khóa</span
+                  >
+                </div>
+                <div class="text-xs text-slate-500 pl-4">{{ r.staff.email }}</div>
+              </td>
+              <td class="p-3 text-center">
+                <span
+                  class="inline-block min-w-12 px-2 py-1 rounded-lg border text-xs font-bold"
+                  [ngClass]="kpiTone(r.kpiScore)"
+                  [title]="r.kpiRating"
+                >
+                  {{ r.kpiScore ?? '—' }}
+                </span>
+              </td>
+              <td class="p-3 text-center font-semibold text-slate-800">
+                {{ r.tasks.completed }}/{{ r.tasks.total }}
+              </td>
+              <td class="p-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 text-right font-bold text-slate-800">{{ r.tasks.open }}</span>
+                  <div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden min-w-16">
+                    <div
+                      class="h-full bg-blue-500 rounded-full"
+                      [style.width.%]="r.tasks.avgProgress ?? 0"
+                    ></div>
+                  </div>
+                  <span class="w-10 text-xs text-slate-500">{{
+                    r.tasks.avgProgress === null ? '' : r.tasks.avgProgress + '%'
+                  }}</span>
+                </div>
+                <div *ngIf="r.tasks.urgentOpen" class="text-[11px] text-orange-700 font-semibold">
+                  🔥 {{ r.tasks.urgentOpen }} việc ưu tiên cao
+                </div>
+              </td>
+              <td class="p-3 text-center">
+                <span
+                  class="font-bold"
+                  [ngClass]="r.tasks.overdue ? 'text-rose-700' : 'text-slate-400'"
+                  >{{ r.tasks.overdue }}</span
+                >
+              </td>
+              <td class="p-3 text-center font-semibold text-slate-800">
+                {{ r.rates.onTime === null ? '—' : r.rates.onTime + '%' }}
+              </td>
+              <td class="p-3 text-center font-semibold text-slate-800">
+                {{ r.tasks.avgScore === null ? '—' : r.tasks.avgScore + '/5' }}
+                <div *ngIf="r.tasks.reworkCount" class="text-[11px] text-slate-500 font-normal">
+                  làm lại {{ r.tasks.reworkCount }}
+                </div>
+              </td>
+              <td class="p-3 text-center font-semibold text-slate-800">
+                {{ r.calls.total ? r.calls.contacted + '/' + r.calls.total : '—' }}
+              </td>
+              <td class="p-3 text-right" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  (click)="openAi(r)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 whitespace-nowrap"
+                >
+                  🤖 AI đánh giá
+                </button>
+              </td>
+            </tr>
+
+            <!-- Detail -->
+            <tr *ngIf="expandedId() === r.staff._id" class="bg-slate-50/60">
+              <td colspan="9" class="p-4 space-y-4">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div class="space-y-2">
+                    <div class="text-xs font-bold text-slate-500 uppercase">Thành phần KPI</div>
+                    <div *ngFor="let p of rateParts" class="flex items-center gap-2 text-xs">
+                      <span class="w-24 font-semibold text-slate-600">{{ p.label }}</span>
+                      <div class="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
+                        <div
+                          class="h-full rounded-full"
+                          [ngClass]="rateTone(r.rates[p.key])"
+                          [style.width.%]="r.rates[p.key] ?? 0"
+                        ></div>
+                      </div>
+                      <span class="w-14 text-right font-bold text-slate-700">{{
+                        r.rates[p.key] === null ? 'chưa có' : r.rates[p.key] + '%'
+                      }}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 pt-1">
+                      Hoàn thành TB {{ r.tasks.avgCompletionDays ?? '—' }} ngày/việc · trễ hạn
+                      {{ r.tasks.completedLate }} · SV không bắt máy {{ r.calls.unreachable }}
+                    </div>
+                  </div>
+                  <div class="lg:col-span-2 space-y-2">
+                    <div class="text-xs font-bold text-slate-500 uppercase">
+                      Theo loại công việc
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        *ngFor="let c of categories(r)"
+                        class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700"
+                      >
+                        {{ c[0] | viLabel }}: <b>{{ c[1].completed }}/{{ c[1].total }}</b>
+                      </span>
+                      <span *ngIf="!categories(r).length" class="text-xs text-slate-400">
+                        Chưa có công việc trong kỳ.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="text-xs font-bold text-slate-500 uppercase">Công việc trong kỳ</div>
+                  <div *ngIf="detailLoading()" class="text-xs text-slate-500">⏳ Đang tải...</div>
+                  <div
+                    *ngIf="!detailLoading() && !detailTasks().length"
+                    class="text-xs text-slate-400"
+                  >
+                    Không có công việc nào.
+                  </div>
+                  <div
+                    *ngFor="let t of detailTasks()"
+                    class="bg-white border border-slate-200 rounded-xl p-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-4"
+                  >
+                    <div class="flex-1 min-w-0">
+                      <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700">{{
+                          t.category || 'khac' | viLabel
+                        }}</span>
+                        <span
+                          class="px-2 py-0.5 rounded"
+                          [ngClass]="{
+                            'bg-rose-100 text-rose-800': t.priority === 'khan_cap',
+                            'bg-orange-100 text-orange-800': t.priority === 'cao',
+                            'bg-slate-100 text-slate-600':
+                              !t.priority || t.priority === 'trung_binh' || t.priority === 'thap',
+                          }"
+                          >{{ t.priority || 'trung_binh' | viLabel }}</span
+                        >
+                        <span class="px-2 py-0.5 rounded bg-violet-100 text-violet-800">{{
+                          t.status | viLabel
+                        }}</span>
+                        <span
+                          *ngIf="isTaskOverdue(t)"
+                          class="px-2 py-0.5 rounded bg-rose-600 text-white"
+                          >QUÁ HẠN</span
+                        >
+                      </div>
+                      <div class="font-semibold text-slate-900 truncate mt-1">{{ t.title }}</div>
+                    </div>
+                    <div class="flex items-center gap-2 md:w-56">
+                      <div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          class="h-full rounded-full"
+                          [ngClass]="t.status === 'hoan_thanh' ? 'bg-emerald-500' : 'bg-blue-500'"
+                          [style.width.%]="taskProgress(t)"
+                        ></div>
+                      </div>
+                      <span class="w-10 text-right text-xs font-bold text-slate-700"
+                        >{{ taskProgress(t) }}%</span
+                      >
+                    </div>
+                    <div class="text-xs text-slate-500 md:w-36 md:text-right">
+                      <div *ngIf="t.dueDate">Hạn {{ t.dueDate | date: 'dd/MM/yyyy' }}</div>
+                      <div *ngIf="t.reviewScore" class="text-amber-700 font-bold">
+                        {{ '★'.repeat(t.reviewScore) }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+
+          <tr *ngIf="!loading() && !rows().length">
+            <td colspan="9" class="p-10 text-center text-sm text-slate-500">
+              Chưa có nhân viên CSKH nào đang hoạt động.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="text-[11px] text-slate-400">
+    KPI tham khảo (0–100) = hoàn thành 30% + đúng hạn 25% + chất lượng 25% + liên hệ sinh viên 20%;
+    phần chưa có dữ liệu được bỏ qua và chia lại trọng số. Hoàn thành = việc đã xong / (đã xong +
+    quá hạn chưa xong).
+  </p>
+</div>
+
+<app-staff-ai-modal
+  *ngIf="aiTarget() as target"
+  [staffId]="target.id"
+  [staffName]="target.name"
+  [from]="from"
+  [to]="to"
+  (closed)="aiTarget.set(null)"
+></app-staff-ai-modal>

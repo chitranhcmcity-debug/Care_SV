@@ -2,6 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { StaffProgressRow } from '../models/types';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -53,13 +54,14 @@ export class AiService {
     return this.http.post<{ reply: string }>(`${this.apiUrl}/care`, { messages });
   }
 
-  /** Đánh giá năng lực 1 nhân viên CSKH dựa trên lịch sử xử lý. */
+  /** Đánh giá năng lực 1 nhân viên: tiến độ, đúng hạn, chất lượng công việc và chăm sóc SV. */
   getStaffPerformance(
     staffId: string,
-  ): Observable<{ assessment: string; stats: Record<string, unknown> }> {
-    return this.http.post<{ assessment: string; stats: Record<string, unknown> }>(
+    period: { from?: string; to?: string } = {},
+  ): Observable<{ assessment: string; metrics: StaffProgressRow }> {
+    return this.http.post<{ assessment: string; metrics: StaffProgressRow }>(
       `${this.apiUrl}/staff-performance`,
-      { staffId },
+      { staffId, from: period.from || undefined, to: period.to || undefined },
     );
   }
 }

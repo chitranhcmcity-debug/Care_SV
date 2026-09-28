@@ -20,6 +20,8 @@ import { ClassAssignmentPanelComponent } from '../class-assignment-panel/class-a
 import { WarningConfigComponent } from '../warning-config/warning-config.component';
 import { IntegrationsPanelComponent } from '../integrations-panel/integrations-panel.component';
 import { SystemOverviewComponent } from '../system-overview/system-overview.component';
+import { StaffProgressComponent } from '../staff-progress/staff-progress.component';
+import { StaffAiModalComponent } from '../staff-ai-modal/staff-ai-modal.component';
 import {
   User,
   SystemSettings,
@@ -35,14 +37,29 @@ import {
   Permission,
   PermissionConfig,
   PermissionMatrix,
+  TaskCategory,
+  TaskPriority,
+  TASK_CATEGORIES,
+  TASK_PRIORITIES,
 } from '../../models/types';
 import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
 import {
   countTasksByStatus,
   formatFileSize,
   isTaskOverdue,
+  lastProgressNote,
+  taskProgress,
   taskUserName,
 } from '../../utils/task-utils';
+
+const emptyTaskForm = () => ({
+  title: '',
+  description: '',
+  assignedTo: '',
+  dueDate: '',
+  category: 'khac' as TaskCategory,
+  priority: 'trung_binh' as TaskPriority,
+});
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -55,6 +72,8 @@ import {
     WarningConfigComponent,
     IntegrationsPanelComponent,
     SystemOverviewComponent,
+    StaffProgressComponent,
+    StaffAiModalComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
 })
@@ -146,20 +165,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   // Task (Giao Việc) State
   taskList: WorkTask[] = [];
   taskFilterStatus: TaskStatus | '' = '';
-  taskForm = { title: '', description: '', assignedTo: '', dueDate: '' };
+  taskForm = emptyTaskForm();
+  readonly taskCategories = TASK_CATEGORIES;
+  readonly taskPriorities = TASK_PRIORITIES;
   isCreatingTask = false;
   showTaskReviewModal = false;
   reviewingTask: WorkTask | null = null;
   reviewNoteInput = '';
+  /** Quality score (1–5) given when approving; null = not scored. */
+  reviewScore: number | null = null;
   aiEvidenceAnalysis = '';
   isAnalyzingEvidence = false;
 
   // AI Staff Performance State
-  showStaffAiModal = false;
-  staffAiTarget: User | null = null;
-  staffAiAssessment = '';
-  staffAiStats: Record<string, unknown> | null = null;
-  isLoadingStaffAi = false;
+  /** Staff member whose AI assessment modal is open. */
+  staffAiTarget: { id: string; name: string } | null = null;
 
   // Analytics State
   analyticsData: AnalyticsSummary | null = null;
@@ -278,6 +298,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly taskUserName = taskUserName;
   readonly isTaskOverdue = isTaskOverdue;
   readonly formatFileSize = formatFileSize;
+  readonly lastProgressNote = lastProgressNote;
+  readonly taskProgress = taskProgress;
 
   createTask() {
     if (
@@ -300,6 +322,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         description: this.taskForm.description.trim(),
         assignedTo: this.taskForm.assignedTo,
         dueDate: this.taskForm.dueDate || null,
+        category: this.taskForm.category,
+        priority: this.taskForm.priority,
       })
       .pipe(
         finalize(() => {
@@ -310,7 +334,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.triggerToast('success', 'Đã Giao Việc!', res.message);
-          this.taskForm = { title: '', description: '', assignedTo: '', dueDate: '' };
+          this.taskForm = emptyTaskForm();
           this.loadTasks();
         },
         error: (err) =>
@@ -343,6 +367,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   openReviewModal(task: WorkTask) {
     this.reviewingTask = task;
     this.reviewNoteInput = '';
+    this.reviewScore = null;
     this.aiEvidenceAnalysis = '';
     this.showTaskReviewModal = true;
     this.cdr.detectChanges();
@@ -374,7 +399,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   submitTaskReview(approve: boolean) {
     if (!this.reviewingTask) return;
     this.taskService
-      .reviewTask(this.reviewingTask._id, approve, this.reviewNoteInput.trim())
+      .reviewTask(this.reviewingTask._id, approve, this.reviewNoteInput.trim(), this.reviewScore)
       .subscribe({
         next: (res) => {
           this.triggerToast(
@@ -395,28 +420,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   openStaffAiAssessment(staff: User) {
-    this.staffAiTarget = staff;
-    this.staffAiAssessment = '';
-    this.staffAiStats = null;
-    this.showStaffAiModal = true;
-    this.isLoadingStaffAi = true;
-    this.cdr.detectChanges();
-
-    const staffId = staff._id || staff.id || '';
-    this.aiService.getStaffPerformance(staffId).subscribe({
-      next: (res) => {
-        this.staffAiAssessment = res.assessment;
-        this.staffAiStats = res.stats;
-        this.isLoadingStaffAi = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isLoadingStaffAi = false;
-        this.staffAiAssessment =
-          '⚠️ ' + (err.error?.message || 'Không thể đánh giá năng lực bằng AI.');
-        this.cdr.detectChanges();
-      },
-    });
+    this.staffAiTarget = { id: staff._id || staff.id || '', name: staff.fullName };
   }
 
   // Course Group Management Methods

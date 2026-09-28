@@ -99,6 +99,20 @@
             >
               ⚠️ QUÁ HẠN
             </span>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+              {{ task.category || 'khac' | viLabel }}
+            </span>
+            <span
+              *ngIf="task.priority === 'cao' || task.priority === 'khan_cap'"
+              class="px-2.5 py-1 rounded-full text-xs font-bold"
+              [ngClass]="
+                task.priority === 'khan_cap'
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-orange-100 text-orange-800 border border-orange-300'
+              "
+            >
+              🔥 Ưu tiên {{ task.priority | viLabel }}
+            </span>
           </div>
           <h3 class="text-lg font-bold text-slate-900">{{ task.title }}</h3>
         </div>
@@ -117,6 +131,69 @@
 
       <!-- Description -->
       <p class="text-sm text-slate-700 font-medium whitespace-pre-wrap">{{ task.description }}</p>
+
+      <!-- Progress -->
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <div class="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              class="h-full rounded-full transition-all"
+              [ngClass]="task.status === 'hoan_thanh' ? 'bg-emerald-500' : 'bg-blue-500'"
+              [style.width.%]="taskProgress(task)"
+            ></div>
+          </div>
+          <span class="text-xs font-bold text-slate-700 w-24 text-right"
+            >Tiến độ {{ taskProgress(task) }}%</span
+          >
+        </div>
+        <ul *ngIf="recentProgress(task).length" class="text-[11px] text-slate-500 space-y-0.5">
+          <li *ngFor="let p of recentProgress(task)">
+            {{ p.at | date: 'dd/MM HH:mm' }} · <b>{{ p.percent }}%</b
+            ><span *ngIf="p.note"> — {{ p.note }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Action: report progress while working -->
+      <div
+        *ngIf="task.status === 'da_xac_nhan' || task.status === 'bi_tu_choi'"
+        class="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-2"
+      >
+        <label class="block text-xs font-bold text-slate-700 uppercase">
+          Cập nhật tiến độ: {{ progressDraft(task).percent }}%
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="99"
+          step="5"
+          [ngModel]="progressDraft(task).percent"
+          (ngModelChange)="progressDraft(task).percent = +$event"
+          class="w-full accent-blue-600"
+          aria-label="Phần trăm tiến độ"
+        />
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            maxlength="500"
+            [ngModel]="progressDraft(task).note"
+            (ngModelChange)="progressDraft(task).note = $event"
+            placeholder="Đã làm được gì, còn vướng mắc gì... (không bắt buộc)"
+            class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none"
+          />
+          <button
+            type="button"
+            (click)="saveProgress(task)"
+            [disabled]="savingProgress === task._id"
+            class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white text-xs font-bold whitespace-nowrap"
+          >
+            {{ savingProgress === task._id ? 'Đang lưu...' : '💾 Lưu tiến độ' }}
+          </button>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Khi xong việc, nộp minh chứng bên dưới để đạt 100% và gửi sếp duyệt.
+        </p>
+      </div>
 
       <!-- Rejection reason -->
       <div

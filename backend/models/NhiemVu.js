@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { TASK_STATUS, TASK_STATUSES } = require('../utils/hangSo');
+const { TASK_STATUS, TASK_STATUSES, TASK_CATEGORIES, TASK_PRIORITIES } = require('../utils/hangSo');
 
 const EvidenceFileSchema = new mongoose.Schema(
   {
@@ -11,6 +11,16 @@ const EvidenceFileSchema = new mongoose.Schema(
   { _id: true },
 );
 
+// One progress report from the assignee; the task keeps the latest percent in `progress`.
+const ProgressEntrySchema = new mongoose.Schema(
+  {
+    percent: { type: Number, required: true, min: 0, max: 100 },
+    note: { type: String, default: '' },
+    at: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const NhiemVuSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -19,6 +29,12 @@ const NhiemVuSchema = new mongoose.Schema(
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', required: true },
     dueDate: { type: Date, default: null },
     status: { type: String, enum: TASK_STATUSES, default: TASK_STATUS.PENDING },
+    category: { type: String, enum: TASK_CATEGORIES, default: 'khac' },
+    priority: { type: String, enum: TASK_PRIORITIES, default: 'trung_binh' },
+
+    // Progress the assignee reports while working (0–100); submitting evidence sets 100.
+    progress: { type: Number, default: 0, min: 0, max: 100 },
+    progressLog: { type: [ProgressEntrySchema], default: [] },
 
     // Evidence the assignee submits — every field optional, they can mix and match.
     evidenceNote: { type: String, default: '' },
@@ -27,6 +43,10 @@ const NhiemVuSchema = new mongoose.Schema(
 
     reviewNote: { type: String, default: '' },
     reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null },
+    // Quality score (1–5) the reviewer gives when approving; null = not scored.
+    reviewScore: { type: Number, default: null, min: 1, max: 5 },
+    // Times the work was sent back for rework.
+    reworkCount: { type: Number, default: 0 },
 
     acknowledgedAt: { type: Date, default: null },
     submittedAt: { type: Date, default: null },

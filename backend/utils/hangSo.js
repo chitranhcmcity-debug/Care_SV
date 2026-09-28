@@ -31,6 +31,34 @@ const TASK_STATUS_LABEL = Object.freeze({
   [TASK_STATUS.REJECTED]: 'Bị từ chối',
 });
 const TASK_STATUSES = Object.freeze(Object.values(TASK_STATUS));
+// Việc chưa xong mà nhân viên còn phải làm (chưa tính việc đã nộp chờ duyệt).
+const OPEN_TASK_STATUSES = Object.freeze([
+  TASK_STATUS.PENDING,
+  TASK_STATUS.ACKNOWLEDGED,
+  TASK_STATUS.REJECTED,
+]);
+
+// --- Loại công việc (nghiệp vụ thực tế của phòng, không chỉ gọi điện chăm sóc)
+const TASK_CATEGORY_LABEL = Object.freeze({
+  hanh_chinh: 'Hành chính - Văn thư',
+  dao_tao: 'Đào tạo - Học vụ',
+  tuyen_sinh: 'Tuyển sinh - Truyền thông',
+  cong_tac_sv: 'Công tác sinh viên',
+  cham_soc_sv: 'Chăm sóc sinh viên',
+  su_kien: 'Sự kiện - Hoạt động',
+  bao_cao: 'Báo cáo - Thống kê',
+  khac: 'Công việc khác',
+});
+const TASK_CATEGORIES = Object.freeze(Object.keys(TASK_CATEGORY_LABEL));
+
+// --- Mức độ ưu tiên công việc
+const TASK_PRIORITY_LABEL = Object.freeze({
+  thap: 'Thấp',
+  trung_binh: 'Trung bình',
+  cao: 'Cao',
+  khan_cap: 'Khẩn cấp',
+});
+const TASK_PRIORITIES = Object.freeze(Object.keys(TASK_PRIORITY_LABEL));
 
 // --- Lịch học
 const SHIFT = Object.freeze({ MORNING: 'sang', AFTERNOON: 'chieu', EVENING: 'toi' });
@@ -255,6 +283,8 @@ const ORDER_STATUSES = Object.freeze(Object.values(ORDER_STATUS));
 const LABELS = Object.freeze({
   ...CALL_STATUS_LABEL,
   ...TASK_STATUS_LABEL,
+  ...TASK_CATEGORY_LABEL,
+  ...TASK_PRIORITY_LABEL,
   ...SHIFT_LABEL,
   ...WEEKDAY_LABEL,
   ...ORDER_STATUS_LABEL,
@@ -271,6 +301,11 @@ module.exports = {
   TASK_STATUS,
   TASK_STATUS_LABEL,
   TASK_STATUSES,
+  OPEN_TASK_STATUSES,
+  TASK_CATEGORY_LABEL,
+  TASK_CATEGORIES,
+  TASK_PRIORITY_LABEL,
+  TASK_PRIORITIES,
   SHIFT,
   SHIFT_LABEL,
   SHIFTS,

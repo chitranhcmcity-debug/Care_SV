@@ -9,8 +9,14 @@ import {
   countTasksByStatus,
   formatFileSize,
   isTaskOverdue,
+  taskProgress,
   taskUserName,
 } from '../../utils/task-utils';
+
+interface ProgressDraft {
+  percent: number;
+  note: string;
+}
 
 interface EvidenceDraft {
   note: string;
@@ -30,10 +36,13 @@ export class TaskComponent implements OnInit {
   loading = false;
 
   private drafts = new Map<string, EvidenceDraft>();
+  private progressDrafts = new Map<string, ProgressDraft>();
+  savingProgress: string | null = null;
 
   readonly taskUserName = taskUserName;
   readonly isTaskOverdue = isTaskOverdue;
   readonly formatFileSize = formatFileSize;
+  readonly taskProgress = taskProgress;
 
   constructor(
     protected taskService: TaskService,
@@ -81,6 +90,37 @@ export class TaskComponent implements OnInit {
       this.drafts.set(taskId, d);
     }
     return d;
+  }
+
+  progressDraft(task: WorkTask): ProgressDraft {
+    let d = this.progressDrafts.get(task._id);
+    if (!d) {
+      d = { percent: Math.min(task.progress ?? 0, 99), note: '' };
+      this.progressDrafts.set(task._id, d);
+    }
+    return d;
+  }
+
+  saveProgress(task: WorkTask) {
+    const d = this.progressDraft(task);
+    this.savingProgress = task._id;
+    this.taskService.updateProgress(task._id, Math.round(d.percent), d.note.trim()).subscribe({
+      next: (res) => {
+        Object.assign(task, res.task);
+        this.progressDrafts.delete(task._id);
+        this.savingProgress = null;
+        this.notify.success(res.message);
+      },
+      error: (err) => {
+        this.savingProgress = null;
+        this.notify.error(err.error?.message || 'Không thể cập nhật tiến độ');
+      },
+    });
+  }
+
+  /** Newest first, a few entries: enough context without a long history. */
+  recentProgress(task: WorkTask) {
+    return (task.progressLog ?? []).slice(-3).reverse();
   }
 
   onFilesSelected(taskId: string, event: Event) {

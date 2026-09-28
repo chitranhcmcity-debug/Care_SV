@@ -1094,6 +1094,130 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(pending.body.pendingCount, 0);
 });
 
+test('task progress: category/priority, % reports, rework and quality score', async () => {
+  const { staff, token } = await createTaskStaff('progress');
+  const { token: bystanderToken } = await createTaskStaff('progress-bystander');
+
+  const invalid = await request('/tasks', tokens.manager, 'POST', {
+    title: 'x',
+    description: 'y',
+    assignedTo: String(staff._id),
+    category: 'khong_ton_tai',
+  });
+  assert.equal(invalid.status, 400);
+
+  const create = await request('/tasks', tokens.manager, 'POST', {
+    title: 'Soạn kế hoạch tuyển sinh học kỳ mới',
+    description: 'Lập kế hoạch và dự toán kinh phí tuyển sinh.',
+    assignedTo: String(staff._id),
+    category: 'tuyen_sinh',
+    priority: 'cao',
+    dueDate: '2099-12-31',
+  });
+  assert.equal(create.status, 201);
+  assert.equal(create.body.task.category, 'tuyen_sinh');
+  assert.equal(create.body.task.priority, 'cao');
+  assert.equal(create.body.task.progress, 0);
+  const taskId = create.body.task._id;
+
+  // Progress can only be reported once the task is acknowledged, by its assignee, below 100%.
+  const report = (tok, body) => request(`/tasks/${taskId}/progress`, tok, 'PUT', body);
+  assert.equal((await report(token, { percent: 30 })).status, 400);
+  await request(`/tasks/${taskId}/acknowledge`, token, 'PUT');
+  assert.equal((await report(bystanderToken, { percent: 30 })).status, 403);
+  assert.equal((await report(tokens.manager, { percent: 30 })).status, 403);
+  assert.equal((await report(token, { percent: 100 })).status, 400);
+  assert.equal((await report(token, { percent: 12.5 })).status, 400);
+  const progressed = await report(token, { percent: 60, note: 'Đã xong phần dự toán' });
+  assert.equal(progressed.status, 200);
+  assert.equal(progressed.body.task.progress, 60);
+  assert.equal(progressed.body.task.progressLog.at(-1).note, 'Đã xong phần dự toán');
+
+  const submit = async () => {
+    const form = new FormData();
+    form.append('note', 'Đã hoàn thành kế hoạch.');
+    return fetch(`${base}/tasks/${taskId}/submit`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    }).then((r) => r.json());
+  };
+  assert.equal((await submit()).task.progress, 100);
+
+  const reject = await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', {
+    approve: false,
+    score: 5, // ignored on rejection
+  });
+  assert.equal(reject.body.task.reworkCount, 1);
+  assert.equal(reject.body.task.reviewScore, null);
+  assert.ok(reject.body.task.progress < 100);
+
+  await submit();
+  assert.equal(
+    (await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', { approve: true, score: 7 }))
+      .status,
+    400,
+  );
+  const approve = await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', {
+    approve: true,
+    score: 4,
+  });
+  assert.equal(approve.status, 200);
+  assert.equal(approve.body.task.reviewScore, 4);
+
+  // An overdue open task in another category.
+  await NhiemVu.create({
+    title: 'Báo cáo tháng',
+    description: 'Tổng hợp báo cáo tháng trước.',
+    assignedBy: users.manager._id,
+    assignedTo: staff._id,
+    category: 'bao_cao',
+    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+  });
+
+  // Only task managers see the progress board.
+  assert.equal((await request('/tasks/staff-progress', token)).status, 403);
+  assert.equal((await request('/tasks/staff-progress', tokens.admin)).status, 403);
+  assert.equal((await request('/tasks/staff-progress?from=abc', tokens.manager)).status, 400);
+  const board = await request('/tasks/staff-progress', tokens.manager);
+  assert.equal(board.status, 200);
+  const row = board.body.staff.find((r) => r.staff._id === String(staff._id));
+  assert.equal(row.tasks.total, 2);
+  assert.equal(row.tasks.completed, 1);
+  assert.equal(row.tasks.completedOnTime, 1);
+  assert.equal(row.tasks.overdue, 1);
+  assert.equal(row.tasks.reworkCount, 1);
+  assert.equal(row.tasks.avgScore, 4);
+  assert.deepEqual(row.tasks.byCategory.tuyen_sinh, { total: 1, completed: 1 });
+  assert.equal(row.rates.completion, 50);
+  assert.equal(row.rates.onTime, 100);
+  assert.equal(row.rates.quality, 75);
+  assert.equal(row.rates.care, null); // no call tasks: left out of the KPI, not counted as 0
+  // (0.5*0.3 + 1*0.25 + 0.75*0.25) / 0.8 = 73.4 → 73
+  assert.equal(row.kpiScore, 73);
+  assert.equal(row.kpiRating, 'Tốt');
+
+  // A period that excludes both tasks leaves the staff member listed with empty metrics.
+  const empty = await request(
+    '/tasks/staff-progress?from=2000-01-01&to=2000-01-31',
+    tokens.manager,
+  );
+  const emptyRow = empty.body.staff.find((r) => r.staff._id === String(staff._id));
+  assert.equal(emptyRow.tasks.total, 0);
+  assert.equal(emptyRow.kpiScore, null);
+
+  // AI assessment: manager only, and a clean 503 without an API key.
+  assert.equal(
+    (await request('/ai/staff-performance', token, 'POST', { staffId: String(staff._id) })).status,
+    403,
+  );
+  assert.equal(
+    (await request('/ai/staff-performance', tokens.manager, 'POST', { staffId: String(staff._id) }))
+      .status,
+    503,
+  );
+});
+
 test('deleting a task removes its evidence files from disk', async () => {
   const fs = require('node:fs');
   const path = require('node:path');

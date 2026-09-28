@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const router = express.Router();
 const aiService = require('../services/dichVuTroLyAi');
 const aiCare = require('../services/dichVuAiCare');
@@ -12,7 +11,8 @@ const NguoiDung = require('../models/NguoiDung');
 const { getWarningLevels, describeLevels } = require('../services/dichVuCanhBao');
 const { TASK_STATUS, toLabel } = require('../utils/hangSo');
 const { can } = require('../services/dichVuPhanQuyen');
-const { assert, validateId } = require('../utils/kiemTra');
+const { assert, validateId, parseOptionalDate } = require('../utils/kiemTra');
+const { staffProgress } = require('../services/dichVuTienDoNhanVien');
 const { verifyToken, requirePermission, requireSignedIn } = require('../middleware/xacThuc');
 
 // [{ _id: status, count }] for every document matching `match`.
@@ -209,62 +209,86 @@ ${describeLevels(levels)}`;
   }
 });
 
-// POST /api/ai/staff-performance (Admin only)
+// POST /api/ai/staff-performance { staffId, from?, to? } (Trưởng phòng / PHT)
+// AI nhận xét năng lực nhân viên dựa trên số liệu khách quan (tiến độ, đúng hạn, chất lượng,
+// chăm sóc sinh viên) kèm KPI tham khảo do hệ thống tính.
 router.post(
   '/staff-performance',
   verifyToken,
   requirePermission('tasks.manage'),
   async (req, res, next) => {
     try {
-      const { staffId } = req.body;
+      const { staffId, from: fromText, to: toText } = req.body ?? {};
       validateId(staffId);
-      const staffObjectId = new mongoose.Types.ObjectId(staffId);
-      const [staff, callGroups, workGroups] = await Promise.all([
-        NguoiDung.findById(staffId),
-        NhiemVuGoiDien.aggregate([
-          { $match: { assignedStaffId: staffObjectId } },
-          { $group: { _id: '$status', count: { $sum: 1 }, attempts: { $sum: '$callAttempts' } } },
-        ]),
-        countByStatus(NhiemVu, { assignedTo: staffObjectId }),
-      ]);
-      assert(staff && staff.role === 'staff', 'Không tìm thấy nhân viên', 404);
+      const from = parseOptionalDate(fromText, 'Ngày bắt đầu không hợp lệ');
+      const to = parseOptionalDate(toText, 'Ngày kết thúc không hợp lệ');
+      const [row] = await staffProgress({ from, to, staffId });
+      assert(row, 'Không tìm thấy nhân viên', 404);
 
-      const sum = (groups, key) => groups.reduce((total, g) => total + g[key], 0);
-      const totalCallTasks = sum(callGroups, 'count');
-      const avgCallAttempts = totalCallTasks
-        ? (sum(callGroups, 'attempts') / totalCallTasks).toFixed(1)
-        : '0';
-      const toStatusMap = (groups) => Object.fromEntries(groups.map((g) => [g._id, g.count]));
-      const listStatusCounts = (groups) =>
-        groups.map((g) => `- ${toLabel(g._id)}: ${g.count}`).join('\n') || '(chưa có)';
+      const recent = await NhiemVu.find({
+        assignedTo: staffId,
+        status: { $in: [TASK_STATUS.COMPLETED, TASK_STATUS.REJECTED] },
+      })
+        .sort({ updatedAt: -1 })
+        .limit(8)
+        .select('title category priority status reviewScore reviewNote reworkCount')
+        .lean();
 
-      const prompt = `Nhân viên: ${staff.fullName} (${staff.email})
+      const { tasks: t, calls: c, rates } = row;
+      const pct = (value) => (value === null ? 'chưa có dữ liệu' : `${value}%`);
+      const categories =
+        Object.entries(t.byCategory)
+          .map(([code, v]) => `- ${toLabel(code)}: ${v.completed}/${v.total} hoàn thành`)
+          .join('\n') || '(chưa có)';
+      const reviews =
+        recent
+          .map(
+            (r) =>
+              `- [${toLabel(r.category)} · ưu tiên ${toLabel(r.priority)}] "${r.title}": ${toLabel(r.status)}` +
+              (r.reviewScore ? `, điểm ${r.reviewScore}/5` : '') +
+              (r.reworkCount ? `, làm lại ${r.reworkCount} lần` : '') +
+              (r.reviewNote ? ` — nhận xét: "${r.reviewNote.slice(0, 200)}"` : ''),
+          )
+          .join('\n') || '(chưa có)';
+      const period =
+        from || to
+          ? `từ ${from ? from.toLocaleDateString('vi-VN') : 'đầu'} đến ${to ? to.toLocaleDateString('vi-VN') : 'nay'}`
+          : 'toàn bộ thời gian';
 
-Thống kê nhiệm vụ gọi điện chăm sóc sinh viên (tổng ${totalCallTasks} nhiệm vụ):
-${listStatusCounts(callGroups)}
-Số lần gọi trung bình mỗi nhiệm vụ: ${avgCallAttempts}
+      const prompt = `Nhân viên: ${row.staff.fullName} (${row.staff.email}) — kỳ đánh giá: ${period}
 
-Thống kê nhiệm vụ nội bộ được giao (tổng ${sum(workGroups, 'count')} nhiệm vụ):
-${listStatusCounts(workGroups)}
+CÔNG VIỆC ĐƯỢC GIAO (tổng ${t.total}):
+- Hoàn thành: ${t.completed} (đúng hạn ${t.completedOnTime}, trễ hạn ${t.completedLate})
+- Đang thực hiện / chưa nhận: ${t.open}, tiến độ trung bình việc đang làm: ${t.avgProgress ?? 0}%
+- Chờ duyệt: ${t.waitingReview}
+- Quá hạn chưa xong: ${t.overdue}; việc ưu tiên cao/khẩn cấp còn tồn: ${t.urgentOpen}
+- Số lần bị yêu cầu làm lại: ${t.reworkCount}
+- Điểm chất lượng trung bình: ${t.avgScore ?? 'chưa chấm'}${t.avgScore ? '/5' : ''} (${t.scoredCount} việc được chấm)
+- Thời gian hoàn thành trung bình: ${t.avgCompletionDays ?? '—'} ngày
+Theo loại công việc:
+${categories}
 
-Hãy đưa ra nhận xét ngắn gọn về hiệu suất làm việc của nhân viên này dựa trên số liệu trên, gồm:
-1. Điểm mạnh
-2. Điểm cần cải thiện (nếu có)
-Không suy diễn nguyên nhân cá nhân, chỉ nhận xét dựa trên số liệu khách quan. Trả lời tiếng Việt, dưới 120 từ.`;
+CHĂM SÓC SINH VIÊN (tổng ${c.total} nhiệm vụ gọi điện): đã liên hệ ${c.contacted}, không bắt máy ${c.unreachable}, chưa gọi ${c.pending}, trung bình ${c.avgAttempts ?? 0} lần gọi/nhiệm vụ.
+
+TỶ LỆ: hoàn thành ${pct(rates.completion)}, đúng hạn ${pct(rates.onTime)}, chất lượng ${pct(rates.quality)}, liên hệ được ${pct(rates.care)}.
+KPI tham khảo do hệ thống tính: ${row.kpiScore ?? 'chưa đủ dữ liệu'}${row.kpiScore === null ? '' : '/100'} (${row.kpiRating}).
+
+Nhận xét gần đây của người duyệt:
+${reviews}
+
+Hãy đánh giá năng lực nhân viên này theo đúng 4 mục, mỗi mục 1–3 gạch đầu dòng:
+1. Đánh giá chung (xếp loại và lý do chính)
+2. Điểm mạnh
+3. Điểm cần cải thiện
+4. Đề xuất (phân công, đào tạo, hỗ trợ phù hợp)
+Chỉ dựa trên số liệu trên, không suy đoán hoàn cảnh cá nhân. Nếu dữ liệu quá ít, nói rõ là chưa đủ cơ sở. Trả lời tiếng Việt, không quá 250 từ.`;
 
       const assessment = await aiService.chat({
         system:
-          'Bạn là trợ lý hỗ trợ Quản trị viên đánh giá hiệu suất làm việc dựa trên số liệu khách quan, công bằng, mang tính xây dựng, không suy đoán quá mức.',
+          'Bạn là trợ lý nhân sự giúp Trưởng phòng / Phó hiệu trưởng đánh giá năng lực nhân viên một cách công bằng, khách quan, mang tính xây dựng, chỉ dựa trên số liệu được cung cấp.',
         messages: [{ role: 'user', content: prompt }],
       });
-      res.json({
-        assessment,
-        stats: {
-          callTasks: toStatusMap(callGroups),
-          workTasks: toStatusMap(workGroups),
-          avgCallAttempts,
-        },
-      });
+      res.json({ assessment, metrics: row, from, to });
     } catch (error) {
       next(error);
     }
