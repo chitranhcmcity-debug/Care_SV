@@ -115,7 +115,7 @@
   <div class="space-y-3">
     <div
       *ngFor="let task of tasks; let i = index"
-      class="bg-white p-4 rounded-3xl border space-y-3 transition-all shadow-[0_10px_30px_-22px_rgba(15,23,42,0.45)] relative overflow-hidden"
+      class="bg-white p-3 rounded-2xl border space-y-2.5 transition-all shadow-[0_10px_30px_-22px_rgba(15,23,42,0.45)] relative overflow-hidden"
       [ngClass]="{
         'ring-2 ring-rose-500 border-rose-400 bg-rose-50/20': task.isCallbackDue,
         'border-amber-300 bg-amber-50/20': !task.isCallbackDue && task.callStatus === 'chua_goi',
@@ -127,7 +127,7 @@
     >
       <!-- Priority Status Header Tag -->
       <div
-        class="flex items-center justify-between flex-wrap gap-2.5 rounded-2xl bg-slate-50/80 border border-slate-100 px-3 py-2.5"
+        class="flex items-center justify-between flex-wrap gap-2 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2"
       >
         <div class="flex items-center flex-wrap gap-2">
           <span
@@ -211,59 +211,62 @@
       </ng-container>
 
       <!-- Student & Course Details -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
-        <div
-          class="md:col-span-5 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-100 space-y-1"
-        >
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-stretch">
+        <div class="md:col-span-5 p-3 rounded-xl bg-slate-50/80 border border-slate-100 space-y-1">
           <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wide">Sinh viên</div>
-          <div class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <div class="text-base font-extrabold text-slate-900 flex items-center gap-2">
             <span>{{ task.student?.fullName || 'Sinh viên' }}</span>
           </div>
-          <div class="text-xs text-slate-700 font-semibold">
-            MSSV:
-            <code
-              class="text-violet-800 font-bold bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100"
-              >{{ task.student?.studentCode }}</code
+          <div
+            class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 font-semibold"
+          >
+            <span>
+              MSSV:
+              <code
+                class="text-violet-800 font-bold bg-violet-50 px-1.5 py-0.5 rounded border border-violet-100"
+                >{{ task.student?.studentCode }}</code
+              >
+            </span>
+            <span
+              >Lớp: <b class="text-slate-800">{{ task.student?.classCode }}</b></span
             >
-            | Lớp: <b>{{ task.student?.classCode }}</b>
+            <span *ngIf="task.student?.major">Ngành: {{ task.student?.major }}</span>
           </div>
-          <div class="text-xs text-slate-600 font-medium">Ngành: {{ task.student?.major }}</div>
+          <div *ngIf="viewAll && task.assignedStaff" class="text-xs text-slate-500">
+            👤 Phụ trách: <b class="text-slate-700">{{ task.assignedStaff.fullName }}</b>
+          </div>
 
           <!-- Student Tags Display & Toggle Section -->
-          <div class="pt-1.5 space-y-1.5">
-            <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wide">
-              Thẻ chăm sóc
-            </div>
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span
-                *ngFor="let tag of task.student?.tags"
-                class="px-2.5 py-1 rounded-full bg-violet-100 text-violet-900 font-bold text-xs border border-violet-200 flex items-center gap-1"
+          <div class="pt-1 flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wide">Thẻ:</span>
+            <span
+              *ngFor="let tag of task.student?.tags"
+              class="px-2 py-0.5 rounded-full bg-violet-100 text-violet-900 font-bold text-[11px] border border-violet-200 flex items-center gap-1"
+            >
+              <span>{{ tag }}</span>
+              <button
+                (click)="removeTagFromStudent(task, tag)"
+                class="text-purple-600 hover:text-rose-600 font-bold text-xs"
               >
-                <span>{{ tag }}</span>
-                <button
-                  (click)="removeTagFromStudent(task, tag)"
-                  class="text-purple-600 hover:text-rose-600 font-bold text-xs"
-                >
-                  ✖
-                </button>
-              </span>
+                ✖
+              </button>
+            </span>
 
-              <!-- Quick Add Tag Select -->
-              <select
-                (change)="addTagToStudent(task, $event)"
-                class="text-xs font-bold text-violet-800 bg-white border border-violet-200 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-violet-200"
-              >
-                <option value="">+ Gắn Thẻ Nhãn</option>
-                <option *ngFor="let sysTag of sysSettings?.tags" [value]="sysTag">
-                  {{ sysTag }}
-                </option>
-              </select>
-            </div>
+            <!-- Quick Add Tag Select -->
+            <select
+              (change)="addTagToStudent(task, $event)"
+              class="text-[11px] font-bold text-violet-800 bg-white border border-violet-200 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-violet-200"
+            >
+              <option value="">+ Gắn Thẻ Nhãn</option>
+              <option *ngFor="let sysTag of sysSettings?.tags" [value]="sysTag">
+                {{ sysTag }}
+              </option>
+            </select>
           </div>
         </div>
 
         <div
-          class="md:col-span-3 p-3.5 rounded-2xl bg-violet-50/50 border border-violet-100 space-y-1"
+          class="md:col-span-3 p-3 rounded-xl bg-violet-50/50 border border-violet-100 space-y-1"
         >
           <div class="text-[11px] text-violet-600 font-bold uppercase tracking-wide">
             Học phần vắng
@@ -282,7 +285,7 @@
             *ngIf="task.student?.phone"
             [href]="'tel:' + task.student?.phone"
             (click)="callStudent($event, task.student, 'sinh_vien', { callTaskId: task._id })"
-            class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:-translate-y-0.5 min-h-[42px]"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:-translate-y-0.5 min-h-[38px]"
           >
             📞 Gọi SV: {{ task.student?.phone }}
           </a>
@@ -291,7 +294,7 @@
             *ngIf="task.student?.parentPhone"
             [href]="'tel:' + task.student?.parentPhone"
             (click)="callStudent($event, task.student, 'phu_huynh', { callTaskId: task._id })"
-            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-violet-500/20 transition-all hover:-translate-y-0.5 min-h-[42px]"
+            class="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-violet-500/20 transition-all hover:-translate-y-0.5 min-h-[38px]"
           >
             👨‍👩‍👦 Gọi Phụ Huynh: {{ task.student?.parentPhone }}
           </a>
@@ -305,12 +308,6 @@
         </div>
       </div>
 
-      <div
-        *ngIf="viewAll && task.assignedStaff"
-        class="inline-flex items-center gap-1.5 text-xs text-slate-600 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100"
-      >
-        👤 Phụ trách: <b class="text-slate-800">{{ task.assignedStaff.fullName }}</b>
-      </div>
       <div
         *ngIf="viewAll && !task.assignedStaff"
         class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-wrap items-center gap-2"

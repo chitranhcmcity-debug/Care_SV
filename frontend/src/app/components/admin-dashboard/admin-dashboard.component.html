@@ -1301,36 +1301,38 @@
           Sinh viên
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <button
           (click)="openTab('excel')"
-          class="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
+          class="px-4 py-2.5 bg-violet-50 hover:bg-violet-100 text-violet-800 font-bold text-xs rounded-xl border border-violet-200 shadow-sm transition-all hover:-translate-y-0.5 flex items-center gap-1.5 cursor-pointer"
           title="Tải file mẫu Excel theo học phần để nhập sinh viên hàng loạt"
         >
           📥 Mẫu Excel
         </button>
         <button
           (click)="openCourseModal()"
-          class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-all flex items-center gap-2 touch-target"
+          class="px-5 py-2.5 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-violet-500/20 transition-all hover:-translate-y-0.5 flex items-center gap-2 touch-target cursor-pointer"
         >
-          <span>➕ TẠO HỌC PHẦN MỚI</span>
+          <span>➕ Tạo học phần mới</span>
         </button>
       </div>
     </div>
 
     <!-- Visual Shift Filter Tabs for Office Workers -->
     <div
-      class="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200"
+      class="flex flex-wrap items-center justify-between gap-3 bg-violet-50/50 p-3 rounded-2xl border border-violet-100"
     >
-      <div class="flex items-center space-x-2 overflow-x-auto">
+      <div
+        class="flex items-center gap-1.5 overflow-x-auto p-1 rounded-xl bg-white border border-violet-100 shadow-sm"
+      >
         <button
           (click)="filterShift = ''; loadCourseGroups()"
           [ngClass]="
             filterShift === ''
-              ? 'bg-blue-500 text-white font-semibold shadow-sm'
-              : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
+              ? 'bg-gradient-to-r from-violet-700 to-fuchsia-600 text-white font-semibold shadow-sm'
+              : 'text-slate-600 hover:bg-violet-50 hover:text-violet-800 font-bold'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all touch-target"
+          class="px-4 py-2 text-xs rounded-lg transition-all touch-target whitespace-nowrap cursor-pointer"
         >
           🌐 Tất cả Ca học ({{ courseGroupList.length }})
         </button>
@@ -1338,10 +1340,10 @@
           (click)="filterShift = 'sang'; loadCourseGroups()"
           [ngClass]="
             filterShift === 'sang'
-              ? 'bg-amber-500 text-white font-bold shadow-sm'
-              : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
+              ? 'bg-amber-100 text-amber-900 font-bold shadow-sm ring-1 ring-amber-300'
+              : 'text-slate-600 hover:bg-amber-50 hover:text-amber-900 font-bold'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all touch-target flex items-center gap-1.5"
+          class="px-4 py-2 text-xs rounded-lg transition-all touch-target flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
         >
           <span>☀️ Ca Sáng</span>
         </button>
@@ -1349,10 +1351,10 @@
           (click)="filterShift = 'chieu'; loadCourseGroups()"
           [ngClass]="
             filterShift === 'chieu'
-              ? 'bg-blue-600 text-white font-bold shadow-sm'
-              : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
+              ? 'bg-sky-100 text-sky-900 font-bold shadow-sm ring-1 ring-sky-300'
+              : 'text-slate-600 hover:bg-sky-50 hover:text-sky-900 font-bold'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all touch-target flex items-center gap-1.5"
+          class="px-4 py-2 text-xs rounded-lg transition-all touch-target flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
         >
           <span>🌤️ Ca Chiều</span>
         </button>
@@ -1360,10 +1362,10 @@
           (click)="filterShift = 'toi'; loadCourseGroups()"
           [ngClass]="
             filterShift === 'toi'
-              ? 'bg-purple-900 text-white font-bold shadow-sm'
-              : 'bg-white text-slate-700 hover:bg-slate-100 font-bold border border-slate-200'
+              ? 'bg-violet-100 text-violet-900 font-bold shadow-sm ring-1 ring-violet-300'
+              : 'text-slate-600 hover:bg-violet-50 hover:text-violet-900 font-bold'
           "
-          class="px-4 py-2 text-xs rounded-xl transition-all touch-target flex items-center gap-1.5"
+          class="px-4 py-2 text-xs rounded-lg transition-all touch-target flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
         >
           <span>🌙 Ca Tối</span>
         </button>
@@ -1374,7 +1376,7 @@
         [(ngModel)]="searchCourseTerm"
         (input)="loadCourseGroups()"
         placeholder="🔍 Tìm mã môn, tên môn..."
-        class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-white min-w-[200px]"
+        class="px-4 py-2.5 rounded-xl border border-violet-200 text-xs font-semibold text-slate-900 bg-white min-w-[220px] shadow-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100 transition-all"
       />
     </div>
 
@@ -1402,7 +1404,9 @@
               'bg-purple-50 text-purple-900 border-purple-300': g.shift === 'toi',
             }"
           >
-            {{ g.shift === 'chieu' ? '🌤️ Ca Chiều' : g.shift === 'toi' ? '🌙 Ca Tối' : '☀️ Ca Sáng' }}
+            {{
+              g.shift === 'chieu' ? '🌤️ Ca Chiều' : g.shift === 'toi' ? '🌙 Ca Tối' : '☀️ Ca Sáng'
+            }}
           </span>
           <span
             class="px-3 py-1 rounded-full text-sm font-bold bg-violet-50 text-violet-700 border border-violet-200"
@@ -1434,7 +1438,9 @@
               {{ g.room || 'Chưa xếp' }}
             </div>
           </div>
-          <div class="col-span-2 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100 min-w-0">
+          <div
+            class="col-span-2 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100 min-w-0"
+          >
             <div class="text-xs font-medium text-slate-500">👨‍🏫 Giảng viên</div>
             <div
               class="mt-0.5 text-sm font-bold truncate"
