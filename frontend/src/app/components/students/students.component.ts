@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Student, Student360Profile } from '../../models/types';
@@ -61,6 +61,12 @@ export class StudentsComponent implements OnInit {
   readonly selected = signal<Student | null>(null);
   readonly profile = signal<Student360Profile | null>(null);
   readonly studentCalls = signal<CallLog[]>([]);
+  /** The profile lists the latest calls first; the rest open on request. */
+  readonly callsPreview = 3;
+  readonly showAllCalls = signal(false);
+  readonly visibleCalls = computed(() =>
+    this.showAllCalls() ? this.studentCalls() : this.studentCalls().slice(0, this.callsPreview),
+  );
   readonly outcomeLabels: Record<string, string> = CALL_OUTCOME_LABELS;
 
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -106,6 +112,7 @@ export class StudentsComponent implements OnInit {
   open(student: Student) {
     this.selected.set(student);
     this.profile.set(null);
+    this.showAllCalls.set(false);
     this.callTasks.getStudent360Profile(student._id).subscribe((p) => this.profile.set(p));
     this.loadStudentCalls(student._id);
   }

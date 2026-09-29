@@ -292,33 +292,45 @@
           </svg>
           Chưa có cuộc gọi nào với sinh viên này.
         </div>
-        <div
-          *ngFor="let c of studentCalls()"
-          class="flex gap-3 p-3 rounded-2xl border border-slate-100 bg-white text-sm"
-        >
-          <span
-            class="icon-bubble"
-            [ngClass]="c.target === 'phu_huynh' ? 'bg-emerald-50' : 'bg-sky-50'"
-          >
-            {{ c.target === 'phu_huynh' ? '👨‍👩‍👧' : '🧑‍🎓' }}
-          </span>
-          <div class="min-w-0 flex-1 space-y-0.5">
-            <div class="flex justify-between gap-2">
-              <span class="font-semibold text-slate-900">
-                {{ c.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }} ·
-                {{ outcomeLabels[c.outcome] || 'Chưa ghi kết quả' }}
-              </span>
-              <span class="text-xs text-slate-400 shrink-0">{{
-                c.createdAt | date: 'HH:mm dd/MM'
-              }}</span>
+        <div *ngIf="studentCalls().length" class="call-list">
+          <div *ngFor="let c of visibleCalls()" class="call-row">
+            <span class="call-dot" [class.is-parent]="c.target === 'phu_huynh'">
+              {{ c.target === 'phu_huynh' ? '👪' : '🎓' }}
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <span class="truncate text-sm font-semibold text-slate-900">
+                  {{ c.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }}
+                  <span class="font-medium text-slate-500"
+                    >· {{ outcomeLabels[c.outcome] || 'Chưa ghi kết quả' }}</span
+                  >
+                </span>
+                <span class="shrink-0 text-[11px] text-slate-400 tabular-nums">{{
+                  c.createdAt | date: 'HH:mm dd/MM'
+                }}</span>
+              </div>
+              <div class="truncate text-[11px] text-slate-500">
+                {{ callerName(c) }} · {{ c.durationSec }}s
+                <span *ngIf="c.recording"> · 🎙️ ghi âm</span>
+                <span *ngIf="c.note"> · {{ c.note }}</span>
+              </div>
             </div>
-            <div class="text-xs text-slate-500">
-              {{ callerName(c) }} · {{ c.durationSec }}s
-              <span *ngIf="c.recording"> · 🎙️ có ghi âm</span>
-            </div>
-            <div *ngIf="c.note" class="text-slate-700">{{ c.note }}</div>
           </div>
         </div>
+        <button
+          *ngIf="studentCalls().length > callsPreview"
+          type="button"
+          class="calls-toggle"
+          [attr.aria-expanded]="showAllCalls()"
+          (click)="showAllCalls.set(!showAllCalls())"
+        >
+          {{
+            showAllCalls()
+              ? 'Thu gọn'
+              : 'Xem thêm ' + (studentCalls().length - callsPreview) + ' cuộc gọi'
+          }}
+          <span class="calls-toggle-arrow" [class.is-open]="showAllCalls()">▾</span>
+        </button>
       </section>
 
       <!-- Timeline -->
