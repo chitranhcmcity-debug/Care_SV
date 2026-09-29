@@ -1,0 +1,71 @@
+/* Call task card: a white card with a clear lavender edge and a coloured status stripe on the
+   left, so each task stands apart from the tinted page and its status reads at a glance. */
+.call-card {
+  --status: #c8bbef;
+  position: relative;
+  background: #fff;
+  border: 1.5px solid var(--card-border);
+  border-left: 5px solid var(--status);
+  border-radius: 18px;
+  box-shadow:
+    0 2px 4px rgb(76 29 149 / 0.08),
+    0 16px 34px -16px rgb(76 29 149 / 0.45);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.call-card:hover {
+  box-shadow:
+    0 2px 4px rgb(76 29 149 / 0.1),
+    0 22px 40px -16px rgb(76 29 149 / 0.55);
+}
+.call-card.is-pending {
+  --status: #f59e0b;
+}
+.call-card.is-retry {
+  --status: #f97316;
+}
+.call-card.is-done {
+  --status: #10b981;
+}
+.call-card.is-due {
+  --status: #e11d48;
+  border-color: #fda4af;
+  border-left-color: var(--status);
+  box-shadow:
+    0 0 0 3px rgb(225 29 72 / 0.12),
+    0 16px 34px -16px rgb(225 29 72 / 0.45);
+}
+
+/* Header row: flat, separated by a soft dashed line instead of another box. */
+.call-head {
+  padding-bottom: 10px;
+  border-bottom: 1.5px dashed #e6e0f6;
+}
+.call-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f0fb;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.call-chip b {
+  color: #0f172a;
+}
+
+/* Info tiles inside the card: a lavender fill so they separate from the white card. */
+.call-tile {
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8f6fe;
+  border: 1.5px solid #e6e0f6;
+}
+.call-tile.course {
+  background: linear-gradient(135deg, rgb(var(--brand-50)), #fdf4ff);
+  border-color: rgb(var(--brand-200) / 0.8);
+}

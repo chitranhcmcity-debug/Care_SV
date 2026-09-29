@@ -279,6 +279,7 @@ a:focus-visible {
 
 /* White cards (panels, list items, modals). */
 .app-main :is(div, section, article, aside, li, form, details, a).bg-white:is(.border, .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl):is(
+    .rounded-md,
     .rounded-lg,
     .rounded-xl,
     .rounded-2xl,

@@ -15,6 +15,7 @@ import { StaffService } from '../../services/staff.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './call-task.component.html',
+  styleUrl: './call-task.component.css',
 })
 export class CallTaskComponent implements OnInit {
   tasks: CallTask[] = [];
