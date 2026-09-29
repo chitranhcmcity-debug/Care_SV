@@ -3,8 +3,13 @@
   <router-outlet></router-outlet>
 </app-navbar>
 
-<!-- AI Care assistant (signed-in pages only; tools depend on role) -->
-<app-ai-care *ngIf="showDashboard"></app-ai-care>
+<!-- AI Care assistant (signed-in pages only; tools depend on role). Loaded once the page is idle,
+     so its code is not part of the first download. -->
+@if (showDashboard) {
+  @defer (on idle) {
+    <app-ai-care></app-ai-care>
+  }
+}
 
 <!-- Public pages (home, login): full-width, no app shell -->
 <ng-template #publicShell>
@@ -16,5 +21,9 @@
 <!-- App-wide toasts + confirm dialog (NotificationService) -->
 <app-notifications></app-notifications>
 
-<!-- App-wide call dialog (CallService.open) -->
-<app-call-dialog></app-call-dialog>
+<!-- App-wide call dialog (CallService.open); only signed-in pages place calls. -->
+@if (showDashboard) {
+  @defer (on idle) {
+    <app-call-dialog></app-call-dialog>
+  }
+}

@@ -262,7 +262,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (tab === 'analytics') {
       this.loadAnalytics();
       // Auto-refresh mỗi 60 giây khi đang ở tab analytics
-      this.analyticsInterval = setInterval(() => this.loadAnalytics(), 60000);
+      this.analyticsInterval = setInterval(() => {
+        if (!document.hidden) this.loadAnalytics();
+      }, 60000);
     } else if (tab === 'settings') {
       this.loadSettings();
     } else if (tab === 'permissions') {

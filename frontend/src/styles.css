@@ -3,7 +3,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/roboto-variable.ttf') format('truetype');
+  src: url('/fonts/roboto-variable.woff2') format('woff2');
 }
 
 @font-face {
@@ -11,7 +11,7 @@
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/roboto-italic-variable.ttf') format('truetype');
+  src: url('/fonts/roboto-italic-variable.woff2') format('woff2');
 }
 
 /* Shared typography and theme tokens. */

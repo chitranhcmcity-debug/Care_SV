@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 const fs = require('node:fs');
 const path = require('node:path');
 const errorHandler = require('./middleware/xuLyLoi');
@@ -30,6 +31,8 @@ const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .filter(Boolean);
 app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : false }));
 app.disable('x-powered-by');
+// gzip/brotli for JSON and the Angular bundle; audio and images are skipped as incompressible.
+app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -61,9 +64,25 @@ app.get('/api/health', (req, res) =>
 app.use('/api', (req, res) => res.status(404).json({ message: 'API not found' }));
 const frontendDist = path.join(__dirname, '../frontend/dist/frontend/browser');
 if (fs.existsSync(frontendDist)) {
-  app.use(express.static(frontendDist));
+  // Build output has content hashes in its names (main-AB12CD34.js), so it never changes and
+  // can be cached for a year; other public files (fonts, images) for a week. index.html is
+  // always revalidated so a new deploy is picked up at once.
+  app.use(
+    express.static(frontendDist, {
+      index: false,
+      setHeaders(res, filePath) {
+        const name = path.basename(filePath);
+        if (/-[A-Za-z0-9]{8}\.(js|css)$/.test(name))
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        else if (name === 'sw.js' || name.endsWith('.html'))
+          res.setHeader('Cache-Control', 'no-cache');
+        else res.setHeader('Cache-Control', 'public, max-age=604800');
+      },
+    }),
+  );
   app.use((req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(path.join(frontendDist, 'index.html'));
   });
 } else {

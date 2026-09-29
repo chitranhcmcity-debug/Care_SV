@@ -22,4 +22,7 @@ DiemDanhSchema.index(
   { unique: true, partialFilterExpression: { sessionDay: { $type: 'string' } } },
 );
 
+// Attendance history and summaries load every session of a course group.
+DiemDanhSchema.index({ courseGroupId: 1 });
+
 module.exports = mongoose.model('DiemDanh', DiemDanhSchema, 'diem_danh');

@@ -15,4 +15,7 @@ const SinhVienSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Students are listed and counted by administrative class.
+SinhVienSchema.index({ classCode: 1 });
+
 module.exports = mongoose.model('SinhVien', SinhVienSchema, 'sinh_vien');

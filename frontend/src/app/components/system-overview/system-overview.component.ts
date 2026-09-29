@@ -29,7 +29,9 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.load();
-    this.timer = setInterval(() => this.load(), REFRESH_MS);
+    this.timer = setInterval(() => {
+      if (!document.hidden) this.load();
+    }, REFRESH_MS);
   }
 
   ngOnDestroy() {

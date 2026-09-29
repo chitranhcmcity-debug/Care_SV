@@ -32,4 +32,8 @@ const NhomHocPhanSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Teachers see their own groups; removing a student updates every group that lists them.
+NhomHocPhanSchema.index({ teacherId: 1 });
+NhomHocPhanSchema.index({ students: 1 });
+
 module.exports = mongoose.model('NhomHocPhan', NhomHocPhanSchema, 'nhom_hoc_phan');

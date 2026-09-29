@@ -147,20 +147,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.navigation = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => this.markPageSeen());
-    // Poll the bell and sidebar counts every 15 seconds
-    this.intervalId = setInterval(() => this.fetchNotifications(), 15000);
+    // Poll the bell and sidebar counts every 15 seconds while the tab is visible, and catch up
+    // as soon as it is shown again.
+    this.intervalId = setInterval(() => {
+      if (!document.hidden) this.fetchNotifications();
+    }, 15000);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     // Pick up permission changes made by the admin while this tab stays open.
-    this.sessionIntervalId = setInterval(
-      () => this.authService.refreshSession().subscribe(),
-      60000,
-    );
+    this.sessionIntervalId = setInterval(() => {
+      if (!document.hidden) this.authService.refreshSession().subscribe();
+    }, 60000);
   }
 
   ngOnDestroy(): void {
     if (this.intervalId) clearInterval(this.intervalId);
     if (this.sessionIntervalId) clearInterval(this.sessionIntervalId);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.navigation?.unsubscribe();
   }
+
+  private readonly onVisibilityChange = () => {
+    if (!document.hidden) this.fetchNotifications();
+  };
 
   // The navbar is only rendered inside the signed-in shell (app.html), so no login checks here.
   fetchNotifications() {

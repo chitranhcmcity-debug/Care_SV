@@ -66,31 +66,40 @@ async function saveAttendance({
         const code = normalizeClass(student.classCode);
         if (!owners.has(code)) owners.set(code, await staffForClass(code));
       }
-      for (const student of students) {
-        const owner = owners.get(normalizeClass(student.classCode));
-        const task = await NhiemVuGoiDien.updateOne(
-          { attendanceId: attendance._id, studentId: student._id },
-          {
-            $setOnInsert: {
-              courseGroupId: group._id,
-              assignedStaffId: owner ? owner._id : null,
-              absenceDate: bounds.date,
-              status: CALL_STATUS.PENDING,
-              callNote: '',
-              callAttempts: 0,
+      // One round trip for the whole class; upsertedIds is keyed by the index of each operation.
+      const result = await NhiemVuGoiDien.bulkWrite(
+        students.map((student) => {
+          const owner = owners.get(normalizeClass(student.classCode));
+          return {
+            updateOne: {
+              filter: { attendanceId: attendance._id, studentId: student._id },
+              update: {
+                $setOnInsert: {
+                  courseGroupId: group._id,
+                  assignedStaffId: owner ? owner._id : null,
+                  absenceDate: bounds.date,
+                  status: CALL_STATUS.PENDING,
+                  callNote: '',
+                  callAttempts: 0,
+                },
+              },
+              upsert: true,
             },
-          },
-          { upsert: true, runValidators: true },
-        );
-        if (task.upsertedCount)
-          assignments.push({
-            staffName: owner ? owner.fullName : 'Hàng chờ Trưởng phòng (lớp chưa phân công)',
-            unassigned: !owner,
-            studentName: student.fullName,
-            studentCode: student.studentCode,
-            classCode: student.classCode,
-          });
-      }
+          };
+        }),
+        { ordered: false },
+      );
+      students.forEach((student, index) => {
+        if (!result.upsertedIds?.[index]) return;
+        const owner = owners.get(normalizeClass(student.classCode));
+        assignments.push({
+          staffName: owner ? owner.fullName : 'Hàng chờ Trưởng phòng (lớp chưa phân công)',
+          unassigned: !owner,
+          studentName: student.fullName,
+          studentCode: student.studentCode,
+          classCode: student.classCode,
+        });
+      });
     }
     return {
       message: 'Đã lưu điểm danh',

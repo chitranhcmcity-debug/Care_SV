@@ -27,4 +27,9 @@ NhiemVuGoiDienSchema.index(
   { unique: true, partialFilterExpression: { attendanceId: { $type: 'objectId' } } },
 );
 
+// Call queues are read per student, per assigned staff member and per course group.
+NhiemVuGoiDienSchema.index({ studentId: 1 });
+NhiemVuGoiDienSchema.index({ assignedStaffId: 1, status: 1 });
+NhiemVuGoiDienSchema.index({ courseGroupId: 1 });
+
 module.exports = mongoose.model('NhiemVuGoiDien', NhiemVuGoiDienSchema, 'nhiem_vu_goi_dien');

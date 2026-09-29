@@ -114,7 +114,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadCourseGroups();
     this.loadMyCallTasks();
-    this.pollTimer = setInterval(() => this.loadMyCallTasks(), 15000);
+    this.pollTimer = setInterval(() => {
+      if (!document.hidden) this.loadMyCallTasks();
+    }, 15000);
   }
 
   ngOnDestroy(): void {
