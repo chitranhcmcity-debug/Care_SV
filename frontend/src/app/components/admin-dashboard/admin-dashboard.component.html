@@ -1900,7 +1900,7 @@
   <!-- ROLE PERMISSION MATRIX (Phân quyền) -->
   <div
     *ngIf="activeTab === 'permissions'"
-    class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6"
+    class="card-3d perm-card p-6 md:p-8 pt-7 md:pt-9 space-y-6"
   >
     <div class="border-b border-slate-200 pb-4 flex items-center justify-between flex-wrap gap-4">
       <div>
@@ -1944,16 +1944,18 @@
     </div>
 
     <div *ngIf="permissionConfig && permissionDraft" class="overflow-x-auto">
-      <table class="w-full min-w-[720px] text-sm">
+      <table class="perm-table w-full min-w-[720px] text-sm">
         <thead>
-          <tr class="text-left text-slate-500 border-b border-slate-200">
-            <th class="py-3 pr-4 font-medium">Chức năng</th>
-            <th class="py-3 px-3 font-medium text-center w-32">Quản trị viên</th>
+          <tr class="text-left">
+            <th class="py-3 pl-4 pr-4">🧩 Chức năng</th>
+            <th class="py-3 px-3 text-center w-32">
+              <span class="perm-role" data-tone="0">👑 Quản trị viên</span>
+            </th>
             <th
-              *ngFor="let r of permissionConfig.roles"
-              class="py-3 px-3 font-medium text-center w-36"
+              *ngFor="let r of permissionConfig.roles; let ri = index"
+              class="py-3 px-3 text-center w-36"
             >
-              {{ r.label }}
+              <span class="perm-role" [attr.data-tone]="ri + 1">{{ r.label }}</span>
             </th>
           </tr>
         </thead>
@@ -1962,38 +1964,42 @@
             <tr>
               <td
                 [attr.colspan]="permissionConfig.roles.length + 2"
-                class="pt-5 pb-2 text-xs font-bold uppercase tracking-wide text-violet-600"
+                class="pt-5 pb-2"
               >
-                {{ g.group }}
+                <span class="perm-group">{{ g.group }}</span>
               </td>
             </tr>
-            <tr *ngFor="let p of g.items" class="border-b border-slate-100 hover:bg-slate-50">
-              <td class="py-3 pr-4">
+            <tr *ngFor="let p of g.items" class="perm-row">
+              <td class="py-3 pl-4 pr-4">
                 <div class="font-semibold text-slate-800">{{ p.label }}</div>
                 <div class="text-xs text-slate-500 mt-0.5">{{ p.description }}</div>
               </td>
-              <td class="py-3 px-3 text-center">
+              <td class="perm-cell py-3 px-3 text-center" data-tone="0">
                 <input
                   type="checkbox"
                   checked
                   disabled
-                  class="w-4 h-4 accent-violet-600 opacity-60"
+                  class="perm-check"
                   title="Quản trị viên luôn có toàn quyền"
                   [attr.aria-label]="p.label + ' — Quản trị viên (luôn có)'"
                 />
               </td>
-              <td *ngFor="let r of permissionConfig.roles" class="py-3 px-3 text-center">
+              <td
+                *ngFor="let r of permissionConfig.roles; let ri = index"
+                class="perm-cell py-3 px-3 text-center"
+                [attr.data-tone]="ri + 1"
+              >
                 <label class="inline-flex flex-col items-center gap-1 cursor-pointer">
                   <input
                     type="checkbox"
                     [checked]="hasPermission(r.role, p.key)"
                     (change)="togglePermission(r.role, p.key)"
-                    class="w-4 h-4 accent-violet-600 cursor-pointer"
+                    class="perm-check cursor-pointer"
                     [attr.aria-label]="p.label + ' — ' + r.label"
                   />
                   <span
                     *ngIf="hasPermission(r.role, p.key) !== isDefaultPermission(r.role, p.key)"
-                    class="text-[10px] font-semibold text-amber-600"
+                    class="perm-changed"
                     >khác mặc định</span
                   >
                 </label>
