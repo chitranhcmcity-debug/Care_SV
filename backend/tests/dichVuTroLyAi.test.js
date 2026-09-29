@@ -6,11 +6,12 @@ const originalEnv = {
   key: process.env.OPENAI_API_KEY,
   model: process.env.OPENAI_MODEL,
   baseURL: process.env.OPENAI_BASE_URL,
+  mode: process.env.OPENAI_API_MODE,
   provider: process.env.AI_PROVIDER,
   geminiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL,
 };
-let requests, responses, keys, endpoints;
+let requests, responses, keys, endpoints, protocols;
 require.cache[sdkPath].exports = class {
   constructor({ apiKey, baseURL }) {
     endpoints.push(baseURL);
@@ -21,8 +22,20 @@ require.cache[sdkPath].exports = class {
       if (response instanceof Error) throw response;
       return response;
     };
-    this.responses = { create };
-    this.chat = { completions: { create } };
+    this.responses = {
+      create: (body) => {
+        protocols.push('responses');
+        return create(body);
+      },
+    };
+    this.chat = {
+      completions: {
+        create: (body) => {
+          protocols.push('chat');
+          return create(body);
+        },
+      },
+    };
   }
 };
 const ai = require('../services/dichVuTroLyAi');
@@ -46,6 +59,8 @@ beforeEach(() => {
   responses = [];
   keys = [];
   endpoints = [];
+  protocols = [];
+  delete process.env.OPENAI_API_MODE;
   delete process.env.OPENAI_BASE_URL;
   process.env.OPENAI_API_KEY = 'test-key';
   delete process.env.OPENAI_MODEL;
@@ -59,6 +74,7 @@ after(() => {
     ['OPENAI_API_KEY', originalEnv.key],
     ['OPENAI_MODEL', originalEnv.model],
     ['OPENAI_BASE_URL', originalEnv.baseURL],
+    ['OPENAI_API_MODE', originalEnv.mode],
     ['AI_PROVIDER', originalEnv.provider],
     ['GEMINI_API_KEY', originalEnv.geminiKey],
     ['GEMINI_MODEL', originalEnv.geminiModel],
@@ -167,6 +183,49 @@ const useGemini = () => {
   delete process.env.OPENAI_API_KEY;
   process.env.GEMINI_API_KEY = 'gemini-key';
 };
+test('compatible proxy uses Chat Completions and can switch back to Responses', async () => {
+  process.env.OPENAI_API_MODE = 'chat';
+  process.env.OPENAI_BASE_URL = 'https://api-trikun.up.railway.app/v1';
+  process.env.OPENAI_MODEL = 'ag/gemini-3.5-flash-low';
+  responses.push(geminiAnswer({ content: 'Chào bạn' }));
+  assert.equal(await ai.chat(args), 'Chào bạn');
+  assert.equal(endpoints.at(-1), process.env.OPENAI_BASE_URL);
+  assert.equal(requests[0].model, process.env.OPENAI_MODEL);
+  assert.equal(requests[0].reasoning_effort, undefined);
+  assert.equal(requests[0].max_tokens, 1024);
+  assert.deepEqual(requests[0].messages, [{ role: 'system', content: args.system }, ...messages]);
+  delete process.env.OPENAI_API_MODE;
+  responses.push(answer);
+  await ai.chat(args);
+  assert.deepEqual(protocols, ['chat', 'responses']);
+});
+
+test('compatible proxy preserves tool calls and executes only allowed tools', async () => {
+  process.env.OPENAI_API_MODE = 'chat';
+  const toolCall = { id: 't1', type: 'function', function: { name: 'lookup', arguments: '{}' } };
+  const forbidden = { id: 't2', type: 'function', function: { name: 'drop', arguments: '{}' } };
+  responses.push(
+    geminiAnswer({ content: null, tool_calls: [toolCall, forbidden] }, 'tool_calls'),
+    geminiAnswer({ content: 'Có 3 sinh viên' }),
+  );
+  const executions = [];
+  assert.equal(
+    await ai.chatWithTools({
+      ...toolArgs,
+      execute: async (...input) => {
+        executions.push(input);
+        return { count: 3 };
+      },
+    }),
+    'Có 3 sinh viên',
+  );
+  assert.deepEqual(protocols, ['chat', 'chat']);
+  assert.deepEqual(executions, [['lookup', {}]]);
+  assert.equal(requests[0].tools[0].function.name, 'lookup');
+  assert.deepEqual(requests[1].messages.at(-3).tool_calls, [toolCall, forbidden]);
+  assert.equal(requests[1].messages.at(-2).content, '{"count":3}');
+  assert.ok(JSON.parse(requests[1].messages.at(-1).content).error);
+});
 test('Gemini is used when only its key is set, or when chosen explicitly', async () => {
   useGemini();
   responses.push(geminiAnswer({ content: 'Chào bạn' }));

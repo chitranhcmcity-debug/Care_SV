@@ -44,7 +44,11 @@
             <select
               *ngIf="item.allowed; else textInput"
               [id]="item.key"
-              [ngModel]="aiProvider(group.items)"
+              [ngModel]="
+                item.key === 'AI_PROVIDER'
+                  ? aiProvider(group.items)
+                  : draft[item.key] || item.value || 'responses'
+              "
               (ngModelChange)="draft[item.key] = $event"
               class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
             >
