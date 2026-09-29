@@ -1,10 +1,12 @@
 const { CALL_STATUS, CALL_STATUSES, toLabel } = require('../utils/hangSo');
 const { requireStudentAccess } = require('../middleware/phanQuyen');
-const { assert, validateId } = require('../utils/kiemTra');
+const { assert, validateId, dateKey } = require('../utils/kiemTra');
 const express = require('express');
 const router = express.Router();
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const NguoiDung = require('../models/NguoiDung');
+const SinhVien = require('../models/SinhVien');
+const DiemDanh = require('../models/DiemDanh');
 const {
   verifyToken,
   requireSignedIn,
@@ -14,19 +16,21 @@ const {
 } = require('../middleware/xacThuc');
 
 // POST /api/call-tasks/cleanup-duplicates (Admin xóa task trùng)
+// Keeps one task per student / course group / absence day — the one with the most call work
+// (then the oldest) — and only deletes copies nobody has called yet, so no care history is lost.
 router.post('/cleanup-duplicates', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const all = await NhiemVuGoiDien.find().sort({ createdAt: 1 }); // giữ task cũ nhất
-    const seen = new Map();
+    const all = await NhiemVuGoiDien.find()
+      .sort({ callAttempts: -1, createdAt: 1 })
+      .select('studentId courseGroupId absenceDate callAttempts status')
+      .lean();
+    const seen = new Set();
     const toDelete = [];
     for (const t of all) {
-      const dateStr = new Date(t.absenceDate).toDateString();
-      const key = `${t.studentId}_${t.courseGroupId}_${dateStr}`;
-      if (seen.has(key)) {
-        toDelete.push(t._id);
-      } else {
-        seen.set(key, t._id);
-      }
+      const key = `${t.studentId}_${t.courseGroupId}_${dateKey(t.absenceDate)}`;
+      const untouched = !t.callAttempts && t.status === CALL_STATUS.PENDING;
+      if (seen.has(key) && untouched) toDelete.push(t._id);
+      seen.add(key);
     }
     if (toDelete.length > 0) {
       await NhiemVuGoiDien.deleteMany({ _id: { $in: toDelete } });
@@ -243,7 +247,6 @@ router.put(
 
       // If student tags were provided in update, save them to SinhVien model as well
       if (Array.isArray(tags) && task.studentId) {
-        const SinhVien = require('../models/SinhVien');
         await SinhVien.findByIdAndUpdate(task.studentId, { tags });
       }
 
@@ -307,13 +310,7 @@ router.get(
   requireStudentAccess,
   async (req, res, next) => {
     try {
-      const SinhVien = require('../models/SinhVien');
-      const DiemDanh = require('../models/DiemDanh');
-
-      const student = await SinhVien.findById(req.params.studentId);
-      if (!student) {
-        return res.status(404).json({ message: 'Không tìm thấy thông tin sinh viên' });
-      }
+      const { student } = req; // loaded and access-checked by requireStudentAccess
 
       // Fetch call tasks history for this student
       const callTasks = await NhiemVuGoiDien.find({ studentId: student._id })
@@ -394,7 +391,6 @@ router.put(
         return res.status(400).json({ message: 'Thẻ nhãn phải là một mảng' });
       }
 
-      const SinhVien = require('../models/SinhVien');
       const student = await SinhVien.findByIdAndUpdate(
         req.params.studentId,
         { tags },

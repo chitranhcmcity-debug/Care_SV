@@ -3,7 +3,7 @@ const DiemDanh = require('../models/DiemDanh');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const SinhVien = require('../models/SinhVien');
 const { staffForClass } = require('./dichVuPhanCongLop');
-const { validateAttendance, dayBounds, dateKey } = require('../utils/kiemTra');
+const { validateAttendance, dayBounds, dateKey, normalizeClass } = require('../utils/kiemTra');
 
 // Serialize edits to the same session in this process. The unique session index
 // additionally prevents duplicate records across multiple server processes.
@@ -63,17 +63,11 @@ async function saveAttendance({
       const students = await SinhVien.find({ _id: { $in: missing } });
       const owners = new Map();
       for (const student of students) {
-        const code = String(student.classCode || '')
-          .trim()
-          .toUpperCase();
+        const code = normalizeClass(student.classCode);
         if (!owners.has(code)) owners.set(code, await staffForClass(code));
       }
       for (const student of students) {
-        const owner = owners.get(
-          String(student.classCode || '')
-            .trim()
-            .toUpperCase(),
-        );
+        const owner = owners.get(normalizeClass(student.classCode));
         const task = await NhiemVuGoiDien.updateOne(
           { attendanceId: attendance._id, studentId: student._id },
           {

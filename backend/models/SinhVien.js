@@ -4,7 +4,7 @@ const SinhVienSchema = new mongoose.Schema(
   {
     studentCode: { type: String, required: true, unique: true, trim: true },
     fullName: { type: String, required: true, trim: true },
-    classCode: { type: String, required: true, trim: true },
+    classCode: { type: String, required: true, trim: true, uppercase: true },
     dob: { type: String, default: '' },
     major: { type: String, default: '' },
     phone: { type: String, default: '' },

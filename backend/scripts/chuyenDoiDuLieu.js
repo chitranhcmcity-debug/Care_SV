@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const NhiemVu = require('../models/NhiemVu');
 const NhomHocPhan = require('../models/NhomHocPhan');
+const SinhVien = require('../models/SinhVien');
 const {
   CALL_STATUS_LABEL,
   TASK_STATUS_LABEL,
@@ -80,7 +81,17 @@ async function migrateEnumCodes() {
   if (total) console.log(`Migrated ${total} documents to unaccented enum codes.`);
 }
 
+// 3. Class codes are matched in upper case (class assignments, staff scope); fix older records.
+async function normalizeClassCodes() {
+  const { modifiedCount } = await SinhVien.collection.updateMany(
+    { classCode: { $type: 'string', $regex: /(^\s|\s$|[a-z])/ } },
+    [{ $set: { classCode: { $toUpper: { $trim: { input: '$classCode' } } } } }],
+  );
+  if (modifiedCount) console.log(`Normalized the class code of ${modifiedCount} students.`);
+}
+
 module.exports = async function migrateLegacyData() {
   await renameCollections();
   await migrateEnumCodes();
+  await normalizeClassCodes();
 };

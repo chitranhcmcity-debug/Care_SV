@@ -5,10 +5,12 @@ const ExcelJS = require('exceljs');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const { verifyToken, requirePermission } = require('../middleware/xacThuc');
+const { normalizeClass } = require('../utils/kiemTra');
 
-// Multer memory storage configuration
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
+});
 
 // =========================================================
 // GET /api/excel/course-template
@@ -258,7 +260,7 @@ router.post(
                   ...(parentPhone ? { parentPhone } : {}),
                 },
                 // Only seed the home class for new students; never overwrite it afterwards.
-                $setOnInsert: { classCode: sheetName.split('_').pop() || sheetName },
+                $setOnInsert: { classCode: normalizeClass(sheetName.split('_').pop() || sheetName) },
               },
               { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
             );
@@ -496,7 +498,7 @@ router.post(
               ...(phone ? { phone } : {}),
               ...(parentPhone ? { parentPhone } : {}),
               courseGroups: courseGroupsArray,
-              classCode: worksheet.name.trim(),
+              classCode: normalizeClass(worksheet.name),
             },
             { upsert: true, returnDocument: 'after' },
           );

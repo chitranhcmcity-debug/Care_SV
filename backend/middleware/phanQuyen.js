@@ -1,7 +1,7 @@
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
 const SinhVien = require('../models/SinhVien');
-const { assert, validateId } = require('../utils/kiemTra');
+const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
 const { can } = require('../services/dichVuPhanQuyen');
 
 /**
@@ -15,11 +15,7 @@ async function canAccessStudent(user, student) {
   if (user.role === 'teacher')
     return Boolean(await NhomHocPhan.exists({ teacherId: user.id, students: student._id }));
   if (user.role === 'staff')
-    return (user.managedClasses || []).includes(
-      String(student.classCode || '')
-        .trim()
-        .toUpperCase(),
-    );
+    return (user.managedClasses || []).includes(normalizeClass(student.classCode));
   return false;
 }
 

@@ -335,13 +335,13 @@ router.put(
   requireTaskOwnerOrAdmin,
   uploadEvidence,
   async (req, res, next) => {
+    const files = req.files || [];
     try {
       assert(
         [TASK_STATUS.ACKNOWLEDGED, TASK_STATUS.REJECTED].includes(req.task.status),
         'Cần xác nhận nhiệm vụ trước khi nộp minh chứng',
       );
       const { note, link } = req.body;
-      const files = req.files || [];
       assert(
         (note && note.trim()) || (link && link.trim()) || files.length > 0,
         'Vui lòng cung cấp ít nhất một minh chứng: ghi chú, link hoặc file',
@@ -352,8 +352,8 @@ router.put(
           'Link minh chứng phải bắt đầu bằng http:// hoặc https://',
         );
       }
-      // A resubmission after rejection replaces the previous evidence set.
-      removeFiles(req.task.evidenceFiles);
+      // A resubmission after rejection replaces the previous evidence set (deleted once saved).
+      const previousFiles = req.task.evidenceFiles.toObject();
       req.task.evidenceNote = note ? note.trim() : '';
       req.task.evidenceLink = link ? link.trim() : '';
       req.task.evidenceFiles = files.map((f) => ({
@@ -367,9 +367,12 @@ router.put(
       logProgress(req.task, 100, 'Nộp minh chứng hoàn thành');
       req.task.reviewNote = '';
       await req.task.save();
+      removeFiles(previousFiles);
       await req.task.populate(taskPopulation);
       res.json({ message: 'Đã nộp minh chứng, chờ sếp duyệt!', task: req.task });
     } catch (error) {
+      // Files of a rejected submission must not stay on disk.
+      for (const file of files) fs.unlink(file.path, () => {});
       next(error);
     }
   },

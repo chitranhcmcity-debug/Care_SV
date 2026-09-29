@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
 const NhomHocPhan = require('../models/NhomHocPhan');
@@ -8,8 +7,19 @@ const DiemDanh = require('../models/DiemDanh');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const { verifyToken, requirePermission, requireSignedIn } = require('../middleware/xacThuc');
 const { SHIFT, DEFAULT_SCHEDULE_DAYS } = require('../utils/hangSo');
-const { assert } = require('../utils/kiemTra');
+const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
 const { classHours } = require('../services/dichVuCanhBao');
+
+/** The teacher account behind `teacherId`; only an active teacher can be put in charge. */
+async function findTeacher(teacherId) {
+  validateId(teacherId);
+  const teacher = await NguoiDung.findById(teacherId);
+  assert(
+    teacher && teacher.role === 'teacher' && teacher.status === 'active',
+    'Chỉ phân công giảng viên đang hoạt động cho học phần',
+  );
+  return teacher;
+}
 
 const TIMETABLE_FIELDS = ['startTime', 'endTime', 'periodsPerSession', 'totalPeriods'];
 
@@ -103,7 +113,7 @@ router.post('/', verifyToken, requirePermission('courses.manage'), async (req, r
       teacherName,
     } = req.body;
 
-    if (!groupCode) {
+    if (typeof groupCode !== 'string' || !groupCode.trim()) {
       return res.status(400).json({ message: 'Mã Nhóm Học Phần là bắt buộc' });
     }
 
@@ -115,12 +125,10 @@ router.post('/', verifyToken, requirePermission('courses.manage'), async (req, r
     let assignedTeacherName = teacherName || 'Giảng viên CNTT';
     let validTeacherId = null;
 
-    if (teacherId && mongoose.Types.ObjectId.isValid(teacherId)) {
-      validTeacherId = teacherId;
-      const teacherUser = await NguoiDung.findById(teacherId);
-      if (teacherUser) {
-        assignedTeacherName = teacherUser.fullName;
-      }
+    if (teacherId) {
+      const teacher = await findTeacher(teacherId);
+      validTeacherId = teacher._id;
+      assignedTeacherName = teacher.fullName;
     }
 
     const draft = new NhomHocPhan({ groupCode: groupCode.trim(), shift: shift || SHIFT.MORNING });
@@ -186,11 +194,12 @@ router.put('/:id', verifyToken, requirePermission('courses.manage'), async (req,
     applyTimetable(group, req.body);
 
     if (teacherId !== undefined) {
-      if (teacherId && mongoose.Types.ObjectId.isValid(teacherId)) {
-        group.teacherId = teacherId;
-        const teacherUser = await NguoiDung.findById(teacherId);
-        if (teacherUser) group.teacherName = teacherUser.fullName;
-      } else {
+      // Re-saving with the current teacher is fine even if that account was locked since.
+      if (teacherId && String(teacherId) !== String(group.teacherId)) {
+        const teacher = await findTeacher(teacherId);
+        group.teacherId = teacher._id;
+        group.teacherName = teacher.fullName;
+      } else if (!teacherId) {
         group.teacherId = null;
       }
     } else if (teacherName !== undefined) {
@@ -331,7 +340,7 @@ router.post(
   async (req, res, next) => {
     try {
       const { classCode } = req.body;
-      if (!classCode) {
+      if (typeof classCode !== 'string' || !classCode.trim()) {
         return res.status(400).json({ message: 'Mã lớp sinh hoạt là bắt buộc' });
       }
 
@@ -340,7 +349,7 @@ router.post(
         return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
       }
 
-      const classStudents = await SinhVien.find({ classCode: classCode.trim() });
+      const classStudents = await SinhVien.find({ classCode: normalizeClass(classCode) });
       if (classStudents.length === 0) {
         return res
           .status(404)

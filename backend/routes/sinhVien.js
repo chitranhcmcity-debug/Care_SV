@@ -8,7 +8,7 @@ const DiemDanh = require('../models/DiemDanh');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const CuocGoi = require('../models/CuocGoi');
 const { verifyToken, requirePermission } = require('../middleware/xacThuc');
-const { assert, validateId } = require('../utils/kiemTra');
+const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
 const { getUploadDir } = require('../utils/moiTruong');
 
 const MAX_PAGE_SIZE = 100;
@@ -22,7 +22,7 @@ router.get('/', verifyToken, requirePermission('students.view'), async (req, res
     const page = Math.max(Number(req.query.page) || 1, 1);
 
     const filter = {};
-    if (typeof classCode === 'string' && classCode) filter.classCode = classCode;
+    if (typeof classCode === 'string' && classCode) filter.classCode = normalizeClass(classCode);
     if (typeof search === 'string' && search.trim()) {
       const pattern = { $regex: RegExp.escape(search.trim()), $options: 'i' };
       filter.$or = [

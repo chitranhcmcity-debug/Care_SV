@@ -5,13 +5,8 @@ const LichSuPhanCong = require('../models/LichSuPhanCong');
 const NguoiDung = require('../models/NguoiDung');
 const SinhVien = require('../models/SinhVien');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
-const { assert } = require('../utils/kiemTra');
+const { assert, normalizeClass } = require('../utils/kiemTra');
 const { OPEN_CALL_STATUSES } = require('../utils/hangSo');
-
-const normalizeClass = (code) =>
-  String(code || '')
-    .trim()
-    .toUpperCase();
 
 /**
  * Brings history in line with managedClasses for data created before history existed:

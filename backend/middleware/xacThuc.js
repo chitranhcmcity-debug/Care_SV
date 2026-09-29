@@ -9,7 +9,7 @@ async function verifyToken(req, res, next) {
   try {
     decoded = jwt.verify(match[1], getJwtSecret(), { algorithms: ['HS256'] });
   } catch {
-    return res.status(401).json({ message: 'Đã tồn tại hoặc hết hạn' });
+    return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn' });
   }
   try {
     if (!decoded.id || !/^[a-f\d]{24}$/i.test(decoded.id))

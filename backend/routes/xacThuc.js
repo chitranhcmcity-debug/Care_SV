@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const NguoiDung = require('../models/NguoiDung');
+const NhomHocPhan = require('../models/NhomHocPhan');
 const { ROLE_LABEL } = require('../utils/hangSo');
 const { verifyToken, requireAdmin, requireSignedIn } = require('../middleware/xacThuc');
 const { permissionsForRole } = require('../services/dichVuPhanQuyen');
@@ -30,6 +31,17 @@ const SELF_REGISTER_ROLES = ['staff', 'teacher'];
 // Roles an admin may give an account (admins are not created through the UI).
 const ASSIGNABLE_ROLES = ['staff', 'teacher', 'manager'];
 
+/**
+ * Hands back the work tied to an account's current role before it changes role or is deleted:
+ * a staff member's classes are released (history kept, open calls go to the manager's queue),
+ * a teacher is taken off the course groups they teach.
+ */
+async function releaseRoleWork(user, by, reason) {
+  if (user.role === 'staff') await releaseStaffClasses(user, by, reason);
+  else if (user.role === 'teacher')
+    await NhomHocPhan.updateMany({ teacherId: user._id }, { teacherId: null });
+}
+
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 function newToken() {
   const token = crypto.randomBytes(32).toString('base64url');
@@ -49,6 +61,16 @@ function assertPassword(value) {
     'Mật khẩu phải có từ 8 đến 128 ký tự',
   );
 }
+// A password the admin typed (same rules as sign-up), or a random 16-character one.
+function chosenOrRandomPassword(value) {
+  assert(value === undefined || typeof value === 'string', 'Mật khẩu không hợp lệ');
+  if (!value || !value.trim()) return crypto.randomBytes(12).toString('base64url');
+  assertPassword(value.trim());
+  return value.trim();
+}
+// Never sent to the browser: password hash and one-time email token hashes.
+const PRIVATE_FIELDS = '-password -verifyTokenHash -resetTokenHash';
+
 // Optional allow-list, e.g. SIGNUP_EMAIL_DOMAINS=itc.edu.vn — empty means any domain.
 const signupDomains = () =>
   (process.env.SIGNUP_EMAIL_DOMAINS || '')
@@ -273,32 +295,23 @@ router.post('/reset-password', async (req, res, next) => {
 router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { fullName, email, customPassword, role } = req.body;
-    if (
-      typeof fullName !== 'string' ||
-      typeof email !== 'string' ||
-      !fullName.trim() ||
-      !email.trim()
-    ) {
+    if (typeof fullName !== 'string' || !fullName.trim()) {
       return res.status(400).json({ message: 'Tên và email là bắt buộc' });
     }
+    const normalizedEmail = readEmail(email);
+    const rawPassword = chosenOrRandomPassword(customPassword);
 
-    assert(customPassword === undefined || typeof customPassword === 'string', 'Invalid password');
-    const existing = await NguoiDung.findOne({ email: email.toLowerCase().trim() });
+    const existing = await NguoiDung.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(400).json({ message: 'Email này đã tồn tại trong hệ thống' });
     }
 
-    // Custom password, or a random 16-character base64url one
-    const rawPassword =
-      customPassword && customPassword.trim()
-        ? customPassword.trim()
-        : crypto.randomBytes(12).toString('base64url');
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const assignedRole = ASSIGNABLE_ROLES.includes(role) ? role : 'staff';
 
     const newStaff = new NguoiDung({
       fullName: fullName.trim(),
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       password: hashedPassword,
       role: assignedRole,
       status: 'active',
@@ -334,7 +347,7 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) =
 router.get('/staff-list', verifyToken, requireSignedIn, async (req, res, next) => {
   try {
     const staffs = await NguoiDung.find({ role: { $ne: 'admin' } })
-      .select('-password')
+      .select(PRIVATE_FIELDS)
       .sort({ createdAt: -1 });
     res.json(staffs);
   } catch (error) {
@@ -355,28 +368,32 @@ router.put('/staff/:id', verifyToken, requireAdmin, async (req, res, next) => {
 
     if (fullName) user.fullName = fullName.trim();
     if (ASSIGNABLE_ROLES.includes(role) && role !== user.role) {
-      if (user.role === 'staff')
-        await releaseStaffClasses(user, req.user.id, 'Đổi vai trò tài khoản');
+      await releaseRoleWork(user, req.user.id, 'Đổi vai trò tài khoản');
       user.role = role;
       user.managedClasses = [];
     }
     if (email) {
+      const normalizedEmail = readEmail(email);
       const existing = await NguoiDung.findOne({
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
         _id: { $ne: req.params.id },
       });
       if (existing) {
         return res.status(400).json({ message: 'Email này đã thuộc về tài khoản khác' });
       }
-      user.email = email.toLowerCase().trim();
+      user.email = normalizedEmail;
     }
     if (password && password.trim()) {
+      assertPassword(password.trim());
       user.tokenVersion = (user.tokenVersion || 0) + 1;
       user.password = await bcrypt.hash(password.trim(), 10);
     }
 
     await user.save();
-    res.json({ message: 'Cập nhật thông tin nhân viên thành công!', staff: user });
+    res.json({
+      message: 'Cập nhật thông tin nhân viên thành công!',
+      staff: await NguoiDung.findById(user._id).select(PRIVATE_FIELDS),
+    });
   } catch (error) {
     next(error);
   }
@@ -391,11 +408,7 @@ router.post('/staff/:id/reset-password', verifyToken, requireAdmin, async (req, 
       return res.status(404).json({ message: 'Không tìm thấy tài khoản nhân viên' });
     }
 
-    assert(newPassword === undefined || typeof newPassword === 'string', 'Invalid password');
-    const rawPassword =
-      newPassword && newPassword.trim()
-        ? newPassword.trim()
-        : crypto.randomBytes(12).toString('base64url');
+    const rawPassword = chosenOrRandomPassword(newPassword);
     user.tokenVersion = (user.tokenVersion || 0) + 1;
     user.password = await bcrypt.hash(rawPassword, 10);
     await user.save();
@@ -426,11 +439,12 @@ router.put('/staff/:id/status', verifyToken, requireAdmin, async (req, res, next
       return res.status(400).json({ message: 'Trạng thái không hợp lệ' });
     }
 
-    const updated = await NguoiDung.findByIdAndUpdate(
-      req.params.id,
+    // Admin accounts are never locked from here, so the system always keeps an administrator.
+    const updated = await NguoiDung.findOneAndUpdate(
+      { _id: req.params.id, role: { $ne: 'admin' } },
       { status, $inc: { tokenVersion: 1 } },
       { returnDocument: 'after', runValidators: true },
-    ).select('-password');
+    ).select(PRIVATE_FIELDS);
     if (!updated) {
       return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
     }
@@ -454,15 +468,7 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) =>
       return res.status(400).json({ message: 'Không thể xóa tài khoản Quản trị viên (Admin)' });
     }
 
-    if (user.role === 'staff') {
-      // Their classes are released (history kept) and open call tasks go to the manager's queue.
-      await releaseStaffClasses(user, req.user.id, 'Tài khoản nhân viên bị xóa');
-    } else if (user.role === 'teacher') {
-      // Course groups taught by this teacher would otherwise keep a dangling teacherId.
-      const NhomHocPhan = require('../models/NhomHocPhan');
-      await NhomHocPhan.updateMany({ teacherId: user._id }, { teacherId: null });
-    }
-
+    await releaseRoleWork(user, req.user.id, 'Tài khoản nhân viên bị xóa');
     await NguoiDung.findByIdAndDelete(req.params.id);
     res.json({ message: `Đã xóa vĩnh viễn tài khoản nhân viên ${user.fullName}!` });
   } catch (error) {

@@ -37,6 +37,11 @@ function parseOptionalDate(value, message = 'Ngày không hợp lệ') {
   assert(!Number.isNaN(date.getTime()), message);
   return date;
 }
+// Administrative class codes are compared case-insensitively: always stored trimmed, upper case.
+const normalizeClass = (code) =>
+  String(code || '')
+    .trim()
+    .toUpperCase();
 function dateKey(value) {
   const date = new Date(value);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -48,4 +53,5 @@ module.exports = {
   dayBounds,
   dateKey,
   parseOptionalDate,
+  normalizeClass,
 };

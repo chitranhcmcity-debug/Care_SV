@@ -1,4 +1,7 @@
 require('dotenv').config();
+// Attendance days and class-time windows use local time; default to Vietnam when the host
+// (e.g. a cloud container in UTC) does not set TZ.
+process.env.TZ ||= 'Asia/Ho_Chi_Minh';
 const mongoose = require('mongoose');
 const app = require('./app');
 const { getConfig } = require('./utils/moiTruong');
