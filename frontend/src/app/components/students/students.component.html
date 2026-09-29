@@ -1,30 +1,36 @@
 <div class="mx-4 md:mx-6 my-5 space-y-5">
   <!-- Filters -->
-  <section class="card-3d p-5 flex flex-wrap gap-3 items-end">
+  <section class="card-3d filter-card p-5 pt-6 flex flex-wrap gap-3 items-end">
     <div class="flex-1 min-w-[220px] space-y-1.5">
-      <label for="student-search" class="block text-sm font-medium text-slate-700">Tìm kiếm</label>
-      <input
-        id="student-search"
-        type="search"
-        [(ngModel)]="search"
-        (ngModelChange)="onSearchInput()"
-        placeholder="MSSV, họ tên hoặc số điện thoại"
-        class="w-full h-11 px-3 rounded-lg border border-slate-300 text-sm"
-      />
+      <label for="student-search" class="filter-label">🔎 Tìm kiếm</label>
+      <div class="filter-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input
+          id="student-search"
+          type="search"
+          [(ngModel)]="search"
+          (ngModelChange)="onSearchInput()"
+          placeholder="MSSV, họ tên hoặc số điện thoại"
+          class="filter-field w-full h-11 pl-11 pr-4 text-sm"
+        />
+      </div>
     </div>
     <div class="space-y-1.5">
-      <label for="student-class" class="block text-sm font-medium text-slate-700">Lớp</label>
+      <label for="student-class" class="filter-label">🏫 Lớp</label>
       <select
         id="student-class"
         [(ngModel)]="classCode"
         (ngModelChange)="load(1)"
-        class="h-11 px-3 rounded-lg border border-slate-300 bg-white text-sm min-w-[160px]"
+        class="filter-field h-11 px-4 text-sm font-semibold min-w-[170px]"
       >
         <option value="">Tất cả lớp</option>
         <option *ngFor="let c of classes()" [value]="c">{{ c }}</option>
       </select>
     </div>
-    <div class="text-sm text-slate-500 pb-3">{{ total() }} sinh viên</div>
+    <div class="filter-count"><b>{{ total() }}</b> sinh viên</div>
     <button
       *ngIf="canManage"
       type="button"

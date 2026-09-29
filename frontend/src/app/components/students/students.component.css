@@ -301,3 +301,79 @@ a.contact-card:hover {
 .phone--student::before { background: #10b981; }
 .phone--parent { color: #be185d; }
 .phone--parent::before { background: #ec4899; }
+
+/* ---------- Student search bar ---------- */
+.filter-card {
+  position: relative;
+  overflow: hidden;
+}
+.filter-card::before {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  content: '';
+  background: linear-gradient(90deg, #7c3aed, #c026d3, #ec4899, #f59e0b);
+}
+.filter-label {
+  display: block;
+  color: #5b21b6;
+  font-size: 13px;
+  font-weight: 700;
+}
+.filter-search {
+  position: relative;
+}
+.filter-search svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: #8b5cf6;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.filter-field {
+  border: 1.5px solid #ddd6fe;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #faf8ff, #ffffff);
+  color: #1e1b4b;
+  box-shadow: inset 0 1px 2px rgb(76 29 149 / 0.06);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.filter-field::placeholder {
+  color: #a39bc4;
+}
+.filter-field:hover {
+  border-color: #c4b5fd;
+}
+.filter-field:focus {
+  outline: none;
+  border-color: #a855f7;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgb(168 85 247 / 0.18);
+}
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ede9fe, #fce7f3);
+  border: 1.5px solid #e9d5ff;
+  color: #6b21a8;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.filter-count b {
+  font-size: 16px;
+  font-weight: 800;
+  color: #7c3aed;
+}
