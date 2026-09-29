@@ -28,6 +28,14 @@
   box-shadow: 0 18px 32px -14px rgb(219 39 119 / 0.85);
 }
 
+/* Mobile section links scroll sideways without showing a scrollbar. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Hero backdrop: blurred colour blobs + a faint dotted grid. */
 .hero {
   position: relative;
