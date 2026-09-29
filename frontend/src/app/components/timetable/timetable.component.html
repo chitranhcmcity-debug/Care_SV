@@ -76,12 +76,14 @@
       <div class="space-y-2.5">
         <article
           *ngFor="let g of byDay()[day]"
-          class="group p-3 rounded-xl border text-xs transition-all hover:-translate-y-0.5 hover:shadow-md"
-          [ngClass]="[
-            shiftTone[g.shift || ''] || 'bg-slate-50 border-slate-200 text-slate-900',
-            g.isMine ? 'ring-2 ring-violet-400 ring-offset-1' : '',
-          ]"
+          class="group p-3 rounded-xl border text-xs ring-2 ring-violet-400 ring-offset-1 transition-all hover:-translate-y-0.5 hover:shadow-md"
+          [ngClass]="shiftTone[g.shift || ''] || 'bg-slate-50 border-slate-200 text-slate-900'"
         >
+          <span
+            *ngIf="g.isMine && !onlyMine()"
+            class="mb-1.5 inline-block px-2 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-bold"
+            >★ Lớp của tôi</span
+          >
           <div class="font-extrabold text-[12px] leading-snug break-words">{{ g.groupCode }}</div>
           <div *ngIf="g.courseName" class="mt-1 text-slate-800 font-medium leading-snug">
             {{ g.courseName }}
