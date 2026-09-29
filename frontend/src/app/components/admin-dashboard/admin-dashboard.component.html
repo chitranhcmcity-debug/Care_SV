@@ -1,281 +1,190 @@
 <div class="mx-4 md:mx-6 my-5 space-y-5">
-  <!-- Admin Header Banner -->
-  <div class="relative overflow-hidden rounded-2xl bg-violet-600 p-6 md:p-8 text-white">
-    <!-- decorative circles, Berry "Total Earning" card style -->
-    <div
-      class="pointer-events-none absolute -right-20 -top-32 h-72 w-72 rounded-full bg-violet-800"
-    ></div>
-    <div
-      class="pointer-events-none absolute right-16 -top-44 h-72 w-72 rounded-full bg-violet-800/50"
-    ></div>
-
-    <div
-      class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-    >
-      <div class="space-y-2 max-w-2xl">
-        <span
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-violet-800 text-xs font-medium"
-        >
-          <svg
-            class="w-3.5 h-3.5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z" stroke-linejoin="round" />
-          </svg>
-          {{
-            isFullAdmin
-              ? 'Quản trị viên hệ thống'
-              : isManager
-                ? 'Trưởng phòng / Phó hiệu trưởng'
-                : 'Báo cáo chăm sóc sinh viên'
-          }}
-        </span>
-        <h2 class="text-2xl md:text-[28px] font-semibold leading-tight">
-          {{
-            isFullAdmin
-              ? 'Quản lý hệ thống & báo cáo chuyên sâu'
-              : isManager
-                ? 'Tổng quan quản lý & chăm sóc sinh viên'
-                : visibleTabs.length > 1
-                  ? 'Quản lý, giao việc & báo cáo'
-                  : 'Báo cáo chăm sóc sinh viên'
-          }}
-        </h2>
-        <p class="text-sm text-violet-100">
-          {{
-            isFullAdmin
-              ? 'Nhập sinh viên qua Excel, cấu hình học phần, quản lý tài khoản và phân quyền, theo dõi cảnh báo cấm thi.'
-              : isManager
-                ? 'Theo dõi chuyên cần và cảnh báo vắng học, phân công nhân viên, giao việc và giám sát tiến độ chăm sóc.'
-                : 'Các chức năng quản lý Quản trị viên đã cấp quyền cho vai trò của bạn.'
-          }}
-        </p>
-      </div>
-
-      <button
-        *ngIf="activeTab === 'analytics'"
-        (click)="downloadCareReport()"
-        [disabled]="isExportingCareReport"
-        class="shrink-0 px-5 h-11 bg-white text-violet-600 hover:bg-violet-50 font-semibold text-sm rounded-lg shadow-sm transition-all flex items-center gap-2 disabled:opacity-60"
-      >
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path
-            d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <span>{{
-          isExportingCareReport ? 'Đang xuất báo cáo...' : 'Xuất báo cáo chăm sóc (.xlsx)'
-        }}</span>
-      </button>
-    </div>
-  </div>
-
   <!-- COMPONENT 2: EXCEL IMPORT BY COURSE -->
   <div *ngIf="activeTab === 'excel'" class="space-y-6">
-    <!-- Info Banner -->
+    <!-- One block: title and the three steps, then template download and upload side by side -->
     <div
-      class="relative overflow-hidden bg-gradient-to-r from-violet-700 via-purple-600 to-fuchsia-600 text-white p-6 md:p-7 rounded-3xl shadow-lg shadow-violet-500/15"
+      class="bg-white border border-violet-100 rounded-3xl shadow-[0_12px_35px_-18px_rgba(76,29,149,0.3)] overflow-hidden"
     >
       <div
-        class="pointer-events-none absolute -right-16 -top-28 h-64 w-64 rounded-full bg-white/10"
-      ></div>
-      <div
-        class="pointer-events-none absolute right-20 -top-40 h-64 w-64 rounded-full bg-pink-300/15"
-      ></div>
-      <div
-        class="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        class="px-6 py-5 bg-gradient-to-r from-violet-50 via-fuchsia-50/60 to-white border-b border-violet-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
       >
-        <div class="space-y-1">
-          <div class="text-xs font-bold text-violet-100 uppercase tracking-wider">
-            📊 NHẬP SINH VIÊN HÀNG LOẠT THEO HỌC PHẦN
-          </div>
-          <h3 class="text-xl font-bold">Quy Trình 3 Bước Đơn Giản</h3>
-          <p class="text-sm text-violet-50/90">
-            Cấu hình học phần → Tải mẫu Excel → Nhập SV vào mẫu → Upload
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Nhập sinh viên hàng loạt theo học phần</h3>
+          <p class="text-sm text-slate-500 mt-0.5">
+            Mỗi sheet trong file Excel là một nhóm học phần; tên sheet chính là mã nhóm.
           </p>
         </div>
-        <div class="flex items-center gap-3 text-xs font-bold">
-          <div
-            class="flex flex-col items-center gap-1 bg-white/15 border border-white/15 rounded-2xl p-3 text-center shadow-sm"
-          >
-            <span class="text-2xl">1️⃣</span>
-            <span>Cấu Hình<br />Học Phần</span>
-          </div>
-          <span class="text-violet-100 text-lg">→</span>
-          <div
-            class="flex flex-col items-center gap-1 bg-white/15 border border-white/15 rounded-2xl p-3 text-center shadow-sm"
-          >
-            <span class="text-2xl">2️⃣</span>
-            <span>Tải Mẫu<br />Excel</span>
-          </div>
-          <span class="text-violet-100 text-lg">→</span>
-          <div
-            class="flex flex-col items-center gap-1 bg-white/15 border border-white/15 rounded-2xl p-3 text-center shadow-sm"
-          >
-            <span class="text-2xl">3️⃣</span>
-            <span>Upload<br />& Đồng Bộ</span>
-          </div>
-        </div>
+        <ol class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-700">
+          <li class="flex items-center gap-2">
+            <span
+              class="w-7 h-7 rounded-full bg-violet-600 text-white text-xs grid place-items-center"
+              >1</span
+            >
+            Cấu hình học phần
+          </li>
+          <li class="w-6 h-px bg-violet-200" aria-hidden="true"></li>
+          <li class="flex items-center gap-2">
+            <span
+              class="w-7 h-7 rounded-full bg-violet-600 text-white text-xs grid place-items-center"
+              >2</span
+            >
+            Tải mẫu
+          </li>
+          <li class="w-6 h-px bg-violet-200" aria-hidden="true"></li>
+          <li class="flex items-center gap-2">
+            <span
+              class="w-7 h-7 rounded-full bg-violet-600 text-white text-xs grid place-items-center"
+              >3</span
+            >
+            Upload
+          </li>
+        </ol>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Download Course Template Card -->
       <div
-        class="bg-white border border-violet-100 p-6 rounded-3xl shadow-[0_12px_35px_-18px_rgba(76,29,149,0.3)] space-y-4"
+        class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-violet-100"
       >
-        <div class="flex items-center gap-3">
-          <div
-            class="w-12 h-12 rounded-2xl bg-violet-100 border border-violet-200 flex items-center justify-center text-2xl"
-          >
-            📥
+        <!-- Download template -->
+        <div class="p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-11 h-11 rounded-2xl bg-violet-100 flex items-center justify-center text-xl"
+            >
+              📥
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-900">Tải file mẫu</h4>
+              <p class="text-sm text-slate-500">
+                Hiện có <b class="text-violet-700">{{ courseGroupList.length }} học phần</b>
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 class="font-bold text-slate-900">Tải File Mẫu Theo Học Phần</h4>
-            <p class="text-xs text-slate-500">Mỗi sheet = 1 mã học phần đã cấu hình</p>
-          </div>
-        </div>
 
-        <div
-          class="p-4 rounded-2xl bg-violet-50/80 border border-violet-200 text-xs text-violet-800 font-medium space-y-1"
-        >
-          <div class="font-bold text-violet-950">📋 File mẫu sẽ có cấu trúc:</div>
-          <div>• <b>Mỗi sheet</b> = 1 nhóm học phần (tên sheet = mã nhóm)</div>
-          <div>• Các cột: <b>MSSV | Họ Tên | SĐT SV | SĐT Phụ Huynh</b></div>
-          <div>• SV đã đăng ký sẽ được pre-fill sẵn</div>
-        </div>
+          <ul class="text-sm text-slate-600 space-y-1">
+            <li>• Mỗi sheet = 1 nhóm học phần (tên sheet = mã nhóm)</li>
+            <li>• Cột: <b>MSSV | Họ Tên | SĐT SV | SĐT Phụ Huynh</b></li>
+            <li>• Sinh viên đã đăng ký được điền sẵn</li>
+          </ul>
 
-        <div class="text-xs font-bold text-slate-600">
-          📌 Số học phần hiện có:
-          <span class="text-violet-800 font-bold">{{ courseGroupList.length }} học phần</span>
-        </div>
-
-        <button
-          (click)="downloadCourseTemplate()"
-          [disabled]="isDownloadingCourseExcel"
-          class="w-full py-3.5 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 disabled:from-slate-400 disabled:to-slate-400 text-white font-bold rounded-xl touch-target text-sm transition-all hover:-translate-y-0.5 disabled:translate-y-0 shadow-lg shadow-violet-500/20 flex items-center justify-center gap-2"
-        >
-          <svg
-            *ngIf="isDownloadingCourseExcel"
-            class="animate-spin h-4 w-4 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <span>{{
-            isDownloadingCourseExcel ? '⏳ Đang tạo file mẫu...' : '📥 TẢI MẪU EXCEL THEO HỌC PHẦN'
-          }}</span>
-        </button>
-
-        <div class="border-t border-slate-200 pt-4">
-          <p class="text-xs text-slate-500 font-medium mb-2">
-            🗂️ Hoặc tải mẫu theo lớp sinh hoạt (legacy):
-          </p>
           <button
-            (click)="downloadExcelTemplate()"
-            [disabled]="isDownloadingExcel"
-            class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl touch-target text-xs transition-all"
+            (click)="downloadCourseTemplate()"
+            [disabled]="isDownloadingCourseExcel"
+            class="w-full py-3.5 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 disabled:from-slate-400 disabled:to-slate-400 text-white font-bold rounded-xl touch-target text-sm transition-all hover:-translate-y-0.5 disabled:translate-y-0 shadow-lg shadow-violet-500/20 flex items-center justify-center gap-2"
           >
-            {{ isDownloadingExcel ? 'Đang tạo...' : '📄 Tải mẫu theo Lớp Sinh Hoạt' }}
+            <svg
+              *ngIf="isDownloadingCourseExcel"
+              class="animate-spin h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span>{{
+              isDownloadingCourseExcel
+                ? '⏳ Đang tạo file mẫu...'
+                : '📥 TẢI MẪU EXCEL THEO HỌC PHẦN'
+            }}</span>
+          </button>
+
+          <div class="text-center">
+            <button
+              (click)="downloadExcelTemplate()"
+              [disabled]="isDownloadingExcel"
+              class="text-xs font-semibold text-slate-500 hover:text-violet-700 underline underline-offset-2"
+            >
+              {{ isDownloadingExcel ? 'Đang tạo...' : '📄 Tải mẫu theo Lớp Sinh Hoạt' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Upload -->
+        <div class="p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-11 h-11 rounded-2xl bg-fuchsia-100 flex items-center justify-center text-xl"
+            >
+              📤
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-900">Upload &amp; đồng bộ</h4>
+              <p class="text-sm text-slate-500">Tên sheet phải khớp với mã nhóm học phần</p>
+            </div>
+          </div>
+
+          <input
+            type="file"
+            (change)="onCourseFileSelected($event)"
+            accept=".xlsx, .xls"
+            #courseFileInput
+            class="hidden"
+          />
+
+          <div
+            (click)="courseFileInput.click()"
+            class="w-full flex flex-col items-center gap-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all"
+            [ngClass]="
+              selectedCourseFile
+                ? 'border-violet-500 bg-violet-50 ring-4 ring-violet-100/70'
+                : 'border-violet-200 hover:border-violet-400 bg-violet-50/30 hover:bg-violet-50'
+            "
+          >
+            <div class="text-3xl">{{ selectedCourseFile ? '✅' : '📎' }}</div>
+            <div class="text-xs font-bold text-slate-700">
+              {{
+                selectedCourseFile
+                  ? selectedCourseFile.name
+                  : 'Bấm vào đây để chọn file Excel (.xlsx)'
+              }}
+            </div>
+            <div *ngIf="selectedCourseFile" class="text-xs text-violet-700 font-medium mt-1">
+              {{ (selectedCourseFile.size / 1024).toFixed(1) }} KB
+            </div>
+          </div>
+
+          <button
+            (click)="uploadByCourse()"
+            [disabled]="!selectedCourseFile || isUploadingCourseExcel"
+            class="w-full py-3.5 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 disabled:from-slate-400 disabled:to-slate-400 text-white font-bold rounded-xl touch-target text-sm transition-all hover:-translate-y-0.5 disabled:translate-y-0 shadow-lg shadow-violet-500/20 flex items-center justify-center gap-2"
+          >
+            <svg
+              *ngIf="isUploadingCourseExcel"
+              class="animate-spin h-4 w-4 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span>{{
+              isUploadingCourseExcel ? '⏳ Đang đồng bộ dữ liệu...' : '🚀 UPLOAD & ĐỒNG BỘ HỌC PHẦN'
+            }}</span>
           </button>
         </div>
-      </div>
-
-      <!-- Upload by Course Card -->
-      <div
-        class="bg-white border border-violet-100 p-6 rounded-3xl shadow-[0_12px_35px_-18px_rgba(76,29,149,0.3)] space-y-4"
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="w-12 h-12 rounded-2xl bg-fuchsia-100 border border-fuchsia-200 flex items-center justify-center text-2xl"
-          >
-            📤
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900">Upload Hàng Loạt Theo Học Phần</h4>
-            <p class="text-xs text-slate-500">Tên sheet phải khớp với mã nhóm học phần</p>
-          </div>
-        </div>
-
-        <input
-          type="file"
-          (change)="onCourseFileSelected($event)"
-          accept=".xlsx, .xls"
-          #courseFileInput
-          class="hidden"
-        />
-
-        <div
-          (click)="courseFileInput.click()"
-          class="border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all touch-target"
-          [ngClass]="
-            selectedCourseFile
-              ? 'border-violet-500 bg-violet-50 ring-4 ring-violet-100/70'
-              : 'border-violet-200 hover:border-violet-400 bg-violet-50/30 hover:bg-violet-50'
-          "
-        >
-          <div class="text-3xl mb-2">{{ selectedCourseFile ? '✅' : '📎' }}</div>
-          <div class="text-xs font-bold text-slate-700">
-            {{
-              selectedCourseFile
-                ? selectedCourseFile.name
-                : 'Bấm vào đây để chọn file Excel (.xlsx)'
-            }}
-          </div>
-          <div *ngIf="selectedCourseFile" class="text-xs text-violet-700 font-medium mt-1">
-            {{ (selectedCourseFile.size / 1024).toFixed(1) }} KB
-          </div>
-        </div>
-
-        <button
-          (click)="uploadByCourse()"
-          [disabled]="!selectedCourseFile || isUploadingCourseExcel"
-          class="w-full py-3.5 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 disabled:from-slate-400 disabled:to-slate-400 text-white font-bold rounded-xl touch-target text-sm transition-all hover:-translate-y-0.5 disabled:translate-y-0 shadow-lg shadow-violet-500/20 flex items-center justify-center gap-2"
-        >
-          <svg
-            *ngIf="isUploadingCourseExcel"
-            class="animate-spin h-4 w-4 text-white"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
-            <path
-              class="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            ></path>
-          </svg>
-          <span>{{
-            isUploadingCourseExcel ? '⏳ Đang đồng bộ dữ liệu...' : '🚀 UPLOAD & ĐỒNG BỘ HỌC PHẦN'
-          }}</span>
-        </button>
       </div>
     </div>
 
@@ -1049,14 +958,23 @@
         <span class="text-slate-300">•</span>
         <span class="text-slate-400">Tự động làm mới mỗi 60 giây</span>
       </div>
-      <button
-        (click)="loadAnalytics()"
-        [disabled]="isRefreshingAnalytics"
-        class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all"
-      >
-        <span [class.animate-spin]="isRefreshingAnalytics">🔄</span>
-        {{ isRefreshingAnalytics ? 'Đang tải...' : 'Làm Mới' }}
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          (click)="downloadCareReport()"
+          [disabled]="isExportingCareReport"
+          class="px-4 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 disabled:opacity-60"
+        >
+          📊 {{ isExportingCareReport ? 'Đang xuất...' : 'Xuất báo cáo (.xlsx)' }}
+        </button>
+        <button
+          (click)="loadAnalytics()"
+          [disabled]="isRefreshingAnalytics"
+          class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all"
+        >
+          <span [class.animate-spin]="isRefreshingAnalytics">🔄</span>
+          {{ isRefreshingAnalytics ? 'Đang tải...' : 'Làm Mới' }}
+        </button>
+      </div>
     </div>
 
     <!-- Overview Metrics Cards -->
