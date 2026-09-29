@@ -143,10 +143,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.billing.refreshStatus().subscribe({ error: () => {} });
     this.authService.refreshSession().subscribe();
     this.fetchNotifications();
-    // Opening a work page marks that kind of work as seen.
+    // Opening a work page marks that kind of work as seen. Zoneless: a finished navigation is
+    // not a template event, so re-render to move the sidebar highlight to the new page.
     this.navigation = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => this.markPageSeen());
+      .subscribe(() => {
+        this.markPageSeen();
+        this.cdr.markForCheck();
+      });
     // Poll the bell and sidebar counts every 15 seconds while the tab is visible, and catch up
     // as soon as it is shown again.
     this.intervalId = setInterval(() => {
