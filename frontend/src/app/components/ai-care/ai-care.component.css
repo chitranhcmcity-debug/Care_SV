@@ -120,7 +120,7 @@
 /* Chat panel: same brand gradient and pastel tone as the landing page and the sidebar. */
 .ai-panel {
   background: #fff;
-  border: 1px solid var(--card-border);
+  border: 1.5px solid var(--card-border);
   box-shadow: 0 30px 60px -28px rgb(76 29 149 / 0.5);
 }
 .ai-header {
@@ -133,7 +133,7 @@
 }
 .ai-bubble {
   background: #fff;
-  border: 1px solid var(--card-border);
+  border: 1.5px solid var(--card-border);
   box-shadow: 0 6px 16px -12px rgb(76 29 149 / 0.35);
 }
 .ai-grad {

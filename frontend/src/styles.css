@@ -237,9 +237,9 @@ a:focus-visible {
   --accent-pink: #db2777;
   --accent-amber: #f59e0b;
   --soft-border: #ebe8f7;
-  --card-border: #dcd3f3;
+  --card-border: #c8bbef;
   --card-border-hover: rgb(var(--brand-300));
-  --tile-border: #e6e0f6;
+  --tile-border: #dbd2f4;
   --hero-gradient: linear-gradient(
     115deg,
     rgb(var(--brand-600)) 0%,
@@ -260,7 +260,7 @@ a:focus-visible {
   background:
     radial-gradient(900px 420px at 100% -10%, rgb(var(--brand-100) / 0.55), transparent 70%),
     radial-gradient(700px 380px at -10% 110%, rgb(252 231 243 / 0.7), transparent 70%),
-    #f4f3fb;
+    #ecebf6;
 }
 
 /* ---------- Card borders (every page, every role) ----------
@@ -274,7 +274,7 @@ a:focus-visible {
     .rounded-2xl,
     .rounded-3xl
   ) {
-  border-width: 1px;
+  border-width: 1.5px;
 }
 
 /* White cards (panels, list items, modals). */
@@ -284,11 +284,11 @@ a:focus-visible {
     .rounded-2xl,
     .rounded-3xl
   ) {
-  border: 1px solid var(--card-border);
+  border: 1.5px solid var(--card-border);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.9),
-    0 1px 2px rgb(76 29 149 / 0.06),
-    0 10px 28px -18px rgb(76 29 149 / 0.35);
+    0 2px 4px rgb(76 29 149 / 0.08),
+    0 14px 32px -14px rgb(76 29 149 / 0.42);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
@@ -297,7 +297,7 @@ a:focus-visible {
 /* Modals keep their big drop shadow, just with the same edge. */
 .app-main :is(div, section, form).bg-white.shadow-2xl {
   box-shadow:
-    0 0 0 1px var(--card-border),
+    0 0 0 1.5px var(--card-border),
     0 30px 60px -24px rgb(76 29 149 / 0.45);
   border-color: transparent;
 }
@@ -307,7 +307,7 @@ a:focus-visible {
   border-color: var(--card-border-hover);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.9),
-    0 14px 30px -18px rgb(76 29 149 / 0.45);
+    0 18px 36px -14px rgb(76 29 149 / 0.5);
 }
 
 /* Info tiles inside cards (grey fills): a visible edge instead of near-white on white. */
