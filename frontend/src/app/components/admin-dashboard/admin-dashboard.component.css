@@ -3,7 +3,7 @@
 }
 
 .staff-table {
-  min-width: 960px;
+  min-width: 900px;
 }
 
 .staff-table thead tr {
@@ -59,11 +59,34 @@
   gap: 4px;
 }
 
+/* Actions are round icon buttons (label in the tooltip); wide screens show the label too. */
 .staff-actions button {
   flex-shrink: 0;
-  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 34px;
   min-height: 34px;
-  padding: 6px 11px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.act-text {
+  display: none;
+}
+@media (min-width: 1700px) {
+  .staff-actions button {
+    padding: 0 12px;
+  }
+  .act-text {
+    display: inline;
+  }
+}
+.staff-email {
+  display: block;
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -258,10 +281,15 @@
 .act--unlock { --a: #059669; }
 .act--delete { --a: #e11d48; }
 
-.staff-actions button:focus-visible,
-.staff-table-container:focus-visible {
-  outline: 2px solid #3b82f6;
+.staff-actions button:focus-visible {
+  outline: 2px solid #a855f7;
   outline-offset: 2px;
+}
+.staff-table-container:focus {
+  outline: none;
+}
+.staff-table-container:focus-visible {
+  box-shadow: 0 0 0 3px rgb(168 85 247 / 0.35);
 }
 
 @media (pointer: coarse) {

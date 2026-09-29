@@ -444,11 +444,11 @@
             <td class="p-3">
               <div class="flex items-center gap-3">
                 <span class="staff-avatar">{{ staffInitials(staff.fullName) }}</span>
-                <span class="font-bold text-slate-900">{{ staff.fullName }}</span>
+                <span class="font-bold text-slate-900 whitespace-nowrap">{{ staff.fullName }}</span>
               </div>
             </td>
             <td class="p-3 text-slate-600 font-medium tabular-nums text-xs">
-              {{ staff.email }}
+              <span class="staff-email" [title]="staff.email">{{ staff.email }}</span>
             </td>
             <td class="p-3">
               <span class="staff-role">
@@ -498,9 +498,10 @@
                 <button
                   type="button"
                   (click)="openEditStaffModal(staff)"
+                  title="Sửa"
                   class="act act--edit touch-target"
                 >
-                  ✏️ Sửa
+                  ✏️<span class="act-text">Sửa</span>
                 </button>
                 <button
                   *ngIf="staff.role === 'staff' && canAssessStaff"
@@ -509,7 +510,7 @@
                   class="act act--ai touch-target"
                   title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
                 >
-                  ✨ Đánh giá AI
+                  ✨<span class="act-text">Đánh giá AI</span>
                 </button>
                 <button
                   type="button"
@@ -517,22 +518,25 @@
                   title="Đặt lại mật khẩu"
                   class="act act--reset touch-target"
                 >
-                  🔑 Đặt lại MK
+                  🔑<span class="act-text">Đặt lại MK</span>
                 </button>
                 <button
                   type="button"
                   (click)="toggleStaffStatus(staff)"
+                  [title]="staff.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'"
                   class="act touch-target"
                   [ngClass]="staff.status === 'active' ? 'act--lock' : 'act--unlock'"
                 >
-                  {{ staff.status === 'active' ? '🔒 Khóa' : '🔓 Mở khóa' }}
+                  {{ staff.status === 'active' ? '🔒' : '🔓'
+                  }}<span class="act-text">{{ staff.status === 'active' ? 'Khóa' : 'Mở khóa' }}</span>
                 </button>
                 <button
                   type="button"
                   (click)="deleteStaffAccount(staff)"
+                  title="Xóa tài khoản"
                   class="act act--delete touch-target"
                 >
-                  🗑️ Xóa
+                  🗑️<span class="act-text">Xóa</span>
                 </button>
               </div>
             </td>
