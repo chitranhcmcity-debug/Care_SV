@@ -19,6 +19,8 @@ const MAX_HISTORY = 20; // matches the backend limit
 // Robot launcher size in px (keep in sync with .robot-launcher in the CSS).
 const ROBOT_W = 96;
 const ROBOT_H = 80;
+// How long the robot stays where the user dropped it before it wanders again.
+const DROP_REST_MS = 8000;
 
 /** AI Care: floating assistant available on every signed-in page; what it can do depends on role. */
 @Component({
@@ -45,8 +47,7 @@ export class AiCareComponent {
   readonly facing = signal<'left' | 'right'>('left');
   private wanderTimer?: ReturnType<typeof setTimeout>;
   private paused = false;
-  // Drag to move: once the user drops the robot somewhere it stays there (no more wandering),
-  // so it never flies back over what they were reading.
+  // Drag to move: the robot rests where it is dropped, then goes back to wandering.
   readonly dragging = signal(false);
   private drag: {
     pointerId: number;
@@ -56,8 +57,8 @@ export class AiCareComponent {
     originY: number;
     moved: boolean;
   } | null = null;
-  private pinnedPos: { x: number; y: number } | null = null;
   private suppressClick = false;
+  private restUntil = 0;
   private readonly reducedMotion =
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -87,7 +88,6 @@ export class AiCareComponent {
     this.travelMs.set(0);
     if (this.open()) this.pos.set(this.dockPosition());
     else this.pos.update(({ x, y }) => ({ x: Math.min(x, maxX), y: Math.min(y, maxY) }));
-    if (this.pinnedPos && !this.open()) this.pinnedPos = this.pos();
   }
 
   onPointerDown(event: PointerEvent) {
@@ -134,8 +134,9 @@ export class AiCareComponent {
     if (!drag.moved) return; // a plain click: (click) opens the chat
     this.dragging.set(false);
     this.suppressClick = true; // the click fired after a drag must not open the chat
-    if (this.open()) return; // moved while the chat is open: it docks again when closed
-    this.pinnedPos = this.pos();
+    // Rest where it was dropped for a while, then carry on wandering.
+    this.restUntil = Date.now() + DROP_REST_MS;
+    this.scheduleWander(DROP_REST_MS);
   }
 
   onClick() {
@@ -201,7 +202,8 @@ export class AiCareComponent {
 
   private scheduleWander(delay: number) {
     clearTimeout(this.wanderTimer);
-    if (this.reducedMotion || this.paused || this.open() || this.pinnedPos || this.drag) return;
+    if (this.reducedMotion || this.paused || this.open() || this.drag) return;
+    delay = Math.max(delay, this.restUntil - Date.now());
     this.wanderTimer = setTimeout(() => {
       const { minX, minY, maxX, maxY } = this.bounds();
       const ms = this.flyTo({
@@ -222,13 +224,6 @@ export class AiCareComponent {
     if (this.open()) {
       // Park next to the chat panel.
       const ms = this.flyTo(this.dockPosition(), 900);
-      this.wanderTimer = setTimeout(() => {
-        this.flying.set(false);
-        this.tilt.set(0);
-      }, ms);
-    } else if (this.pinnedPos) {
-      // Go back to where the user put it.
-      const ms = this.flyTo(this.pinnedPos, 900);
       this.wanderTimer = setTimeout(() => {
         this.flying.set(false);
         this.tilt.set(0);
