@@ -1010,26 +1010,26 @@
     <!-- Charts Section -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Chart 1: Absence count by course group -->
-      <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
-        <h4
-          class="font-bold text-slate-900 text-base border-b pb-3 flex items-center justify-between"
-        >
-          <span>📊 Tỷ Lệ Vắng Theo Nhóm Học Phần</span>
-          <span class="text-xs font-semibold text-slate-500">Buổi vắng</span>
-        </h4>
-        <div class="space-y-3 pt-2">
-          <div *ngFor="let item of analyticsData?.courseAbsenceStats" class="space-y-1">
-            <div class="flex justify-between text-xs font-bold text-slate-700">
-              <span>{{ item.courseCode }}</span>
-              <span class="text-blue-900">{{ item.absentCount }} Lượt Vắng</span>
+      <div class="bar-panel bar-panel--violet p-6 space-y-4">
+        <div class="bar-head">
+          <h4><span class="bar-icon" aria-hidden="true">📊</span> Tỷ lệ vắng theo nhóm học phần</h4>
+          <span class="bar-sub">Buổi vắng</span>
+        </div>
+        <div class="space-y-3.5">
+          <div
+            *ngFor="let item of analyticsData?.courseAbsenceStats; let i = index"
+            class="bar-row"
+            [attr.data-tone]="i % 5"
+          >
+            <div class="flex items-center justify-between gap-3 text-xs">
+              <span class="flex items-center gap-2 min-w-0">
+                <span class="bar-rank">{{ i + 1 }}</span>
+                <span class="font-bold text-slate-800 truncate">{{ item.courseCode }}</span>
+              </span>
+              <span class="bar-count"><b>{{ item.absentCount }}</b> lượt vắng</span>
             </div>
-            <div
-              class="w-full bg-slate-100 rounded-full h-3.5 border border-slate-200 overflow-hidden"
-            >
-              <div
-                class="bg-blue-800 h-full rounded-full transition-all duration-500"
-                [style.width.%]="calcPercentage(item.absentCount, maxAbsenceCount)"
-              ></div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="calcPercentage(item.absentCount, maxAbsenceCount)"></div>
             </div>
           </div>
           <div
@@ -1042,26 +1042,26 @@
       </div>
 
       <!-- Chart 2: Most Common Reasons Breakdown -->
-      <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
-        <h4
-          class="font-bold text-slate-900 text-base border-b pb-3 flex items-center justify-between"
-        >
-          <span>💡 Thống Kê Lý Do Vắng Phổ Biến</span>
-          <span class="text-xs font-semibold text-slate-500">Trích xuất CallNote</span>
-        </h4>
-        <div class="space-y-3 pt-2">
-          <div *ngFor="let item of analyticsData?.reasonStats" class="space-y-1">
-            <div class="flex justify-between text-xs font-bold text-slate-700">
-              <span>{{ item.reason }}</span>
-              <span class="text-emerald-800 font-bold">{{ item.count }} Lượt</span>
+      <div class="bar-panel bar-panel--pink p-6 space-y-4">
+        <div class="bar-head">
+          <h4><span class="bar-icon" aria-hidden="true">💡</span> Thống kê lý do vắng phổ biến</h4>
+          <span class="bar-sub">Trích xuất CallNote</span>
+        </div>
+        <div class="space-y-3.5">
+          <div
+            *ngFor="let item of analyticsData?.reasonStats; let i = index"
+            class="bar-row"
+            [attr.data-tone]="i % 5"
+          >
+            <div class="flex items-center justify-between gap-3 text-xs">
+              <span class="flex items-center gap-2 min-w-0">
+                <span class="bar-rank">{{ i + 1 }}</span>
+                <span class="font-bold text-slate-800 truncate">{{ item.reason }}</span>
+              </span>
+              <span class="bar-count"><b>{{ item.count }}</b> lượt</span>
             </div>
-            <div
-              class="w-full bg-slate-100 rounded-full h-3.5 border border-slate-200 overflow-hidden"
-            >
-              <div
-                class="bg-emerald-600 h-full rounded-full transition-all duration-500"
-                [style.width.%]="calcPercentage(item.count, maxReasonCount)"
-              ></div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="calcPercentage(item.count, maxReasonCount)"></div>
             </div>
           </div>
         </div>
