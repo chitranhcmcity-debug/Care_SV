@@ -17,8 +17,8 @@ import { renderMarkdown } from '../../utils/markdown';
 
 const MAX_HISTORY = 20; // matches the backend limit
 // Robot launcher size in px (keep in sync with .robot-launcher in the CSS).
-const ROBOT_W = 92;
-const ROBOT_H = 105;
+const ROBOT_W = 120;
+const ROBOT_H = 100;
 
 /** AI Care: floating assistant available on every signed-in page; what it can do depends on role. */
 @Component({
@@ -41,6 +41,8 @@ export class AiCareComponent {
   readonly travelMs = signal(0);
   readonly tilt = signal(0);
   readonly flying = signal(false);
+  /** Which way the robot faces; it starts docked at the right edge, looking into the page. */
+  readonly facing = signal<'left' | 'right'>('left');
   private wanderTimer?: ReturnType<typeof setTimeout>;
   private paused = false;
   private readonly reducedMotion =
@@ -117,7 +119,10 @@ export class AiCareComponent {
     const { x, y } = this.pos();
     const distance = Math.hypot(target.x - x, target.y - y);
     const ms = Math.round(Math.min(6000, Math.max(900, (distance / speed) * 1000)));
-    this.tilt.set(Math.abs(target.x - x) < 20 ? 0 : target.x > x ? 10 : -10);
+    const sideways = Math.abs(target.x - x) >= 20;
+    // Mostly vertical hops keep the current facing, so the robot does not flip back and forth.
+    if (sideways) this.facing.set(target.x > x ? 'right' : 'left');
+    this.tilt.set(sideways ? (target.x > x ? 6 : -6) : 0);
     this.flying.set(true);
     this.travelMs.set(ms);
     this.pos.set(target);

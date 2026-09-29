@@ -15,141 +15,23 @@
 >
   <span class="robot-tip">{{ open() ? 'Đóng AI Care' : 'Hỏi AI Care' }}</span>
   <span class="robot-body" [style.--tilt]="tilt() + 'deg'">
-    <svg viewBox="0 0 140 160" aria-hidden="true">
-      <defs>
-        <linearGradient id="aic-shell" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" style="stop-color: var(--rb-shell-1)" />
-          <stop offset="1" style="stop-color: var(--rb-shell-2)" />
-        </linearGradient>
-        <radialGradient id="aic-visor" cx="0.5" cy="0.35" r="0.8">
-          <stop offset="0" style="stop-color: var(--rb-visor-1)" />
-          <stop offset="1" style="stop-color: var(--rb-visor-2)" />
-        </radialGradient>
-        <linearGradient id="aic-band" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" style="stop-color: var(--rb-accent-1)" />
-          <stop offset="1" style="stop-color: var(--rb-accent-2)" />
-        </linearGradient>
-        <radialGradient id="aic-flame" cx="0.5" cy="0.2" r="0.8">
-          <stop offset="0" style="stop-color: var(--rb-flame)" />
-          <stop offset="0.45" style="stop-color: var(--rb-eye)" />
-          <stop offset="1" style="stop-color: var(--rb-accent-1)" stop-opacity="0" />
-        </radialGradient>
-      </defs>
-
-      <!-- Jet flame (visible while flying) -->
-      <ellipse class="robot-flame" cx="74" cy="142" rx="9" ry="16" fill="url(#aic-flame)" />
-
-      <!-- Idea bubble -->
-      <g class="robot-bubble">
-        <path
-          d="M6 8h28a8 8 0 0 1 8 8v16a8 8 0 0 1-8 8H22l-8 7v-7H6a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z"
-          transform="translate(4 0)"
-          fill="url(#aic-band)"
-        />
-        <g
-          fill="none"
-          stroke="#fff"
-          stroke-width="2.4"
-          stroke-linecap="round"
-          transform="translate(4 0)"
-        >
-          <path
-            d="M20 31c0-3-4-4.5-4-9a6 6 0 0 1 12 0c0 4.5-4 6-4 9z"
-            fill="#fff"
-            fill-opacity="0.25"
-          />
-          <path d="M20 34.5h4" />
-        </g>
-      </g>
-
-      <!-- Arm down (viewer's right) -->
-      <ellipse
-        cx="104"
-        cy="104"
-        rx="7.5"
-        ry="16"
-        transform="rotate(-18 104 104)"
-        fill="url(#aic-shell)"
-        style="stroke: var(--rb-edge)"
+    <!-- Two drawings of the wizard robot; the one facing the flight direction is shown. -->
+    <span class="robot-float">
+      <img
+        src="robot-ai-left.png"
+        alt=""
+        class="robot-img"
+        [class.is-shown]="facing() === 'left'"
+        draggable="false"
       />
-
-      <!-- Body -->
-      <path
-        d="M74 72c17 0 28 12 28 30 0 18-12 32-28 32S46 120 46 102c0-18 11-30 28-30z"
-        fill="url(#aic-shell)"
-        style="stroke: var(--rb-edge)"
+      <img
+        src="robot-ai-right.png"
+        alt=""
+        class="robot-img"
+        [class.is-shown]="facing() === 'right'"
+        draggable="false"
       />
-      <circle class="robot-core" cx="74" cy="96" r="4.5" style="fill: var(--rb-eye)" />
-      <rect x="66" y="66" width="16" height="8" rx="3" style="fill: var(--rb-edge)" />
-
-      <!-- Waving arm (viewer's left) -->
-      <g class="robot-arm">
-        <ellipse
-          cx="42"
-          cy="78"
-          rx="7.5"
-          ry="17"
-          transform="rotate(28 42 78)"
-          fill="url(#aic-shell)"
-          style="stroke: var(--rb-edge)"
-        />
-        <circle cx="34" cy="60" r="8.5" fill="url(#aic-shell)" style="stroke: var(--rb-edge)" />
-      </g>
-
-      <!-- Head -->
-      <g class="robot-head">
-        <rect
-          x="38"
-          y="12"
-          width="72"
-          height="58"
-          rx="26"
-          fill="url(#aic-shell)"
-          style="stroke: var(--rb-edge)"
-        />
-        <rect x="46" y="23" width="56" height="37" rx="17" fill="url(#aic-visor)" />
-        <g class="robot-eyes" style="fill: var(--rb-eye)">
-          <ellipse cx="63" cy="39" rx="5" ry="6.5" />
-          <ellipse cx="85" cy="39" rx="5" ry="6.5" />
-        </g>
-        <!-- Blush and visor shine -->
-        <ellipse cx="55" cy="49" rx="4.5" ry="2.6" style="fill: var(--rb-blush)" />
-        <ellipse cx="93" cy="49" rx="4.5" ry="2.6" style="fill: var(--rb-blush)" />
-        <path
-          d="M53 33q3-5 10-6"
-          fill="none"
-          stroke="#fff"
-          stroke-opacity="0.35"
-          stroke-width="2.4"
-          stroke-linecap="round"
-        />
-        <path
-          d="M66 49q8 6 16 0"
-          fill="none"
-          style="stroke: var(--rb-eye)"
-          stroke-width="2.6"
-          stroke-linecap="round"
-        />
-        <!-- Headset -->
-        <path
-          d="M38 40a36 36 0 0 1 72 0"
-          fill="none"
-          stroke="url(#aic-band)"
-          stroke-width="5"
-          stroke-linecap="round"
-        />
-        <rect x="31" y="30" width="11" height="23" rx="5.5" fill="url(#aic-band)" />
-        <rect x="106" y="30" width="11" height="23" rx="5.5" fill="url(#aic-band)" />
-        <path
-          d="M36 52q2 13 18 12"
-          fill="none"
-          style="stroke: var(--rb-accent-2)"
-          stroke-width="3"
-          stroke-linecap="round"
-        />
-        <circle cx="55" cy="64" r="3.2" style="fill: var(--rb-accent-2)" />
-      </g>
-    </svg>
+    </span>
   </span>
   <span class="robot-shadow"></span>
 </button>
