@@ -189,4 +189,9 @@ export class StudentsComponent implements OnInit {
     const [from, to] = AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
     return `linear-gradient(135deg, ${from}, ${to})`;
   }
+
+  /** Stable colour slot (0–5) for a class code, so each class keeps the same chip colour. */
+  classTone(code = ''): number {
+    return [...code].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 6;
+  }
 }

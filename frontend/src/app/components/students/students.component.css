@@ -221,3 +221,83 @@ a.contact-card:hover {
     animation: none;
   }
 }
+
+/* ---------- Student list: colourful rows ---------- */
+.student-table thead tr {
+  background: linear-gradient(90deg, #ede9fe, #fce7f3 60%, #fef3c7);
+}
+.student-table thead th {
+  color: #5b21b6;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.student-row {
+  border-bottom: 1px solid #efeafb;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.student-row:nth-child(even) {
+  background: #fbf9ff;
+}
+.student-row:last-child {
+  border-bottom: 0;
+}
+.student-row:hover {
+  background: linear-gradient(90deg, #f5f3ff, #fdf2f8);
+  box-shadow: inset 4px 0 0 #a855f7;
+}
+.code-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+.row-avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 6px 12px -6px rgb(76 29 149 / 0.6);
+}
+.class-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 12px;
+  font-weight: 700;
+}
+.class-chip[data-tone='0'] { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+.class-chip[data-tone='1'] { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+.class-chip[data-tone='2'] { background: #e0f2fe; border-color: #7dd3fc; color: #075985; }
+.class-chip[data-tone='3'] { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.class-chip[data-tone='4'] { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.class-chip[data-tone='5'] { background: #ffedd5; border-color: #fdba74; color: #9a3412; }
+.phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.phone::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  content: '';
+}
+.phone--student { color: #047857; }
+.phone--student::before { background: #10b981; }
+.phone--parent { color: #be185d; }
+.phone--parent::before { background: #ec4899; }
