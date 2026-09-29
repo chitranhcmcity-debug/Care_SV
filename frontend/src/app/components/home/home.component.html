@@ -1,30 +1,30 @@
 <div class="min-h-screen bg-white text-slate-900 flex flex-col">
   <!-- ============ HEADER ============ -->
-  <header class="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between gap-4">
-      <a routerLink="/" class="flex items-center gap-3">
-        <img [src]="branding.logo()" alt="Logo ITC" width="44" height="44" class="object-contain" />
-        <div class="leading-tight">
-          <div class="font-bold text-slate-900">{{ branding.title() }}</div>
+  <header class="sticky top-0 z-50 bg-white/75 backdrop-blur-xl border-b border-violet-100/70">
+    <div class="max-w-7xl mx-auto px-5 md:px-6 h-[72px] flex items-center justify-between gap-4">
+      <a routerLink="/" class="flex items-center gap-3 min-w-0">
+        <img [src]="branding.logo()" alt="Logo ITC" width="42" height="42" class="object-contain" />
+        <div class="leading-tight min-w-0">
+          <div class="font-extrabold text-slate-900 truncate">{{ branding.title() }}</div>
           <div class="hidden sm:block text-xs text-slate-500 whitespace-nowrap">
-            Hệ thống quản lý &amp; điểm danh sinh viên
+            Điểm danh &amp; chăm sóc sinh viên
           </div>
         </div>
       </a>
 
       <nav
-        class="hidden lg:flex items-center gap-1 text-sm font-medium text-slate-600 whitespace-nowrap"
+        class="hidden lg:flex items-center gap-1 p-1 rounded-full bg-slate-100/80 text-sm font-medium text-slate-600"
       >
         <a
           *ngFor="let link of navLinks"
           [href]="'#' + link.id"
           (click)="scrollTo(link.id, $event)"
           [attr.aria-current]="activeSection() === link.id ? 'location' : null"
-          class="px-4 py-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          class="px-4 py-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
           [ngClass]="
             activeSection() === link.id
-              ? 'bg-violet-50 text-violet-700'
-              : 'hover:bg-slate-100 hover:text-slate-900'
+              ? 'bg-white text-violet-700 shadow-sm'
+              : 'hover:text-slate-900'
           "
           >{{ link.label }}</a
         >
@@ -33,18 +33,18 @@
       <div class="flex items-center gap-2 shrink-0">
         <div
           *ngIf="authService.currentUser() as user"
-          class="hidden md:flex items-center gap-2.5 pl-1.5 pr-3 h-11 rounded-lg bg-slate-50 border border-slate-200"
+          class="hidden md:flex items-center gap-2.5 pl-1.5 pr-3 h-11 rounded-full bg-white border border-slate-200"
         >
           <span
-            class="w-8 h-8 rounded-md bg-violet-100 text-violet-700 text-sm font-semibold flex items-center justify-center"
+            class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm font-bold flex items-center justify-center"
             aria-hidden="true"
             >{{ (user.fullName || '?').trim().charAt(0).toUpperCase() }}</span
           >
           <span class="leading-tight min-w-0">
-            <span class="block text-sm font-medium text-slate-900 truncate max-w-[160px]">{{
+            <span class="block text-sm font-semibold text-slate-900 truncate max-w-[150px]">{{
               user.fullName
             }}</span>
-            <span class="block text-xs text-slate-500 truncate max-w-[160px]">{{
+            <span class="block text-xs text-slate-500 truncate max-w-[150px]">{{
               roleLabels[user.role]
             }}</span>
           </span>
@@ -52,7 +52,7 @@
         <button
           type="button"
           (click)="enterSystem()"
-          class="px-5 h-11 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors shadow-[0_8px_20px_-8px_rgba(103,58,183,0.7)]"
+          class="btn-grad px-5 h-11 rounded-full text-sm font-semibold"
         >
           {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Đăng nhập' }}
         </button>
@@ -62,7 +62,7 @@
           (click)="logout()"
           [title]="'Đăng xuất khỏi tài khoản ' + (authService.currentUser()?.fullName || '')"
           aria-label="Đăng xuất"
-          class="w-11 h-11 rounded-lg border border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+          class="w-11 h-11 rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
         >
           <svg
             class="w-5 h-5"
@@ -85,205 +85,165 @@
 
   <main class="flex-grow">
     <!-- ============ HERO ============ -->
-    <section class="relative overflow-hidden bg-gradient-to-b from-violet-50/70 via-white to-white">
-      <!-- soft grid + glows -->
-      <div
-        class="pointer-events-none absolute inset-0 opacity-60 [background-image:linear-gradient(#e3e8ef_1px,transparent_1px),linear-gradient(90deg,#e3e8ef_1px,transparent_1px)] [background-size:72px_72px] [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]"
-      ></div>
-      <div
-        class="pointer-events-none absolute -top-40 -right-32 w-[34rem] h-[34rem] rounded-full bg-blue-100/60 blur-3xl"
-      ></div>
-      <div
-        class="pointer-events-none absolute top-40 -left-40 w-[30rem] h-[30rem] rounded-full bg-violet-100/70 blur-3xl"
-      ></div>
+    <section class="hero">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+      <div class="dots"></div>
 
       <div
-        class="relative max-w-7xl mx-auto px-6 pt-16 pb-20 md:pt-24 md:pb-28 grid lg:grid-cols-2 gap-14 items-center"
+        class="relative max-w-7xl mx-auto px-5 md:px-6 pt-14 pb-16 md:pt-20 md:pb-24 grid lg:grid-cols-[1.05fr_1fr] gap-14 items-center"
       >
         <!-- Copy -->
         <div class="space-y-7 text-center lg:text-left">
           <span
-            class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-violet-100 text-violet-600 text-xs font-medium shadow-sm"
+            class="glass inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-violet-700 text-xs font-semibold"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
-            Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM
+            <span class="relative flex w-2 h-2">
+              <span class="absolute inset-0 rounded-full bg-fuchsia-400 animate-ping opacity-75"></span>
+              <span class="relative w-2 h-2 rounded-full bg-fuchsia-500"></span>
+            </span>
+            {{ branding.schoolName() }}
           </span>
           <h1
-            class="text-4xl md:text-[56px] font-bold tracking-tight text-slate-900 leading-[1.12]"
+            class="text-[40px] leading-[1.08] md:text-[62px] font-extrabold tracking-tight text-slate-900"
           >
-            Chăm sóc &amp; điểm danh sinh viên
-            <span class="relative whitespace-nowrap text-violet-600">
-              chuyên nghiệp
-              <svg
-                class="absolute left-0 -bottom-2 w-full h-3 text-violet-200"
-                viewBox="0 0 200 12"
-                preserveAspectRatio="none"
-                fill="none"
-              >
-                <path
-                  d="M2 9C50 3 150 3 198 9"
-                  stroke="currentColor"
-                  stroke-width="5"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </span>
+            Không để sinh viên nào
+            <span class="text-grad">bị bỏ lại phía sau</span>
           </h1>
           <p class="text-base md:text-lg text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-            Điểm danh theo học phần, tự động phân công nhân viên chăm sóc gọi điện nhắc nhở sinh
-            viên vắng học, và cảnh báo sớm nguy cơ cấm thi cho Phòng Đào Tạo.
+            Điểm danh đúng giờ học, tự động giao cuộc gọi chăm sóc cho đúng người phụ trách, cảnh
+            báo sớm nguy cơ cấm thi — và một trợ lý AI luôn sẵn sàng làm việc cùng bạn.
           </p>
           <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
             <button
               type="button"
               (click)="enterSystem()"
-              class="w-full sm:w-auto px-7 h-12 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors shadow-[0_10px_24px_-10px_rgba(103,58,183,0.8)] inline-flex items-center justify-center gap-2"
+              class="btn-grad w-full sm:w-auto px-8 h-[52px] rounded-full text-[15px] font-semibold inline-flex items-center justify-center gap-2"
             >
-              {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Đăng nhập hệ thống' }}
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+              {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Bắt đầu ngay' }}
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path d="M5 12h14m-5-5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
             <a
               href="#tinh-nang"
-              class="w-full sm:w-auto px-7 h-12 rounded-lg border border-violet-200 bg-white hover:bg-violet-50 text-violet-600 text-sm font-medium transition-colors inline-flex items-center justify-center"
+              (click)="scrollTo('tinh-nang', $event)"
+              class="glass w-full sm:w-auto px-8 h-[52px] rounded-full text-violet-700 text-[15px] font-semibold inline-flex items-center justify-center gap-2 hover:bg-white transition-colors"
             >
-              Tìm hiểu thêm
+              Khám phá tính năng
             </a>
+          </div>
+          <div
+            class="flex items-center justify-center lg:justify-start gap-4 pt-1 text-sm text-slate-500"
+          >
+            <div class="flex -space-x-2">
+              <span class="w-8 h-8 rounded-full ring-2 ring-white bg-gradient-to-br from-violet-500 to-fuchsia-500"></span>
+              <span class="w-8 h-8 rounded-full ring-2 ring-white bg-gradient-to-br from-sky-400 to-indigo-500"></span>
+              <span class="w-8 h-8 rounded-full ring-2 ring-white bg-gradient-to-br from-emerald-400 to-teal-500"></span>
+              <span class="w-8 h-8 rounded-full ring-2 ring-white bg-gradient-to-br from-amber-400 to-orange-500"></span>
+            </div>
+            <span>Dành cho Ban Giám Hiệu, Phòng CTSV, CSKH &amp; Giảng viên</span>
           </div>
         </div>
 
-        <!-- Product mockup (illustrative, no real data) -->
+        <!-- Product mock-up (illustrative, no real data) -->
         <div class="relative hidden md:block" aria-hidden="true">
-          <!-- sparkles -->
-          <svg
-            class="absolute -top-8 -left-6 w-10 h-10 text-violet-500"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path
-              d="M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12C6.2 11.4 11.4 6.2 12 0z"
-            />
-          </svg>
-          <svg
-            class="absolute -bottom-6 -right-4 w-8 h-8 text-blue-400"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path
-              d="M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12C6.2 11.4 11.4 6.2 12 0z"
-            />
-          </svg>
-
-          <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200/80 overflow-hidden">
-            <!-- window bar -->
-            <div class="h-14 px-4 flex items-center gap-3 border-b border-slate-100">
-              <img [src]="branding.logo()" alt="" width="24" height="24" class="object-contain" />
-              <span class="text-sm font-bold text-slate-900">{{ branding.title() }}</span>
-              <span class="ml-2 w-7 h-7 rounded-md bg-violet-50"></span>
-              <span class="h-8 flex-1 max-w-[180px] rounded-md border border-slate-200"></span>
-              <span class="ml-auto w-7 h-7 rounded-md bg-amber-50"></span>
-              <span class="w-7 h-7 rounded-md bg-violet-50"></span>
-              <span class="w-16 h-8 rounded-full bg-blue-50"></span>
+          <div class="relative rounded-[28px] bg-white shadow-2xl ring-1 ring-violet-100 overflow-hidden">
+            <div class="h-11 px-4 flex items-center gap-1.5 bg-slate-50/80 border-b border-slate-100">
+              <span class="w-3 h-3 rounded-full bg-rose-300"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-300"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-300"></span>
+              <span class="ml-3 h-5 w-48 rounded-full bg-white border border-slate-200"></span>
             </div>
-            <div class="flex">
-              <!-- sidebar -->
-              <div class="w-36 p-3 space-y-1.5 border-r border-slate-100">
-                <div class="h-8 rounded-lg bg-violet-50 flex items-center gap-2 px-2">
-                  <span class="w-3.5 h-3.5 rounded bg-violet-400"></span>
-                  <span class="h-2 w-14 rounded-full bg-violet-300"></span>
-                </div>
-                <div *ngFor="let w of [16, 20, 12, 18]" class="h-8 flex items-center gap-2 px-2">
-                  <span class="w-3.5 h-3.5 rounded bg-slate-200"></span>
-                  <span class="h-2 rounded-full bg-slate-200" [style.width.px]="w * 4"></span>
+            <div class="p-5 space-y-4 bg-gradient-to-b from-violet-50/60 to-white">
+              <div
+                class="relative overflow-hidden rounded-2xl p-5 text-white"
+                style="background: linear-gradient(115deg, rgb(var(--brand-600)), #c026d3 55%, #db2777 80%, #f59e0b 120%)"
+              >
+                <div class="absolute -right-10 -top-14 w-40 h-40 rounded-full bg-white/15"></div>
+                <div class="absolute right-20 top-10 w-16 h-16 rounded-full bg-white/10"></div>
+                <div class="relative text-xs font-semibold text-white/80">Tổng quan hôm nay</div>
+                <div class="relative mt-1 text-2xl font-extrabold">Chuyên cần 94%</div>
+                <div class="relative mt-3 flex gap-2 text-[11px] font-semibold">
+                  <span class="px-2.5 py-1 rounded-full bg-white/20">12 buổi điểm danh</span>
+                  <span class="px-2.5 py-1 rounded-full bg-white/20">38 cuộc gọi</span>
                 </div>
               </div>
-              <!-- content -->
-              <div class="flex-1 p-4 bg-slate-100 space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                  <div
-                    class="relative overflow-hidden rounded-xl bg-violet-600 p-4 text-white h-28"
-                  >
-                    <div
-                      class="absolute -right-8 -top-12 w-28 h-28 rounded-full bg-violet-800"
-                    ></div>
-                    <div
-                      class="absolute right-6 -top-16 w-28 h-28 rounded-full bg-violet-800/50"
-                    ></div>
-                    <span class="relative block w-8 h-8 rounded-lg bg-violet-800"></span>
-                    <div class="relative mt-3 text-sm font-semibold">Điểm danh</div>
-                    <div class="relative text-xs text-violet-200">Theo học phần</div>
-                  </div>
-                  <div class="relative overflow-hidden rounded-xl bg-blue-500 p-4 text-white h-28">
-                    <div class="absolute -right-8 -top-12 w-28 h-28 rounded-full bg-blue-700"></div>
-                    <div
-                      class="absolute right-6 -top-16 w-28 h-28 rounded-full bg-blue-700/50"
-                    ></div>
-                    <span class="relative block w-8 h-8 rounded-lg bg-blue-700"></span>
-                    <div class="relative mt-3 text-sm font-semibold">Gọi điện</div>
-                    <div class="relative text-xs text-blue-100">Tự động phân công</div>
-                  </div>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="rounded-xl p-3 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100">
+                  <div class="text-[10px] font-bold text-emerald-700">ĐÃ LIÊN HỆ</div>
+                  <div class="text-xl font-extrabold text-emerald-800">38</div>
                 </div>
-                <div class="rounded-xl bg-white p-4">
-                  <div class="h-2.5 w-24 rounded-full bg-slate-200"></div>
-                  <div class="mt-4 flex gap-2 h-24">
-                    <div
-                      *ngFor="let bar of mockBars"
-                      class="flex-1 h-full flex flex-col justify-end gap-0.5"
-                    >
-                      <span class="rounded-t-sm bg-violet-500" [style.height.%]="bar[0]"></span>
-                      <span class="bg-blue-300" [style.height.%]="bar[1]"></span>
-                    </div>
-                  </div>
+                <div class="rounded-xl p-3 bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-100">
+                  <div class="text-[10px] font-bold text-amber-700">CHƯA GỌI</div>
+                  <div class="text-xl font-extrabold text-amber-800">15</div>
+                </div>
+                <div class="rounded-xl p-3 bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100">
+                  <div class="text-[10px] font-bold text-rose-700">CẤM THI</div>
+                  <div class="text-xl font-extrabold text-rose-800">7</div>
+                </div>
+              </div>
+              <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="h-2.5 w-28 rounded-full bg-slate-200"></span>
+                  <span class="h-2.5 w-12 rounded-full bg-violet-100"></span>
+                </div>
+                <div class="mt-4 flex items-end gap-2.5 h-24">
+                  <span
+                    *ngFor="let bar of mockBars; let last = last"
+                    class="flex-1 rounded-t-lg"
+                    [style.height.%]="bar"
+                    [ngClass]="
+                      last ? 'bg-gradient-to-t from-pink-500 to-amber-400' : 'bg-gradient-to-t from-violet-500 to-fuchsia-400'
+                    "
+                  ></span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- floating card -->
-          <div
-            class="absolute left-4 lg:-left-10 bottom-10 w-56 rounded-xl bg-white shadow-xl ring-1 ring-slate-200/80 p-3.5 flex items-center gap-3"
-          >
-            <span
-              class="w-10 h-10 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"
-            >
-              <svg
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 8v5m0 3.5h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"
-                  stroke-linecap="round"
-                />
+          <!-- floating cards -->
+          <div class="glass float absolute -right-8 bottom-16 rounded-2xl p-3 pr-4 flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white grid place-items-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 8v5m0 3.5h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" stroke-linecap="round" />
               </svg>
             </span>
             <div>
-              <div class="text-sm font-semibold text-slate-900">Cảnh báo cấm thi</div>
-              <div class="text-xs text-slate-500">Phát hiện sớm</div>
+              <div class="text-sm font-bold text-slate-900">Cảnh báo cấm thi</div>
+              <div class="text-xs text-slate-500">Phát hiện từ tiết nghỉ</div>
             </div>
           </div>
+          <div class="glass float-slow absolute -left-6 -bottom-8 w-64 rounded-2xl p-3.5">
+            <div class="text-[10px] font-bold uppercase tracking-wide text-violet-600">
+              ⚡ AI Care đề xuất
+            </div>
+            <div class="mt-0.5 text-sm font-bold text-slate-900">Giao việc cho Trần Thị Mai</div>
+            <div class="mt-2 flex gap-2">
+              <span class="btn-grad flex-1 h-8 rounded-lg text-xs font-semibold grid place-items-center">Xác nhận</span>
+              <span class="h-8 px-3 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 grid place-items-center">Hủy</span>
+            </div>
+          </div>
+          <img
+            src="robot-ai-left.png"
+            alt=""
+            width="150"
+            height="125"
+            class="mascot absolute -right-8 -top-16 w-[150px] h-auto"
+          />
         </div>
       </div>
 
       <!-- Highlights -->
-      <div class="relative max-w-7xl mx-auto px-6 pb-16">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="relative max-w-7xl mx-auto px-5 md:px-6 pb-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <div
             *ngFor="let stat of highlights"
-            class="bg-white rounded-xl ring-1 ring-slate-200/80 p-5 flex items-center gap-4"
+            class="glass rounded-2xl p-4 md:p-5 flex items-center gap-3 md:gap-4"
           >
             <span
-              class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
-              [ngClass]="stat.tone"
+              class="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-fuchsia-500/20"
             >
               <svg
                 class="w-6 h-6"
@@ -298,33 +258,37 @@
               </svg>
             </span>
             <div class="min-w-0">
-              <div class="text-xl font-bold text-slate-900">{{ stat.value }}</div>
-              <div class="text-xs text-slate-500">{{ stat.label }}</div>
+              <div class="text-lg md:text-xl font-extrabold text-slate-900">{{ stat.value }}</div>
+              <div class="text-xs text-slate-500 leading-snug">{{ stat.label }}</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ FEATURES ============ -->
-    <section id="tinh-nang" class="px-6 py-20 md:py-24 scroll-mt-20 bg-slate-100">
+    <!-- ============ FEATURES (bento) ============ -->
+    <section id="tinh-nang" class="px-5 md:px-6 py-20 md:py-24 scroll-mt-20 bg-[#f7f5fd]">
       <div class="max-w-7xl mx-auto space-y-12">
-        <div class="text-center space-y-3 max-w-2xl mx-auto">
-          <span class="text-sm font-medium text-violet-600">Tính năng</span>
-          <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-            Mọi khâu được số hóa trọn vẹn
+        <div class="text-center space-y-3 max-w-3xl mx-auto">
+          <span
+            class="inline-block px-3 py-1 rounded-full bg-white text-xs font-bold text-violet-600 border border-violet-100"
+            >TÍNH NĂNG</span
+          >
+          <h2 class="text-3xl md:text-[44px] font-extrabold tracking-tight text-slate-900 leading-tight">
+            Mọi khâu chăm sóc, <span class="text-grad">gọn trong một nơi</span>
           </h2>
           <p class="text-slate-500">
-            Từ điểm danh đến chăm sóc sinh viên, vận hành mượt mà và tự động.
+            Từ tiết học trên lớp đến cuộc gọi cho phụ huynh — tự động, minh bạch, có lịch sử.
           </p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div
             *ngFor="let feature of features"
-            class="group bg-white rounded-xl p-6 space-y-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            class="feature p-7 space-y-4"
+            [ngClass]="feature.wide ? 'lg:col-span-2' : ''"
           >
             <span
-              class="w-12 h-12 rounded-lg flex items-center justify-center transition-colors"
+              class="w-12 h-12 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-lg"
               [ngClass]="feature.tone"
             >
               <svg
@@ -339,39 +303,111 @@
                 <path [attr.d]="feature.icon" />
               </svg>
             </span>
-            <h3 class="font-semibold text-slate-900">{{ feature.title }}</h3>
+            <h3 class="text-lg font-bold text-slate-900">{{ feature.title }}</h3>
             <p class="text-sm text-slate-500 leading-relaxed">{{ feature.text }}</p>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ============ AI CARE SPOTLIGHT ============ -->
+    <section id="ai-care" class="px-5 md:px-6 py-20 md:py-24 scroll-mt-20">
+      <div class="night max-w-7xl mx-auto rounded-[32px] text-white">
+        <div class="stars"></div>
+        <div class="relative grid lg:grid-cols-2 gap-10 items-center p-8 md:p-14">
+          <div class="space-y-5">
+            <span
+              class="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs font-bold text-fuchsia-200"
+              >AI CARE</span
+            >
+            <h2 class="text-3xl md:text-[44px] font-extrabold tracking-tight leading-tight">
+              Trợ lý phù thủy
+              <span class="bg-gradient-to-r from-fuchsia-300 via-pink-300 to-amber-200 bg-clip-text text-transparent"
+                >làm việc cùng bạn</span
+              >
+            </h2>
+            <p class="text-white/75 leading-relaxed max-w-lg">
+              Hỏi bằng tiếng Việt, AI Care tra cứu đúng dữ liệu bạn được phép xem — và soạn sẵn thao
+              tác như giao việc, ghi kết quả cuộc gọi, phân lớp. Bạn chỉ cần kiểm tra và bấm
+              <b class="text-white">Xác nhận</b>.
+            </p>
+            <ul class="space-y-2.5 text-sm text-white/85">
+              <li class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-white/10 grid place-items-center">✓</span>
+                “Hôm nay tôi nên gọi cho ai trước?”
+              </li>
+              <li class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-white/10 grid place-items-center">✓</span>
+                “Sinh viên nào lớp tôi đã chạm mức cấm thi?”
+              </li>
+              <li class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-full bg-white/10 grid place-items-center">✓</span>
+                “Giao việc tổng hợp danh sách cấm thi cho Mai, hạn thứ 6”
+              </li>
+            </ul>
+          </div>
+
+          <!-- chat mock -->
+          <div class="relative" aria-hidden="true">
+            <img
+              src="robot-ai-right.png"
+              alt=""
+              width="170"
+              height="140"
+              class="mascot absolute -left-6 -top-20 w-[170px] h-auto z-10"
+            />
+            <div class="rounded-3xl bg-white/10 border border-white/15 backdrop-blur p-5 space-y-3">
+              <div class="flex justify-end">
+                <div class="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-br-md bg-white text-slate-900 text-sm font-medium">
+                  Giao việc tổng hợp SV nguy cơ cấm thi cho Mai, hạn thứ 6
+                </div>
+              </div>
+              <div class="max-w-[88%] px-4 py-2.5 rounded-2xl rounded-bl-md bg-white/15 text-sm text-white/90">
+                Mình đã soạn sẵn nhiệm vụ cho <b>Trần Thị Mai</b>, hạn <b>thứ 6</b>. Bạn kiểm tra rồi
+                bấm Xác nhận nhé!
+              </div>
+              <div class="max-w-[88%] rounded-2xl bg-white p-4 text-slate-900">
+                <div class="text-[10px] font-bold uppercase tracking-wide text-violet-600">
+                  ⚡ AI Care đề xuất thao tác
+                </div>
+                <div class="font-bold">Giao việc cho Trần Thị Mai</div>
+                <div class="mt-1 text-xs text-slate-500">• Tổng hợp SV nguy cơ cấm thi · Hạn thứ 6</div>
+                <div class="mt-3 flex gap-2">
+                  <span class="btn-grad flex-1 h-9 rounded-lg text-xs font-semibold grid place-items-center">Xác nhận</span>
+                  <span class="h-9 px-4 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 grid place-items-center">Hủy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ PROCESS ============ -->
-    <section id="quy-trinh" class="px-6 py-20 md:py-24 scroll-mt-20">
+    <section id="quy-trinh" class="px-5 md:px-6 pb-20 md:pb-24 scroll-mt-20">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="text-center space-y-3 max-w-2xl mx-auto">
-          <span class="text-sm font-medium text-violet-600">Quy trình</span>
-          <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-            Chỉ 4 bước, khép kín toàn trình
+          <span
+            class="inline-block px-3 py-1 rounded-full bg-violet-50 text-xs font-bold text-violet-600"
+            >QUY TRÌNH</span
+          >
+          <h2 class="text-3xl md:text-[44px] font-extrabold tracking-tight text-slate-900 leading-tight">
+            4 bước, <span class="text-grad">khép kín toàn trình</span>
           </h2>
-          <p class="text-slate-500">
-            Từ điểm danh trên lớp đến khi Phòng Đào Tạo nhận được cảnh báo.
-          </p>
         </div>
         <div class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div
-            class="hidden lg:block absolute top-7 left-[12.5%] right-[12.5%] border-t-2 border-dashed border-violet-200"
+            class="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-[3px] rounded-full bg-gradient-to-r from-violet-300 via-fuchsia-300 to-amber-300"
           ></div>
           <div
-            *ngFor="let step of steps; let i = index; let last = last"
+            *ngFor="let step of steps; let i = index"
             class="relative text-center space-y-3 px-2"
           >
             <span
-              class="relative z-10 mx-auto w-14 h-14 rounded-full flex items-center justify-center text-base font-bold ring-8 ring-white"
-              [ngClass]="last ? 'bg-violet-600 text-white' : 'bg-violet-50 text-violet-600'"
+              class="btn-grad relative z-10 mx-auto w-16 h-16 rounded-2xl flex items-center justify-center text-lg font-extrabold ring-8 ring-white rotate-[-4deg]"
               >0{{ i + 1 }}</span
             >
-            <h3 class="font-semibold text-slate-900 pt-1">{{ step.title }}</h3>
+            <h3 class="font-bold text-slate-900 pt-2">{{ step.title }}</h3>
             <p class="text-sm text-slate-500 leading-relaxed">{{ step.text }}</p>
           </div>
         </div>
@@ -379,80 +415,65 @@
     </section>
 
     <!-- ============ ROLES ============ -->
-    <section id="danh-cho-ai" class="px-6 pb-20 md:pb-24 scroll-mt-20">
+    <section id="danh-cho-ai" class="px-5 md:px-6 pb-20 md:pb-24 scroll-mt-20">
       <div class="max-w-7xl mx-auto space-y-12">
         <div class="text-center space-y-3 max-w-2xl mx-auto">
-          <span class="text-sm font-medium text-violet-600">Dành cho ai</span>
-          <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-            Một khu vực làm việc cho mỗi vai trò
+          <span
+            class="inline-block px-3 py-1 rounded-full bg-violet-50 text-xs font-bold text-violet-600"
+            >DÀNH CHO AI</span
+          >
+          <h2 class="text-3xl md:text-[44px] font-extrabold tracking-tight text-slate-900 leading-tight">
+            Mỗi vai trò, <span class="text-grad">một không gian riêng</span>
           </h2>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div
-            *ngFor="let role of roles"
-            class="relative overflow-hidden rounded-2xl p-7 min-h-[220px]"
-            [ngClass]="role.card"
-          >
-            <div
-              class="pointer-events-none absolute -right-14 -top-20 w-52 h-52 rounded-full"
-              [ngClass]="role.circle"
-            ></div>
-            <div
-              class="pointer-events-none absolute right-10 -top-28 w-52 h-52 rounded-full opacity-50"
-              [ngClass]="role.circle"
-            ></div>
-            <span
-              class="relative w-12 h-12 rounded-lg flex items-center justify-center"
-              [ngClass]="role.iconBox"
-            >
-              <svg
-                class="w-6 h-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div *ngFor="let role of roles" class="feature overflow-hidden">
+            <div class="relative h-24 bg-gradient-to-br" [ngClass]="role.tone">
+              <div class="absolute -right-8 -top-10 w-32 h-32 rounded-full bg-white/15"></div>
+              <div class="absolute right-16 top-12 w-12 h-12 rounded-full bg-white/10"></div>
+            </div>
+            <div class="px-6 pb-7 -mt-8 relative space-y-3">
+              <span
+                class="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center text-slate-800 ring-4 ring-white"
               >
-                <path [attr.d]="role.icon" />
-              </svg>
-            </span>
-            <h3 class="relative mt-6 text-xl font-semibold">{{ role.title }}</h3>
-            <p class="relative mt-2 text-sm leading-relaxed" [ngClass]="role.textTone">
-              {{ role.text }}
-            </p>
+                <svg
+                  class="w-7 h-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="role.icon" />
+                </svg>
+              </span>
+              <h3 class="text-lg font-bold text-slate-900">{{ role.title }}</h3>
+              <p class="text-sm leading-relaxed text-slate-500">{{ role.text }}</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ============ CTA ============ -->
-    <section id="lien-he" class="px-6 pb-20 md:pb-28 scroll-mt-20">
+    <section id="lien-he" class="px-5 md:px-6 pb-20 md:pb-28 scroll-mt-20">
       <div
-        class="relative overflow-hidden max-w-7xl mx-auto rounded-2xl bg-violet-600 text-white p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6"
+        class="relative overflow-hidden max-w-7xl mx-auto rounded-[32px] text-white p-8 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8"
+        style="background: linear-gradient(115deg, rgb(var(--brand-600)), #c026d3 55%, #db2777 80%, #f59e0b 120%)"
       >
-        <div
-          class="pointer-events-none absolute -right-20 -top-32 w-80 h-80 rounded-full bg-violet-800"
-        ></div>
-        <div
-          class="pointer-events-none absolute right-24 -top-48 w-80 h-80 rounded-full bg-violet-800/50"
-        ></div>
-        <div class="relative text-center md:text-left space-y-2">
-          <h2 class="text-2xl md:text-3xl font-bold">Cần hỗ trợ sử dụng hệ thống?</h2>
-          <p class="text-violet-100">
-            {{ branding.departmentName() }} luôn sẵn sàng hỗ trợ bạn.
-          </p>
+        <div class="pointer-events-none absolute -right-16 -top-24 w-80 h-80 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-40 top-24 w-40 h-40 rounded-full bg-white/10"></div>
+        <div class="relative text-center md:text-left space-y-3">
+          <h2 class="text-2xl md:text-[34px] font-extrabold leading-tight">
+            Cần hỗ trợ sử dụng hệ thống?
+          </h2>
+          <p class="text-white/85">{{ branding.departmentName() }} luôn sẵn sàng hỗ trợ bạn.</p>
           <div
-            class="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 pt-2 text-sm font-medium"
+            class="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-1 text-sm font-semibold"
           >
-            <span class="flex items-center gap-2">
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+            <span class="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/15">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path
                   d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"
                   stroke-linejoin="round"
@@ -460,14 +481,8 @@
               </svg>
               {{ branding.supportHotline() }}
             </span>
-            <span class="flex items-center gap-2">
-              <svg
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+            <span class="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/15">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
                 <path d="m3 7 9 6 9-6" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -478,16 +493,10 @@
         <button
           type="button"
           (click)="enterSystem()"
-          class="relative px-7 h-12 rounded-lg bg-white hover:bg-violet-50 text-violet-600 text-sm font-semibold transition-colors shrink-0 inline-flex items-center gap-2"
+          class="relative px-8 h-[52px] rounded-full bg-white hover:bg-violet-50 text-violet-700 text-[15px] font-bold transition-colors shrink-0 inline-flex items-center gap-2 shadow-xl"
         >
           {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Đăng nhập hệ thống' }}
-          <svg
-            class="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M5 12h14m-5-5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </button>
@@ -496,8 +505,8 @@
   </main>
 
   <!-- ============ FOOTER ============ -->
-  <footer class="bg-slate-900 text-slate-400">
-    <div class="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
+  <footer class="bg-[#150f2e] text-slate-400">
+    <div class="max-w-7xl mx-auto px-5 md:px-6 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
       <div class="space-y-4">
         <div class="flex items-center gap-3">
           <img
@@ -507,7 +516,7 @@
             height="44"
             class="object-contain bg-white rounded-full"
           />
-          <span class="font-bold text-white">{{ branding.title() }}</span>
+          <span class="font-extrabold text-white">{{ branding.title() }}</span>
         </div>
         <p class="text-sm leading-relaxed max-w-xs">
           Hệ thống quản lý điểm danh và chăm sóc sinh viên của {{ branding.schoolName() }}.
@@ -517,11 +526,11 @@
       <div class="space-y-4">
         <h4 class="font-semibold text-white">Liên kết nhanh</h4>
         <ul class="space-y-2.5 text-sm">
-          <li *ngFor="let link of navLinks.slice(0, 3)">
+          <li *ngFor="let link of navLinks.slice(0, 4)">
             <a
               [href]="'#' + link.id"
               (click)="scrollTo(link.id, $event)"
-              class="hover:text-violet-300 transition-colors"
+              class="hover:text-fuchsia-300 transition-colors"
               >{{ link.label }}</a
             >
           </li>
@@ -529,7 +538,7 @@
             <button
               type="button"
               (click)="enterSystem()"
-              class="hover:text-violet-300 transition-colors"
+              class="hover:text-fuchsia-300 transition-colors"
             >
               Đăng nhập hệ thống
             </button>

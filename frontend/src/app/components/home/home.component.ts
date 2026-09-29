@@ -22,6 +22,9 @@ const ICONS = {
   book: 'M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h13M9 7h6',
   headset:
     'M4 14v-2a8 8 0 0 1 16 0v2M4 14a2 2 0 0 1 2-2h1v6H6a2 2 0 0 1-2-2v-2zM20 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2v-2zM17 18a4 4 0 0 1-4 3h-1',
+  chart: 'M4 19h16M7 16V10M12 16V5M17 16v-4',
+  sparkles:
+    'M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3zM19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z',
 };
 
 @Component({
@@ -29,129 +32,120 @@ const ICONS = {
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './home.component.html',
+  styleUrl: './home.component.css',
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly branding = inject(BrandingService);
 
   readonly navLinks = [
     { id: 'tinh-nang', label: 'Tính năng' },
+    { id: 'ai-care', label: 'AI Care' },
     { id: 'quy-trinh', label: 'Quy trình' },
     { id: 'danh-cho-ai', label: 'Dành cho ai' },
     { id: 'lien-he', label: 'Liên hệ' },
   ];
 
   readonly highlights = [
-    {
-      value: '3',
-      label: 'Vai trò người dùng',
-      icon: ICONS.users,
-      tone: 'bg-violet-50 text-violet-600',
-    },
-    {
-      value: '100%',
-      label: 'Tự động phân công',
-      icon: ICONS.bolt,
-      tone: 'bg-blue-50 text-blue-500',
-    },
-    {
-      value: '24/7',
-      label: 'Theo dõi trạng thái',
-      icon: ICONS.clock,
-      tone: 'bg-emerald-50 text-emerald-600',
-    },
-    {
-      value: 'Sớm',
-      label: 'Cảnh báo cấm thi',
-      icon: ICONS.alert,
-      tone: 'bg-amber-50 text-amber-600',
-    },
+    { value: '4', label: 'Vai trò, mỗi vai trò một khu làm việc', icon: ICONS.users },
+    { value: 'Tự động', label: 'Giao cuộc gọi theo lớp phụ trách', icon: ICONS.bolt },
+    { value: 'Theo tiết', label: 'Cảnh báo vắng & cấm thi', icon: ICONS.alert },
+    { value: 'AI Care', label: 'Trợ lý tra cứu & làm việc thay', icon: ICONS.sparkles },
   ];
 
+  // Bento grid: `wide` cards span two columns on large screens.
   readonly features = [
     {
-      title: 'Điểm danh theo học phần',
-      text: 'Giảng viên điểm danh nhanh theo từng buổi học, tự động đối chiếu lịch học trong tuần.',
+      title: 'Điểm danh đúng giờ học',
+      text: 'Giảng viên điểm danh theo thời khóa biểu, chỉ mở trong giờ học và sửa được đến hết ngày. Trưởng phòng xử lý ngoại lệ.',
       icon: ICONS.clipboard,
-      tone: 'bg-violet-50 text-violet-600 group-hover:bg-violet-600 group-hover:text-white',
+      tone: 'from-violet-500 to-fuchsia-500',
+      wide: true,
     },
     {
-      title: 'Nhiệm vụ gọi điện tự động',
-      text: 'Sinh viên vắng học được tự động phân công cho nhân viên CSKH liên hệ nhắc nhở.',
+      title: 'Gọi điện có ghi âm',
+      text: 'Gọi sinh viên hoặc phụ huynh ngay trên trình duyệt qua tổng đài, lưu lịch sử và ghi âm.',
       icon: ICONS.phone,
-      tone: 'bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white',
+      tone: 'from-sky-500 to-indigo-500',
+      wide: false,
     },
     {
-      title: 'Cảnh báo nguy cơ cấm thi',
-      text: 'Thống kê số buổi vắng theo học phần, cảnh báo sớm cho Phòng Đào Tạo can thiệp kịp thời.',
+      title: 'Cảnh báo theo tiết nghỉ',
+      text: 'Các mức cảnh báo (nhắc nhở, báo phụ huynh, cấm thi) do Trưởng phòng tự cấu hình theo % hoặc số tiết.',
       icon: ICONS.alert,
-      tone: 'bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white',
+      tone: 'from-amber-400 to-orange-500',
+      wide: false,
     },
     {
-      title: 'Phân quyền theo vai trò',
-      text: 'Quản trị viên, Giảng viên và Nhân viên CSKH mỗi vai trò một khu vực làm việc riêng.',
+      title: 'Phân lớp cho CSKH',
+      text: 'Mỗi lớp hành chính có một nhân viên phụ trách; sinh viên vắng tự vào đúng hàng gọi của người đó, có lưu lịch sử bàn giao.',
+      icon: ICONS.headset,
+      tone: 'from-emerald-400 to-teal-500',
+      wide: true,
+    },
+    {
+      title: 'Giao việc & KPI',
+      text: 'Giao việc, nhận minh chứng, duyệt và theo dõi tiến độ, KPI của từng nhân viên.',
+      icon: ICONS.chart,
+      tone: 'from-pink-500 to-rose-500',
+      wide: false,
+    },
+    {
+      title: 'Phân quyền linh hoạt',
+      text: 'Quản trị viên bật/tắt từng quyền cho mỗi vai trò, có hiệu lực ngay.',
       icon: ICONS.lock,
-      tone: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white',
+      tone: 'from-slate-600 to-slate-800',
+      wide: false,
     },
   ];
 
   readonly steps = [
     {
       title: 'Giảng viên điểm danh',
-      text: 'Ghi nhận sinh viên vắng học theo từng buổi trong học phần.',
+      text: 'Ghi nhận sinh viên vắng ngay trong giờ học của học phần.',
     },
     {
-      title: 'Hệ thống tự phân công',
-      text: 'Sinh viên vắng được tự động tạo nhiệm vụ gọi điện, chia đều cho nhân viên CSKH.',
+      title: 'Tự động giao cuộc gọi',
+      text: 'Mỗi sinh viên vắng thành một cuộc gọi cho nhân viên phụ trách lớp của em đó.',
     },
     {
-      title: 'Nhân viên CSKH liên hệ',
-      text: 'Gọi điện nhắc nhở, ghi nhận lý do vắng và cập nhật trạng thái xử lý.',
+      title: 'CSKH liên hệ',
+      text: 'Gọi điện, ghi lý do vắng, hẹn gọi lại, AI gợi ý cách trao đổi.',
     },
     {
-      title: 'Cảnh báo cấm thi',
-      text: 'Sinh viên vắng quá số buổi quy định được đưa vào danh sách cảnh báo cho Ban Giám Hiệu.',
+      title: 'Cảnh báo kịp thời',
+      text: 'Sinh viên chạm mức cảnh báo hiện ngay trên báo cáo cho Trưởng phòng.',
     },
   ];
 
   readonly roles = [
     {
       title: 'Quản trị viên',
-      text: 'Cấu hình học phần, nhập sinh viên hàng loạt qua Excel, phân quyền nhân sự CSKH và xem báo cáo thống kê cảnh báo cấm thi toàn trường.',
+      text: 'Tài khoản, phân quyền, cấu hình hệ thống, API và giao diện.',
       icon: ICONS.shield,
-      card: 'bg-violet-600 text-white',
-      circle: 'bg-violet-800',
-      iconBox: 'bg-violet-800 text-white',
-      textTone: 'text-violet-100',
+      tone: 'from-violet-500 to-fuchsia-500',
     },
     {
-      title: 'Giảng viên',
-      text: 'Điểm danh theo từng buổi học của học phần mình phụ trách, xem lại lịch sử và thời khóa biểu.',
-      icon: ICONS.book,
-      card: 'bg-blue-500 text-white',
-      circle: 'bg-blue-700',
-      iconBox: 'bg-blue-700 text-white',
-      textTone: 'text-blue-50',
+      title: 'Trưởng phòng / PHT',
+      text: 'Phân lớp CSKH, giao việc, cấu hình mức cảnh báo, xem báo cáo.',
+      icon: ICONS.chart,
+      tone: 'from-pink-500 to-orange-400',
     },
     {
       title: 'Nhân viên CSKH',
-      text: 'Nhận nhiệm vụ gọi điện cho sinh viên vắng học được phân công, ghi nhận lý do và cập nhật kết quả liên hệ.',
+      text: 'Gọi điện chăm sóc sinh viên các lớp được phân công, thực hiện việc được giao.',
       icon: ICONS.headset,
-      card: 'bg-white text-slate-900 ring-1 ring-slate-200',
-      circle: 'bg-amber-100',
-      iconBox: 'bg-amber-50 text-amber-600',
-      textTone: 'text-slate-500',
+      tone: 'from-emerald-400 to-teal-500',
+    },
+    {
+      title: 'Giảng viên',
+      text: 'Điểm danh học phần mình dạy, xem thời khóa biểu và tình hình vắng của lớp.',
+      icon: ICONS.book,
+      tone: 'from-sky-500 to-indigo-500',
     },
   ];
 
   /** Decorative bar heights (%) for the hero mockup chart — not real data. */
-  readonly mockBars = [
-    [30, 15],
-    [55, 20],
-    [25, 12],
-    [40, 18],
-    [35, 25],
-    [70, 22],
-  ];
+  readonly mockBars = [42, 68, 35, 80, 56, 92, 64];
 
   /** Id of the section currently in view — drives the nav highlight. */
   readonly activeSection = signal('');
