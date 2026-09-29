@@ -509,28 +509,32 @@
     >
       <table class="staff-table w-full text-left border-collapse text-sm">
         <thead>
-          <tr class="uppercase">
-            <th>Họ & Tên</th>
-            <th>Email</th>
-            <th>Vai trò</th>
-            <th>Lớp phụ trách</th>
-            <th>Trạng thái</th>
-            <th class="text-right">Thao tác</th>
+          <tr
+            class="bg-slate-100 text-slate-800 uppercase text-xs font-bold border-b border-slate-200"
+          >
+            <th class="p-3">Họ & Tên</th>
+            <th class="p-3">Email</th>
+            <th class="p-3">Vai Trò</th>
+            <th class="p-3">Lớp đang phụ trách</th>
+            <th class="p-3">Trạng Thái</th>
+            <th class="p-3 text-right">Thao Tác</th>
           </tr>
         </thead>
-        <tbody>
-          <tr *ngFor="let staff of staffList">
-            <td class="staff-name">{{ staff.fullName }}</td>
-            <td class="staff-email">{{ staff.email }}</td>
-            <td>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          <tr *ngFor="let staff of staffList" class="hover:bg-slate-50 transition-all">
+            <td class="p-3 font-bold text-slate-900">{{ staff.fullName }}</td>
+            <td class="p-3 text-slate-600 font-medium font-sans tabular-nums text-xs">
+              {{ staff.email }}
+            </td>
+            <td class="p-3">
               <span
-                class="pill"
+                class="px-2 py-0.5 rounded-md text-xs font-semibold border"
                 [ngClass]="
                   staff.role === 'teacher'
-                    ? 'pill--amber'
+                    ? 'bg-amber-50 text-amber-900 border-amber-200'
                     : staff.role === 'manager'
-                      ? 'pill--violet'
-                      : 'pill--blue'
+                      ? 'bg-violet-50 text-violet-900 border-violet-200'
+                      : 'bg-blue-50 text-blue-900 border-blue-200'
                 "
               >
                 {{
@@ -542,66 +546,84 @@
                 }}
               </span>
             </td>
-            <td>
-              <div class="staff-classes">
-                <span *ngFor="let cCode of staff.managedClasses" class="pill pill--slate">
-                  {{ cCode }}
+            <td class="p-3">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span
+                  *ngFor="let cCode of staff.managedClasses"
+                  class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 font-sans tabular-nums font-bold text-xs border border-slate-300"
+                >
+                  🏫 {{ cCode }}
                 </span>
-                <span *ngIf="!staff.managedClasses?.length" class="staff-muted">Chưa gán lớp</span>
+                <span
+                  *ngIf="!staff.managedClasses?.length"
+                  class="text-xs text-slate-400 font-medium italic"
+                >
+                  Chưa gán lớp
+                </span>
               </div>
             </td>
-            <td>
+            <td class="p-3">
               <span
-                class="pill pill--dot"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold"
                 [ngClass]="
                   staff.status === 'active'
-                    ? 'pill--green'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                     : staff.status === 'unverified'
-                      ? 'pill--amber'
-                      : 'pill--red'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-rose-100 text-rose-800 border border-rose-200'
                 "
               >
                 {{
                   staff.status === 'active'
                     ? 'Đang hoạt động'
                     : staff.status === 'unverified'
-                      ? 'Chờ xác thực'
+                      ? 'Chờ xác thực email'
                       : 'Tạm khóa'
                 }}
               </span>
             </td>
-            <td>
+            <td class="p-4 text-right">
               <div class="staff-actions">
-                <button type="button" class="act" (click)="openEditStaffModal(staff)">Sửa</button>
+                <button
+                  type="button"
+                  (click)="openEditStaffModal(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100 transition-all touch-target"
+                >
+                  Sửa
+                </button>
                 <button
                   *ngIf="staff.role === 'staff' && canAssessStaff"
                   type="button"
-                  class="act act--ai"
                   (click)="openStaffAiAssessment(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
                   title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
                 >
                   Đánh giá AI
                 </button>
                 <button
                   type="button"
-                  class="act"
                   (click)="resetStaffPassword(staff)"
                   title="Đặt lại mật khẩu"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
                 >
                   Đặt lại MK
                 </button>
                 <button
                   type="button"
-                  class="act"
-                  [ngClass]="staff.status === 'active' ? 'act--warn' : 'act--ok'"
                   (click)="toggleStaffStatus(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all touch-target"
+                  [ngClass]="
+                    staff.status === 'active'
+                      ? 'border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100'
+                      : 'border-emerald-400 text-emerald-900 bg-emerald-50 hover:bg-emerald-100'
+                  "
                 >
                   {{ staff.status === 'active' ? 'Khóa' : 'Mở khóa' }}
                 </button>
                 <button
                   type="button"
-                  class="act act--danger"
                   (click)="deleteStaffAccount(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all touch-target"
                 >
                   Xóa
                 </button>

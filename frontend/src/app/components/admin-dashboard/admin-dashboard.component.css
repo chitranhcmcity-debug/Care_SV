@@ -2,171 +2,90 @@
   overflow-x: auto;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  background: #fff;
 }
 
 .staff-table {
-  min-width: 980px;
+  min-width: 960px;
 }
 
 .staff-table th {
-  padding: 12px 20px;
+  padding: 10px 10px;
   background: #f8fafc;
   color: #64748b;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.025em;
   white-space: nowrap;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .staff-table td {
-  padding: 14px 20px;
+  padding: 12px 10px;
   vertical-align: middle;
+}
+
+.staff-table th:first-child,
+.staff-table td:first-child {
+  padding-left: 16px;
+}
+
+.staff-table th:last-child,
+.staff-table td:last-child {
+  padding-right: 16px;
+}
+
+.staff-table td:first-child {
+  min-width: 140px;
+  font-weight: 600;
+}
+
+.staff-table td:nth-child(2) {
   white-space: nowrap;
 }
 
-.staff-table tbody tr + tr td {
-  border-top: 1px solid #f1f5f9;
-}
-
-.staff-table tbody tr:hover td {
-  background: #f8fafc;
-}
-
-.staff-name {
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.staff-email {
-  color: #475569;
-  font-size: 13px;
-}
-
-.staff-classes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-width: 240px;
-  white-space: normal;
-}
-
-.staff-muted {
-  color: #94a3b8;
-  font-size: 13px;
-  font-style: italic;
-}
-
-/* One pill shape for role, status and class codes; only the colours differ. */
-.pill {
+.staff-table td:nth-child(3) > span,
+.staff-table td:nth-child(5) > span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-size: 12px;
+  padding: 4px 10px;
+  white-space: nowrap;
   font-weight: 500;
-  line-height: 1;
+  line-height: 18px;
+}
+
+.staff-table td:nth-child(4) > div {
+  min-width: 100px;
+  max-width: 200px;
+}
+
+.staff-table td:nth-child(4) span {
   white-space: nowrap;
 }
 
-.pill--dot::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.pill--slate {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #334155;
-}
-.pill--blue {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1e40af;
-}
-.pill--amber {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
-}
-.pill--violet {
-  background: #f5f3ff;
-  border-color: #ddd6fe;
-  color: #5b21b6;
-}
-.pill--green {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #047857;
-}
-.pill--red {
-  background: #fff1f2;
-  border-color: #fecdd3;
-  color: #be123c;
-}
-
-/* Row actions: identical neutral buttons, colour only on the text of the risky ones. */
 .staff-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 4px;
 }
 
-.act {
+.staff-actions button {
   flex-shrink: 0;
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
-  color: #334155;
-  font-size: 12.5px;
-  font-weight: 600;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 9px;
   white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
+  font-weight: 500;
+  transition: background-color 150ms ease;
 }
 
-.act:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-}
-
-.act--ai {
-  color: #6d28d9;
-}
-.act--warn {
-  color: #b45309;
-}
-.act--ok {
-  color: #047857;
-}
-.act--danger {
-  color: #e11d48;
-}
-.act--danger:hover {
-  background: #fff1f2;
-  border-color: #fecdd3;
-}
-
-.act:focus-visible,
+.staff-actions button:focus-visible,
 .staff-table-container:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
 @media (pointer: coarse) {
-  .act {
-    height: 40px;
+  .staff-actions button {
+    min-height: 44px;
   }
 }
