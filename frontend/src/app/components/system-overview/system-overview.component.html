@@ -489,98 +489,177 @@
       </section>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Accounts by role -->
-      <section class="ov-panel ov-panel--violet p-6 space-y-3">
-        <div class="ov-panel-head">
-          <h4><span class="ov-panel-icon" aria-hidden="true">👥</span> Tài khoản theo vai trò</h4>
+    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
+      <!-- Accounts by role + newest accounts -->
+      <section class="ov-card p-5 space-y-4">
+        <div class="ov-card-head">
+          <h4>
+            <span class="ov-card-icon bg-violet-100 text-violet-600">
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="icons.users" />
+              </svg>
+            </span>
+            Tài khoản theo vai trò
+          </h4>
           <a routerLink="/admin" [queryParams]="{ tab: 'staff' }" class="ov-link">Quản lý →</a>
         </div>
-        <div *ngFor="let role of roles; let ri = index" class="ov-role" [attr.data-tone]="ri">
-          <div class="flex items-center justify-between text-sm">
-            <span class="flex items-center gap-2 text-slate-700 font-medium">
-              <span class="ov-dot"></span>{{ roleLabels[role] }}
-            </span>
-            <strong class="ov-count">{{ d.users.byRole[role] || 0 }}</strong>
-          </div>
-          <div class="ov-track"><span [style.width.%]="roleShare(role)"></span></div>
+        <div *ngFor="let role of roles; let ri = index" class="ov-row" [attr.data-tone]="ri">
+          <span class="ov-row-icon">
+            <svg
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path [attr.d]="icons.users" />
+            </svg>
+          </span>
+          <span class="w-36 shrink-0 text-sm text-slate-700 truncate" [title]="roleLabels[role]">{{ roleLabels[role] }}</span>
+          <div class="ov-track flex-1"><span [style.width.%]="roleShare(role)"></span></div>
+          <strong class="w-8 text-right text-sm text-slate-800 tabular-nums">{{
+            d.users.byRole[role] || 0
+          }}</strong>
         </div>
-        <div class="pt-3 border-t border-dashed border-violet-100">
-          <div class="ov-sub">✨ Mới tạo gần đây</div>
+
+        <div class="pt-3 border-t border-dashed border-violet-100 space-y-1">
+          <div class="text-xs font-bold text-slate-500 pb-1">Mới tạo gần đây</div>
           <div
             *ngFor="let u of d.users.recent; let ui = index"
-            class="ov-user"
+            class="ov-row ov-row--hover"
             [attr.data-tone]="ui % 4"
           >
             <span class="ov-avatar">{{ initials(u.fullName) }}</span>
-            <div class="min-w-0 flex-1">
+            <div class="min-w-0 flex-1 leading-tight">
               <div class="text-sm font-semibold text-slate-900 truncate">{{ u.fullName }}</div>
               <div class="text-xs text-slate-500 truncate">
-                {{ u.email }} · {{ roleLabels[u.role] }}
+                {{ roleLabels[u.role] }} · {{ u.email }}
               </div>
             </div>
-            <span class="ov-date">{{ u.createdAt | date: 'dd/MM' }}</span>
+            <span class="text-[11px] text-slate-400 whitespace-nowrap">{{
+              u.createdAt | date: 'dd/MM'
+            }}</span>
           </div>
         </div>
       </section>
 
-      <!-- Subscription -->
-      <section class="ov-panel ov-panel--pink p-6 space-y-3">
-        <div class="ov-panel-head">
-          <h4><span class="ov-panel-icon" aria-hidden="true">💎</span> Gói dịch vụ</h4>
+      <!-- Subscription: days left as a ring -->
+      <section class="ov-card p-5 space-y-4">
+        <div class="ov-card-head">
+          <h4>
+            <span class="ov-card-icon bg-pink-100 text-pink-600">
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 3h12l3 6-9 12L3 9l3-6zM3 9h18M9 3l3 18M15 3l-3 18" />
+              </svg>
+            </span>
+            Gói dịch vụ
+          </h4>
           <a routerLink="/billing" class="ov-link">Chi tiết →</a>
         </div>
-        <span class="ov-pill" [class.is-off]="!d.subscription.active">
-          <span class="ov-pill-dot"></span>
-          {{ d.subscription.active ? 'Đang hoạt động' : 'Đã hết hạn' }}
-        </span>
-        <div class="ov-days">
-          <div class="ov-days-value">{{ d.subscription.daysLeft }}</div>
-          <div>
-            <div class="text-sm font-bold text-slate-800">ngày còn lại</div>
-            <div class="text-xs text-slate-500">
-              {{ d.subscription.isTrial ? 'Dùng thử' : 'Gói trả phí' }} · hết hạn
-              <strong class="text-slate-700">{{
-                d.subscription.expiresAt | date: 'dd/MM/yyyy'
-              }}</strong>
+        <div class="flex items-center gap-6">
+          <div
+            class="ov-ring shrink-0"
+            [style.background]="
+              'conic-gradient(' +
+              (d.subscription.active ? '#ec4899' : '#94a3b8') +
+              ' 0 ' +
+              (d.subscription.daysLeft > 30 ? 100 : (d.subscription.daysLeft / 30) * 100) +
+              '%, #fce7f3 0 100%)'
+            "
+          >
+            <div class="ov-ring-hole">
+              <div class="text-3xl font-extrabold text-slate-900 tabular-nums">
+                {{ d.subscription.daysLeft }}
+              </div>
+              <div class="text-xs text-slate-500">ngày còn lại</div>
             </div>
           </div>
-        </div>
-        <div class="ov-track ov-track--thick" data-tone="1">
-          <span
-            [style.width.%]="
-              d.subscription.daysLeft > 30 ? 100 : (d.subscription.daysLeft / 30) * 100
-            "
-          ></span>
-        </div>
-        <div class="ov-note">
-          💳 Thanh toán PayOS:
-          <b>{{ d.subscription.payosConfigured ? 'đã kết nối' : 'chưa cấu hình' }}</b>
+          <div class="space-y-3 min-w-0">
+            <span class="ov-pill" [class.is-off]="!d.subscription.active">
+              <span class="ov-pill-dot"></span>
+              {{ d.subscription.active ? 'Đang hoạt động' : 'Đã hết hạn' }}
+            </span>
+            <div class="text-sm text-slate-600 space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                {{ d.subscription.isTrial ? 'Dùng thử' : 'Gói trả phí' }}
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+                Hết hạn
+                <b class="text-slate-800">{{ d.subscription.expiresAt | date: 'dd/MM/yyyy' }}</b>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="w-2.5 h-2.5 rounded-full"
+                  [ngClass]="d.subscription.payosConfigured ? 'bg-emerald-500' : 'bg-slate-300'"
+                ></span>
+                PayOS:
+                <b class="text-slate-800">{{
+                  d.subscription.payosConfigured ? 'đã kết nối' : 'chưa cấu hình'
+                }}</b>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- Integrations -->
-      <section class="ov-panel ov-panel--sky p-6 space-y-3">
-        <div class="ov-panel-head">
-          <h4><span class="ov-panel-icon" aria-hidden="true">🔌</span> Kết nối hệ thống</h4>
+      <section class="ov-card p-5 space-y-3">
+        <div class="ov-card-head">
+          <h4>
+            <span class="ov-card-icon bg-sky-100 text-sky-600">
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14" />
+              </svg>
+            </span>
+            Kết nối hệ thống
+          </h4>
           <a routerLink="/admin" [queryParams]="{ tab: 'integrations' }" class="ov-link"
             >Cấu hình →</a
           >
         </div>
         <div
           *ngFor="let item of d.integrations; let ii = index"
-          class="ov-integration"
+          class="ov-row ov-row--hover"
           [attr.data-tone]="ii % 4"
         >
-          <span class="ov-int-icon" aria-hidden="true">{{ integrationIcon(item.name) }}</span>
-          <span class="flex-1 text-sm font-semibold text-slate-800">{{ item.name }}</span>
+          <span class="ov-row-icon text-base" aria-hidden="true">{{
+            integrationIcon(item.name)
+          }}</span>
+          <span class="flex-1 min-w-0 text-sm font-semibold text-slate-800 truncate">{{
+            item.name
+          }}</span>
           <span class="ov-pill ov-pill--sm" [class.is-muted]="!item.configured">
             <span class="ov-pill-dot"></span>
             {{ item.configured ? 'Đã cấu hình' : 'Chưa cấu hình' }}
           </span>
-        </div>
-        <div class="ov-note">
-          🎙️ <b>{{ d.callsWithRecording }}</b> cuộc gọi có ghi âm trong 7 ngày qua.
         </div>
       </section>
     </div>
