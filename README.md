@@ -146,7 +146,7 @@ Trợ lý AI trên Railway nạp mặc định công khai từ `backend/.env.rai
 AI_PROVIDER=openai
 OPENAI_API_MODE=chat
 OPENAI_BASE_URL=https://api-trikun.up.railway.app/v1
-OPENAI_MODEL=ag/gemini-3.5-flash-low
+OPENAI_MODEL=ag/gemini-3.7-flash-low
 ```
 
 Trong service Railway → Variables, đặt `OPENAI_API_KEY` bằng key của API này rồi deploy.
@@ -155,6 +155,6 @@ Không đưa key vào Git. Biến đã đặt trên Railway được ưu tiên h
 Cấu hình đã lưu ở Quản trị → Cấu hình API có ưu tiên cao nhất, nên cũng cần cập nhật nếu đã lưu.
 File `.env` cục bộ không được push lên Railway.
 
-Model 3.5 được giữ theo yêu cầu, nhưng lần gọi thử ngày 29/09/2026 nhà cung cấp báo đã ngừng
-hoạt động. Có thể đổi `OPENAI_MODEL` trên Railway hoặc giao diện quản trị khi cần;
-`ag/gemini-3.7-flash-low` đã được kiểm tra chat và gọi công cụ thành công.
+Model mặc định là `ag/gemini-3.7-flash-low`, đã được kiểm tra chat và gọi công cụ thành công.
+Model 3.5 trên API này báo đã ngừng hoạt động. Nếu trước đây đã đặt model 3.5 trong Railway
+Variables hoặc giao diện quản trị, cần đổi sang `ag/gemini-3.7-flash-low` tại đó.

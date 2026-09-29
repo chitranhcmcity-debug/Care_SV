@@ -186,7 +186,7 @@ const useGemini = () => {
 test('compatible proxy uses Chat Completions and can switch back to Responses', async () => {
   process.env.OPENAI_API_MODE = 'chat';
   process.env.OPENAI_BASE_URL = 'https://api-trikun.up.railway.app/v1';
-  process.env.OPENAI_MODEL = 'ag/gemini-3.5-flash-low';
+  process.env.OPENAI_MODEL = 'ag/gemini-3.7-flash-low';
   responses.push(geminiAnswer({ content: 'Chào bạn' }));
   assert.equal(await ai.chat(args), 'Chào bạn');
   assert.equal(endpoints.at(-1), process.env.OPENAI_BASE_URL);
