@@ -32,6 +32,12 @@ const ICONS = {
   bell: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a2 2 0 0 0 3.4 0',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5',
   message: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+  calendarCheck:
+    'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 10h18M9 15l2 2 4-4',
+  shieldLock:
+    'M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3zM10 11V9.5a2 2 0 0 1 4 0V11M9.5 11h5v4h-5z',
+  grid: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  arrow: 'M5 12h14m-5-5 5 5-5 5',
   play: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l6-3.5-6-3.5z',
   sparkles:
     'M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3zM19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z',
@@ -159,49 +165,43 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
-  // Bento grid: `wide` cards span two columns on large screens.
+  // Feature cards: each `theme` sets the card tint, icon tile and arrow colours (see .f-* in the CSS).
   readonly features = [
     {
       title: 'Điểm danh đúng giờ học',
       text: 'Giảng viên điểm danh theo thời khóa biểu, chỉ mở trong giờ học và sửa được đến hết ngày. Trưởng phòng xử lý ngoại lệ.',
-      icon: ICONS.clipboard,
-      tone: 'from-violet-500 to-fuchsia-500',
-      wide: true,
+      icon: ICONS.calendarCheck,
+      theme: 'f-violet',
     },
     {
       title: 'Gọi điện có ghi âm',
       text: 'Gọi sinh viên hoặc phụ huynh ngay trên trình duyệt qua tổng đài, lưu lịch sử và ghi âm.',
       icon: ICONS.phone,
-      tone: 'from-sky-500 to-indigo-500',
-      wide: false,
+      theme: 'f-sky',
     },
     {
       title: 'Cảnh báo theo tiết nghỉ',
       text: 'Các mức cảnh báo (nhắc nhở, báo phụ huynh, cấm thi) do Trưởng phòng tự cấu hình theo % hoặc số tiết.',
       icon: ICONS.alert,
-      tone: 'from-amber-400 to-orange-500',
-      wide: false,
+      theme: 'f-amber',
     },
     {
       title: 'Phân lớp cho CSKH',
       text: 'Mỗi lớp hành chính có một nhân viên phụ trách; sinh viên vắng tự vào đúng hàng gọi của người đó, có lưu lịch sử bàn giao.',
-      icon: ICONS.headset,
-      tone: 'from-emerald-400 to-teal-500',
-      wide: true,
+      icon: ICONS.users,
+      theme: 'f-emerald',
     },
     {
       title: 'Giao việc & KPI',
       text: 'Giao việc, nhận minh chứng, duyệt và theo dõi tiến độ, KPI của từng nhân viên.',
       icon: ICONS.chart,
-      tone: 'from-pink-500 to-rose-500',
-      wide: false,
+      theme: 'f-pink',
     },
     {
       title: 'Phân quyền linh hoạt',
       text: 'Quản trị viên bật/tắt từng quyền cho mỗi vai trò, có hiệu lực ngay.',
-      icon: ICONS.lock,
-      tone: 'from-slate-600 to-slate-800',
-      wide: false,
+      icon: ICONS.shieldLock,
+      theme: 'f-indigo',
     },
   ];
 

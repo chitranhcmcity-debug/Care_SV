@@ -584,51 +584,110 @@
       </div>
     </section>
 
-    <!-- ============ FEATURES (bento) ============ -->
+    <!-- ============ FEATURES ============ -->
     <section
       id="tinh-nang"
-      class="px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20 bg-[#f7f5fd]"
+      class="features-bg relative overflow-hidden px-5 md:px-6 py-14 md:py-20 scroll-mt-28 xl:scroll-mt-20"
     >
-      <div class="max-w-7xl mx-auto space-y-8">
-        <div class="text-center space-y-3 max-w-3xl mx-auto">
+      <div class="features-dots" aria-hidden="true"></div>
+      <div class="relative max-w-[1440px] mx-auto xl:px-4 space-y-10 md:space-y-12">
+        <div class="text-center space-y-4 max-w-5xl mx-auto">
           <span
-            class="inline-block px-3 py-1 rounded-full bg-white text-xs font-bold text-violet-600 border border-violet-100"
-            >TÍNH NĂNG</span
+            class="flex w-fit mx-auto items-center gap-2 px-4 py-1.5 rounded-full bg-white text-sm font-bold text-violet-600 shadow-md shadow-violet-500/10 ring-1 ring-violet-100"
           >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path [attr.d]="icons.grid" />
+            </svg>
+            TÍNH NĂNG
+          </span>
           <h2
-            class="text-3xl md:text-[44px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
+            class="relative inline-block text-3xl md:text-[48px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
           >
+            <svg
+              class="spark hidden md:block absolute -left-8 -top-5 w-8 h-8 text-violet-500"
+              viewBox="0 0 32 32"
+              aria-hidden="true"
+            >
+              <path d="M6 10l6 4M14 3l1 7M22 8l-3 5" />
+            </svg>
             Mọi khâu chăm sóc, <span class="text-grad">gọn trong một nơi</span>
           </h2>
-          <p class="text-slate-500">
+          <p class="text-slate-500 md:text-lg">
             Từ tiết học trên lớp đến cuộc gọi cho phụ huynh — tự động, minh bạch, có lịch sử.
           </p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+          <article
             *ngFor="let feature of features"
-            class="feature p-6 space-y-3"
-            [ngClass]="feature.wide ? 'lg:col-span-2' : ''"
+            class="fcard group relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-start gap-5"
+            [ngClass]="feature.theme"
           >
-            <span
-              class="w-12 h-12 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-lg"
-              [ngClass]="feature.tone"
+            <!-- faded watermark of the icon -->
+            <svg
+              class="fcard-mark absolute -right-3 -bottom-4 w-28 h-28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
             >
-              <svg
-                class="w-6 h-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+              <path [attr.d]="feature.icon" />
+            </svg>
+
+            <div class="relative shrink-0">
+              <span
+                class="fcard-tile w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] rounded-[22px] grid place-items-center text-white"
               >
-                <path [attr.d]="feature.icon" />
+                <svg
+                  class="w-9 h-9 sm:w-11 sm:h-11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path [attr.d]="feature.icon" />
+                </svg>
+              </span>
+              <svg
+                class="spark fcard-spark absolute -right-4 -top-4 w-7 h-7"
+                viewBox="0 0 32 32"
+                aria-hidden="true"
+              >
+                <path d="M6 10l6 4M14 3l1 7M22 8l-3 5" />
               </svg>
-            </span>
-            <h3 class="text-lg font-bold text-slate-900">{{ feature.title }}</h3>
-            <p class="text-sm text-slate-500 leading-relaxed">{{ feature.text }}</p>
-          </div>
+            </div>
+
+            <div class="relative min-w-0 flex-1 pt-1">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg md:text-xl font-bold text-slate-900 leading-snug">
+                  {{ feature.title }}
+                </h3>
+                <span
+                  class="fcard-arrow w-10 h-10 rounded-full grid place-items-center shrink-0 -mt-1 transition-transform group-hover:translate-x-1"
+                  aria-hidden="true"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path [attr.d]="icons.arrow" />
+                  </svg>
+                </span>
+              </div>
+              <p class="mt-2 text-[15px] text-slate-500 leading-relaxed">{{ feature.text }}</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
