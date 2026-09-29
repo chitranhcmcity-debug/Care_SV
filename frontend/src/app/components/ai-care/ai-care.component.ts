@@ -11,8 +11,15 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AiCareProfile, AiService, ChatMessage } from '../../services/ai.service';
+import { Router } from '@angular/router';
+import { AiCareAction, AiCareProfile, AiService, ChatMessage } from '../../services/ai.service';
 import { AuthService } from '../../services/auth.service';
+
+/** A prepared action shown as a card with Xác nhận / Hủy. */
+type ActionCard = AiCareAction & {
+  state: 'pending' | 'running' | 'done' | 'cancelled' | 'error';
+  result?: string;
+};
 import { renderMarkdown } from '../../utils/markdown';
 
 const MAX_HISTORY = 20; // matches the backend limit
@@ -33,6 +40,7 @@ const DROP_REST_MS = 8000;
 export class AiCareComponent {
   private readonly ai = inject(AiService);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
 
@@ -64,7 +72,7 @@ export class AiCareComponent {
 
   readonly open = signal(false);
   readonly profile = signal<AiCareProfile | null>(null);
-  readonly messages = signal<(ChatMessage & { html?: string })[]>([]);
+  readonly messages = signal<(ChatMessage & { html?: string; actions?: ActionCard[] })[]>([]);
   readonly loading = signal(false);
   readonly error = signal('');
   draft = '';
@@ -258,12 +266,18 @@ export class AiCareComponent {
     // The backend requires the history to start with a user turn.
     while (history.length && history[0].role !== 'user') history.shift();
     this.ai.careChat(history).subscribe({
-      next: ({ reply }) => {
+      next: ({ reply, actions, navigate }) => {
         this.loading.set(false);
         this.messages.update((m) => [
           ...m,
-          { role: 'assistant', content: reply, html: renderMarkdown(reply) },
+          {
+            role: 'assistant',
+            content: reply,
+            html: renderMarkdown(reply),
+            actions: (actions ?? []).map((a) => ({ ...a, state: 'pending' as const })),
+          },
         ]);
+        if (navigate) this.openPage(navigate);
         this.scrollToEnd();
       },
       error: (err: HttpErrorResponse) => {
@@ -274,6 +288,49 @@ export class AiCareComponent {
         this.error.set(err.error?.message || 'AI Care đang bận, vui lòng thử lại.');
       },
     });
+  }
+
+  /** Runs a prepared action (the user pressed Xác nhận) and shows the result on its card. */
+  confirmAction(card: ActionCard) {
+    if (card.state !== 'pending') return;
+    this.setCard(card.id, { state: 'running' });
+    this.ai.confirmCareAction(card.id).subscribe({
+      next: ({ message, navigate }) => {
+        const samePage = navigate && this.router.url === navigate;
+        this.setCard(card.id, {
+          state: 'done',
+          result: samePage ? `${message} Tải lại trang để thấy thay đổi.` : message,
+        });
+        // Take the user to the page that shows the change.
+        if (navigate && !samePage) this.openPage(navigate);
+      },
+      error: (err: HttpErrorResponse) =>
+        this.setCard(card.id, {
+          state: 'error',
+          result: err.error?.message || 'Không thực hiện được thao tác.',
+        }),
+    });
+  }
+
+  cancelAction(card: ActionCard) {
+    if (card.state !== 'pending') return;
+    this.setCard(card.id, { state: 'cancelled' });
+    this.ai.cancelCareAction(card.id).subscribe({ error: () => {} });
+  }
+
+  private setCard(id: string, patch: Partial<ActionCard>) {
+    this.messages.update((list) =>
+      list.map((m) =>
+        m.actions?.some((a) => a.id === id)
+          ? { ...m, actions: m.actions.map((a) => (a.id === id ? { ...a, ...patch } : a)) }
+          : m,
+      ),
+    );
+  }
+
+  /** Opens a page AI Care pointed to, if this user may open it. */
+  private openPage(url: string) {
+    if (this.auth.canOpen(url.split('?')[0])) this.router.navigateByUrl(url);
   }
 
   onKeydown(event: KeyboardEvent) {

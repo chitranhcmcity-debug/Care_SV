@@ -23,6 +23,7 @@ const {
   attendanceWindow,
 } = require('./dichVuCanhBao');
 const { canAccessStudent } = require('../middleware/phanQuyen');
+const { actionTools, handleActionTool } = require('./dichVuAiThaoTac');
 const {
   ROLE_LABEL,
   OPEN_CALL_STATUSES,
@@ -701,6 +702,7 @@ const ROLE_PROFILES = {
       'Sinh viên nào trong các lớp của tôi đã chạm mức cảnh báo?',
       'Gợi ý cách nhắc nhở một sinh viên hay vắng học',
     ],
+    actionSuggestions: ['Mở trang thời khóa biểu'],
   },
   staff: {
     focus:
@@ -712,6 +714,10 @@ const ROLE_PROFILES = {
       'Lớp tôi phụ trách có sinh viên nào chạm mức cảnh báo?',
       'Soạn kịch bản gọi cho sinh viên sắp bị cấm thi',
     ],
+    actionSuggestions: [
+      'Giúp tôi ghi kết quả cuộc gọi cho một sinh viên',
+      'Xác nhận tôi đã nhận việc mới nhất',
+    ],
   },
   manager: {
     focus:
@@ -722,6 +728,10 @@ const ROLE_PROFILES = {
       'Tóm tắt tình hình chuyên cần theo từng mức cảnh báo',
       'Lớp nào chưa có nhân viên phụ trách? Hàng chờ còn bao nhiêu cuộc gọi?',
       'Nhân viên nào đang quá tải hoặc chậm tiến độ?',
+    ],
+    actionSuggestions: [
+      'Giao việc tổng hợp danh sách SV nguy cơ cấm thi cho nhân viên ít việc nhất, hạn thứ 6',
+      'Giao lớp chưa có người phụ trách cho nhân viên đang ít việc nhất',
     ],
   },
   admin: {
@@ -737,7 +747,8 @@ const ROLE_PROFILES = {
   },
 };
 
-const toolsFor = (user) => TOOLS.filter((t) => t.allowed(user));
+// Look-up tools plus the actions this user may ask AI Care to prepare (see dichVuAiThaoTac).
+const toolsFor = (user) => [...TOOLS.filter((t) => t.allowed(user)), ...actionTools(user)];
 
 function profileFor(user) {
   const profile = ROLE_PROFILES[user.role] || ROLE_PROFILES.staff;
@@ -747,7 +758,7 @@ function profileFor(user) {
     roleLabel: ROLE_LABEL[user.role] || user.role,
     focus: profile.focus,
     capabilities: toolsFor(user).map((t) => t.label),
-    suggestions: profile.suggestions,
+    suggestions: [...profile.suggestions, ...(profile.actionSuggestions || [])],
   };
 }
 
@@ -761,6 +772,7 @@ async function systemPromptFor(user) {
   const levels = await getWarningLevels();
   return `Bạn là AI Care — trợ lý AI của hệ thống ITC SinhVien Care (quản lý điểm danh và chăm sóc sinh viên của một trường cao đẳng tại Việt Nam).
 
+Hôm nay: ${new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' })} (khi cần ngày cụ thể, quy đổi "thứ 6 này", "tuần sau"... sang YYYY-MM-DD).
 Người đang trò chuyện: ${user.fullName} — vai trò ${ROLE_LABEL[user.role] || user.role}.
 Nhiệm vụ của bạn với vai trò này: ${profile.focus}
 Các trang chức năng người dùng này có thể mở: ${profile.pages}
@@ -777,16 +789,27 @@ Nguyên tắc:
 - Khi cần số liệu thật, hãy dùng công cụ được cung cấp. Công cụ đã giới hạn sẵn dữ liệu theo phạm vi quyền của người dùng; không bao giờ bịa số liệu, tên hay mã sinh viên.
 - Khi nói về mức cảnh báo, dùng đúng tên mức ở trên; ưu tiên sinh viên ở mức nặng hơn.
 - Nếu người dùng hỏi điều nằm ngoài quyền hoặc công cụ của họ, nói rõ là vai trò hiện tại không xem được và gợi ý liên hệ người phụ trách (Trưởng phòng cho nghiệp vụ, Quản trị viên cho hệ thống), thay vì đoán.
-- Với việc cần thao tác (điểm danh, cập nhật cuộc gọi, duyệt nhiệm vụ...), bạn không tự thực hiện được: hướng dẫn người dùng mở đúng trang và các bước cần làm.
+- Thao tác thay người dùng: nếu họ muốn làm một việc và bạn có công cụ thao tác tương ứng (cap_nhat_cuoc_goi, xac_nhan_nhan_viec, giao_viec, duyet_nhiem_vu, phan_lop_cskh), hãy gọi công cụ đó để SOẠN thao tác. Công cụ không làm thay đổi gì: giao diện sẽ hiện thẻ Xác nhận / Hủy, và chỉ khi người dùng bấm Xác nhận thì thao tác mới chạy. Vì vậy tuyệt đối không nói là "đã làm xong"; hãy tóm tắt những gì sẽ thay đổi và nhắc bấm Xác nhận. Thiếu thông tin bắt buộc (vd tên nhân viên, MSSV, tiêu đề) thì hỏi lại, không tự bịa. Nếu công cụ báo lỗi hoặc nhiều kết quả khớp, nói lại cho người dùng.
+- Khi người dùng muốn mở một trang, dùng công cụ mo_trang. Việc không có công cụ thao tác (vd điểm danh, nộp minh chứng kèm file) thì hướng dẫn mở đúng trang và các bước cần làm.
 - Tôn trọng sinh viên: nhận xét mang tính hỗ trợ, không phán xét, không suy diễn hoàn cảnh cá nhân.
 - Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng; dùng gạch đầu dòng hoặc bảng markdown đơn giản khi liệt kê.`;
 }
 
-/** Runs the tool the model asked for, re-checking permission on every call. */
-async function executeTool(user, name, input) {
+/**
+ * Runs the tool the model asked for, re-checking permission on every call. Action tools only
+ * prepare a proposal, collected in ctx.actions (ctx.navigate for page opening) for the UI.
+ */
+async function executeTool(user, name, input, ctx = { actions: [], navigate: null }) {
   const tool = TOOLS.find((t) => t.name === name);
-  if (!tool || !tool.allowed(user)) return { loi: 'Công cụ không khả dụng cho vai trò của bạn' };
-  return tool.run(user, input || {});
+  if (tool) {
+    if (!tool.allowed(user)) return { loi: 'Công cụ không khả dụng cho vai trò của bạn' };
+    return tool.run(user, input || {});
+  }
+  return (
+    (await handleActionTool(user, name, input, ctx)) ?? {
+      loi: 'Công cụ không khả dụng cho vai trò của bạn',
+    }
+  );
 }
 
 const toolDefinitions = (user) =>

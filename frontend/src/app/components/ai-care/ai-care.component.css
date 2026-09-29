@@ -118,6 +118,36 @@
   transform: translate(-50%, -2px);
 }
 
+/* Action proposal card in the chat. */
+.action-card {
+  margin-left: 4px;
+  max-width: 92%;
+  padding: 10px 12px;
+  border: 1px solid #ddd6fe;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #faf5ff, #fdf2f8);
+  box-shadow: 0 8px 18px -14px rgba(124, 58, 237, 0.6);
+}
+.action-card.is-done {
+  border-color: #a7f3d0;
+  background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+}
+.action-card.is-off {
+  opacity: 0.75;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+.action-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #fff;
+  font-size: 15px;
+}
+
 @keyframes robot-bob {
   0%,
   100% {

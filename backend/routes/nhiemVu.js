@@ -5,8 +5,14 @@ const fs = require('node:fs');
 const crypto = require('node:crypto');
 const multer = require('multer');
 const NhiemVu = require('../models/NhiemVu');
-const NguoiDung = require('../models/NguoiDung');
-const { TASK_STATUS, TASK_STATUSES, TASK_CATEGORIES, TASK_PRIORITIES } = require('../utils/hangSo');
+const { TASK_STATUS, TASK_STATUSES } = require('../utils/hangSo');
+const {
+  logProgress,
+  readClassification,
+  createTask,
+  acknowledgeTask,
+  reviewTask,
+} = require('../services/dichVuNhiemVu');
 const { staffProgress } = require('../services/dichVuTienDoNhanVien');
 const { can } = require('../services/dichVuPhanQuyen');
 const {
@@ -77,28 +83,6 @@ function requireTaskOwnerOrAdmin(req, res, next) {
   next();
 }
 
-// Optional category / priority from a create or edit body; undefined = leave unchanged.
-function readClassification(body, task) {
-  const { category, priority } = body;
-  if (category !== undefined) {
-    assert(TASK_CATEGORIES.includes(category), 'Loại công việc không hợp lệ');
-    task.category = category;
-  }
-  if (priority !== undefined) {
-    assert(TASK_PRIORITIES.includes(priority), 'Mức độ ưu tiên không hợp lệ');
-    task.priority = priority;
-  }
-}
-
-// Keep the log bounded: a long-running task can be reported on many times.
-const MAX_PROGRESS_LOG = 50;
-function logProgress(task, percent, note = '') {
-  task.progress = percent;
-  task.progressLog.push({ percent, note, at: new Date() });
-  if (task.progressLog.length > MAX_PROGRESS_LOG)
-    task.progressLog.splice(0, task.progressLog.length - MAX_PROGRESS_LOG);
-}
-
 const taskPopulation = [
   { path: 'assignedTo', select: 'fullName email' },
   { path: 'assignedBy', select: 'fullName email' },
@@ -108,24 +92,7 @@ const taskPopulation = [
 // POST /api/tasks (Admin: create & assign a task to a staff member)
 router.post('/', verifyToken, requirePermission('tasks.manage'), async (req, res, next) => {
   try {
-    const { title, description, assignedTo, dueDate } = req.body;
-    assert(typeof title === 'string' && title.trim(), 'Tiêu đề là bắt buộc');
-    assert(typeof description === 'string' && description.trim(), 'Mô tả nhiệm vụ là bắt buộc');
-    validateId(assignedTo);
-    const staff = await NguoiDung.findById(assignedTo);
-    assert(
-      staff && staff.status === 'active' && staff.role === 'staff',
-      'Vui lòng chọn một nhân viên CSKH đang hoạt động',
-    );
-    const task = new NhiemVu({
-      title: title.trim(),
-      description: description.trim(),
-      assignedBy: req.user.id,
-      assignedTo,
-      dueDate: parseOptionalDate(dueDate, 'Hạn chót không hợp lệ'),
-    });
-    readClassification(req.body, task);
-    await task.save();
+    const { task, staff } = await createTask(req.body, req.user.id);
     await task.populate(taskPopulation);
     res.status(201).json({ message: `Đã giao nhiệm vụ cho ${staff.fullName}!`, task });
   } catch (error) {
@@ -282,10 +249,7 @@ router.put(
   requireTaskOwnerOrAdmin,
   async (req, res, next) => {
     try {
-      assert(req.task.status === TASK_STATUS.PENDING, 'Nhiệm vụ đã được xác nhận trước đó');
-      req.task.status = TASK_STATUS.ACKNOWLEDGED;
-      req.task.acknowledgedAt = new Date();
-      await req.task.save();
+      await acknowledgeTask(req.task);
       await req.task.populate(taskPopulation);
       res.json({ message: 'Đã xác nhận nhiệm vụ, bắt đầu thực hiện!', task: req.task });
     } catch (error) {
@@ -387,27 +351,8 @@ router.put(
   async (req, res, next) => {
     try {
       const { task } = req;
-      assert(task.status === TASK_STATUS.SUBMITTED, 'Nhiệm vụ chưa được nộp minh chứng để duyệt');
-      const { approve, reviewNote, score } = req.body;
-      assert(typeof approve === 'boolean', 'Vui lòng chọn Duyệt hoặc Từ chối');
-      assert(reviewNote === undefined || typeof reviewNote === 'string', 'Ghi chú không hợp lệ');
-      assert(
-        score === undefined ||
-          score === null ||
-          (Number.isInteger(score) && score >= 1 && score <= 5),
-        'Điểm chất lượng phải từ 1 đến 5',
-      );
-      task.status = approve ? TASK_STATUS.COMPLETED : TASK_STATUS.REJECTED;
-      task.reviewScore = approve ? (score ?? null) : null;
-      if (!approve) {
-        task.reworkCount += 1;
-        // Back to work: the progress bar drops so it no longer reads "100% done".
-        logProgress(task, Math.min(task.progress, 90), 'Bị yêu cầu làm lại');
-      }
-      task.reviewNote = reviewNote ? reviewNote.trim() : '';
-      task.reviewedBy = req.user.id;
-      task.completedAt = approve ? new Date() : null;
-      await task.save();
+      const approve = req.body?.approve;
+      await reviewTask(task, req.body ?? {}, req.user.id);
       await task.populate(taskPopulation);
       res.json({
         message: approve ? 'Đã duyệt và đóng nhiệm vụ!' : 'Đã từ chối, yêu cầu nhân viên làm lại.',

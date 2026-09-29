@@ -1,4 +1,5 @@
-const { CALL_STATUS, CALL_STATUSES, toLabel } = require('../utils/hangSo');
+const { CALL_STATUS, toLabel } = require('../utils/hangSo');
+const { updateCallTask } = require('../services/dichVuNhiemVuGoiDien');
 const { requireStudentAccess } = require('../middleware/phanQuyen');
 const { assert, validateId, dateKey } = require('../utils/kiemTra');
 const express = require('express');
@@ -195,60 +196,14 @@ router.put(
   requirePermission('callTasks.update'),
   async (req, res, next) => {
     try {
-      const { status, callNote, absenceReasonCategory, callbackDate, tags } = req.body;
       const taskId = req.params.id;
       validateId(taskId);
-      assert(status === undefined || CALL_STATUSES.includes(status), 'Invalid call status');
-      assert(callNote === undefined || typeof callNote === 'string', 'Invalid call note');
-      assert(
-        absenceReasonCategory === undefined || typeof absenceReasonCategory === 'string',
-        'Invalid absence reason',
-      );
-      assert(
-        callbackDate === undefined ||
-          callbackDate === null ||
-          callbackDate === '' ||
-          (typeof callbackDate === 'string' && !Number.isNaN(Date.parse(callbackDate))),
-        'Invalid callback date',
-      );
-      assert(
-        tags === undefined || (Array.isArray(tags) && tags.every((t) => typeof t === 'string')),
-        'Invalid tags',
-      );
-
       const task = await NhiemVuGoiDien.findById(taskId);
       if (!task) {
         return res.status(404).json({ message: 'Không tìm thấy nhiệm vụ cuộc gọi' });
       }
-
       assert(String(task.assignedStaffId) === req.user.id, 'Nhiệm vụ không thuộc về bạn', 403);
-
-      const previousStatus = task.status;
-      if (status && CALL_STATUSES.includes(status)) {
-        task.status = status;
-      }
-      if (callNote !== undefined) {
-        task.callNote = callNote;
-      }
-      if (absenceReasonCategory !== undefined) {
-        task.absenceReasonCategory = absenceReasonCategory;
-      }
-      if (callbackDate !== undefined) {
-        task.callbackDate = callbackDate ? new Date(callbackDate) : null;
-      }
-
-      // Count a call attempt only when an outcome is recorded: the status changes,
-      // or a retry is logged as unreachable. Editing notes/tags alone is not a call.
-      if (status && (status !== previousStatus || status === CALL_STATUS.UNREACHABLE)) {
-        task.callAttempts = (task.callAttempts || 0) + 1;
-      }
-
-      await task.save();
-
-      // If student tags were provided in update, save them to SinhVien model as well
-      if (Array.isArray(tags) && task.studentId) {
-        await SinhVien.findByIdAndUpdate(task.studentId, { tags });
-      }
+      await updateCallTask(task, req.body ?? {});
 
       const updatedTask = await NhiemVuGoiDien.findById(taskId)
         .populate('studentId', 'studentCode fullName classCode dob major phone parentPhone tags')

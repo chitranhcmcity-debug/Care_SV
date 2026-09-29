@@ -19,6 +19,19 @@ export interface AiCareProfile {
   suggestions: string[];
 }
 
+/** An operation AI Care prepared on the user's behalf; it only runs once they confirm it. */
+export interface AiCareAction {
+  id: string;
+  title: string;
+  details: string[];
+}
+
+export interface AiCareReply {
+  reply: string;
+  actions?: AiCareAction[];
+  navigate?: string | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -49,9 +62,28 @@ export class AiService {
     return this.http.get<AiCareProfile>(`${this.apiUrl}/care`);
   }
 
-  /** AI Care: hỏi đáp theo vai trò; client gửi lại toàn bộ hội thoại mỗi lượt. */
-  careChat(messages: ChatMessage[]): Observable<{ reply: string }> {
-    return this.http.post<{ reply: string }>(`${this.apiUrl}/care`, { messages });
+  /**
+   * AI Care: hỏi đáp theo vai trò; client gửi lại toàn bộ hội thoại mỗi lượt. `actions` are
+   * operations AI Care prepared (nothing changed yet — the user confirms each one), `navigate`
+   * a page it asked to open.
+   */
+  careChat(messages: ChatMessage[]): Observable<AiCareReply> {
+    return this.http.post<AiCareReply>(`${this.apiUrl}/care`, { messages });
+  }
+
+  /** Runs an action AI Care prepared, after the user pressed Xác nhận. */
+  confirmCareAction(id: string): Observable<{ message: string; navigate?: string }> {
+    return this.http.post<{ message: string; navigate?: string }>(
+      `${this.apiUrl}/care/actions/${encodeURIComponent(id)}/confirm`,
+      {},
+    );
+  }
+
+  cancelCareAction(id: string): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(
+      `${this.apiUrl}/care/actions/${encodeURIComponent(id)}/cancel`,
+      {},
+    );
   }
 
   /** Đánh giá năng lực 1 nhân viên: tiến độ, đúng hạn, chất lượng công việc và chăm sóc SV. */

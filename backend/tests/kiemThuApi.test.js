@@ -1417,6 +1417,57 @@ test('AI Care: every role gets its own tools, and each tool stays within the cal
   assert.equal(noKey.status, 503);
 });
 
+test('AI Care actions: only prepared by the model, run when the same user confirms', async () => {
+  const aiCare = require('../services/dichVuAiCare');
+  const { permissionsForRole } = require('../services/dichVuPhanQuyen');
+  const asUser = async (user) => ({
+    ...user.toObject(),
+    id: String(user._id),
+    permissions: await permissionsForRole(user.role),
+  });
+  const names = async (user) => aiCare.toolDefinitions(await asUser(user)).map((t) => t.name);
+  const { staff, token: staffToken } = await createTaskStaff('ai-action');
+
+  // Each role only gets the actions its permissions allow; everyone may open a page.
+  assert.ok((await names(users.manager)).includes('giao_viec'));
+  assert.ok((await names(staff)).includes('cap_nhat_cuoc_goi'));
+  assert.ok(!(await names(staff)).includes('giao_viec'));
+  const adminTools = await names(users.admin);
+  assert.ok(adminTools.includes('mo_trang') && !adminTools.includes('giao_viec'));
+
+  // Preparing changes nothing and hands the UI a card to confirm.
+  const manager = await asUser(users.manager);
+  const ctx = { actions: [], navigate: null };
+  const prepared = await aiCare.executeTool(
+    manager,
+    'giao_viec',
+    { nhanVien: 'Task Staff ai-action', tieuDe: 'Tổng hợp SV cấm thi', moTa: 'Lập danh sách' },
+    ctx,
+  );
+  assert.match(prepared.trangThai, /CHƯA THỰC HIỆN/);
+  assert.equal(ctx.actions.length, 1);
+  assert.equal(await NhiemVu.countDocuments({ title: 'Tổng hợp SV cấm thi' }), 0);
+
+  // Another user cannot confirm it; the owner can, exactly once.
+  const id = ctx.actions[0].id;
+  assert.equal((await request(`/ai/care/actions/${id}/confirm`, staffToken, 'POST')).status, 404);
+  const done = await request(`/ai/care/actions/${id}/confirm`, tokens.manager, 'POST');
+  assert.equal(done.status, 200);
+  assert.equal(await NhiemVu.countDocuments({ title: 'Tổng hợp SV cấm thi', assignedTo: staff._id }), 1);
+  assert.equal((await request(`/ai/care/actions/${id}/confirm`, tokens.manager, 'POST')).status, 404);
+
+  // Unknown staff: the tool reports it instead of preparing anything.
+  await assert.rejects(
+    aiCare.executeTool(manager, 'giao_viec', { nhanVien: 'Không Có Ai', tieuDe: 'x', moTa: 'y' }, ctx),
+    /Không tìm thấy nhân viên/,
+  );
+  // Opening a page needs no confirmation.
+  await aiCare.executeTool(manager, 'mo_trang', { trang: '/students' }, ctx);
+  assert.equal(ctx.navigate, '/students');
+  await NhiemVu.deleteMany({ assignedTo: staff._id });
+  await NguoiDung.deleteOne({ _id: staff._id });
+});
+
 test('AI staff-performance is admin-only', async () => {
   const { staff, token } = await createTaskStaff('ai-perf');
   assert.equal(

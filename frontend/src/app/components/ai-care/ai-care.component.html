@@ -91,7 +91,9 @@
           <ng-container *ngIf="profile() as p">{{ p.focus }}</ng-container>
         </p>
         <div *ngIf="profile()?.capabilities?.length" class="mt-2">
-          <div class="text-xs font-semibold text-slate-500 uppercase mb-1">Tôi có thể tra cứu</div>
+          <div class="text-xs font-semibold text-slate-500 uppercase mb-1">
+            Tôi có thể tra cứu & làm giúp (bạn xác nhận trước khi thực hiện)
+          </div>
           <ul class="list-disc pl-5 text-slate-700 space-y-0.5">
             <li *ngFor="let c of profile()!.capabilities">{{ c }}</li>
           </ul>
@@ -120,6 +122,58 @@
           class="max-w-[92%] px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-800 space-y-1.5"
           [innerHTML]="m.html"
         ></div>
+      </div>
+
+      <!-- Actions AI Care prepared: nothing has changed until the user confirms -->
+      <div
+        *ngFor="let a of m.actions"
+        class="action-card"
+        [class.is-done]="a.state === 'done'"
+        [class.is-off]="a.state === 'cancelled' || a.state === 'error'"
+      >
+        <div class="flex items-start gap-2">
+          <span class="action-icon" aria-hidden="true">{{
+            a.state === 'done' ? '✅' : a.state === 'error' ? '⚠️' : a.state === 'cancelled' ? '🚫' : '⚡'
+          }}</span>
+          <div class="min-w-0 flex-1">
+            <div class="text-[11px] font-bold uppercase tracking-wide text-violet-600">
+              {{
+                a.state === 'done'
+                  ? 'Đã thực hiện'
+                  : a.state === 'cancelled'
+                    ? 'Đã hủy'
+                    : a.state === 'error'
+                      ? 'Không thực hiện được'
+                      : 'AI Care đề xuất thao tác'
+              }}
+            </div>
+            <div class="font-semibold text-slate-900">{{ a.title }}</div>
+            <ul *ngIf="a.details.length" class="mt-1 space-y-0.5 text-xs text-slate-600">
+              <li *ngFor="let d of a.details">• {{ d }}</li>
+            </ul>
+            <p *ngIf="a.result" class="mt-1.5 text-xs font-medium" [class.text-rose-700]="a.state === 'error'" [class.text-emerald-700]="a.state === 'done'">
+              {{ a.result }}
+            </p>
+          </div>
+        </div>
+        <div *ngIf="a.state === 'pending' || a.state === 'running'" class="mt-2.5 flex gap-2">
+          <button
+            type="button"
+            class="flex-1 h-9 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold disabled:opacity-60"
+            [disabled]="a.state === 'running'"
+            (click)="confirmAction(a)"
+          >
+            {{ a.state === 'running' ? 'Đang thực hiện…' : 'Xác nhận' }}
+          </button>
+          <button
+            type="button"
+            class="h-9 px-4 rounded-lg border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 disabled:opacity-60"
+            [disabled]="a.state === 'running'"
+            (click)="cancelAction(a)"
+          >
+            Hủy
+          </button>
+        </div>
       </div>
     </ng-container>
 

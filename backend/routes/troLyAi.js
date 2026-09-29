@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const aiService = require('../services/dichVuTroLyAi');
 const aiCare = require('../services/dichVuAiCare');
+const aiActions = require('../services/dichVuAiThaoTac');
 const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const DiemDanh = require('../models/DiemDanh');
 const SinhVien = require('../models/SinhVien');
@@ -51,16 +52,33 @@ router.post('/care', verifyToken, requireSignedIn, async (req, res, next) => {
   try {
     const messages = req.body?.messages;
     validateConversation(messages);
+    // Actions the model prepared this turn (shown as Confirm / Cancel cards) and a page to open.
+    const ctx = { actions: [], navigate: null };
     const reply = await aiService.chatWithTools({
       system: await aiCare.systemPromptFor(req.user),
       messages: messages.map(({ role, content }) => ({ role, content })),
       tools: aiCare.toolDefinitions(req.user),
-      execute: (name, input) => aiCare.executeTool(req.user, name, input),
+      execute: (name, input) => aiCare.executeTool(req.user, name, input, ctx),
     });
-    res.json({ reply });
+    res.json({ reply, actions: ctx.actions, navigate: ctx.navigate });
   } catch (error) {
     next(error);
   }
+});
+
+// POST /api/ai/care/actions/:id/confirm — the user approved an action AI Care prepared.
+router.post('/care/actions/:id/confirm', verifyToken, requireSignedIn, async (req, res, next) => {
+  try {
+    res.json(await aiActions.confirmAction(req.user, String(req.params.id)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/ai/care/actions/:id/cancel — the user dismissed it.
+router.post('/care/actions/:id/cancel', verifyToken, requireSignedIn, (req, res) => {
+  aiActions.cancelAction(req.user, String(req.params.id));
+  res.json({ ok: true });
 });
 
 // POST /api/ai/call-advice (Admin, or the staff assigned to the call task)
