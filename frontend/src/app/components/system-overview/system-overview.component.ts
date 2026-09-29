@@ -13,6 +13,7 @@ const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './system-overview.component.html',
+  styleUrl: './system-overview.component.css',
 })
 export class SystemOverviewComponent implements OnInit, OnDestroy {
   private readonly overview = inject(OverviewService);

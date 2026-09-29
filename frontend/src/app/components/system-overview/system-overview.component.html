@@ -73,33 +73,37 @@
 
     <!-- Headline numbers -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div class="text-xs text-slate-500 font-bold uppercase">Tài khoản</div>
-        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">{{ d.users.total }}</div>
+      <div class="ov-stat ov-stat--violet p-5">
+        <span class="ov-stat-icon" aria-hidden="true">👥</span>
+        <div class="ov-stat-label">Tài khoản</div>
+        <div class="ov-stat-value mt-1">{{ d.users.total }}</div>
         <div class="text-xs text-slate-500 mt-1">
           {{ d.users.byStatus.active || 0 }} hoạt động · {{ d.users.byStatus.inactive || 0 }} vô
           hiệu hóa
         </div>
       </div>
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div class="text-xs text-slate-500 font-bold uppercase">Sinh viên</div>
-        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">
+      <div class="ov-stat ov-stat--pink p-5">
+        <span class="ov-stat-icon" aria-hidden="true">🎓</span>
+        <div class="ov-stat-label">Sinh viên</div>
+        <div class="ov-stat-value mt-1">
           {{ d.data.students }}
         </div>
         <div class="text-xs text-slate-500 mt-1">{{ d.data.classes }} lớp hành chính</div>
       </div>
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div class="text-xs text-slate-500 font-bold uppercase">Nhóm học phần</div>
-        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">
+      <div class="ov-stat ov-stat--sky p-5">
+        <span class="ov-stat-icon" aria-hidden="true">📚</span>
+        <div class="ov-stat-label">Nhóm học phần</div>
+        <div class="ov-stat-value mt-1">
           {{ d.data.courseGroups }}
         </div>
         <div class="text-xs text-slate-500 mt-1">
           {{ d.data.groupsWithoutTeacher }} chưa gán giảng viên
         </div>
       </div>
-      <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
-        <div class="text-xs text-slate-500 font-bold uppercase">Nhiệm vụ gọi điện</div>
-        <div class="text-3xl font-bold text-slate-900 mt-1 tabular-nums">
+      <div class="ov-stat ov-stat--amber p-5">
+        <span class="ov-stat-icon" aria-hidden="true">📞</span>
+        <div class="ov-stat-label">Nhiệm vụ gọi điện</div>
+        <div class="ov-stat-value mt-1">
           {{ d.callTasks.open }}
         </div>
         <div class="text-xs text-slate-500 mt-1">
@@ -113,16 +117,20 @@
       <section
         *ngFor="
           let chart of [
-            { key: 'attendance', title: 'Buổi điểm danh', unit: 'buổi' },
-            { key: 'calls', title: 'Cuộc gọi chăm sóc', unit: 'cuộc gọi' },
+            { key: 'attendance', title: 'Buổi điểm danh', unit: 'buổi', icon: '📝' },
+            { key: 'calls', title: 'Cuộc gọi chăm sóc', unit: 'cuộc gọi', icon: '☎️' },
           ]
         "
-        class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4"
+        class="ov-chart p-6 space-y-4"
+        [ngClass]="'ov-chart--' + chart.key"
       >
-        <div class="flex items-baseline justify-between border-b border-slate-100 pb-3">
-          <h4 class="font-bold text-slate-900 text-base">{{ chart.title }} · 7 ngày qua</h4>
-          <span class="text-sm text-slate-600 tabular-nums">
-            <strong class="text-slate-900">{{ total($any(chart.key)) }}</strong> {{ chart.unit }}
+        <div class="ov-chart-head flex items-center justify-between gap-3 pb-3">
+          <h4 class="font-bold text-slate-900 text-base flex items-center gap-2.5">
+            <span class="ov-chart-icon" aria-hidden="true">{{ chart.icon }}</span>
+            {{ chart.title }} · 7 ngày qua
+          </h4>
+          <span class="ov-chart-total tabular-nums">
+            <strong>{{ total($any(chart.key)) }}</strong> {{ chart.unit }}
           </span>
         </div>
         <div class="relative h-40 flex items-end gap-2" role="list" [attr.aria-label]="chart.title">
@@ -142,17 +150,13 @@
               {{ chart.unit }}
             </div>
             <div
-              class="w-full max-w-10 rounded-t transition-all duration-300"
-              [ngClass]="
-                hovered()?.chart === chart.key && hovered()?.index === i
-                  ? 'bg-violet-700'
-                  : 'bg-violet-500'
-              "
+              class="ov-bar w-full max-w-10"
+              [class.is-hovered]="hovered()?.chart === chart.key && hovered()?.index === i"
               [style.height.%]="barHeight($any(chart.key), $any(day)[chart.key])"
               [style.minHeight.px]="$any(day)[chart.key] ? 4 : 0"
             ></div>
           </div>
-          <div class="absolute inset-x-0 bottom-0 h-px bg-slate-200"></div>
+          <div class="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-violet-100"></div>
         </div>
         <div class="flex gap-2 text-[11px] text-slate-500">
           <span *ngFor="let day of d.activity" class="flex-1 text-center">{{

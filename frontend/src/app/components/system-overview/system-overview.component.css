@@ -1,0 +1,131 @@
+/* ---------- Headline number cards: one colour each ---------- */
+.ov-stat {
+  --tone: #7c3aed;
+  --tone-2: #c026d3;
+  --tint: #f5f3ff;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid color-mix(in srgb, var(--tone) 28%, white);
+  border-radius: 20px;
+  background:
+    radial-gradient(160px 120px at 100% 0%, color-mix(in srgb, var(--tone-2) 22%, transparent), transparent 70%),
+    linear-gradient(160deg, #ffffff 30%, var(--tint));
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 4px 8px -2px rgb(76 29 149 / 0.1),
+    0 18px 32px -18px color-mix(in srgb, var(--tone) 70%, transparent);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.ov-stat::before {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  content: '';
+  background: linear-gradient(90deg, var(--tone), var(--tone-2));
+}
+.ov-stat:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 24px 40px -18px color-mix(in srgb, var(--tone) 80%, transparent);
+}
+.ov-stat--violet { --tone: #7c3aed; --tone-2: #a855f7; --tint: #f5f3ff; }
+.ov-stat--pink   { --tone: #db2777; --tone-2: #f472b6; --tint: #fdf2f8; }
+.ov-stat--sky    { --tone: #0284c7; --tone-2: #22d3ee; --tint: #f0f9ff; }
+.ov-stat--amber  { --tone: #d97706; --tone-2: #f59e0b; --tint: #fffbeb; }
+
+.ov-stat-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: linear-gradient(135deg, var(--tone), var(--tone-2));
+  box-shadow: 0 8px 16px -8px var(--tone);
+}
+.ov-stat-label {
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ov-stat-value {
+  width: fit-content;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(90deg, var(--tone), var(--tone-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- 7-day charts ---------- */
+.ov-chart {
+  --from: #7c3aed;
+  --to: #ec4899;
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid var(--card-border);
+  border-bottom: 5px solid #cfc3f2;
+  border-radius: 20px;
+  background:
+    radial-gradient(280px 160px at 100% 100%, color-mix(in srgb, var(--to) 12%, transparent), transparent 70%),
+    #fff;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 4px 8px -2px rgb(76 29 149 / 0.12),
+    0 24px 44px -22px rgb(76 29 149 / 0.45);
+}
+.ov-chart--calls {
+  --from: #0ea5e9;
+  --to: #10b981;
+}
+.ov-chart-head {
+  border-bottom: 1.5px dashed #e6e0f6;
+}
+.ov-chart-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--from) 18%, white), color-mix(in srgb, var(--to) 18%, white));
+}
+.ov-chart-total {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--from) 12%, white), color-mix(in srgb, var(--to) 12%, white));
+  color: color-mix(in srgb, var(--from) 70%, black);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ov-chart-total strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+.ov-bar {
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(180deg, var(--to), var(--from));
+  box-shadow: 0 8px 16px -10px var(--from);
+  transition:
+    height 0.3s ease,
+    filter 0.2s ease,
+    transform 0.2s ease;
+}
+.ov-bar.is-hovered {
+  filter: saturate(1.25) brightness(1.05);
+  transform: scaleX(1.08);
+}
