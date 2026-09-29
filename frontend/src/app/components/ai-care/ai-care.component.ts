@@ -17,8 +17,8 @@ import { renderMarkdown } from '../../utils/markdown';
 
 const MAX_HISTORY = 20; // matches the backend limit
 // Robot launcher size in px (keep in sync with .robot-launcher in the CSS).
-const ROBOT_W = 120;
-const ROBOT_H = 100;
+const ROBOT_W = 96;
+const ROBOT_H = 80;
 
 /** AI Care: floating assistant available on every signed-in page; what it can do depends on role. */
 @Component({
