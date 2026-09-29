@@ -1,7 +1,12 @@
+/* Staff list: a white card lifted off the tinted page with a clear edge and a soft glow. */
 .staff-table-container {
   overflow-x: auto;
+  background: #fff;
   border: 1.5px solid var(--card-border);
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow:
+    0 2px 4px rgb(76 29 149 / 0.08),
+    0 18px 38px -18px rgb(76 29 149 / 0.45);
 }
 
 .staff-table {
