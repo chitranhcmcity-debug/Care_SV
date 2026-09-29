@@ -1,0 +1,223 @@
+/* ---------- Intro bar ---------- */
+.ch-intro {
+  position: relative;
+  overflow: hidden;
+}
+.ch-intro::before {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  content: '';
+  background: linear-gradient(90deg, #10b981, #0ea5e9, #7c3aed, #ec4899);
+}
+.ch-intro-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  background: linear-gradient(135deg, #10b981, #0ea5e9);
+  box-shadow: 0 8px 16px -8px #0ea5e9;
+}
+.ch-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ede9fe, #fce7f3);
+  border: 1.5px solid #e9d5ff;
+  color: #6b21a8;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ch-count b {
+  color: #7c3aed;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+/* ---------- Table ---------- */
+.ch-table thead tr {
+  background: linear-gradient(90deg, #d1fae5, #e0f2fe 35%, #ede9fe 70%, #fce7f3);
+}
+.ch-table thead th {
+  color: #4c1d95;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.ch-row {
+  border-bottom: 1px solid #efeafb;
+  transition: background 0.15s ease;
+}
+.ch-row td {
+  vertical-align: middle;
+}
+.ch-row:nth-of-type(4n + 1) {
+  background: #fff;
+}
+.ch-row:hover {
+  background: linear-gradient(90deg, #f5f3ff, #fdf2f8);
+  box-shadow: inset 4px 0 0 #a855f7;
+}
+
+.ch-method {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ch-method.is-phone {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.ch-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  box-shadow: 0 6px 12px -6px #7c3aed;
+}
+.ch-code {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-target {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: #047857;
+  font-size: 12px;
+  font-weight: 700;
+}
+.ch-target.is-parent {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.ch-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ch-result::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  content: '';
+}
+.ch-result.is-ok {
+  background: linear-gradient(135deg, #d1fae5, #ccfbf1);
+  color: #047857;
+}
+.ch-result.is-warn {
+  background: linear-gradient(135deg, #fef3c7, #ffedd5);
+  color: #b45309;
+}
+.ch-result.is-live {
+  background: linear-gradient(135deg, #e0f2fe, #ede9fe);
+  color: #4338ca;
+}
+.ch-result.is-live::before {
+  animation: ch-blink 1.4s ease-in-out infinite;
+}
+.ch-result.is-none {
+  background: #f1f5f9;
+  color: #64748b;
+}
+@keyframes ch-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.ch-duration {
+  display: inline-block;
+  min-width: 52px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: #f5f3ff;
+  color: #4c1d95;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px 0 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7c3aed, #d946ef);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 8px 16px -10px #7c3aed;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+.ch-play:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.ch-play:disabled {
+  opacity: 0.6;
+}
+.ch-play svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+.ch-upload {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border: 1.5px dashed #c4b5fd;
+  border-radius: 999px;
+  background: #faf5ff;
+  color: #6d28d9;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ch-upload:hover {
+  border-style: solid;
+  background: #f3e8ff;
+}
+.ch-player td {
+  background: linear-gradient(90deg, #f5f3ff, #fdf2f8);
+}

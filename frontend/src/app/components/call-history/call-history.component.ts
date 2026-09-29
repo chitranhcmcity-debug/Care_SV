@@ -11,6 +11,7 @@ const PAGE_SIZE = 20;
   standalone: true,
   imports: [CommonModule],
   templateUrl: './call-history.component.html',
+  styleUrl: './call-history.component.css',
 })
 export class CallHistoryComponent implements OnDestroy {
   private readonly calls = inject(CallService);
@@ -57,6 +58,13 @@ export class CallHistoryComponent implements OnDestroy {
 
   student(call: CallLog) {
     return typeof call.studentId === 'string' ? null : call.studentId;
+  }
+
+  /** "Phạm Bảo Mai" → "PM". */
+  initials(name = ''): string {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
   }
 
   formatDuration(sec: number): string {
