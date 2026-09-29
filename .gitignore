@@ -15,3 +15,9 @@ __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
+
+# Local editor configuration and private project artifacts
+.claude/
+501250081_TranVanMinhChi.docx
+Bao_Cao_Do_An_ITC_Care.docx
+frontend/public/robotAI.png
