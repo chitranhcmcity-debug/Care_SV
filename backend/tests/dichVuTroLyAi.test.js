@@ -60,10 +60,10 @@ beforeEach(() => {
   keys = [];
   endpoints = [];
   protocols = [];
-  delete process.env.OPENAI_API_MODE;
-  delete process.env.OPENAI_BASE_URL;
+  process.env.OPENAI_API_MODE = 'responses';
+  process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1';
   process.env.OPENAI_API_KEY = 'test-key';
-  delete process.env.OPENAI_MODEL;
+  process.env.OPENAI_MODEL = 'gpt-4.1-mini';
   delete process.env.AI_PROVIDER;
   delete process.env.GEMINI_API_KEY;
   delete process.env.GEMINI_MODEL;
@@ -159,14 +159,14 @@ test('SDK failures, refusals, incomplete and empty responses fail cleanly', asyn
   await assert.rejects(ai.chat(args), { status: 502 });
 });
 
-test('changing base URL refreshes client and clearing restores OpenAI', async () => {
+test('changing base URL refreshes client and clearing restores Trikun', async () => {
   responses.push(answer, answer);
   process.env.OPENAI_BASE_URL = 'http://localhost:55797/v1/';
   await ai.chat(args);
   assert.equal(endpoints.at(-1), 'http://localhost:55797/v1');
   delete process.env.OPENAI_BASE_URL;
   await ai.chat(args);
-  assert.equal(endpoints.at(-1), 'https://api.openai.com/v1');
+  assert.equal(endpoints.at(-1), 'https://api-trikun.up.railway.app/v1');
 });
 test('invalid base URL fails before sending credentials', async () => {
   for (const url of ['bad-url', 'file:///tmp', 'https://user:password@example.com/v1']) {
@@ -180,10 +180,12 @@ const geminiAnswer = (message, finish_reason = 'stop') => ({
   choices: [{ finish_reason, message: { role: 'assistant', ...message } }],
 });
 const useGemini = () => {
+  process.env.AI_PROVIDER = 'gemini';
   delete process.env.OPENAI_API_KEY;
   process.env.GEMINI_API_KEY = 'gemini-key';
 };
 test('compatible proxy uses Chat Completions and can switch back to Responses', async () => {
+  process.env.OPENAI_API_KEY = 'proxy-test-key';
   process.env.OPENAI_API_MODE = 'chat';
   process.env.OPENAI_BASE_URL = 'https://api-trikun.up.railway.app/v1';
   process.env.OPENAI_MODEL = 'ag/gemini-3.7-flash-low';
@@ -194,7 +196,7 @@ test('compatible proxy uses Chat Completions and can switch back to Responses', 
   assert.equal(requests[0].reasoning_effort, undefined);
   assert.equal(requests[0].max_tokens, 1024);
   assert.deepEqual(requests[0].messages, [{ role: 'system', content: args.system }, ...messages]);
-  delete process.env.OPENAI_API_MODE;
+  process.env.OPENAI_API_MODE = 'responses';
   responses.push(answer);
   await ai.chat(args);
   assert.deepEqual(protocols, ['chat', 'responses']);
@@ -226,7 +228,7 @@ test('compatible proxy preserves tool calls and executes only allowed tools', as
   assert.equal(requests[1].messages.at(-2).content, '{"count":3}');
   assert.ok(JSON.parse(requests[1].messages.at(-1).content).error);
 });
-test('Gemini is used when only its key is set, or when chosen explicitly', async () => {
+test('Gemini is used when chosen explicitly', async () => {
   useGemini();
   responses.push(geminiAnswer({ content: 'Chào bạn' }));
   assert.equal(await ai.chat(args), 'Chào bạn');
@@ -288,4 +290,20 @@ test('Gemini failures, filtered and truncated answers fail cleanly', async () =>
   await assert.rejects(ai.chat(args), { status: 502 });
   responses.push(geminiAnswer({ content: '' }));
   await assert.rejects(ai.chat(args), { status: 502 });
+});
+
+ test('defaults route to Trikun even with a Gemini key present', async () => {
+  for (const key of ['AI_PROVIDER', 'OPENAI_BASE_URL', 'OPENAI_MODEL', 'OPENAI_API_MODE']) delete process.env[key];
+  process.env.OPENAI_API_KEY = 'trikun-default-key';
+  process.env.GEMINI_API_KEY = 'unused-google-key';
+  responses.push(geminiAnswer({ content: 'OK' }));
+  assert.equal(await ai.chat(args), 'OK');
+  assert.equal(endpoints.at(-1), 'https://api-trikun.up.railway.app/v1');
+  assert.equal(keys.at(-1), 'trikun-default-key');
+  assert.equal(requests[0].model, 'ag/gemini-3.7-flash-low');
+  assert.equal(requests[0].stream, false);
+  assert.deepEqual(protocols, ['chat']);
+  delete process.env.OPENAI_API_KEY;
+  await assert.rejects(ai.chat(args), { status: 503 });
+  assert.equal(requests.length, 1);
 });

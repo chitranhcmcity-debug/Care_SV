@@ -28,14 +28,14 @@ const CATALOG = Object.freeze([
     group: 'Trợ lý AI',
     provider: 'openai',
     label: 'Model',
-    placeholder: 'gpt-4.1-mini',
+    placeholder: 'ag/gemini-3.7-flash-low',
   },
   {
     key: 'OPENAI_BASE_URL',
     group: 'Trợ lý AI',
     provider: 'openai',
     label: 'Địa chỉ API (Base URL)',
-    placeholder: 'https://api.openai.com/v1',
+    placeholder: 'https://api-trikun.up.railway.app/v1',
   },
   { key: 'GEMINI_API_KEY', group: 'Trợ lý AI', provider: 'gemini', label: 'API key', secret: true },
   {

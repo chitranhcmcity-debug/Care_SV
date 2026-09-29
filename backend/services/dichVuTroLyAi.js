@@ -4,20 +4,18 @@ const { assert } = require('../utils/kiemTra');
 // OpenAI supports Responses or compatible Chat Completions proxies; Google's Gemini endpoint
 // uses Chat Completions through the same SDK. Read configuration per call for live admin changes.
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
-const openaiModel = () => process.env.OPENAI_MODEL?.trim() || 'gpt-4.1-mini';
+const openaiModel = () => process.env.OPENAI_MODEL?.trim() || 'ag/gemini-3.7-flash-low';
 const geminiModel = () => process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
 // Gemini 2.5 counts thinking tokens in max_tokens; keep thinking small and budget it on top.
 const GEMINI_THINKING_TOKENS = 1024;
 const usesChatCompletions = () =>
-  provider() === 'gemini' || process.env.OPENAI_API_MODE?.trim().toLowerCase() === 'chat';
+  provider() === 'gemini' || (process.env.OPENAI_API_MODE?.trim().toLowerCase() || 'chat') === 'chat';
 
-/** AI_PROVIDER picks one; left empty, OpenAI is used when its key is set, otherwise Gemini. */
+/** Default to Trikun; Gemini must be selected explicitly. */
 function provider() {
   const chosen = process.env.AI_PROVIDER?.trim().toLowerCase();
   if (chosen === 'openai' || chosen === 'gemini') return chosen;
-  return !process.env.OPENAI_API_KEY?.trim() && process.env.GEMINI_API_KEY?.trim()
-    ? 'gemini'
-    : 'openai';
+  return 'openai';
 }
 
 let client;
@@ -36,7 +34,7 @@ function cachedClient(key, baseURL) {
 function openaiClient() {
   const key = process.env.OPENAI_API_KEY?.trim();
   const baseURL =
-    process.env.OPENAI_BASE_URL?.trim().replace(/\/+$/, '') || 'https://api.openai.com/v1';
+    process.env.OPENAI_BASE_URL?.trim().replace(/\/+$/, '') || 'https://api-trikun.up.railway.app/v1';
   assert(
     key,
     'Trợ lý AI chưa được cấu hình. Quản trị viên cần nhập API key OpenAI trong Quản trị → Cấu hình API.',
