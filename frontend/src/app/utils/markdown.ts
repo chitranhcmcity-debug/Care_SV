@@ -6,7 +6,10 @@ export function renderMarkdown(text: string): string {
   const inline = (s: string) =>
     escapeHtml(s)
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/`([^`]+)`/g, '<code class="px-1 rounded bg-slate-100 text-[0.85em]">$1</code>');
+      .replace(
+        /`([^`]+)`/g,
+        '<code class="px-1.5 py-0.5 rounded-md bg-violet-50 text-violet-700 text-[0.85em]">$1</code>',
+      );
   const out: string[] = [];
   let list: 'ul' | 'ol' | null = null;
   let table: string[][] | null = null;
@@ -19,8 +22,8 @@ export function renderMarkdown(text: string): string {
     const [head, ...rows] = table;
     out.push(
       '<div class="overflow-x-auto my-2"><table class="text-xs border-collapse w-full">' +
-        `<thead><tr>${head.map((c) => `<th class="border border-slate-200 bg-slate-50 px-2 py-1 text-left">${inline(c)}</th>`).join('')}</tr></thead>` +
-        `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td class="border border-slate-200 px-2 py-1">${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`,
+        `<thead><tr>${head.map((c) => `<th class="border border-violet-100 bg-violet-50 px-2 py-1 text-left">${inline(c)}</th>`).join('')}</tr></thead>` +
+        `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td class="border border-violet-100 px-2 py-1">${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`,
     );
     table = null;
   };

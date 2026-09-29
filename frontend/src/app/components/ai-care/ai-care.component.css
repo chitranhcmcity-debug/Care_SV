@@ -2,7 +2,6 @@
    which facing image is shown); bobbing and the shadow are pure CSS. */
 .robot-launcher {
   --rb-accent-1: #6d5dfc;
-  --rb-accent-2: #f5b400;
   --rb-glow: rgba(99, 102, 241, 0.4);
   position: fixed;
   top: 0;
@@ -101,7 +100,7 @@
   white-space: nowrap;
   padding: 4px 10px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--rb-accent-1), var(--rb-accent-2));
+  background: var(--hero-gradient);
   box-shadow: 0 4px 12px var(--rb-glow);
   color: #fff;
   font-size: 12px;
@@ -116,6 +115,68 @@
 .robot-launcher:focus-visible .robot-tip {
   opacity: 1;
   transform: translate(-50%, -2px);
+}
+
+/* Chat panel: same brand gradient and pastel tone as the landing page and the sidebar. */
+.ai-panel {
+  background: #fff;
+  border: 1px solid var(--soft-border);
+  box-shadow: 0 30px 60px -28px rgb(76 29 149 / 0.5);
+}
+.ai-header {
+  background-image: var(--hero-gradient);
+}
+.ai-body {
+  background:
+    radial-gradient(360px 200px at 100% 0%, rgb(var(--brand-100) / 0.6), transparent 70%),
+    radial-gradient(320px 200px at 0% 100%, rgb(252 231 243 / 0.7), transparent 70%), #faf9fe;
+}
+.ai-bubble {
+  background: #fff;
+  border: 1px solid var(--soft-border);
+  box-shadow: 0 6px 16px -12px rgb(76 29 149 / 0.35);
+}
+.ai-grad {
+  background-image: var(--hero-gradient);
+  background-size: 150% 150%;
+  background-position: 0% 50%;
+  box-shadow: 0 10px 20px -12px rgb(192 38 211 / 0.8);
+  transition:
+    background-position 0.4s ease,
+    box-shadow 0.2s ease;
+}
+button.ai-grad:not(:disabled):hover {
+  background-position: 100% 50%;
+}
+
+/* "AI Care is looking things up": three bouncing dots. */
+.ai-typing {
+  display: inline-flex;
+  gap: 3px;
+}
+.ai-typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--brand-500));
+  animation: ai-typing 1s ease-in-out infinite;
+}
+.ai-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.ai-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes ai-typing {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
 }
 
 /* Action proposal card in the chat. */
@@ -175,7 +236,8 @@
     transition: none !important;
   }
   .robot-float,
-  .robot-shadow {
+  .robot-shadow,
+  .ai-typing i {
     animation: none !important;
   }
 }
