@@ -14,6 +14,7 @@ const CaiDatHeThongSchema = new mongoose.Schema(
 
     // Khóa API tích hợp (Admin), mã hóa AES-GCM; xem services/dichVuCauHinhApi.js.
     integrations: { type: mongoose.Schema.Types.Mixed, default: null },
+    aiConfigurationVersion: { type: String, default: '' },
 
     // Mức cảnh báo vắng (Trưởng phòng / PHT). null = DEFAULT_WARNING_LEVELS.
     warningLevels: {

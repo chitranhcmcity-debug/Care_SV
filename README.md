@@ -143,6 +143,7 @@ mỗi lần deploy. SMTP, OpenAI, Stringee, PayOS là tùy chọn (xem `backend/
 Trợ lý AI trên Railway nạp mặc định công khai từ `backend/.env.railway`:
 
 ```dotenv
+AI_DEPLOYMENT_PRESET=trikun
 AI_PROVIDER=openai
 OPENAI_API_MODE=chat
 OPENAI_BASE_URL=https://api-trikun.up.railway.app/v1
@@ -150,11 +151,13 @@ OPENAI_MODEL=ag/gemini-3.7-flash-low
 ```
 
 Trong service Railway → Variables, đặt `OPENAI_API_KEY` bằng key của API này rồi deploy.
-Không đưa key vào Git. Biến đã đặt trên Railway được ưu tiên hơn file mặc định; nếu service
-đang có bốn biến trên với giá trị khác, cần sửa hoặc xóa chúng để dùng cấu hình này.
-Cấu hình đã lưu ở Quản trị → Cấu hình API có ưu tiên cao nhất, nên cũng cần cập nhật nếu đã lưu.
+Không đưa key vào Git. Khi khởi động trên Railway (hoặc có `AI_DEPLOYMENT_PRESET=trikun`),
+backend chuyển cấu hình AI đã lưu trong database sang Trikun 3.7 một lần, bao gồm lựa chọn
+Gemini cũ. Nếu có `OPENAI_API_KEY` trong môi trường, key này được mã hóa và lưu cho Trikun;
+nếu không, giữ key OpenAI đã lưu, không lấy key Google Gemini để gửi sang Trikun.
+Các cấu hình SMTP, Stringee và dữ liệu khác được giữ nguyên. Sau lần chuyển này, cấu hình
+quản trị tiếp tục có ưu tiên cao nhất; khởi động lại không ghi đè thay đổi mới của quản trị viên.
 File `.env` cục bộ không được push lên Railway.
 
 Model mặc định là `ag/gemini-3.7-flash-low`, đã được kiểm tra chat và gọi công cụ thành công.
-Model 3.5 trên API này báo đã ngừng hoạt động. Nếu trước đây đã đặt model 3.5 trong Railway
-Variables hoặc giao diện quản trị, cần đổi sang `ag/gemini-3.7-flash-low` tại đó.
+Model 3.5 trên API này báo đã ngừng hoạt động.

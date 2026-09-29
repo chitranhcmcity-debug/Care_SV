@@ -22,6 +22,7 @@ async function startServer() {
     // Class assignments made before assignment history existed get their history records.
     await require('./services/dichVuPhanCongLop').syncLegacyAssignments();
     // API keys an admin saved in the UI take precedence over .env.
+    await require('./services/dichVuCauHinhApi').migrateAiToTrikun();
     await require('./services/dichVuCauHinhApi').applyIntegrations();
     if (config.seedDemo) await require('./scripts/taoDuLieuMau')();
     const admin = await require('./scripts/taoTaiKhoanQuanTri').ensureInitialAdmin();

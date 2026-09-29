@@ -59,6 +59,33 @@ const KEYS = CATALOG.map((c) => c.key);
 const envDefaults = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 let applied = {};
 
+// Apply the requested provider change once on deployment, including settings saved before it.
+// Keep credentials out of source control and preserve future explicit admin changes.
+async function migrateAiToTrikun() {
+  if (!process.env.RAILWAY_ENVIRONMENT_ID && process.env.AI_DEPLOYMENT_PRESET !== 'trikun') return;
+  const version = 'trikun-gemini-3.7-v1';
+  const settings = (await CaiDatHeThong.findOne()) || new CaiDatHeThong();
+  if (settings.aiConfigurationVersion === version) return;
+  const values = {
+    AI_PROVIDER: 'openai',
+    OPENAI_API_MODE: 'chat',
+    OPENAI_BASE_URL: 'https://api-trikun.up.railway.app/v1',
+    OPENAI_MODEL: 'ag/gemini-3.7-flash-low',
+  };
+  // An explicitly supplied deployment key replaces an old OpenAI key; never reuse a Google key.
+  if (envDefaults.OPENAI_API_KEY?.trim()) {
+    values.OPENAI_API_KEY = envDefaults.OPENAI_API_KEY.trim();
+  }
+  settings.integrations = {
+    ...(settings.integrations || {}),
+    ...Object.fromEntries(Object.entries(values).map(([key, value]) => [key, encrypt(value)])),
+  };
+  settings.aiConfigurationVersion = version;
+  settings.markModified('integrations');
+  await settings.save();
+  console.log('[AI] Migrated saved AI configuration to Trikun / ag/gemini-3.7-flash-low.');
+}
+
 function cipherKey() {
   const secret = process.env.CONFIG_SECRET || process.env.JWT_SECRET || '';
   return crypto.createHash('sha256').update(`care-sv-integrations:${secret}`).digest();
@@ -147,4 +174,4 @@ async function updateIntegrations(values) {
   return describeIntegrations();
 }
 
-module.exports = { applyIntegrations, describeIntegrations, updateIntegrations };
+module.exports = { applyIntegrations, describeIntegrations, updateIntegrations, migrateAiToTrikun };
