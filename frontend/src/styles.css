@@ -227,3 +227,13 @@ a:focus-visible {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* iOS Safari zooms in on any field under 16px when it is focused and never zooms back out,
+   leaving the page slightly too big. Phones get 16px fields; desktop keeps its compact size. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

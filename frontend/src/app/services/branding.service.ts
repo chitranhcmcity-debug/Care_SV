@@ -28,7 +28,10 @@ export class BrandingService {
   private readonly settings = inject(SettingsService);
 
   readonly title = signal('ITC CARE');
-  readonly schoolName = signal('');
+  readonly schoolName = signal('Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC)');
+  readonly departmentName = signal('Phòng Đào Tạo & Chăm Sóc Sinh Viên');
+  readonly supportHotline = signal('028 3965 1114');
+  readonly supportEmail = signal('cskh@itc.edu.vn');
   readonly logo = signal(DEFAULT_LOGO);
 
   /** Loads the public branding once at start-up (works before sign-in). */
@@ -44,7 +47,10 @@ export class BrandingService {
       this.title.set(b.systemTitle);
       document.title = b.systemTitle;
     }
-    if (b.schoolName) this.schoolName.set(b.schoolName);
+    if (b.schoolName !== undefined) this.schoolName.set(b.schoolName);
+    if (b.departmentName !== undefined) this.departmentName.set(b.departmentName);
+    if (b.supportHotline !== undefined) this.supportHotline.set(b.supportHotline);
+    if (b.supportEmail !== undefined) this.supportEmail.set(b.supportEmail);
     this.logo.set(b.logoDataUrl || DEFAULT_LOGO);
     this.applyColor(b.primaryColor || DEFAULT_COLOR);
   }

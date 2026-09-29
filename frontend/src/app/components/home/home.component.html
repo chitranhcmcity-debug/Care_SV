@@ -440,7 +440,7 @@
         <div class="relative text-center md:text-left space-y-2">
           <h2 class="text-2xl md:text-3xl font-bold">Cần hỗ trợ sử dụng hệ thống?</h2>
           <p class="text-violet-100">
-            Phòng Đào Tạo &amp; Chăm Sóc Sinh Viên luôn sẵn sàng hỗ trợ bạn.
+            {{ branding.departmentName() }} luôn sẵn sàng hỗ trợ bạn.
           </p>
           <div
             class="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2 pt-2 text-sm font-medium"
@@ -458,7 +458,7 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              028 3965 1114
+              {{ branding.supportHotline() }}
             </span>
             <span class="flex items-center gap-2">
               <svg
@@ -471,7 +471,7 @@
                 <rect x="3" y="5" width="18" height="14" rx="2" />
                 <path d="m3 7 9 6 9-6" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              cskh&#64;itc.edu.vn
+              {{ branding.supportEmail() }}
             </span>
           </div>
         </div>
@@ -510,8 +510,7 @@
           <span class="font-bold text-white">{{ branding.title() }}</span>
         </div>
         <p class="text-sm leading-relaxed max-w-xs">
-          Hệ thống quản lý điểm danh và chăm sóc sinh viên của Trường Cao Đẳng Công Nghệ Thông Tin
-          TP.HCM.
+          Hệ thống quản lý điểm danh và chăm sóc sinh viên của {{ branding.schoolName() }}.
         </p>
       </div>
 
@@ -541,16 +540,16 @@
       <div class="space-y-4">
         <h4 class="font-semibold text-white">Liên hệ</h4>
         <ul class="space-y-2.5 text-sm">
-          <li>Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC)</li>
-          <li>Phòng Đào Tạo &amp; Chăm Sóc Sinh Viên</li>
-          <li>028 3965 1114</li>
-          <li>cskh&#64;itc.edu.vn</li>
+          <li>{{ branding.schoolName() }}</li>
+          <li>{{ branding.departmentName() }}</li>
+          <li>{{ branding.supportHotline() }}</li>
+          <li>{{ branding.supportEmail() }}</li>
         </ul>
       </div>
     </div>
 
     <div class="px-6 py-5 text-center text-sm text-slate-500 border-t border-white/10">
-      Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026 &mdash; ITC CARE
+      {{ branding.schoolName() }} &copy; 2026 &mdash; {{ branding.title() }}
     </div>
   </footer>
 </div>
