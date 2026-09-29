@@ -1725,6 +1725,15 @@ test('permission matrix: admin grants and revokes role permissions, taking effec
     });
     assert.equal(saved.status, 200);
     assert.deepEqual(saved.body.matrix.manager, initial.body.matrix.manager);
+
+    // Rights that only work for one role are dropped for the others instead of stored as no-ops.
+    const onlyRoles = Object.fromEntries(saved.body.permissions.map((p) => [p.key, p.onlyRoles]));
+    assert.deepEqual(onlyRoles['attendance.take'], ['teacher']);
+    assert.deepEqual(onlyRoles['callTasks.update'], ['staff']);
+    const noop = await request('/permissions', tokens.admin, 'PUT', {
+      matrix: { manager: [...initial.body.matrix.manager, 'attendance.take', 'callTasks.update'] },
+    });
+    assert.deepEqual(noop.body.matrix.manager, initial.body.matrix.manager);
     assert.equal((await request('/students', tokens.cskh)).status, 200);
     assert.equal((await request('/course-groups', tokens.cskh)).status, 200);
     assert.equal((await request('/analytics/summary', tokens.cskh)).status, 403);

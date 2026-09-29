@@ -1,6 +1,7 @@
 const CaiDatHeThong = require('../models/CaiDatHeThong');
 const {
   PERMISSION_KEYS,
+  permissionAppliesTo,
   CONFIGURABLE_ROLES,
   DEFAULT_ROLE_PERMISSIONS,
   ADMIN_PERMISSIONS,
@@ -11,12 +12,15 @@ const {
 const CACHE_MS = 30 * 1000;
 let cache = null;
 
-/** Stored matrix merged over the defaults, with unknown keys dropped. */
+/** Stored matrix merged over the defaults, with unknown or non-applicable keys dropped. */
 function normalize(stored) {
   return Object.fromEntries(
     CONFIGURABLE_ROLES.map((role) => {
       const list = Array.isArray(stored?.[role]) ? stored[role] : DEFAULT_ROLE_PERMISSIONS[role];
-      return [role, PERMISSION_KEYS.filter((key) => list.includes(key))];
+      return [
+        role,
+        PERMISSION_KEYS.filter((key) => list.includes(key) && permissionAppliesTo(key, role)),
+      ];
     }),
   );
 }

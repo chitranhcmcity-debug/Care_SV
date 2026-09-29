@@ -1977,7 +1977,16 @@
                 class="perm-cell py-3 px-3 text-center"
                 [attr.data-tone]="ri + 1"
               >
-                <label class="inline-flex flex-col items-center gap-1 cursor-pointer">
+                <span
+                  *ngIf="!permissionApplies(r.role, p.key)"
+                  class="perm-na"
+                  title="Quyền này chỉ dùng được cho vai trò khác"
+                  >Không áp dụng</span
+                >
+                <label
+                  *ngIf="permissionApplies(r.role, p.key)"
+                  class="inline-flex flex-col items-center gap-1 cursor-pointer"
+                >
                   <input
                     type="checkbox"
                     [checked]="hasPermission(r.role, p.key)"

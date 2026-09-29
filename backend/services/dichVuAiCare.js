@@ -395,7 +395,8 @@ const TOOLS = [
     description:
       'Tổng số sinh viên, học phần, nhân viên, buổi điểm danh, nhiệm vụ gọi điện và nhiệm vụ nội bộ theo trạng thái.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
-    allowed: (u) => can(u, 'reports.view') || can(u, 'ai.chat'),
+    // School-wide numbers: only for the whole-school AI right (reports.view is class-scoped for CSKH).
+    allowed: (u) => can(u, 'ai.chat'),
     async run() {
       const byStatus = (Model) =>
         Model.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]).then((rows) =>

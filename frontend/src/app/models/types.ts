@@ -25,7 +25,14 @@ export type ConfigurableRole = Exclude<Role, 'admin'>;
 export type PermissionMatrix = Record<ConfigurableRole, Permission[]>;
 
 export interface PermissionConfig {
-  permissions: { key: Permission; group: string; label: string; description: string }[];
+  permissions: {
+    key: Permission;
+    group: string;
+    label: string;
+    description: string;
+    /** Roles the permission can work for; null = every role. */
+    onlyRoles?: ConfigurableRole[] | null;
+  }[];
   roles: { role: ConfigurableRole; label: string }[];
   defaults: PermissionMatrix;
   matrix: PermissionMatrix;

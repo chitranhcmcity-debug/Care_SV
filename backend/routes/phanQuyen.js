@@ -14,11 +14,12 @@ const {
 router.use(verifyToken, requireAdmin);
 
 const catalog = () => ({
-  permissions: PERMISSIONS.map(({ key, group, label, description }) => ({
+  permissions: PERMISSIONS.map(({ key, group, label, description, onlyRoles }) => ({
     key,
     group,
     label,
     description,
+    onlyRoles: onlyRoles ?? null,
   })),
   roles: CONFIGURABLE_ROLES.map((role) => ({ role, label: ROLE_LABEL[role] })),
   defaults: DEFAULT_ROLE_PERMISSIONS,

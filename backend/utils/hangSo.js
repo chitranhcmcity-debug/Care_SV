@@ -117,12 +117,22 @@ const PERMISSIONS = Object.freeze([
     defaultRoles: ['manager'],
   },
   {
+    key: 'excel.import',
+    group: 'Sinh viên',
+    label: 'Quản lý dữ liệu sinh viên & nhập / xuất Excel',
+    description:
+      'Thêm, sửa, xóa sinh viên; tải biểu mẫu, nhập dữ liệu sinh viên và nhóm học phần từ Excel.',
+    defaultRoles: ['manager'],
+  },
+  {
     key: 'attendance.take',
     group: 'Điểm danh',
     label: 'Điểm danh lớp học',
     description:
       'Điểm danh học phần mình dạy, chỉ trong giờ học theo thời khóa biểu; được sửa đến hết ngày.',
     defaultRoles: ['teacher'],
+    // Only a teacher can be the lecturer of a course group, so the right means nothing elsewhere.
+    onlyRoles: ['teacher'],
   },
   {
     key: 'attendance.override',
@@ -140,20 +150,14 @@ const PERMISSIONS = Object.freeze([
     defaultRoles: ['manager'],
   },
   {
-    key: 'excel.import',
-    group: 'Sinh viên',
-    label: 'Quản lý dữ liệu sinh viên & nhập / xuất Excel',
-    description:
-      'Thêm, sửa, xóa sinh viên; tải biểu mẫu, nhập dữ liệu sinh viên và nhóm học phần từ Excel.',
-    defaultRoles: ['manager'],
-  },
-  {
     key: 'callTasks.update',
     group: 'Chăm sóc sinh viên',
     label: 'Chăm sóc sinh viên lớp được phân công',
     description:
       'Gọi điện, cập nhật kết quả, lý do vắng, lịch gọi lại cho sinh viên các lớp mình phụ trách.',
     defaultRoles: ['staff'],
+    // Classes (and so call tasks) are only ever assigned to Nhân viên CSKH.
+    onlyRoles: ['staff'],
   },
   {
     key: 'callTasks.viewAll',
@@ -202,6 +206,11 @@ const PERMISSIONS = Object.freeze([
   },
 ]);
 const PERMISSION_KEYS = Object.freeze(PERMISSIONS.map((p) => p.key));
+/** Whether a permission can be granted to a role (onlyRoles limits it to roles where it works). */
+const permissionAppliesTo = (key, role) => {
+  const p = PERMISSIONS.find((item) => item.key === key);
+  return Boolean(p) && (!p.onlyRoles || p.onlyRoles.includes(role));
+};
 // Vai trò có thể phân quyền; admin có bộ quyền cố định (chỉ xem) + các chức năng hệ thống.
 const CONFIGURABLE_ROLES = Object.freeze(['manager', 'staff', 'teacher']);
 const ADMIN_PERMISSIONS = Object.freeze([
@@ -316,6 +325,7 @@ module.exports = {
   ROLE_LABEL,
   PERMISSIONS,
   PERMISSION_KEYS,
+  permissionAppliesTo,
   CONFIGURABLE_ROLES,
   DEFAULT_ROLE_PERMISSIONS,
   ADMIN_PERMISSIONS,

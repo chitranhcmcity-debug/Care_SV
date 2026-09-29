@@ -391,6 +391,16 @@
 .perm-check:disabled {
   opacity: 0.55;
 }
+.perm-na {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px dashed #cbd5e1;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .perm-changed {
   padding: 1px 8px;
   border-radius: 999px;

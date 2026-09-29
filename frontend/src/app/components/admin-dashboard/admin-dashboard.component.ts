@@ -785,12 +785,12 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  /** Permissions grouped for display, in catalogue order. */
+  /** Permissions grouped for display: one block per group name, groups in first-seen order. */
   get permissionGroups(): { group: string; items: PermissionConfig['permissions'] }[] {
     const groups: { group: string; items: PermissionConfig['permissions'] }[] = [];
     for (const item of this.permissionConfig?.permissions ?? []) {
-      const last = groups[groups.length - 1];
-      if (last?.group === item.group) last.items.push(item);
+      const existing = groups.find((g) => g.group === item.group);
+      if (existing) existing.items.push(item);
       else groups.push({ group: item.group, items: [item] });
     }
     return groups;
@@ -800,8 +800,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return Boolean(this.permissionDraft?.[role].includes(key));
   }
 
+  /** False when the permission cannot work for that role (e.g. attendance for CSKH staff). */
+  permissionApplies(role: ConfigurableRole, key: Permission): boolean {
+    const item = this.permissionConfig?.permissions.find((p) => p.key === key);
+    return !item?.onlyRoles || item.onlyRoles.includes(role);
+  }
+
   togglePermission(role: ConfigurableRole, key: Permission) {
-    if (!this.permissionDraft) return;
+    if (!this.permissionDraft || !this.permissionApplies(role, key)) return;
     const list = this.permissionDraft[role];
     this.permissionDraft[role] = list.includes(key)
       ? list.filter((k) => k !== key)
