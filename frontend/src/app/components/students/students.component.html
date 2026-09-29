@@ -128,110 +128,217 @@
 <!-- Profile drawer -->
 <div
   *ngIf="selected() as s"
-  class="fixed inset-0 z-50 bg-slate-900/40 flex justify-end"
+  class="profile-backdrop fixed inset-0 z-50 bg-slate-900/40 flex justify-end"
   (click)="selected.set(null)"
 >
   <aside
-    class="w-full max-w-lg h-full bg-white overflow-y-auto p-6 space-y-5"
+    class="profile-drawer w-full max-w-lg h-full bg-white overflow-y-auto"
     (click)="$event.stopPropagation()"
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="'Hồ sơ ' + s.fullName"
   >
-    <div class="flex items-start justify-between gap-3">
-      <div>
-        <h2 class="text-lg font-semibold text-slate-900">{{ s.fullName }}</h2>
-        <p class="text-sm text-slate-500">
-          MSSV {{ s.studentCode }} · Lớp {{ s.classCode }}
-          <span *ngIf="s.major"> · {{ s.major }}</span>
-        </p>
-      </div>
-      <button
-        type="button"
-        (click)="selected.set(null)"
-        aria-label="Đóng"
-        class="w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100"
-      >
+    <!-- Cover -->
+    <div class="profile-cover">
+      <svg viewBox="0 0 400 132" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <circle cx="340" cy="20" r="70" fill="#ffffff" fill-opacity="0.12" />
+        <circle cx="60" cy="140" r="60" fill="#ffffff" fill-opacity="0.1" />
+        <circle cx="250" cy="110" r="18" fill="#ffffff" fill-opacity="0.18" />
+        <path
+          d="M0 95 C 80 70, 150 120, 230 90 S 360 60, 400 80"
+          stroke="#ffffff"
+          stroke-opacity="0.25"
+          stroke-width="2"
+          fill="none"
+        />
+        <g fill="#ffffff" fill-opacity="0.55">
+          <circle cx="120" cy="30" r="2.5" />
+          <circle cx="170" cy="52" r="1.8" />
+          <circle cx="290" cy="40" r="2" />
+          <circle cx="370" cy="100" r="2.5" />
+        </g>
+      </svg>
+      <button type="button" class="profile-close" (click)="selected.set(null)" aria-label="Đóng">
         ✕
       </button>
     </div>
 
-    <div class="grid grid-cols-2 gap-3 text-sm">
-      <div class="p-3 rounded-lg bg-slate-50">
-        <div class="text-xs text-slate-500">SĐT sinh viên</div>
-        <div class="font-medium">{{ s.phone || '—' }}</div>
+    <div class="px-6 pb-8 space-y-6">
+      <!-- Identity -->
+      <div>
+        <div
+          class="profile-avatar"
+          [style.background]="avatarBackground(s.studentCode)"
+          aria-hidden="true"
+        >
+          {{ initials(s.fullName) }}
+        </div>
+        <h2 class="mt-3 text-2xl font-extrabold tracking-tight text-slate-900">
+          {{ s.fullName }}
+        </h2>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span class="profile-chip">🎓 {{ s.studentCode }}</span>
+          <span class="profile-chip">🏫 {{ s.classCode }}</span>
+          <span *ngIf="s.major" class="profile-chip">📚 {{ s.major }}</span>
+          <span *ngIf="s.dob" class="profile-chip">🎂 {{ s.dob }}</span>
+        </div>
+        <div *ngIf="s.tags?.length" class="mt-3 flex flex-wrap gap-1.5">
+          <span
+            *ngFor="let tag of s.tags"
+            class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold"
+            >#{{ tag }}</span
+          >
+        </div>
       </div>
-      <div class="p-3 rounded-lg bg-slate-50">
-        <div class="text-xs text-slate-500">SĐT phụ huynh</div>
-        <div class="font-medium">{{ s.parentPhone || '—' }}</div>
-      </div>
-      <div class="p-3 rounded-lg bg-rose-50">
-        <div class="text-xs text-rose-600">Số buổi vắng</div>
-        <div class="font-semibold text-rose-700">{{ profile()?.totalAbsences ?? '…' }}</div>
-      </div>
-      <div class="p-3 rounded-lg bg-violet-50">
-        <div class="text-xs text-violet-600">Nhiệm vụ chăm sóc</div>
-        <div class="font-semibold text-violet-700">{{ profile()?.totalCalls ?? '…' }}</div>
-      </div>
-    </div>
-    <div *ngIf="s.tags?.length" class="flex flex-wrap gap-1.5">
-      <span
-        *ngFor="let tag of s.tags"
-        class="px-2 py-0.5 rounded-full bg-slate-100 text-xs text-slate-700"
-        >{{ tag }}</span
-      >
-    </div>
 
-    <button
-      type="button"
-      (click)="call(s)"
-      [disabled]="!s.phone && !s.parentPhone"
-      class="w-full h-11 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold disabled:opacity-50"
-    >
-      📞 Gọi sinh viên / phụ huynh
-    </button>
-
-    <section class="space-y-2">
-      <h3 class="font-semibold text-slate-900">Cuộc gọi gần đây</h3>
-      <p *ngIf="!studentCalls().length" class="text-sm text-slate-400">Chưa có cuộc gọi.</p>
-      <div
-        *ngFor="let c of studentCalls()"
-        class="p-3 rounded-lg border border-slate-200 text-sm space-y-0.5"
-      >
-        <div class="flex justify-between gap-2">
-          <span class="font-medium">
-            {{ c.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }} ·
-            {{ outcomeLabels[c.outcome] || 'Chưa ghi kết quả' }}
+      <!-- Contacts -->
+      <div class="grid grid-cols-2 gap-3">
+        <a *ngIf="s.phone; else noPhone" class="contact-card" [href]="'tel:' + s.phone">
+          <span class="icon-bubble bg-sky-50">📱</span>
+          <span class="min-w-0">
+            <span class="block text-xs text-slate-500">Sinh viên</span>
+            <span class="block font-semibold text-slate-900 truncate">{{ s.phone }}</span>
           </span>
-          <span class="text-xs text-slate-500">{{ c.createdAt | date: 'HH:mm dd/MM/yyyy' }}</span>
-        </div>
-        <div class="text-xs text-slate-500">
-          {{ callerName(c) }} · {{ c.durationSec }}s
-          <span *ngIf="c.recording"> · 🎙️ có ghi âm</span>
-        </div>
-        <div *ngIf="c.note" class="text-slate-700">{{ c.note }}</div>
+        </a>
+        <ng-template #noPhone>
+          <div class="contact-card">
+            <span class="icon-bubble bg-slate-50">📱</span>
+            <span>
+              <span class="block text-xs text-slate-500">Sinh viên</span>
+              <span class="block font-semibold text-slate-300">Chưa có</span>
+            </span>
+          </div>
+        </ng-template>
+        <a
+          *ngIf="s.parentPhone; else noParentPhone"
+          class="contact-card"
+          [href]="'tel:' + s.parentPhone"
+        >
+          <span class="icon-bubble bg-emerald-50">👨‍👩‍👧</span>
+          <span class="min-w-0">
+            <span class="block text-xs text-slate-500">Phụ huynh</span>
+            <span class="block font-semibold text-slate-900 truncate">{{ s.parentPhone }}</span>
+          </span>
+        </a>
+        <ng-template #noParentPhone>
+          <div class="contact-card">
+            <span class="icon-bubble bg-slate-50">👨‍👩‍👧</span>
+            <span>
+              <span class="block text-xs text-slate-500">Phụ huynh</span>
+              <span class="block font-semibold text-slate-300">Chưa có</span>
+            </span>
+          </div>
+        </ng-template>
       </div>
-    </section>
 
-    <section class="space-y-2">
-      <h3 class="font-semibold text-slate-900">Dòng thời gian chăm sóc</h3>
-      <p *ngIf="profile() && !profile()!.timeline.length" class="text-sm text-slate-400">
-        Chưa có hoạt động.
-      </p>
-      <div
-        *ngFor="let item of profile()?.timeline"
-        class="p-3 rounded-lg bg-slate-50 text-sm space-y-0.5"
-      >
-        <div class="flex justify-between gap-2">
-          <span class="font-medium">{{ item.title }}</span>
-          <span class="text-xs text-slate-500">{{ item.date | date: 'dd/MM/yyyy' }}</span>
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="stat-card stat-card--rose">
+          <div class="text-2xl">🗓️</div>
+          <div class="mt-2 text-3xl font-extrabold leading-none">
+            {{ profile()?.totalAbsences ?? '…' }}
+          </div>
+          <div class="mt-1 text-xs font-semibold opacity-80">Buổi vắng</div>
         </div>
-        <div *ngIf="item.courseGroup" class="text-xs text-slate-500">
-          {{ item.courseGroup.groupCode }} - {{ item.courseGroup.courseName }}
+        <div class="stat-card stat-card--violet">
+          <div class="text-2xl">💬</div>
+          <div class="mt-2 text-3xl font-extrabold leading-none">
+            {{ profile()?.totalCalls ?? '…' }}
+          </div>
+          <div class="mt-1 text-xs font-semibold opacity-80">Nhiệm vụ chăm sóc</div>
         </div>
-        <div *ngIf="item.note" class="text-slate-700">{{ item.note }}</div>
       </div>
-    </section>
+
+      <button
+        type="button"
+        class="call-cta"
+        (click)="call(s)"
+        [disabled]="!s.phone && !s.parentPhone"
+      >
+        📞 Gọi sinh viên / phụ huynh
+      </button>
+
+      <!-- Recent calls -->
+      <section class="space-y-3">
+        <h3 class="section-title">☎️ Cuộc gọi gần đây</h3>
+        <div *ngIf="!studentCalls().length" class="empty-state">
+          <svg width="64" height="48" viewBox="0 0 64 48" aria-hidden="true">
+            <rect x="4" y="6" width="40" height="28" rx="10" fill="#ede9fe" />
+            <path d="M14 34 l-4 8 l10 -8 z" fill="#ede9fe" />
+            <circle cx="16" cy="20" r="2.5" fill="#a78bfa" />
+            <circle cx="24" cy="20" r="2.5" fill="#a78bfa" />
+            <circle cx="32" cy="20" r="2.5" fill="#a78bfa" />
+            <rect x="30" y="18" width="30" height="22" rx="9" fill="#fce7f3" />
+            <path d="M52 40 l4 6 l-10 -6 z" fill="#fce7f3" />
+          </svg>
+          Chưa có cuộc gọi nào với sinh viên này.
+        </div>
+        <div
+          *ngFor="let c of studentCalls()"
+          class="flex gap-3 p-3 rounded-2xl border border-slate-100 bg-white text-sm"
+        >
+          <span
+            class="icon-bubble"
+            [ngClass]="c.target === 'phu_huynh' ? 'bg-emerald-50' : 'bg-sky-50'"
+          >
+            {{ c.target === 'phu_huynh' ? '👨‍👩‍👧' : '🧑‍🎓' }}
+          </span>
+          <div class="min-w-0 flex-1 space-y-0.5">
+            <div class="flex justify-between gap-2">
+              <span class="font-semibold text-slate-900">
+                {{ c.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }} ·
+                {{ outcomeLabels[c.outcome] || 'Chưa ghi kết quả' }}
+              </span>
+              <span class="text-xs text-slate-400 shrink-0">{{
+                c.createdAt | date: 'HH:mm dd/MM'
+              }}</span>
+            </div>
+            <div class="text-xs text-slate-500">
+              {{ callerName(c) }} · {{ c.durationSec }}s
+              <span *ngIf="c.recording"> · 🎙️ có ghi âm</span>
+            </div>
+            <div *ngIf="c.note" class="text-slate-700">{{ c.note }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timeline -->
+      <section class="space-y-3">
+        <h3 class="section-title">✨ Dòng thời gian chăm sóc</h3>
+        <div *ngIf="profile() && !profile()!.timeline.length" class="empty-state">
+          <svg width="64" height="48" viewBox="0 0 64 48" aria-hidden="true">
+            <circle cx="32" cy="24" r="20" fill="#fdf2f8" />
+            <path d="M32 14v10l7 4" stroke="#f472b6" stroke-width="3" stroke-linecap="round" fill="none" />
+          </svg>
+          Chưa có hoạt động nào — sinh viên đang đi học đều 🎉
+        </div>
+        <div *ngIf="profile()?.timeline?.length" class="timeline space-y-3">
+          <div
+            *ngFor="let item of profile()?.timeline"
+            class="relative p-3 rounded-2xl bg-slate-50 text-sm space-y-0.5"
+          >
+            <span
+              class="timeline-dot"
+              [style.background]="
+                item.type === 'call_task'
+                  ? '#8b5cf6'
+                  : item.status === 'Vắng'
+                    ? '#f43f5e'
+                    : '#f59e0b'
+              "
+            ></span>
+            <div class="flex justify-between gap-2">
+              <span class="font-semibold text-slate-900">{{ item.title }}</span>
+              <span class="text-xs text-slate-400 shrink-0">{{ item.date | date: 'dd/MM/yyyy' }}</span>
+            </div>
+            <div *ngIf="item.courseGroup" class="text-xs text-slate-500">
+              {{ item.courseGroup.groupCode }} · {{ item.courseGroup.courseName }}
+            </div>
+            <div *ngIf="item.note" class="text-slate-700">{{ item.note }}</div>
+          </div>
+        </div>
+      </section>
+    </div>
   </aside>
 </div>
 

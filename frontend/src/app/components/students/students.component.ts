@@ -9,6 +9,15 @@ import { CallTaskService } from '../../services/call-task.service';
 import { CallLog, CallService, CALL_OUTCOME_LABELS } from '../../services/call.service';
 
 const PAGE_SIZE = 20;
+// Avatar colours: each student always gets the same pair, picked from their MSSV.
+const AVATAR_GRADIENTS = [
+  ['#8b5cf6', '#ec4899'],
+  ['#06b6d4', '#3b82f6'],
+  ['#f59e0b', '#ef4444'],
+  ['#10b981', '#06b6d4'],
+  ['#6366f1', '#a855f7'],
+  ['#f43f5e', '#f97316'],
+];
 const EMPTY_FORM: StudentInput = {
   studentCode: '',
   fullName: '',
@@ -25,6 +34,7 @@ const EMPTY_FORM: StudentInput = {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './students.component.html',
+  styleUrl: './students.component.css',
 })
 export class StudentsComponent implements OnInit {
   private readonly studentsApi = inject(StudentService);
@@ -164,5 +174,19 @@ export class StudentsComponent implements OnInit {
 
   callerName(call: CallLog): string {
     return typeof call.callerId === 'string' ? '' : call.callerId.fullName;
+  }
+
+  /** "Phạm Ngọc Yến" → "PY": first letter of the family name and of the given name. */
+  initials(name: string): string {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    const first = words[0][0];
+    return (words.length > 1 ? first + words[words.length - 1][0] : first).toUpperCase();
+  }
+
+  avatarBackground(code: string): string {
+    const hash = [...code].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+    const [from, to] = AVATAR_GRADIENTS[hash % AVATAR_GRADIENTS.length];
+    return `linear-gradient(135deg, ${from}, ${to})`;
   }
 }
