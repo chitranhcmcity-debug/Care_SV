@@ -1,14 +1,15 @@
 const OpenAI = require('openai');
 const { assert } = require('../utils/kiemTra');
 
-// Two providers: OpenAI (Responses API) and Gemini (Google's OpenAI-compatible Chat Completions
-// endpoint, called through the same SDK). Configuration is read per call so admin changes take
-// effect immediately.
+// OpenAI supports Responses or compatible Chat Completions proxies; Google's Gemini endpoint
+// uses Chat Completions through the same SDK. Read configuration per call for live admin changes.
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
 const openaiModel = () => process.env.OPENAI_MODEL?.trim() || 'gpt-4.1-mini';
 const geminiModel = () => process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
 // Gemini 2.5 counts thinking tokens in max_tokens; keep thinking small and budget it on top.
 const GEMINI_THINKING_TOKENS = 1024;
+const usesChatCompletions = () =>
+  provider() === 'gemini' || process.env.OPENAI_API_MODE?.trim().toLowerCase() === 'chat';
 
 /** AI_PROVIDER picks one; left empty, OpenAI is used when its key is set, otherwise Gemini. */
 function provider() {
@@ -122,20 +123,22 @@ async function createResponse(options) {
 
 const responseText = (response) => ensureText(response.output_text?.trim());
 
-// ---------------- Gemini (Chat Completions) ----------------
+// ---------------- Gemini / compatible proxies (Chat Completions) ----------------
 
 async function createCompletion({ maxTokens, ...options }) {
-  const api = geminiClient();
+  const gemini = provider() === 'gemini';
+  const api = gemini ? geminiClient() : openaiClient();
+  const model = gemini ? geminiModel() : openaiModel();
   let completion;
   try {
     completion = await api.chat.completions.create({
-      model: geminiModel(),
-      reasoning_effort: 'low',
-      max_tokens: maxTokens + GEMINI_THINKING_TOKENS,
+      model,
+      ...(gemini ? { reasoning_effort: 'low' } : {}),
+      max_tokens: maxTokens + (gemini ? GEMINI_THINKING_TOKENS : 0),
       ...options,
     });
   } catch (error) {
-    throw callFailed('Gemini', error, geminiModel());
+    throw callFailed(gemini ? 'Gemini' : 'API AI', error, model);
   }
   const choice = completion.choices?.[0];
   if (choice?.finish_reason === 'content_filter') throw refused();
@@ -150,7 +153,7 @@ const messageText = (message) =>
 // ---------------- Public API ----------------
 
 async function chat({ system, messages, maxTokens = 1024 }) {
-  if (provider() === 'gemini') {
+  if (usesChatCompletions()) {
     return messageText(
       await createCompletion({
         messages: [{ role: 'system', content: system }, ...messages],
@@ -175,16 +178,16 @@ async function runTool(names, execute, name, argumentsText) {
 
 async function chatWithTools({ system, messages, tools, execute, maxTurns = 6 }) {
   const names = new Set(tools.map((tool) => tool.name));
-  const gemini = provider() === 'gemini';
-  const history = gemini ? [{ role: 'system', content: system }, ...messages] : [...messages];
+  const completions = usesChatCompletions();
+  const history = completions ? [{ role: 'system', content: system }, ...messages] : [...messages];
   const functions = tools.map(({ name, description, input_schema }) =>
-    gemini
+    completions
       ? { type: 'function', function: { name, description, parameters: input_schema } }
       : // Existing tools have optional filters; preserve those schemas.
         { type: 'function', name, description, parameters: input_schema, strict: false },
   );
   for (let turn = 0; turn < maxTurns; turn++) {
-    if (gemini) {
+    if (completions) {
       const message = await createCompletion({
         messages: history,
         tools: functions,

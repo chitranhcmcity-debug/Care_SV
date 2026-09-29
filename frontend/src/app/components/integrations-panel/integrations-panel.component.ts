@@ -40,8 +40,10 @@ export class IntegrationsPanelComponent implements OnInit {
   }
 
   readonly optionLabels: Record<string, string> = {
-    openai: 'ChatGPT (OpenAI)',
+    openai: 'OpenAI / API tương thích',
     gemini: 'Google Gemini',
+    responses: 'Responses',
+    chat: 'Chat Completions',
   };
 
   /** AI provider whose fields are shown: the typed/saved choice, else what the server picks. */

@@ -17,6 +17,13 @@ const CATALOG = Object.freeze([
   },
   { key: 'OPENAI_API_KEY', group: 'Trợ lý AI', provider: 'openai', label: 'API key', secret: true },
   {
+    key: 'OPENAI_API_MODE',
+    group: 'Trợ lý AI',
+    provider: 'openai',
+    label: 'Giao thức API',
+    allowed: ['responses', 'chat'],
+  },
+  {
     key: 'OPENAI_MODEL',
     group: 'Trợ lý AI',
     provider: 'openai',
