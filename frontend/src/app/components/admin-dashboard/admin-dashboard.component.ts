@@ -76,6 +76,7 @@ const emptyTaskForm = () => ({
     StaffAiModalComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
+  styleUrl: './admin-dashboard.component.css',
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   activeTab: AdminTab = 'courses';

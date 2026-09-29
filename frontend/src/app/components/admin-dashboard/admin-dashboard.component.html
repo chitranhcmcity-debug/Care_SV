@@ -501,8 +501,13 @@
     </div>
 
     <!-- Staff List Table -->
-    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-      <table class="w-full text-left border-collapse text-sm">
+    <div
+      class="staff-table-container"
+      role="region"
+      aria-label="Danh sách tài khoản nhân sự"
+      tabindex="0"
+    >
+      <table class="staff-table w-full text-left border-collapse text-sm">
         <thead>
           <tr
             class="bg-slate-100 text-slate-800 uppercase text-xs font-bold border-b border-slate-200"
@@ -534,10 +539,10 @@
               >
                 {{
                   staff.role === 'teacher'
-                    ? '👨‍🏫 GIẢNG VIÊN'
+                    ? 'Giảng viên'
                     : staff.role === 'manager'
-                      ? '🏛️ TRƯỞNG PHÒNG / PHT'
-                      : '🎧 NHÂN VIÊN CSKH'
+                      ? 'Trưởng phòng / PHT'
+                      : 'Nhân viên CSKH'
                 }}
               </span>
             </td>
@@ -577,49 +582,52 @@
                 }}
               </span>
             </td>
-            <td class="p-4 text-right space-x-2">
-              <button
-                type="button"
-                (click)="openEditStaffModal(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100 transition-all touch-target"
-              >
-                ✏️ Sửa
-              </button>
-              <button
-                *ngIf="staff.role === 'staff' && canAssessStaff"
-                type="button"
-                (click)="openStaffAiAssessment(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
-                title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
-              >
-                🤖 Đánh Giá AI
-              </button>
-              <button
-                type="button"
-                (click)="resetStaffPassword(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
-              >
-                🔑 Reset MK
-              </button>
-              <button
-                type="button"
-                (click)="toggleStaffStatus(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all touch-target"
-                [ngClass]="
-                  staff.status === 'active'
-                    ? 'border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100'
-                    : 'border-emerald-400 text-emerald-900 bg-emerald-50 hover:bg-emerald-100'
-                "
-              >
-                {{ staff.status === 'active' ? '🚫 Khóa' : '✅ Mở' }}
-              </button>
-              <button
-                type="button"
-                (click)="deleteStaffAccount(staff)"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all touch-target"
-              >
-                🗑️ Xóa
-              </button>
+            <td class="p-4 text-right">
+              <div class="staff-actions">
+                <button
+                  type="button"
+                  (click)="openEditStaffModal(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100 transition-all touch-target"
+                >
+                  Sửa
+                </button>
+                <button
+                  *ngIf="staff.role === 'staff' && canAssessStaff"
+                  type="button"
+                  (click)="openStaffAiAssessment(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
+                  title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
+                >
+                  Đánh giá AI
+                </button>
+                <button
+                  type="button"
+                  (click)="resetStaffPassword(staff)"
+                  title="Đặt lại mật khẩu"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
+                >
+                  Đặt lại MK
+                </button>
+                <button
+                  type="button"
+                  (click)="toggleStaffStatus(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all touch-target"
+                  [ngClass]="
+                    staff.status === 'active'
+                      ? 'border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100'
+                      : 'border-emerald-400 text-emerald-900 bg-emerald-50 hover:bg-emerald-100'
+                  "
+                >
+                  {{ staff.status === 'active' ? 'Khóa' : 'Mở khóa' }}
+                </button>
+                <button
+                  type="button"
+                  (click)="deleteStaffAccount(staff)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all touch-target"
+                >
+                  Xóa
+                </button>
+              </div>
             </td>
           </tr>
           <tr *ngIf="staffList.length === 0">
