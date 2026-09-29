@@ -77,12 +77,27 @@ const incomplete = () =>
     new Error('Trợ lý AI chưa hoàn tất câu trả lời. Vui lòng thử lại với câu hỏi ngắn hơn.'),
     { status: 502 },
   );
-// Do not expose credentials or request details from SDK errors.
-const callFailed = (name) =>
-  Object.assign(
-    new Error(`Lỗi gọi trợ lý AI ${name}. Vui lòng kiểm tra API key, model và hạn mức sử dụng.`),
-    { status: 502 },
+// The provider's HTTP status says what went wrong; tell the user that (never the key or the
+// request itself) and log it so the cause shows up in the server logs.
+function callFailed(name, error, model) {
+  const status = error?.status;
+  console.error(
+    `[AI] ${name} (${model}) failed: status=${status ?? '-'} code=${error?.code ?? '-'} type=${error?.type ?? '-'} ${String(error?.message ?? '').slice(0, 300)}`,
   );
+  const reason =
+    status === 401 || status === 403
+      ? `API key ${name} không hợp lệ hoặc không có quyền dùng model này.`
+      : status === 429
+        ? `${name} báo hết hạn mức / vượt giới hạn số lần gọi. Kiểm tra billing hoặc thử lại sau ít phút.`
+        : status === 404
+          ? `Không tìm thấy model "${model}" trên ${name}. Kiểm tra tên model trong Cấu hình API.`
+          : status === 400
+            ? `${name} từ chối yêu cầu (400): ${String(error?.message ?? '').slice(0, 160)}`
+            : status
+              ? `${name} đang lỗi (mã ${status}). Vui lòng thử lại sau.`
+              : `Không kết nối được tới ${name}. Kiểm tra mạng của máy chủ hoặc địa chỉ API.`;
+  return Object.assign(new Error(`Lỗi gọi trợ lý AI: ${reason}`), { status: 502 });
+}
 const ensureText = (text) => {
   assert(text, 'Trợ lý AI không trả về nội dung. Vui lòng thử lại.', 502);
   return text;
@@ -95,8 +110,8 @@ async function createResponse(options) {
   let response;
   try {
     response = await api.responses.create({ model: openaiModel(), store: false, ...options });
-  } catch {
-    throw callFailed('OpenAI');
+  } catch (error) {
+    throw callFailed('OpenAI', error, openaiModel());
   }
   if (response.output?.some((item) => item.content?.some((part) => part.type === 'refusal'))) {
     throw refused();
@@ -119,8 +134,8 @@ async function createCompletion({ maxTokens, ...options }) {
       max_tokens: maxTokens + GEMINI_THINKING_TOKENS,
       ...options,
     });
-  } catch {
-    throw callFailed('Gemini');
+  } catch (error) {
+    throw callFailed('Gemini', error, geminiModel());
   }
   const choice = completion.choices?.[0];
   if (choice?.finish_reason === 'content_filter') throw refused();
