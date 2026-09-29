@@ -1,11 +1,12 @@
 // Dữ liệu demo đầy đủ cho mọi trang: tài khoản, lớp, sinh viên, học phần, phân lớp CSKH, điểm danh
-// ~8 tuần, nhiệm vụ gọi điện, lịch sử cuộc gọi, giao việc và đơn thanh toán.
+// ~8 tuần, hồ sơ chăm sóc (đang chăm sóc, chờ chỉ đạo, chờ duyệt, đã kết thúc), cuộc gọi, giao
+// việc và đơn thanh toán.
 //
 //   npm run seed:demo            chỉ chạy khi chưa có sinh viên
 //   npm run seed:demo -- --reset xóa dữ liệu nghiệp vụ (giữ tài khoản & cài đặt) rồi tạo lại
 //
 // Điểm danh đi qua dichVuDiemDanh.saveAttendance và phân lớp qua dichVuPhanCongLop.assignClass,
-// nên nhiệm vụ gọi điện được tạo và chia cho nhân viên đúng như khi dùng app.
+// nên hồ sơ chăm sóc được mở (khi chạm mức cảnh báo) và giao cho nhân viên đúng như khi dùng app.
 require('dotenv').config({ path: require('node:path').join(__dirname, '../.env'), quiet: true });
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -13,7 +14,7 @@ const NguoiDung = require('../models/NguoiDung');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const CuocGoi = require('../models/CuocGoi');
 const NhiemVu = require('../models/NhiemVu');
 const LichSuPhanCong = require('../models/LichSuPhanCong');
@@ -22,7 +23,8 @@ const CaiDatHeThong = require('../models/CaiDatHeThong');
 const { saveAttendance } = require('../services/dichVuDiemDanh');
 const { assignClass } = require('../services/dichVuPhanCongLop');
 const {
-  CALL_STATUS,
+  CARE_STATUS,
+  DEFAULT_CARE_STEPS,
   TASK_STATUS,
   SHIFT,
   WEEKDAY_INDEX,
@@ -249,7 +251,7 @@ async function reset() {
       SinhVien,
       NhomHocPhan,
       DiemDanh,
-      NhiemVuGoiDien,
+      HoSoChamSoc,
       CuocGoi,
       NhiemVu,
       LichSuPhanCong,
@@ -389,7 +391,7 @@ async function main() {
         if (rand() < 0.15) excused.push({ studentId: String(s._id), reason: pick(reasons) });
         else absent.push(String(s._id));
       }
-      const { attendance } = await saveAttendance({
+      const { attendance, openedCases } = await saveAttendance({
         group,
         user: { id: String(recorder._id) },
         absentStudentIds: absent,
@@ -397,39 +399,68 @@ async function main() {
         date: start,
       });
       await backdate(DiemDanh, attendance._id, start);
+      for (const opened of openedCases) {
+        const at = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+        await backdate(HoSoChamSoc, opened.caseId, at, {
+          directedAt: at,
+          'notes.$[].createdAt': at,
+        });
+      }
       sessions++;
     }
   }
 
-  // --- Work the call tasks: older ones mostly handled, recent ones still open
-  const tasks = await NhiemVuGoiDien.find().populate('studentId');
+  // --- Work the care cases: older ones further along (closed / waiting for approval),
+  // recent ones still in progress. Calls are logged against the case.
+  const cases = await HoSoChamSoc.find().populate('studentId');
   const staffById = new Map([users.staff, users.staff2].map((u) => [String(u._id), u]));
   let calls = 0;
-  for (const task of tasks) {
-    const student = task.studentId;
-    const ageDays = (now - task.absenceDate) / DAY;
-    const caller = staffById.get(String(task.assignedStaffId));
-    const r = rand();
-    const outcome =
-      // The manager's queue (class without CSKH staff) has not been picked up yet.
-      !caller || ageDays < 2
-        ? 'pending'
-        : r < (ageDays > 7 ? 0.72 : 0.45)
-          ? 'contacted'
-          : r < 0.9
-            ? 'unreachable'
-            : 'pending';
-    await backdate(NhiemVuGoiDien, task._id, task.absenceDate);
-    if (outcome === 'pending') continue;
+  const CAUSES = Object.keys(NOTES_BY_REASON);
+  const SOLUTIONS = [
+    'Thống nhất lịch đi học đều, cam kết không nghỉ không phép.',
+    'Hướng dẫn làm đơn xin phép và học bù các buổi đã nghỉ.',
+    'Kết nối phòng CTSV hỗ trợ học bổng / giãn học phí.',
+    'Phối hợp phụ huynh theo dõi, nhắc lịch học hằng tuần.',
+  ];
+  const addNote = (c, kind, text, authorId, at) =>
+    c.notes.push({ kind, text, authorId, createdAt: at });
+  const tick = (c, count, at) =>
+    c.steps.slice(0, count).forEach((st) => Object.assign(st, { done: true, doneAt: at }));
 
-    const attempts = outcome === 'contacted' ? between(1, 2) : between(1, 3);
-    let callAt = atTime(new Date(task.absenceDate.getTime() + DAY), '08:30', between(0, 420));
+  for (const c of cases) {
+    const student = c.studentId;
+    const opened = c.createdAt;
+    const ageDays = (now - opened) / DAY;
+    let caller = staffById.get(String(c.assignedStaffId));
+    // A class without CSKH staff: the manager directs someone after a day or two.
+    if (!caller && ageDays > 2) {
+      caller = users.staff2;
+      const at = new Date(opened.getTime() + between(1, 2) * DAY);
+      Object.assign(c, {
+        assignedStaffId: caller._id,
+        status: CARE_STATUS.IN_PROGRESS,
+        directedBy: users.manager._id,
+        directedAt: at,
+        directive: 'Liên hệ gia đình trong tuần này, báo lại nguyên nhân cho phòng.',
+        dueDate: new Date(at.getTime() + 7 * DAY),
+      });
+      addNote(c, 'su_kien', `Chỉ đạo ${caller.fullName} chăm sóc`, users.manager._id, at);
+      addNote(c, 'chi_dao', c.directive, users.manager._id, at);
+    }
+    if (!caller) {
+      await c.save();
+      continue;
+    }
+
+    // Calls: one to three tries, the last one answered for cases older than a couple of days.
+    const attempts = ageDays < 1 ? 0 : between(1, 3);
+    let callAt = atTime(new Date(opened.getTime() + DAY), '08:30', between(0, 420));
     for (let a = 1; a <= attempts; a++) {
       if (callAt > now) callAt = new Date(now.getTime() - between(30, 300) * 60 * 1000);
-      const answered = outcome === 'contacted' && a === attempts;
+      const answered = a === attempts && ageDays > 2;
       const target = rand() < 0.6 ? 'sinh_vien' : 'phu_huynh';
-      const reason = pick(reasons);
       const durationSec = answered ? between(45, 360) : 0;
+      const cause = pick(CAUSES);
       const call = await CuocGoi.create({
         callerId: caller._id,
         callerRole: caller.role,
@@ -437,34 +468,100 @@ async function main() {
         target,
         phoneNumber: target === 'phu_huynh' ? student.parentPhone : student.phone,
         method: rand() < 0.3 ? 'stringee' : 'dien_thoai',
-        callTaskId: task._id,
-        courseGroupId: task.courseGroupId,
+        careCaseId: c._id,
         status: 'ket_thuc',
         outcome: answered ? 'nghe_may' : pick(['khong_nghe_may', 'khong_nghe_may', 'may_ban']),
-        note: answered ? pick(NOTES_BY_REASON[reason] ?? NOTES_BY_REASON.Khác) : '',
+        note: answered ? pick(NOTES_BY_REASON[cause]) : '',
+        record: rand() < 0.5,
         startedAt: callAt,
         endedAt: new Date(callAt.getTime() + (durationSec + 20) * 1000),
         durationSec,
       });
       await backdate(CuocGoi, call._id, callAt);
       calls++;
+      addNote(
+        c,
+        'cuoc_goi',
+        `Gọi ${target === 'phu_huynh' ? 'phụ huynh' : 'sinh viên'} — ${answered ? 'nghe máy' : 'không liên lạc được'}${call.note ? `: ${call.note}` : ''}`,
+        caller._id,
+        callAt,
+      );
       if (answered) {
-        task.callNote = call.note;
-        task.absenceReasonCategory = reason;
+        tick(c, 1, callAt);
+        c.cause = `${cause}: ${call.note}`;
+        tick(c, 2, callAt);
+        addNote(c, 'su_kien', `Cập nhật — Nguyên nhân: ${c.cause}`, caller._id, callAt);
       }
       callAt = new Date(callAt.getTime() + between(3, 26) * 60 * 60 * 1000);
     }
-    task.status = outcome === 'contacted' ? CALL_STATUS.CONTACTED : CALL_STATUS.UNREACHABLE;
-    task.callAttempts = attempts;
-    if (outcome === 'unreachable') {
-      task.callNote = 'Gọi nhiều lần không bắt máy, sẽ gọi lại cho phụ huynh.';
-      if (rand() < 0.6) task.callbackDate = new Date(now.getTime() + between(1, 4) * DAY);
+
+    if (c.cause && ageDays > 5) {
+      c.solution = pick(SOLUTIONS);
+      tick(c, 3, callAt);
+      addNote(c, 'su_kien', `Cập nhật — Hướng giải quyết: ${c.solution}`, caller._id, callAt);
     }
-    await task.save();
-    await NhiemVuGoiDien.collection.updateOne({ _id: task._id }, { $set: { updatedAt: callAt } });
+    if (ageDays > 6 && rand() < 0.3)
+      addNote(
+        c,
+        'kho_khan',
+        'Phụ huynh ở xa, khó liên lạc giờ hành chính. Xin ý kiến hướng xử lý.',
+        caller._id,
+        callAt,
+      );
+    if (c.solution && ageDays > 12) {
+      tick(c, DEFAULT_CARE_STEPS.length, callAt);
+      const result = rand() < 0.7 ? 'tien_bo' : rand() < 0.5 ? 'on_dinh' : 'khong_tien_bo';
+      const proposedAt = new Date(Math.min(now - DAY, callAt.getTime() + 3 * DAY));
+      c.closing = {
+        result,
+        summary: 'Sinh viên đã đi học trở lại đều đặn sau khi được trao đổi và hỗ trợ.',
+        early: rand() < 0.3,
+        proposedBy: caller._id,
+        proposedAt,
+      };
+      c.status = CARE_STATUS.CLOSING;
+      addNote(c, 'su_kien', 'Đề nghị kết thúc hồ sơ', caller._id, proposedAt);
+      if (ageDays > 18) {
+        c.status = CARE_STATUS.CLOSED;
+        c.closing.approvedBy = users.manager._id;
+        c.closing.closedAt = new Date(proposedAt.getTime() + DAY);
+        addNote(c, 'su_kien', 'Đã duyệt kết thúc hồ sơ', users.manager._id, c.closing.closedAt);
+      }
+    }
+    await c.save();
+    await HoSoChamSoc.collection.updateOne(
+      { _id: c._id },
+      { $set: { createdAt: opened, updatedAt: callAt > now ? now : callAt } },
+    );
   }
 
-  // Teachers also call parents directly from the attendance page (not tied to a task).
+  // Two cases proposed by lecturers for students showing signs of dropping out.
+  for (const { group, teacher, members } of groups.filter((g) => g.teacher).slice(0, 2)) {
+    const student = members.find(
+      (m) => !cases.some((c) => String(c.studentId._id) === String(m._id)),
+    );
+    if (!student) continue;
+    const at = new Date(now.getTime() - between(1, 3) * DAY);
+    const careCase = await HoSoChamSoc.create({
+      studentId: student._id,
+      source: 'de_xuat',
+      reason: 'Sinh viên có biểu hiện chán học, hay bỏ tiết cuối, cần tư vấn định hướng.',
+      proposedBy: teacher._id,
+      status: CARE_STATUS.AWAITING,
+      steps: DEFAULT_CARE_STEPS.map((title) => ({ title, source: 'mac_dinh' })),
+      notes: [
+        {
+          kind: 'su_kien',
+          text: `Mở hồ sơ: Đề xuất chăm sóc (${group.groupCode})`,
+          authorId: teacher._id,
+          createdAt: at,
+        },
+      ],
+    });
+    await backdate(HoSoChamSoc, careCase._id, at);
+  }
+
+  // Lecturers also call parents directly after taking attendance (not tied to a case).
   for (const { group, teacher, members } of groups.filter((g) => g.teacher)) {
     for (let i = 0; i < 2; i++) {
       const student = pick(members);
@@ -482,6 +579,7 @@ async function main() {
         status: 'ket_thuc',
         outcome: 'nghe_may',
         note: 'Trao đổi với phụ huynh về tình hình chuyên cần của sinh viên.',
+        record: false,
         startedAt: at,
         endedAt: new Date(at.getTime() + durationSec * 1000),
         durationSec,
@@ -606,9 +704,11 @@ async function main() {
     'Lớp hành chính': CLASSES.length,
     'Nhóm học phần': groups.length,
     'Buổi điểm danh': sessions,
-    'Nhiệm vụ gọi điện': await count(NhiemVuGoiDien),
-    '  – chưa gọi': await count(NhiemVuGoiDien, { status: CALL_STATUS.PENDING }),
-    '  – hàng chờ Trưởng phòng': await count(NhiemVuGoiDien, { assignedStaffId: null }),
+    'Hồ sơ chăm sóc': await count(HoSoChamSoc),
+    '  – chờ chỉ đạo': await count(HoSoChamSoc, { status: CARE_STATUS.AWAITING }),
+    '  – đang chăm sóc': await count(HoSoChamSoc, { status: CARE_STATUS.IN_PROGRESS }),
+    '  – chờ duyệt kết thúc': await count(HoSoChamSoc, { status: CARE_STATUS.CLOSING }),
+    '  – đã kết thúc': await count(HoSoChamSoc, { status: CARE_STATUS.CLOSED }),
     'Cuộc gọi': calls,
     'Nhiệm vụ giao việc': internal.length,
   });

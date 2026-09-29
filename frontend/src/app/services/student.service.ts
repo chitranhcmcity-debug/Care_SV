@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Student } from '../models/types';
+import { Student, Student360Profile } from '../models/types';
 
 /** Fields an operator can edit on a student record. */
 export type StudentInput = Pick<
@@ -58,6 +58,18 @@ export class StudentService {
 
   remove(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/students/${id}`);
+  }
+
+  /** 360° timeline: absences, care cases and calls. */
+  profile(id: string): Observable<Student360Profile> {
+    return this.http.get<Student360Profile>(`${this.baseUrl}/students/${id}/profile`);
+  }
+
+  updateTags(id: string, tags: string[]): Observable<{ message: string; tags: string[] }> {
+    return this.http.put<{ message: string; tags: string[] }>(
+      `${this.baseUrl}/students/${id}/tags`,
+      { tags },
+    );
   }
 
   classes(): Observable<string[]> {

@@ -1,10 +1,40 @@
 /* Colour per status; used by the stat cards and the filter pills. */
-[data-tone='violet'] { --tone: #7c3aed; --tone-2: #c026d3; --tint: #f5f3ff; --soft: #ddd6fe; }
-[data-tone='amber']  { --tone: #d97706; --tone-2: #f59e0b; --tint: #fffbeb; --soft: #fde68a; }
-[data-tone='blue']   { --tone: #2563eb; --tone-2: #38bdf8; --tint: #eff6ff; --soft: #bfdbfe; }
-[data-tone='purple'] { --tone: #9333ea; --tone-2: #d946ef; --tint: #faf5ff; --soft: #e9d5ff; }
-[data-tone='green']  { --tone: #059669; --tone-2: #34d399; --tint: #ecfdf5; --soft: #a7f3d0; }
-[data-tone='rose']   { --tone: #e11d48; --tone-2: #fb7185; --tint: #fff1f2; --soft: #fecdd3; }
+[data-tone='violet'] {
+  --tone: #7c3aed;
+  --tone-2: #c026d3;
+  --tint: #f5f3ff;
+  --soft: #ddd6fe;
+}
+[data-tone='amber'] {
+  --tone: #d97706;
+  --tone-2: #f59e0b;
+  --tint: #fffbeb;
+  --soft: #fde68a;
+}
+[data-tone='blue'] {
+  --tone: #2563eb;
+  --tone-2: #38bdf8;
+  --tint: #eff6ff;
+  --soft: #bfdbfe;
+}
+[data-tone='purple'] {
+  --tone: #9333ea;
+  --tone-2: #d946ef;
+  --tint: #faf5ff;
+  --soft: #e9d5ff;
+}
+[data-tone='green'] {
+  --tone: #059669;
+  --tone-2: #34d399;
+  --tint: #ecfdf5;
+  --soft: #a7f3d0;
+}
+[data-tone='rose'] {
+  --tone: #e11d48;
+  --tone-2: #fb7185;
+  --tint: #fff1f2;
+  --soft: #fecdd3;
+}
 
 svg {
   fill: none;

@@ -260,7 +260,9 @@ router.post(
                   ...(parentPhone ? { parentPhone } : {}),
                 },
                 // Only seed the home class for new students; never overwrite it afterwards.
-                $setOnInsert: { classCode: normalizeClass(sheetName.split('_').pop() || sheetName) },
+                $setOnInsert: {
+                  classCode: normalizeClass(sheetName.split('_').pop() || sheetName),
+                },
               },
               { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
             );

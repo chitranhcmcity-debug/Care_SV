@@ -96,7 +96,7 @@ export const DASHBOARD_TABS: DashboardTab[] = [
   },
   {
     id: 'analytics',
-    label: 'Thống kê & cấm thi',
+    label: 'Thống kê & cảnh báo',
     icon: 'M3 3v18h18M7 15l4-4 3 3 5-6',
   },
   {

@@ -6,7 +6,7 @@ export const RATE_PARTS: { key: keyof StaffProgressRow['rates']; label: string; 
     { key: 'completion', label: 'Hoàn thành', weight: 30 },
     { key: 'onTime', label: 'Đúng hạn', weight: 25 },
     { key: 'quality', label: 'Chất lượng', weight: 25 },
-    { key: 'care', label: 'Liên hệ SV', weight: 20 },
+    { key: 'care', label: 'Bước chăm sóc', weight: 20 },
   ];
 
 /** Tailwind classes for a KPI score badge. */

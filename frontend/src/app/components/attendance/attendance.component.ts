@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import {
@@ -12,16 +13,13 @@ import {
   ScheduleData,
 } from '../../services/attendance.service';
 import { AuthService } from '../../services/auth.service';
-import { CallTaskService } from '../../services/call-task.service';
+import { CareCaseService } from '../../services/care-case.service';
 import { StaffService } from '../../services/staff.service';
 import { NotificationService } from '../../services/notification.service';
 import { CallService, CallTarget } from '../../services/call.service';
 import {
   CourseGroup,
   Student,
-  CallTask,
-  CallStatus,
-  CALL_STATUS,
   SHIFT,
   WEEKDAYS_BY_JS_DAY,
   AttendanceWindow,
@@ -32,7 +30,7 @@ import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
 @Component({
   selector: 'app-attendance',
   standalone: true,
-  imports: [CommonModule, FormsModule, ViLabelPipe],
+  imports: [CommonModule, FormsModule, ViLabelPipe, RouterLink],
   templateUrl: './attendance.component.html',
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
@@ -53,10 +51,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   selectedGroup: CourseGroup | null = null;
   searchTerm = '';
 
-  // Call Tasks state
-  myCallTasks: CallTask[] = [];
-  taskFilterStatus = '';
-  unreadCallsCount = 0;
+  /** Open care cases the user proposed or is working on (home card and tab badge). */
+  myOpenCases = 0;
+  get canOpenCare(): boolean {
+    return this.authService.canOpen('/care');
+  }
+  get canProposeCare(): boolean {
+    return this.authService.can('care.propose') || this.authService.can('care.manage');
+  }
 
   attendanceMode: 'new' | 'history' | 'summary' = 'history';
   activeSession: ScheduleSession | null = null;
@@ -84,7 +86,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   constructor(
     private attendanceService: AttendanceService,
     public authService: AuthService,
-    private callTaskService: CallTaskService,
+    private careCases: CareCaseService,
     private staffService: StaffService,
     private notify: NotificationService,
     private cdr: ChangeDetectorRef,
@@ -105,7 +107,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       | null
       | undefined,
     target: CallTarget,
-    context: { callTaskId?: string; courseGroupId?: string } = {},
+    context: { courseGroupId?: string } = {},
   ) {
     event.preventDefault();
     if (student?._id) this.calls.open({ student, target, ...context });
@@ -113,10 +115,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCourseGroups();
-    this.loadMyCallTasks();
+    this.loadMyCases();
     this.pollTimer = setInterval(() => {
-      if (!document.hidden) this.loadMyCallTasks();
-    }, 15000);
+      if (!document.hidden) this.loadMyCases();
+    }, 60000);
   }
 
   ngOnDestroy(): void {
@@ -390,7 +392,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   async deleteHistoryRecord(attendanceId: string) {
     const ok = await this.notify.confirm({
       title: 'Xóa bản ghi điểm danh?',
-      message: 'Các nhiệm vụ gọi điện chưa xử lý của buổi này cũng sẽ bị xóa.',
+      message: 'Bản ghi điểm danh của buổi này sẽ bị xóa. Hồ sơ chăm sóc đã mở vẫn được giữ.',
       confirmText: 'Xóa',
       danger: true,
     });
@@ -405,30 +407,36 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadMyCallTasks() {
-    this.callTaskService.getMyTasks().subscribe({
-      next: (tasks) => {
-        this.myCallTasks = tasks;
-        this.unreadCallsCount = tasks.filter((t) => t.status === CALL_STATUS.PENDING).length;
+  loadMyCases() {
+    if (!this.canOpenCare) return;
+    this.careCases.list({ status: 'open', mine: true }).subscribe({
+      next: (res) => {
+        this.myOpenCases = res.items.length;
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Load call tasks error:', err),
+      error: () => {},
     });
   }
 
-  get filteredCallTasks(): CallTask[] {
-    if (!this.taskFilterStatus) return this.myCallTasks;
-    return this.myCallTasks.filter((t) => t.status === this.taskFilterStatus);
-  }
-
-  updateTaskStatus(taskId: string, status: CallStatus, note: string) {
-    this.callTaskService.updateTaskStatus(taskId, { status, callNote: note || '' }).subscribe({
-      next: (res) => {
-        this.loadMyCallTasks();
-        this.cdr.detectChanges();
+  /** Lecturer / staff proposes a care case for a student who seems to be dropping out. */
+  proposeCare(student: { _id: string; fullName: string }) {
+    const reason = prompt(
+      `Lý do đề xuất chăm sóc ${student.fullName}:`,
+      'Nghỉ học nhiều, có dấu hiệu bỏ học',
+    );
+    if (!reason?.trim()) return;
+    this.careCases.create({ studentId: student._id, reason: reason.trim() }).subscribe({
+      next: () => {
+        this.notify.success('Đã gửi đề xuất chăm sóc tới Trưởng phòng / Phó hiệu trưởng');
+        this.loadMyCases();
+        this.loadAttendanceSummary();
       },
       error: (err) =>
-        this.notify.error(err.error?.message || err.message, 'Lỗi khi cập nhật cuộc gọi'),
+        this.notify.error(
+          err.status === 409
+            ? 'Sinh viên đã có hồ sơ chăm sóc đang mở'
+            : err.error?.message || 'Không gửi được đề xuất',
+        ),
     });
   }
 
@@ -618,7 +626,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.submitResult = res;
-          this.loadMyCallTasks();
+          this.loadMyCases();
 
           // ✅ Re-check today's record → tự động khóa form sau khi lưu
           this.checkTodayAttendance();
@@ -627,11 +635,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           this.attendanceMode = 'history';
           this.loadHistory();
 
-          // Auto-hide popup sau 10 giây
-          setTimeout(() => {
-            this.submitResult = null;
-            this.cdr.detectChanges();
-          }, 10000);
+          // Auto-hide after 10 s, unless the lecturer still has to decide whether to call.
+          if (!res.absentStudents?.length)
+            setTimeout(() => {
+              this.submitResult = null;
+              this.cdr.detectChanges();
+            }, 10000);
           this.cdr.detectChanges();
         },
         error: (err) => {

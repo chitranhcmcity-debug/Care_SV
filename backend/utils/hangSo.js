@@ -1,19 +1,51 @@
 // Stored values are unaccented codes; the *_LABEL maps hold the Vietnamese display text.
 
-// --- Trạng thái cuộc gọi
-const CALL_STATUS = Object.freeze({
-  PENDING: 'chua_goi',
-  UNREACHABLE: 'khong_bat_may',
-  CONTACTED: 'da_lien_he',
+// --- Hồ sơ chăm sóc sinh viên
+// cho_chi_dao: waiting for Trưởng phòng / PHT to direct a staff member (no default owner, or
+// proposed by hand); dang_cham_soc: the assigned staff member is working on it;
+// cho_duyet_ket_thuc: staff asked to close it, waiting for approval; da_ket_thuc: closed, in history.
+const CARE_STATUS = Object.freeze({
+  AWAITING: 'cho_chi_dao',
+  IN_PROGRESS: 'dang_cham_soc',
+  CLOSING: 'cho_duyet_ket_thuc',
+  CLOSED: 'da_ket_thuc',
 });
-const CALL_STATUS_LABEL = Object.freeze({
-  [CALL_STATUS.PENDING]: 'Chưa gọi',
-  [CALL_STATUS.UNREACHABLE]: 'Không bắt máy',
-  [CALL_STATUS.CONTACTED]: 'Đã liên hệ',
+const CARE_STATUS_LABEL = Object.freeze({
+  [CARE_STATUS.AWAITING]: 'Chờ chỉ đạo',
+  [CARE_STATUS.IN_PROGRESS]: 'Đang chăm sóc',
+  [CARE_STATUS.CLOSING]: 'Chờ duyệt kết thúc',
+  [CARE_STATUS.CLOSED]: 'Đã kết thúc',
 });
-const CALL_STATUSES = Object.freeze(Object.values(CALL_STATUS));
-// Tasks that still need a call — what counts toward a staff member's workload.
-const OPEN_CALL_STATUSES = Object.freeze([CALL_STATUS.PENDING, CALL_STATUS.UNREACHABLE]);
+const CARE_STATUSES = Object.freeze(Object.values(CARE_STATUS));
+const OPEN_CARE_STATUSES = Object.freeze([
+  CARE_STATUS.AWAITING,
+  CARE_STATUS.IN_PROGRESS,
+  CARE_STATUS.CLOSING,
+]);
+// Why the case was opened.
+const CARE_SOURCE_LABEL = Object.freeze({
+  canh_bao: 'Cảnh báo vắng học',
+  de_xuat: 'Đề xuất chăm sóc',
+  giao_viec: 'Chỉ đạo từ giao việc',
+});
+const CARE_SOURCES = Object.freeze(Object.keys(CARE_SOURCE_LABEL));
+// Result recorded when a case is closed.
+const CARE_RESULT_LABEL = Object.freeze({
+  tien_bo: 'Đã tiến bộ, đi học đều',
+  on_dinh: 'Ổn định, tiếp tục theo dõi',
+  khong_tien_bo: 'Chưa tiến bộ',
+  nghi_hoc: 'Đã nghỉ học / bảo lưu',
+});
+const CARE_RESULTS = Object.freeze(Object.keys(CARE_RESULT_LABEL));
+// Steps every new case starts with; the manager, the staff member or AI Care can add more.
+const DEFAULT_CARE_STEPS = Object.freeze([
+  'Liên hệ sinh viên / phụ huynh',
+  'Tìm hiểu nguyên nhân',
+  'Đưa ra hướng giải quyết',
+  'Theo dõi chuyển biến sau chăm sóc',
+]);
+// Kinds of entries in a case's exchange between staff and managers.
+const CARE_NOTE_KINDS = Object.freeze(['trao_doi', 'kho_khan', 'chi_dao', 'su_kien', 'cuoc_goi']);
 
 // --- Trạng thái nhiệm vụ
 const TASK_STATUS = Object.freeze({
@@ -150,20 +182,36 @@ const PERMISSIONS = Object.freeze([
     defaultRoles: ['manager'],
   },
   {
-    key: 'callTasks.update',
+    key: 'care.work',
     group: 'Chăm sóc sinh viên',
-    label: 'Chăm sóc sinh viên lớp được phân công',
+    label: 'Chăm sóc sinh viên theo hồ sơ được giao',
     description:
-      'Gọi điện, cập nhật kết quả, lý do vắng, lịch gọi lại cho sinh viên các lớp mình phụ trách.',
+      'Nhận hồ sơ chăm sóc, gọi điện, cập nhật các bước, trao đổi với cấp quản lý, đề nghị kết thúc hồ sơ.',
     defaultRoles: ['staff'],
-    // Classes (and so call tasks) are only ever assigned to Nhân viên CSKH.
+    // Care cases are only ever assigned to Nhân viên CSKH.
     onlyRoles: ['staff'],
   },
   {
-    key: 'callTasks.viewAll',
+    key: 'care.manage',
     group: 'Chăm sóc sinh viên',
-    label: 'Giám sát mọi nhiệm vụ gọi điện',
-    description: 'Xem nhiệm vụ gọi điện của tất cả nhân viên.',
+    label: 'Chỉ đạo & duyệt hồ sơ chăm sóc',
+    description:
+      'Xem mọi hồ sơ, chỉ đạo nhân viên chăm sóc, tạo các bước, phản hồi và duyệt kết thúc hồ sơ.',
+    defaultRoles: ['manager'],
+  },
+  {
+    key: 'care.propose',
+    group: 'Chăm sóc sinh viên',
+    label: 'Đề xuất chăm sóc sinh viên',
+    description: 'Đề xuất mở hồ sơ chăm sóc cho sinh viên có dấu hiệu nghỉ nhiều hoặc bỏ học.',
+    defaultRoles: ['staff', 'teacher'],
+  },
+  {
+    key: 'recordings.viewAll',
+    group: 'Chăm sóc sinh viên',
+    label: 'Nghe mọi bản ghi âm cuộc gọi',
+    description:
+      'Nghe lại ghi âm cuộc gọi của mọi người. Không có quyền này thì chỉ nghe được cuộc gọi của mình.',
     defaultRoles: ['manager'],
   },
   {
@@ -171,7 +219,7 @@ const PERMISSIONS = Object.freeze([
     group: 'Chăm sóc sinh viên',
     label: 'Phân lớp phụ trách cho nhân viên CSKH',
     description:
-      'Giao / chuyển lớp hành chính cho nhân viên (có lưu lịch sử), xử lý hàng chờ cuộc gọi chưa phân công.',
+      'Giao / chuyển lớp hành chính cho nhân viên (có lưu lịch sử). Hồ sơ chăm sóc của sinh viên lớp đó mặc định giao cho nhân viên phụ trách lớp.',
     defaultRoles: ['manager'],
   },
   {
@@ -179,7 +227,7 @@ const PERMISSIONS = Object.freeze([
     group: 'Chăm sóc sinh viên',
     label: 'Cấu hình mức cảnh báo & danh mục chăm sóc',
     description:
-      'Các mức cảnh báo vắng (ngưỡng, màu sắc, mức cấm thi), lý do vắng, nhãn sinh viên.',
+      'Các mức cảnh báo vắng (ngưỡng, màu sắc) dùng để mở hồ sơ chăm sóc, lý do vắng, nhãn sinh viên.',
     defaultRoles: ['manager'],
   },
   {
@@ -205,6 +253,13 @@ const PERMISSIONS = Object.freeze([
     defaultRoles: ['manager'],
   },
 ]);
+// Keys granted from older stored matrices that predate them: new key -> the old keys it replaces.
+const LEGACY_PERMISSIONS = Object.freeze({
+  'care.work': ['callTasks.update'],
+  'care.manage': ['callTasks.viewAll'],
+  'recordings.viewAll': ['callTasks.viewAll'],
+  'care.propose': ['callTasks.update', 'attendance.take'],
+});
 const PERMISSION_KEYS = Object.freeze(PERMISSIONS.map((p) => p.key));
 /** Whether a permission can be granted to a role (onlyRoles limits it to roles where it works). */
 const permissionAppliesTo = (key, role) => {
@@ -215,7 +270,7 @@ const permissionAppliesTo = (key, role) => {
 const CONFIGURABLE_ROLES = Object.freeze(['manager', 'staff', 'teacher']);
 const ADMIN_PERMISSIONS = Object.freeze([
   'students.view',
-  'callTasks.viewAll',
+  'care.manage',
   'reports.view',
   'ai.chat',
 ]);
@@ -290,7 +345,9 @@ const ORDER_STATUSES = Object.freeze(Object.values(ORDER_STATUS));
 // --- Nhãn hiển thị
 // Every stored code is unique across these sets, so one lookup covers them all.
 const LABELS = Object.freeze({
-  ...CALL_STATUS_LABEL,
+  ...CARE_STATUS_LABEL,
+  ...CARE_SOURCE_LABEL,
+  ...CARE_RESULT_LABEL,
   ...TASK_STATUS_LABEL,
   ...TASK_CATEGORY_LABEL,
   ...TASK_PRIORITY_LABEL,
@@ -303,10 +360,17 @@ const LABELS = Object.freeze({
 const toLabel = (value) => LABELS[value] ?? value;
 
 module.exports = {
-  CALL_STATUS,
-  CALL_STATUS_LABEL,
-  CALL_STATUSES,
-  OPEN_CALL_STATUSES,
+  CARE_STATUS,
+  CARE_STATUS_LABEL,
+  CARE_STATUSES,
+  OPEN_CARE_STATUSES,
+  CARE_SOURCE_LABEL,
+  CARE_SOURCES,
+  CARE_RESULT_LABEL,
+  CARE_RESULTS,
+  DEFAULT_CARE_STEPS,
+  CARE_NOTE_KINDS,
+  LEGACY_PERMISSIONS,
   TASK_STATUS,
   TASK_STATUS_LABEL,
   TASK_STATUSES,

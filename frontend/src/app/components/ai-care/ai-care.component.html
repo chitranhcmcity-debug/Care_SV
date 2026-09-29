@@ -51,7 +51,10 @@
   aria-label="Trợ lý AI Care"
 >
   <header class="ai-header relative px-4 py-3 text-white flex items-center gap-3">
-    <span class="w-10 h-10 shrink-0 rounded-2xl bg-white/20 ring-1 ring-white/30 grid place-items-center" aria-hidden="true">
+    <span
+      class="w-10 h-10 shrink-0 rounded-2xl bg-white/20 ring-1 ring-white/30 grid place-items-center"
+      aria-hidden="true"
+    >
       <img src="robot-ai-right.webp" alt="" class="w-9 h-9 object-contain" draggable="false" />
     </span>
     <div class="flex-1 min-w-0">
@@ -76,7 +79,15 @@
       title="Đóng"
       aria-label="Đóng trợ lý AI Care"
     >
-      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
         <path d="M6 6l12 12M18 6L6 18" />
       </svg>
     </button>
@@ -113,7 +124,11 @@
 
     <ng-container *ngFor="let m of messages()">
       <div *ngIf="m.role === 'user'" class="flex justify-end">
-        <div class="ai-grad max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-md text-white whitespace-pre-wrap">{{ m.content }}</div>
+        <div
+          class="ai-grad max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-md text-white whitespace-pre-wrap"
+        >
+          {{ m.content }}
+        </div>
       </div>
       <div *ngIf="m.role === 'assistant'" class="flex">
         <div
@@ -131,7 +146,13 @@
       >
         <div class="flex items-start gap-2">
           <span class="action-icon" aria-hidden="true">{{
-            a.state === 'done' ? '✅' : a.state === 'error' ? '⚠️' : a.state === 'cancelled' ? '🚫' : '⚡'
+            a.state === 'done'
+              ? '✅'
+              : a.state === 'error'
+                ? '⚠️'
+                : a.state === 'cancelled'
+                  ? '🚫'
+                  : '⚡'
           }}</span>
           <div class="min-w-0 flex-1">
             <div class="text-[11px] font-bold uppercase tracking-wide text-violet-600">
@@ -149,7 +170,12 @@
             <ul *ngIf="a.details.length" class="mt-1 space-y-0.5 text-xs text-slate-600">
               <li *ngFor="let d of a.details">• {{ d }}</li>
             </ul>
-            <p *ngIf="a.result" class="mt-1.5 text-xs font-medium" [class.text-rose-700]="a.state === 'error'" [class.text-emerald-700]="a.state === 'done'">
+            <p
+              *ngIf="a.result"
+              class="mt-1.5 text-xs font-medium"
+              [class.text-rose-700]="a.state === 'error'"
+              [class.text-emerald-700]="a.state === 'done'"
+            >
               {{ a.result }}
             </p>
           </div>
@@ -176,7 +202,9 @@
     </ng-container>
 
     <div *ngIf="loading()" class="flex">
-      <div class="ai-bubble px-3.5 py-2.5 rounded-2xl rounded-bl-md text-slate-500 flex items-center gap-2">
+      <div
+        class="ai-bubble px-3.5 py-2.5 rounded-2xl rounded-bl-md text-slate-500 flex items-center gap-2"
+      >
         <span class="ai-typing" aria-hidden="true"><i></i><i></i><i></i></span>
         AI Care đang tra cứu dữ liệu…
       </div>
@@ -189,7 +217,10 @@
     </div>
   </div>
 
-  <form class="px-3 pt-3 pb-2 border-t border-violet-100 flex items-end gap-2 bg-white" (ngSubmit)="send()">
+  <form
+    class="px-3 pt-3 pb-2 border-t border-violet-100 flex items-end gap-2 bg-white"
+    (ngSubmit)="send()"
+  >
     <textarea
       name="draft"
       [(ngModel)]="draft"
@@ -205,7 +236,16 @@
       class="ai-grad h-[42px] px-5 rounded-full text-white text-sm font-semibold inline-flex items-center gap-1.5 disabled:opacity-50 disabled:shadow-none"
     >
       Gửi
-      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
         <path d="M5 12h14m-5-5 5 5-5 5" />
       </svg>
     </button>

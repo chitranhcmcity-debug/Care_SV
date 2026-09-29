@@ -292,8 +292,9 @@ test('Gemini failures, filtered and truncated answers fail cleanly', async () =>
   await assert.rejects(ai.chat(args), { status: 502 });
 });
 
- test('defaults route to Trikun even with a Gemini key present', async () => {
-  for (const key of ['AI_PROVIDER', 'OPENAI_BASE_URL', 'OPENAI_MODEL', 'OPENAI_API_MODE']) delete process.env[key];
+test('defaults route to Trikun even with a Gemini key present', async () => {
+  for (const key of ['AI_PROVIDER', 'OPENAI_BASE_URL', 'OPENAI_MODEL', 'OPENAI_API_MODE'])
+    delete process.env[key];
   process.env.OPENAI_API_KEY = 'trikun-default-key';
   process.env.GEMINI_API_KEY = 'unused-google-key';
   responses.push(geminiAnswer({ content: 'OK' }));

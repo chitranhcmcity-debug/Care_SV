@@ -97,8 +97,8 @@ export class ClassAssignmentPanelComponent implements OnInit {
     const ok = await this.notify.confirm({
       title: staff ? `Giao lớp ${classCode} cho ${staff.fullName}?` : `Thu hồi lớp ${classCode}?`,
       message: staff
-        ? 'Các cuộc gọi đang mở của sinh viên lớp này sẽ chuyển sang nhân viên mới. Lịch sử phân công được lưu lại.'
-        : 'Các cuộc gọi đang mở của lớp sẽ về hàng chờ của Trưởng phòng.',
+        ? 'Hồ sơ chăm sóc đang mở của sinh viên lớp này sẽ chuyển sang nhân viên mới. Lịch sử phân công được lưu lại.'
+        : 'Hồ sơ chăm sóc đang mở của lớp sẽ chờ Trưởng phòng / Phó hiệu trưởng chỉ đạo.',
       confirmText: staff ? 'Giao lớp' : 'Thu hồi',
       danger: !staff,
     });

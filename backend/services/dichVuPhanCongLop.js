@@ -4,9 +4,7 @@
 const LichSuPhanCong = require('../models/LichSuPhanCong');
 const NguoiDung = require('../models/NguoiDung');
 const SinhVien = require('../models/SinhVien');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const { assert, normalizeClass } = require('../utils/kiemTra');
-const { OPEN_CALL_STATUSES } = require('../utils/hangSo');
 
 /**
  * Brings history in line with managedClasses for data created before history existed:
@@ -59,8 +57,8 @@ async function staffForClass(classCode) {
 
 /**
  * Gives `classCode` to `staffId` (or to nobody when staffId is null), closing the previous
- * assignment. Open call tasks of the class's students follow the class; with nobody assigned they
- * go to the manager's queue (assignedStaffId = null).
+ * assignment. Open care cases the previous owner held for the class's students follow the class;
+ * with nobody assigned they wait for a manager's directive.
  */
 async function assignClass({ classCode, staffId, by, reason = '' }) {
   const code = normalizeClass(classCode);
@@ -75,7 +73,7 @@ async function assignClass({ classCode, staffId, by, reason = '' }) {
   }
   const current = await LichSuPhanCong.findOne({ classCode: code, active: true });
   if (current && staff && String(current.staffId) === String(staff._id))
-    return { classCode: code, staff, movedTasks: 0, unchanged: true };
+    return { classCode: code, staff, movedCases: 0, unchanged: true };
 
   if (current) {
     Object.assign(current, {
@@ -98,32 +96,25 @@ async function assignClass({ classCode, staffId, by, reason = '' }) {
   }
 
   const studentIds = (await SinhVien.find({ classCode: code }).select('_id')).map((s) => s._id);
-  const moved = studentIds.length
-    ? await NhiemVuGoiDien.updateMany(
-        { studentId: { $in: studentIds }, status: { $in: OPEN_CALL_STATUSES } },
-        { assignedStaffId: staff ? staff._id : null },
-      )
-    : { modifiedCount: 0 };
-  return { classCode: code, staff, movedTasks: moved.modifiedCount || 0 };
+  // Required here: the care-case service itself needs staffForClass from this module.
+  const { moveClassCases } = require('./dichVuHoSoChamSoc');
+  const movedCases = await moveClassCases(studentIds, current?.staffId, staff);
+  return { classCode: code, staff, movedCases };
 }
 
-/** Releases every class of a staff member (account locked / deleted); tasks go to the queue. */
+/** Releases every class of a staff member (account locked / deleted); their cases go back to
+ *  the managers. */
 async function releaseStaffClasses(staff, by, reason) {
   const records = await LichSuPhanCong.find({ staffId: staff._id, active: true });
-  let movedTasks = 0;
+  let movedCases = 0;
   for (const record of records) {
-    movedTasks += (await assignClass({ classCode: record.classCode, staffId: null, by, reason }))
-      .movedTasks;
+    movedCases += (await assignClass({ classCode: record.classCode, staffId: null, by, reason }))
+      .movedCases;
   }
-  // Tasks outside any class of theirs (e.g. created before class assignment) also go to the queue.
-  const leftover = await NhiemVuGoiDien.updateMany(
-    { assignedStaffId: staff._id, status: { $in: OPEN_CALL_STATUSES } },
-    { assignedStaffId: null },
-  );
-  return {
-    releasedClasses: records.length,
-    movedTasks: movedTasks + (leftover.modifiedCount || 0),
-  };
+  // Cases outside any class of theirs (directed to them by a manager) also go back.
+  const { releaseStaffCases } = require('./dichVuHoSoChamSoc');
+  movedCases += await releaseStaffCases(staff._id);
+  return { releasedClasses: records.length, movedCases };
 }
 
 module.exports = {

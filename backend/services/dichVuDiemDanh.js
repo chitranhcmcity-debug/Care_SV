@@ -1,9 +1,7 @@
-const { CALL_STATUS } = require('../utils/hangSo');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const SinhVien = require('../models/SinhVien');
-const { staffForClass } = require('./dichVuPhanCongLop');
-const { validateAttendance, dayBounds, dateKey, normalizeClass } = require('../utils/kiemTra');
+const { openCasesForWarnings } = require('./dichVuHoSoChamSoc');
+const { validateAttendance, dayBounds, dateKey } = require('../utils/kiemTra');
 
 // Serialize edits to the same session in this process. The unique session index
 // additionally prevents duplicate records across multiple server processes.
@@ -42,85 +40,25 @@ async function saveAttendance({
       recordedBy: user.id,
     });
     await attendance.save();
-    const tasksFilter = {
-      courseGroupId: group._id,
-      absenceDate: { $gte: bounds.start, $lt: bounds.end },
-    };
-    // Preserve contacted history, but remove untouched tasks for corrected absences.
-    await NhiemVuGoiDien.deleteMany({
-      ...tasksFilter,
-      studentId: { $nin: absentStudentIds },
-      callAttempts: 0,
-      status: CALL_STATUS.PENDING,
-    });
-    const existing = await NhiemVuGoiDien.find(tasksFilter).select('studentId');
-    const assigned = new Set(existing.map((task) => String(task.studentId)));
-    const missing = absentStudentIds.filter((id) => !assigned.has(id));
-    // Each absent student's call goes to the staff member currently responsible for their
-    // administrative class; classes without one go to the manager's queue (assignedStaffId null).
-    const assignments = [];
-    if (missing.length) {
-      const students = await SinhVien.find({ _id: { $in: missing } });
-      const owners = new Map();
-      for (const student of students) {
-        const code = normalizeClass(student.classCode);
-        if (!owners.has(code)) owners.set(code, await staffForClass(code));
-      }
-      // One round trip for the whole class; upsertedIds is keyed by the index of each operation.
-      const result = await NhiemVuGoiDien.bulkWrite(
-        students.map((student) => {
-          const owner = owners.get(normalizeClass(student.classCode));
-          return {
-            updateOne: {
-              filter: { attendanceId: attendance._id, studentId: student._id },
-              update: {
-                $setOnInsert: {
-                  courseGroupId: group._id,
-                  assignedStaffId: owner ? owner._id : null,
-                  absenceDate: bounds.date,
-                  status: CALL_STATUS.PENDING,
-                  callNote: '',
-                  callAttempts: 0,
-                },
-              },
-              upsert: true,
-            },
-          };
-        }),
-        { ordered: false },
-      );
-      students.forEach((student, index) => {
-        if (!result.upsertedIds?.[index]) return;
-        const owner = owners.get(normalizeClass(student.classCode));
-        assignments.push({
-          staffName: owner ? owner.fullName : 'Hàng chờ Trưởng phòng (lớp chưa phân công)',
-          unassigned: !owner,
-          studentName: student.fullName,
-          studentCode: student.studentCode,
-          classCode: student.classCode,
-        });
-      });
-    }
+    // Students who now reach a warning level get a care case (default: their class's staff).
+    const openedCases = await openCasesForWarnings(group, absentStudentIds);
+    // The absent students, so the lecturer can choose to call them right away.
+    const absent = await SinhVien.find({ _id: { $in: absentStudentIds } })
+      .select('studentCode fullName classCode phone parentPhone')
+      .lean();
     return {
       message: 'Đã lưu điểm danh',
       attendance,
-      createdTasksCount: assignments.length,
-      taskAssignments: assignments,
+      absentStudents: absent,
+      openedCases,
       isUpdate,
     };
   });
 }
 
 async function deleteAttendance(attendance) {
-  return withSessionLock(`${attendance.courseGroupId}:${dateKey(attendance.date)}`, async () => {
-    const { start, end } = dayBounds(attendance.date);
-    await NhiemVuGoiDien.deleteMany({
-      courseGroupId: attendance.courseGroupId,
-      absenceDate: { $gte: start, $lt: end },
-      callAttempts: 0,
-      status: CALL_STATUS.PENDING,
-    });
-    await DiemDanh.deleteOne({ _id: attendance._id });
-  });
+  return withSessionLock(`${attendance.courseGroupId}:${dateKey(attendance.date)}`, () =>
+    DiemDanh.deleteOne({ _id: attendance._id }),
+  );
 }
 module.exports = { saveAttendance, deleteAttendance };

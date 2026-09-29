@@ -22,12 +22,10 @@ export interface SystemOverview {
     courseGroups: number;
     groupsWithoutTeacher: number;
   };
-  callTasks: {
-    open: number;
-    contacted: number;
-    /** Call tasks raised in the last 7 days, by where they stand now. */
-    week: { contacted: number; pending: number; unreachable: number; callback: number };
-  };
+  /** Care cases waiting for a directive / being worked on. */
+  careCases: { awaiting: number; inProgress: number };
+  /** Calls made in the last 7 days, by how they went. */
+  callOutcomes: { answered: number; noAnswer: number; busy: number; unrecorded: number };
   /** Students at a warning level: how many, and the most severe / most recent few. */
   warnings: {
     count: number;
@@ -49,7 +47,7 @@ export interface SystemOverview {
     /** Students present / excused / absent in the sessions recorded that day. */
     students: { present: number; excused: number; absent: number };
     /** Records created that day. */
-    created: { users: number; students: number; courseGroups: number; callTasks: number };
+    created: { users: number; students: number; courseGroups: number; careCases: number };
   }[];
   callsWithRecording: number;
   integrations: { name: string; configured: boolean }[];

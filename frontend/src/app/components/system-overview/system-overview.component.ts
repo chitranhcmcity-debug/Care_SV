@@ -34,15 +34,13 @@ const ICONS = {
 function withDefaults(d: SystemOverview): SystemOverview {
   return {
     ...d,
-    callTasks: {
-      ...d.callTasks,
-      week: d.callTasks.week ?? { contacted: 0, pending: 0, unreachable: 0, callback: 0 },
-    },
+    careCases: d.careCases ?? { awaiting: 0, inProgress: 0 },
+    callOutcomes: d.callOutcomes ?? { answered: 0, noAnswer: 0, busy: 0, unrecorded: 0 },
     warnings: d.warnings ?? { count: 0, items: [] },
     activity: d.activity.map((a) => ({
       ...a,
       students: a.students ?? { present: 0, excused: 0, absent: 0 },
-      created: a.created ?? { users: 0, students: 0, courseGroups: 0, callTasks: 0 },
+      created: a.created ?? { users: 0, students: 0, courseGroups: 0, careCases: 0 },
     })),
   };
 }
@@ -125,11 +123,11 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
         true,
       ),
       card(
-        'Nhiệm vụ gọi điện',
-        d.callTasks.open,
-        `đang mở · ${d.callTasks.contacted} đã liên hệ`,
-        'callTasks',
-        ICONS.phone,
+        'Hồ sơ chăm sóc',
+        d.careCases.awaiting + d.careCases.inProgress,
+        `${d.careCases.awaiting} chờ chỉ đạo · ${d.careCases.inProgress} đang chăm sóc`,
+        'careCases',
+        ICONS.users,
         'st-amber',
         false,
       ),
@@ -151,15 +149,15 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return [4, 3, 2, 1, 0].map((i) => Math.round((max * i) / 4));
   });
 
-  /** Call tasks of the week as donut segments (contacted, not called, unreachable, callback). */
+  /** Calls of the week as donut segments, by how they went. */
   readonly donut = computed(() => {
-    const week = this.data()?.callTasks.week;
+    const week = this.data()?.callOutcomes;
     if (!week) return null;
     const parts = [
-      { label: 'Đã liên hệ', value: week.contacted, color: '#34d399' },
-      { label: 'Chưa gọi', value: week.pending, color: '#60a5fa' },
-      { label: 'Không bắt máy', value: week.unreachable, color: '#fbbf24' },
-      { label: 'Hẹn gọi lại', value: week.callback, color: '#c084fc' },
+      { label: 'Nghe máy', value: week.answered, color: '#34d399' },
+      { label: 'Không nghe máy', value: week.noAnswer, color: '#fbbf24' },
+      { label: 'Máy bận / sai số', value: week.busy, color: '#f87171' },
+      { label: 'Chưa ghi kết quả', value: week.unrecorded, color: '#c084fc' },
     ];
     const total = parts.reduce((sum, p) => sum + p.value, 0);
     let from = 0;

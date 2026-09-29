@@ -463,7 +463,9 @@
             </td>
             <td class="p-3">
               <div class="flex flex-wrap items-center gap-1.5">
-                <span *ngFor="let cCode of staff.managedClasses; let ci = index" class="staff-class"
+                <span
+                  *ngFor="let cCode of staff.managedClasses; let ci = index"
+                  class="staff-class"
                   [attr.data-tone]="ci % 4"
                 >
                   {{ cCode }}
@@ -528,7 +530,9 @@
                   [ngClass]="staff.status === 'active' ? 'act--lock' : 'act--unlock'"
                 >
                   {{ staff.status === 'active' ? '🔒' : '🔓'
-                  }}<span class="act-text">{{ staff.status === 'active' ? 'Khóa' : 'Mở khóa' }}</span>
+                  }}<span class="act-text">{{
+                    staff.status === 'active' ? 'Khóa' : 'Mở khóa'
+                  }}</span>
                 </button>
                 <button
                   type="button"
@@ -613,6 +617,51 @@
           >
             <option *ngFor="let c of taskCategories" [value]="c">{{ c | viLabel }}</option>
           </select>
+        </div>
+        <!-- "Chăm sóc sinh viên" for one student becomes that student's care case -->
+        <div
+          *ngIf="taskForm.category === 'cham_soc_sv' && canDirectCare"
+          class="md:col-span-2 p-4 rounded-xl bg-violet-50 border border-violet-200 space-y-2"
+        >
+          <label class="block text-xs font-bold text-violet-800 uppercase">
+            Chăm sóc một sinh viên cụ thể (không bắt buộc)
+          </label>
+          <div class="relative">
+            <input
+              type="text"
+              [(ngModel)]="careStudentQuery"
+              (input)="findCareStudents()"
+              placeholder="Tìm theo MSSV hoặc tên để mở hồ sơ chăm sóc cho sinh viên đó..."
+              class="w-full px-4 py-2.5 rounded-xl border border-violet-200 text-sm bg-white"
+            />
+            <div
+              *ngIf="careStudentResults.length"
+              class="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
+            >
+              <button
+                *ngFor="let st of careStudentResults"
+                type="button"
+                (click)="pickCareStudent(st)"
+                class="w-full text-left px-3 py-2 text-sm hover:bg-violet-50"
+              >
+                <b>{{ st.studentCode }}</b> · {{ st.fullName }} · {{ st.classCode }}
+              </button>
+            </div>
+          </div>
+          <div *ngIf="careStudent" class="flex items-center justify-between gap-2 text-sm">
+            <span
+              >Sẽ mở <b>hồ sơ chăm sóc</b> cho <b>{{ careStudent.fullName }}</b> ({{
+                careStudent.studentCode
+              }}) và chỉ đạo nhân viên được chọn — mô tả trở thành nội dung chỉ đạo.</span
+            >
+            <button
+              type="button"
+              (click)="careStudent = null; careStudentQuery = ''"
+              class="text-xs font-bold text-rose-600 shrink-0"
+            >
+              Bỏ chọn
+            </button>
+          </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
@@ -968,33 +1017,33 @@
     <!-- Overview Metrics Cards -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm text-center">
-        <div class="text-xs text-slate-500 font-bold uppercase">Tổng Nhiệm Vụ</div>
-        <div
-          *ngIf="analyticsData?.metrics?.unassignedTasks"
-          class="text-[11px] text-amber-700 font-semibold"
-        >
-          {{ analyticsData?.metrics?.unassignedTasks }} chờ phân công
-        </div>
+        <div class="text-xs text-slate-500 font-bold uppercase">Hồ sơ chăm sóc</div>
         <div class="text-2xl font-bold text-slate-900 mt-1">
-          {{ analyticsData?.metrics?.totalTasks || 0 }}
-        </div>
-      </div>
-      <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl shadow-sm text-center">
-        <div class="text-xs text-emerald-800 font-bold uppercase">Đã Liên Hệ</div>
-        <div class="text-2xl font-bold text-emerald-900 mt-1">
-          {{ analyticsData?.metrics?.completedTasks || 0 }}
+          {{ analyticsData?.metrics?.totalCases || 0 }}
         </div>
       </div>
       <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl shadow-sm text-center">
-        <div class="text-xs text-amber-800 font-bold uppercase">Chưa Gọi</div>
+        <div class="text-xs text-amber-800 font-bold uppercase">Chờ chỉ đạo</div>
         <div class="text-2xl font-bold text-amber-900 mt-1">
-          {{ analyticsData?.metrics?.pendingTasks || 0 }}
+          {{ analyticsData?.metrics?.awaitingCases || 0 }}
         </div>
       </div>
-      <div class="bg-orange-50 border border-orange-200 p-5 rounded-2xl shadow-sm text-center">
-        <div class="text-xs text-orange-800 font-bold uppercase">Không Bắt Máy</div>
-        <div class="text-2xl font-bold text-orange-900 mt-1">
-          {{ analyticsData?.metrics?.retryTasks || 0 }}
+      <div class="bg-violet-50 border border-violet-200 p-5 rounded-2xl shadow-sm text-center">
+        <div class="text-xs text-violet-800 font-bold uppercase">Đang chăm sóc</div>
+        <div
+          *ngIf="analyticsData?.metrics?.closingCases"
+          class="text-[11px] text-sky-700 font-semibold"
+        >
+          {{ analyticsData?.metrics?.closingCases }} chờ duyệt kết thúc
+        </div>
+        <div class="text-2xl font-bold text-violet-900 mt-1">
+          {{ analyticsData?.metrics?.inProgressCases || 0 }}
+        </div>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl shadow-sm text-center">
+        <div class="text-xs text-emerald-800 font-bold uppercase">Đã kết thúc</div>
+        <div class="text-2xl font-bold text-emerald-900 mt-1">
+          {{ analyticsData?.metrics?.closedCases || 0 }}
         </div>
       </div>
       <div
@@ -1026,10 +1075,15 @@
                 <span class="bar-rank">{{ i + 1 }}</span>
                 <span class="font-bold text-slate-800 truncate">{{ item.courseCode }}</span>
               </span>
-              <span class="bar-count"><b>{{ item.absentCount }}</b> lượt vắng</span>
+              <span class="bar-count"
+                ><b>{{ item.absentCount }}</b> lượt vắng</span
+              >
             </div>
             <div class="bar-track">
-              <div class="bar-fill" [style.width.%]="calcPercentage(item.absentCount, maxAbsenceCount)"></div>
+              <div
+                class="bar-fill"
+                [style.width.%]="calcPercentage(item.absentCount, maxAbsenceCount)"
+              ></div>
             </div>
           </div>
           <div
@@ -1058,10 +1112,15 @@
                 <span class="bar-rank">{{ i + 1 }}</span>
                 <span class="font-bold text-slate-800 truncate">{{ item.reason }}</span>
               </span>
-              <span class="bar-count"><b>{{ item.count }}</b> lượt</span>
+              <span class="bar-count"
+                ><b>{{ item.count }}</b> lượt</span
+              >
             </div>
             <div class="bar-track">
-              <div class="bar-fill" [style.width.%]="calcPercentage(item.count, maxReasonCount)"></div>
+              <div
+                class="bar-fill"
+                [style.width.%]="calcPercentage(item.count, maxReasonCount)"
+              ></div>
             </div>
           </div>
         </div>
@@ -1122,8 +1181,8 @@
               <th class="p-4">Học phần</th>
               <th class="p-4 text-center">Tiết nghỉ</th>
               <th class="p-4">Mức cảnh báo</th>
-              <th class="p-4">Chăm sóc</th>
-              <th class="p-4">Ghi chú phản hồi</th>
+              <th class="p-4">Hồ sơ chăm sóc</th>
+              <th class="p-4">Nguyên nhân</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 bg-white">
@@ -1159,23 +1218,33 @@
                 </span>
               </td>
               <td class="p-4">
-                <span
-                  class="px-2.5 py-1 rounded text-xs font-bold border"
+                <a
+                  *ngIf="item.careCaseId; else noCase"
+                  [routerLink]="['/care']"
+                  [queryParams]="{ case: item.careCaseId }"
+                  class="px-2.5 py-1 rounded text-xs font-bold border hover:underline"
                   [ngClass]="{
                     'bg-amber-50 text-amber-900 border-amber-200':
-                      item.lastCallStatus === 'chua_goi',
-                    'bg-orange-50 text-orange-900 border-orange-200':
-                      item.lastCallStatus === 'khong_bat_may',
+                      item.careStatus === 'cho_chi_dao',
+                    'bg-violet-50 text-violet-900 border-violet-200':
+                      item.careStatus === 'dang_cham_soc',
+                    'bg-sky-50 text-sky-900 border-sky-200':
+                      item.careStatus === 'cho_duyet_ket_thuc',
                     'bg-emerald-50 text-emerald-900 border-emerald-200':
-                      item.lastCallStatus === 'da_lien_he',
+                      item.careStatus === 'da_ket_thuc',
                   }"
                 >
-                  {{ item.lastCallStatus | viLabel }}
-                </span>
-                <div class="text-xs text-slate-400 mt-0.5">NV: {{ item.assignedStaff }}</div>
+                  {{ item.careStatus | viLabel }}
+                </a>
+                <ng-template #noCase>
+                  <span class="text-xs text-slate-400">Chưa có hồ sơ</span>
+                </ng-template>
+                <div *ngIf="item.assignedStaff" class="text-xs text-slate-400 mt-0.5">
+                  NV: {{ item.assignedStaff }}
+                </div>
               </td>
               <td class="p-4 text-xs text-slate-700 max-w-xs font-medium">
-                {{ item.lastCallNote || 'Chưa có ghi chú phản hồi' }}
+                {{ item.careCause || 'Chưa tìm hiểu được nguyên nhân' }}
               </td>
             </tr>
             <tr *ngIf="!filteredWarningList.length">
@@ -1950,10 +2019,7 @@
         <tbody>
           <ng-container *ngFor="let g of permissionGroups">
             <tr>
-              <td
-                [attr.colspan]="permissionConfig.roles.length + 2"
-                class="pt-5 pb-2"
-              >
+              <td [attr.colspan]="permissionConfig.roles.length + 2" class="pt-5 pb-2">
                 <span class="perm-group">{{ g.group }}</span>
               </td>
             </tr>
@@ -2010,7 +2076,7 @@
     <p class="text-xs text-slate-500">
       Quản lý tài khoản, phân công phụ trách, cấu hình hệ thống, gói dịch vụ và bảng phân quyền luôn
       chỉ dành cho Quản trị viên. Phạm vi dữ liệu vẫn được giữ: giảng viên chỉ điểm danh học phần
-      mình dạy, nhân viên chỉ cập nhật nhiệm vụ gọi điện của mình.
+      mình dạy, nhân viên chỉ làm các hồ sơ chăm sóc được giao.
     </p>
   </div>
 

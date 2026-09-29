@@ -30,7 +30,9 @@
         <option *ngFor="let c of classes()" [value]="c">{{ c }}</option>
       </select>
     </div>
-    <div class="filter-count"><b>{{ total() }}</b> sinh viên</div>
+    <div class="filter-count">
+      <b>{{ total() }}</b> sinh viên
+    </div>
     <button
       *ngIf="canManage"
       type="button"
@@ -62,7 +64,9 @@
           <td colspan="6" class="p-6 text-center text-slate-400">Không có sinh viên phù hợp.</td>
         </tr>
         <tr *ngFor="let s of items()" class="student-row">
-          <td class="p-4"><span class="code-pill">{{ s.studentCode }}</span></td>
+          <td class="p-4">
+            <span class="code-pill">{{ s.studentCode }}</span>
+          </td>
           <td class="p-4">
             <div class="flex items-center gap-3">
               <span class="row-avatar" [style.background]="avatarBackground(s.studentCode)">{{
@@ -72,7 +76,9 @@
             </div>
           </td>
           <td class="p-4">
-            <span class="class-chip" [attr.data-tone]="classTone(s.classCode)">{{ s.classCode }}</span>
+            <span class="class-chip" [attr.data-tone]="classTone(s.classCode)">{{
+              s.classCode
+            }}</span>
           </td>
           <td class="p-4">
             <span *ngIf="s.phone; else noPhone" class="phone phone--student">{{ s.phone }}</span>
@@ -264,7 +270,7 @@
           <div class="mt-2 text-3xl font-extrabold leading-none">
             {{ profile()?.totalCalls ?? '…' }}
           </div>
-          <div class="mt-1 text-xs font-semibold opacity-80">Nhiệm vụ chăm sóc</div>
+          <div class="mt-1 text-xs font-semibold opacity-80">Cuộc gọi</div>
         </div>
       </div>
 
@@ -276,6 +282,65 @@
       >
         📞 Gọi sinh viên / phụ huynh
       </button>
+
+      <!-- Care case -->
+      <section class="space-y-2">
+        <h3 class="section-title">🗂️ Hồ sơ chăm sóc</h3>
+        <button
+          *ngIf="openCase() as oc"
+          type="button"
+          (click)="goToCase(oc._id)"
+          class="w-full text-left p-3 rounded-2xl bg-violet-50 border border-violet-100 hover:bg-violet-100 text-sm"
+        >
+          <span class="font-semibold text-violet-800">{{ oc.status | viLabel }}</span>
+          · {{ oc.assignedStaffId?.fullName || 'chưa có người chăm sóc' }}
+          <span class="block text-xs text-slate-500 truncate">{{ oc.reason }}</span>
+        </button>
+        <ng-container *ngIf="!openCase() && canOpenCare">
+          <button
+            *ngIf="!proposal"
+            type="button"
+            (click)="proposal = { reason: '' }"
+            class="w-full h-10 rounded-xl border border-dashed border-violet-300 text-violet-700 text-sm font-semibold hover:bg-violet-50"
+          >
+            + Đề xuất / mở hồ sơ chăm sóc
+          </button>
+          <div *ngIf="proposal as p" class="space-y-2">
+            <textarea
+              [(ngModel)]="p.reason"
+              rows="2"
+              maxlength="2000"
+              placeholder="Lý do: nghỉ nhiều, có dấu hiệu bỏ học..."
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+            ></textarea>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="submitProposal(s)"
+                class="flex-1 h-9 rounded-xl bg-violet-600 text-white text-sm font-semibold"
+              >
+                Gửi
+              </button>
+              <button
+                type="button"
+                (click)="proposal = null"
+                class="h-9 px-4 rounded-xl border border-slate-200 text-sm"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </ng-container>
+        <div
+          *ngIf="!openCase() && !canOpenCare && !studentCases().length"
+          class="text-xs text-slate-400"
+        >
+          Chưa có hồ sơ chăm sóc.
+        </div>
+        <div *ngIf="studentCases().length > (openCase() ? 1 : 0)" class="text-xs text-slate-500">
+          {{ studentCases().length - (openCase() ? 1 : 0) }} hồ sơ đã kết thúc trong lịch sử.
+        </div>
+      </section>
 
       <!-- Recent calls -->
       <section class="space-y-3">
@@ -339,7 +404,13 @@
         <div *ngIf="profile() && !profile()!.timeline.length" class="empty-state">
           <svg width="64" height="48" viewBox="0 0 64 48" aria-hidden="true">
             <circle cx="32" cy="24" r="20" fill="#fdf2f8" />
-            <path d="M32 14v10l7 4" stroke="#f472b6" stroke-width="3" stroke-linecap="round" fill="none" />
+            <path
+              d="M32 14v10l7 4"
+              stroke="#f472b6"
+              stroke-width="3"
+              stroke-linecap="round"
+              fill="none"
+            />
           </svg>
           Chưa có hoạt động nào — sinh viên đang đi học đều 🎉
         </div>
@@ -351,16 +422,20 @@
             <span
               class="timeline-dot"
               [style.background]="
-                item.type === 'call_task'
+                item.type === 'care_case'
                   ? '#8b5cf6'
-                  : item.status === 'Vắng'
-                    ? '#f43f5e'
-                    : '#f59e0b'
+                  : item.type === 'call'
+                    ? '#0ea5e9'
+                    : item.status === 'Vắng'
+                      ? '#f43f5e'
+                      : '#f59e0b'
               "
             ></span>
             <div class="flex justify-between gap-2">
               <span class="font-semibold text-slate-900">{{ item.title }}</span>
-              <span class="text-xs text-slate-400 shrink-0">{{ item.date | date: 'dd/MM/yyyy' }}</span>
+              <span class="text-xs text-slate-400 shrink-0">{{
+                item.date | date: 'dd/MM/yyyy'
+              }}</span>
             </div>
             <div *ngIf="item.courseGroup" class="text-xs text-slate-500">
               {{ item.courseGroup.groupCode }} · {{ item.courseGroup.courseName }}

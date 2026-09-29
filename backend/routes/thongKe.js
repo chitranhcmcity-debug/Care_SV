@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const ExcelJS = require('exceljs');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const { can } = require('../services/dichVuPhanQuyen');
 const { getWarningLevels, periodInfo, evaluate } = require('../services/dichVuCanhBao');
 const { verifyToken, requirePermission } = require('../middleware/xacThuc');
-const { CALL_STATUS, OPEN_CALL_STATUSES, toLabel } = require('../utils/hangSo');
+const { CARE_STATUS, toLabel } = require('../utils/hangSo');
 
 // Whole-word match so short keywords like "ca" do not hit "các", "cả", "cái"...
 // Checked in order; the first bucket that matches wins.
@@ -22,30 +22,32 @@ const REASON_PATTERNS = [
 
 /**
  * Students the caller may report on: everyone with students.view (Trưởng phòng, admin read-only),
- * otherwise only the administrative classes assigned to them (Nhân viên CSKH). null = everyone.
+ * otherwise the administrative classes assigned to them and the students of care cases they were
+ * directed to (Nhân viên CSKH). null = everyone.
  */
 async function reportScope(user) {
   if (can(user, 'students.view')) return null;
   const classes = user.managedClasses || [];
-  return (await SinhVien.find({ classCode: { $in: classes } }).select('_id')).map((st) => st._id);
+  const [inClasses, directed] = await Promise.all([
+    SinhVien.find({ classCode: { $in: classes } }).select('_id'),
+    HoSoChamSoc.find({ assignedStaffId: user.id }).select('studentId'),
+  ]);
+  return [...inClasses.map((st) => st._id), ...directed.map((c) => c.studentId)];
 }
 
 // GET /api/analytics/summary
 router.get('/summary', verifyToken, requirePermission('reports.view'), async (req, res, next) => {
   try {
     const scope = await reportScope(req.user);
-    const taskFilter = scope ? { studentId: { $in: scope } } : {};
-    const [totalTasks, completedTasks, pendingTasks, retryTasks, unassignedTasks] =
+    const caseFilter = scope ? { studentId: { $in: scope } } : {};
+    const count = (status) => HoSoChamSoc.countDocuments({ ...caseFilter, status });
+    const [totalCases, awaitingCases, inProgressCases, closingCases, closedCases] =
       await Promise.all([
-        NhiemVuGoiDien.countDocuments(taskFilter),
-        NhiemVuGoiDien.countDocuments({ ...taskFilter, status: CALL_STATUS.CONTACTED }),
-        NhiemVuGoiDien.countDocuments({ ...taskFilter, status: CALL_STATUS.PENDING }),
-        NhiemVuGoiDien.countDocuments({ ...taskFilter, status: CALL_STATUS.UNREACHABLE }),
-        NhiemVuGoiDien.countDocuments({
-          ...taskFilter,
-          assignedStaffId: null,
-          status: { $in: OPEN_CALL_STATUSES },
-        }),
+        HoSoChamSoc.countDocuments(caseFilter),
+        count(CARE_STATUS.AWAITING),
+        count(CARE_STATUS.IN_PROGRESS),
+        count(CARE_STATUS.CLOSING),
+        count(CARE_STATUS.CLOSED),
       ]);
 
     // 1. Absences per (course group, student), limited to the caller's scope.
@@ -74,12 +76,9 @@ router.get('/summary', verifyToken, requirePermission('reports.view'), async (re
       }))
       .filter((row) => row.absentCount > 0);
 
-    // 2. Reason breakdown from call notes / categories.
-    const tasksWithNotes = await NhiemVuGoiDien.find({
-      ...taskFilter,
-      $or: [{ callNote: { $ne: '' } }, { absenceReasonCategory: { $ne: '' } }],
-    })
-      .select('callNote absenceReasonCategory')
+    // 2. Reason breakdown from the causes staff recorded in care cases.
+    const casesWithCause = await HoSoChamSoc.find({ ...caseFilter, cause: { $ne: '' } })
+      .select('cause')
       .lean();
     const reasonCounts = {
       'Ốm / Sức khỏe': 0,
@@ -90,13 +89,8 @@ router.get('/summary', verifyToken, requirePermission('reports.view'), async (re
     };
     const classifyReason = (text) =>
       REASON_PATTERNS.find(({ pattern }) => pattern.test(text))?.reason ?? null;
-    for (const task of tasksWithNotes) {
-      // The category chosen by staff is authoritative; fall back to the free-text note.
-      const category = (task.absenceReasonCategory || '').toLowerCase();
-      const note = (task.callNote || '').toLowerCase();
-      const bucket = (category ? classifyReason(category) : classifyReason(note)) || 'Lý do khác';
-      reasonCounts[bucket]++;
-    }
+    for (const c of casesWithCause)
+      reasonCounts[classifyReason(c.cause.toLowerCase()) || 'Lý do khác']++;
     const reasonStats = Object.keys(reasonCounts).map((key) => ({
       reason: key,
       count: reasonCounts[key],
@@ -118,20 +112,19 @@ router.get('/summary', verifyToken, requirePermission('reports.view'), async (re
       .select('studentCode fullName classCode major phone parentPhone')
       .lean();
     const studentMap = new Map(students.map((st) => [String(st._id), st]));
-    const lastTasks = await NhiemVuGoiDien.find({ studentId: { $in: flagged.map((f) => f.sid) } })
+    const cases = await HoSoChamSoc.find({ studentId: { $in: flagged.map((f) => f.sid) } })
+      .select('studentId status cause assignedStaffId')
       .populate('assignedStaffId', 'fullName')
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })
       .lean();
-    const lastTaskMap = new Map();
-    for (const t of lastTasks) {
-      const key = `${t.studentId}_${t.courseGroupId}`;
-      if (!lastTaskMap.has(key)) lastTaskMap.set(key, t);
-    }
+    const lastCaseMap = new Map();
+    for (const c of cases)
+      if (!lastCaseMap.has(String(c.studentId))) lastCaseMap.set(String(c.studentId), c);
     const rank = (level) => levels.findIndex((l) => l.name === level.name);
     const warningList = flagged
       .filter((f) => studentMap.has(f.sid))
       .map((f) => {
-        const last = lastTaskMap.get(`${f.sid}_${f.gid}`);
+        const last = lastCaseMap.get(f.sid);
         return {
           student: studentMap.get(f.sid),
           courseCode: f.group.groupCode,
@@ -141,9 +134,10 @@ router.get('/summary', verifyToken, requirePermission('reports.view'), async (re
           absentPercent: f.absentPercent,
           warningLevel: f.warningLevel,
           isAtRisk: f.isAtRisk,
-          lastCallStatus: last ? last.status : 'Chưa phân công',
-          lastCallNote: last ? last.callNote : '',
-          assignedStaff: last?.assignedStaffId?.fullName || 'Hàng chờ Trưởng phòng',
+          careCaseId: last?._id || null,
+          careStatus: last?.status || null,
+          careCause: last?.cause || '',
+          assignedStaff: last?.assignedStaffId?.fullName || '',
         };
       })
       .sort(
@@ -152,11 +146,11 @@ router.get('/summary', verifyToken, requirePermission('reports.view'), async (re
 
     res.json({
       metrics: {
-        totalTasks,
-        completedTasks,
-        pendingTasks,
-        retryTasks,
-        unassignedTasks,
+        totalCases,
+        awaitingCases,
+        inProgressCases,
+        closingCases,
+        closedCases,
         examBanRiskCount: warningList.filter((w) => w.isAtRisk).length,
         warningCount: warningList.length,
       },
@@ -183,9 +177,9 @@ router.get(
   async (req, res, next) => {
     try {
       const scope = await reportScope(req.user);
-      const tasks = await NhiemVuGoiDien.find(scope ? { studentId: { $in: scope } } : {})
+      const cases = await HoSoChamSoc.find(scope ? { studentId: { $in: scope } } : {})
+        .select('-notes')
         .populate('studentId', 'studentCode fullName classCode major phone parentPhone')
-        .populate('courseGroupId', 'groupCode courseName')
         .populate('assignedStaffId', 'fullName email')
         .sort({ updatedAt: -1 });
 
@@ -200,14 +194,17 @@ router.get(
         { header: 'Mã SV', key: 'studentCode', width: 14 },
         { header: 'Họ và Tên Sinh Viên', key: 'fullName', width: 25 },
         { header: 'Lớp Sinh Hoạt', key: 'classCode', width: 14 },
-        { header: 'Nhóm Học Phần Vắng', key: 'groupCode', width: 30 },
         { header: 'SĐT Sinh Viên', key: 'phone', width: 16 },
         { header: 'SĐT Phụ Huynh', key: 'parentPhone', width: 16 },
-        { header: 'Số Lần Gọi', key: 'callAttempts', width: 12 },
+        { header: 'Lý Do Mở Hồ Sơ', key: 'reason', width: 35 },
         { header: 'Nhân Viên Chăm Sóc', key: 'staffName', width: 22 },
-        { header: 'Trạng Thái Cuộc Gọi', key: 'status', width: 18 },
-        { header: 'Ghi Chú & Lý Do Vắng', key: 'callNote', width: 35 },
-        { header: 'Ngày Vắng', key: 'absenceDate', width: 15 },
+        { header: 'Trạng Thái', key: 'status', width: 18 },
+        { header: 'Các Bước', key: 'steps', width: 12 },
+        { header: 'Nguyên Nhân', key: 'cause', width: 30 },
+        { header: 'Hướng Giải Quyết', key: 'solution', width: 30 },
+        { header: 'Kết Quả', key: 'result', width: 24 },
+        { header: 'Ngày Mở', key: 'openedAt', width: 14 },
+        { header: 'Ngày Kết Thúc', key: 'closedAt', width: 14 },
       ];
 
       sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -218,20 +215,24 @@ router.get(
       };
       sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
-      tasks.forEach((t, idx) => {
+      const day = (d) => (d ? new Date(d).toLocaleDateString('vi-VN') : '');
+      cases.forEach((c, idx) => {
         sheet.addRow({
           stt: idx + 1,
-          studentCode: t.studentId?.studentCode || '',
-          fullName: t.studentId?.fullName || '',
-          classCode: t.studentId?.classCode || '',
-          groupCode: t.courseGroupId?.groupCode || '',
-          phone: t.studentId?.phone || '',
-          parentPhone: t.studentId?.parentPhone || '',
-          callAttempts: t.callAttempts || 0,
-          staffName: t.assignedStaffId?.fullName || '',
-          status: t.status ? toLabel(t.status) : '',
-          callNote: t.callNote || '',
-          absenceDate: t.absenceDate ? new Date(t.absenceDate).toLocaleDateString('vi-VN') : '',
+          studentCode: c.studentId?.studentCode || '',
+          fullName: c.studentId?.fullName || '',
+          classCode: c.studentId?.classCode || '',
+          phone: c.studentId?.phone || '',
+          parentPhone: c.studentId?.parentPhone || '',
+          reason: c.reason || '',
+          staffName: c.assignedStaffId?.fullName || '',
+          status: toLabel(c.status),
+          steps: `${c.steps.filter((st) => st.done).length}/${c.steps.length}`,
+          cause: c.cause || '',
+          solution: c.solution || '',
+          result: c.closing?.result ? toLabel(c.closing.result) : '',
+          openedAt: day(c.createdAt),
+          closedAt: day(c.closing?.closedAt),
         });
       });
 

@@ -403,11 +403,11 @@
             class="ov-donut"
             [style.background]="dn.gradient"
             role="img"
-            [attr.aria-label]="dn.total + ' nhiệm vụ gọi điện trong 7 ngày'"
+            [attr.aria-label]="dn.total + ' cuộc gọi trong 7 ngày'"
           >
             <div class="ov-donut-hole">
               <div class="text-3xl font-extrabold text-slate-900 tabular-nums">{{ dn.total }}</div>
-              <div class="text-xs text-slate-500">nhiệm vụ gọi</div>
+              <div class="text-xs text-slate-500">cuộc gọi</div>
             </div>
           </div>
         </div>
@@ -525,7 +525,9 @@
               <path [attr.d]="icons.users" />
             </svg>
           </span>
-          <span class="w-36 shrink-0 text-sm text-slate-700 truncate" [title]="roleLabels[role]">{{ roleLabels[role] }}</span>
+          <span class="w-36 shrink-0 text-sm text-slate-700 truncate" [title]="roleLabels[role]">{{
+            roleLabels[role]
+          }}</span>
           <div class="ov-track flex-1"><span [style.width.%]="roleShare(role)"></span></div>
           <strong class="w-8 text-right text-sm text-slate-800 tabular-nums">{{
             d.users.byRole[role] || 0

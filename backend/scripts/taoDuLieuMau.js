@@ -3,8 +3,8 @@ const NguoiDung = require('../models/NguoiDung');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
-const { CALL_STATUS, SHIFT } = require('../utils/hangSo');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
+const { CARE_STATUS, SHIFT, DEFAULT_CARE_STEPS } = require('../utils/hangSo');
 async function seedInitialUsers() {
   if (!process.env.DEMO_ADMIN_PASSWORD || !process.env.DEMO_STAFF_PASSWORD)
     throw new Error('Set DEMO_ADMIN_PASSWORD and DEMO_STAFF_PASSWORD before seeding');
@@ -124,39 +124,32 @@ async function seedInitialUsers() {
         recordedBy: adminUser._id,
       });
 
-      // Seed Call Tasks assigned to staff1User
-      await NhiemVuGoiDien.create([
+      // Seed care cases: one directed to staff1, one proposal waiting for a directive.
+      const steps = (done) =>
+        DEFAULT_CARE_STEPS.map((title, i) => ({ title, source: 'mac_dinh', done: i < done }));
+      await HoSoChamSoc.create([
         {
           studentId: st3._id,
-          courseGroupId: cg1._id,
+          source: 'canh_bao',
+          reason: 'Vắng 2 buổi liên tiếp học phần ' + cg1.groupCode,
+          status: CARE_STATUS.IN_PROGRESS,
           assignedStaffId: staff1User._id,
-          absenceDate: new Date(Date.now() - 86400000 * 1),
-          status: CALL_STATUS.PENDING,
-          callNote: 'Sinh viên vắng 2 buổi liên tiếp, cần liên hệ gấp',
-          callAttempts: 0,
+          directedAt: new Date(),
+          steps: steps(1),
+          notes: [{ kind: 'su_kien', text: 'Tự động giao cho nhân viên phụ trách lớp' }],
         },
         {
           studentId: st2._id,
-          courseGroupId: cg1._id,
-          assignedStaffId: staff1User._id,
-          absenceDate: new Date(Date.now() - 86400000 * 3),
-          status: CALL_STATUS.UNREACHABLE,
-          callNote: 'Đã gọi 1 lần nhưng không bắt máy, nghi do bận đi làm ca',
-          callAttempts: 1,
-        },
-        {
-          studentId: st1._id,
-          courseGroupId: cg2._id,
-          assignedStaffId: staff1User._id,
-          absenceDate: new Date(Date.now() - 86400000 * 5),
-          status: CALL_STATUS.CONTACTED,
-          callNote: 'Ốm sốt siêu vi có đơn thuốc xin nghỉ học',
-          callAttempts: 1,
+          source: 'de_xuat',
+          reason: 'Sinh viên hay vắng, có dấu hiệu bận đi làm ca',
+          status: CARE_STATUS.AWAITING,
+          steps: steps(0),
+          notes: [{ kind: 'su_kien', text: 'Mở hồ sơ: Đề xuất chăm sóc' }],
         },
       ]);
 
       console.log(
-        '✅ Đã tạo dữ liệu mẫu: 3 sinh viên, 2 nhóm học phần, 2 buổi điểm danh & 3 nhiệm vụ gọi điện!',
+        '✅ Đã tạo dữ liệu mẫu: 3 sinh viên, 2 nhóm học phần, 2 buổi điểm danh & 2 hồ sơ chăm sóc!',
       );
     }
   } catch (err) {

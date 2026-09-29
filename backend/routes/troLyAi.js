@@ -3,7 +3,8 @@ const router = express.Router();
 const aiService = require('../services/dichVuTroLyAi');
 const aiCare = require('../services/dichVuAiCare');
 const aiActions = require('../services/dichVuAiThaoTac');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
+const CuocGoi = require('../models/CuocGoi');
 const DiemDanh = require('../models/DiemDanh');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
@@ -81,51 +82,51 @@ router.post('/care/actions/:id/cancel', verifyToken, requireSignedIn, (req, res)
   res.json({ ok: true });
 });
 
-// POST /api/ai/call-advice (Admin, or the staff assigned to the call task)
+// POST /api/ai/call-advice { careCaseId } (managers, or the staff member directed to the case)
 // Suggests an opening line, questions to ask, and how to handle the situation.
 router.post('/call-advice', verifyToken, requireSignedIn, async (req, res, next) => {
   try {
-    const { callTaskId } = req.body;
-    validateId(callTaskId);
-    const task = await NhiemVuGoiDien.findById(callTaskId)
-      .populate('studentId', 'studentCode fullName classCode major')
-      .populate('courseGroupId', 'groupCode courseName');
-    assert(task, 'Không tìm thấy nhiệm vụ cuộc gọi', 404);
+    const { careCaseId } = req.body ?? {};
+    validateId(careCaseId);
+    const careCase = await HoSoChamSoc.findById(careCaseId).populate(
+      'studentId',
+      'studentCode fullName classCode major',
+    );
+    assert(careCase, 'Không tìm thấy hồ sơ chăm sóc', 404);
     assert(
-      can(req.user, 'callTasks.viewAll') || String(task.assignedStaffId) === req.user.id,
-      'Nhiệm vụ không thuộc về bạn',
+      can(req.user, 'care.manage') || String(careCase.assignedStaffId) === req.user.id,
+      'Hồ sơ không thuộc về bạn',
       403,
     );
-    const student = task.studentId;
+    const student = careCase.studentId;
     assert(student, 'Không tìm thấy thông tin sinh viên', 404);
 
-    const [absentCount, priorCallTasks] = await Promise.all([
+    const [absentCount, priorCalls] = await Promise.all([
       DiemDanh.countDocuments({ absentStudents: student._id }),
-      NhiemVuGoiDien.find({ studentId: student._id })
+      CuocGoi.find({ studentId: student._id })
         .sort({ createdAt: -1 })
         .limit(5)
-        .select('status callNote absenceReasonCategory')
+        .select('target outcome note')
         .lean(),
     ]);
 
     const prompt = `Sinh viên: ${student.fullName} (MSSV ${student.studentCode}, lớp ${student.classCode}, ngành ${student.major || 'chưa rõ'}).
-Học phần đang vắng: ${task.courseGroupId?.courseName || ''} (${task.courseGroupId?.groupCode || ''}).
+Lý do cần chăm sóc: ${careCase.reason || '(không ghi)'}.
 Tổng số buổi vắng học đã ghi nhận: ${absentCount}.
-Số lần đã gọi cho nhiệm vụ này: ${task.callAttempts || 0}.
-Trạng thái hiện tại: ${toLabel(task.status)}.
-Ghi chú cuộc gọi hiện có: ${task.callNote || '(chưa có)'}.
-Lịch sử liên hệ gần đây với sinh viên này:
+Nguyên nhân đã tìm hiểu: ${careCase.cause || '(chưa rõ)'}.
+Chỉ đạo của cấp quản lý: ${careCase.directive || '(không có)'}.
+Các cuộc gọi gần đây với sinh viên này:
 ${
-  priorCallTasks
-    .map((t) =>
-      `- [${toLabel(t.status)}] ${t.absenceReasonCategory || ''} ${t.callNote || ''}`.trim(),
+  priorCalls
+    .map((c) =>
+      `- ${c.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên'}: ${c.outcome || 'chưa ghi kết quả'} ${c.note || ''}`.trim(),
     )
     .join('\n') || '(chưa từng liên hệ trước đó)'
 }
 
 Hãy đưa ra gợi ý ngắn gọn cho nhân viên chăm sóc sinh viên (CSKH) khi gọi điện cho sinh viên này, gồm 3 phần:
 1. Câu mở đầu nên nói
-2. 2-3 câu hỏi nên hỏi để tìm hiểu lý do vắng
+2. 2-3 câu hỏi nên hỏi để tìm hiểu nguyên nhân
 3. Hướng xử lý/khuyên nhủ phù hợp với tình huống
 
 Trả lời bằng tiếng Việt, ngắn gọn, thực tế, không quá 150 từ.`;
@@ -203,7 +204,7 @@ router.post('/chat', verifyToken, requirePermission('ai.chat'), async (req, res,
         SinhVien.countDocuments(),
         NhomHocPhan.countDocuments(),
         NguoiDung.countDocuments({ role: 'staff', status: 'active' }),
-        countByStatus(NhiemVuGoiDien),
+        countByStatus(HoSoChamSoc),
         countByStatus(NhiemVu),
         getWarningLevels(),
       ]);
@@ -212,7 +213,7 @@ router.post('/chat', verifyToken, requirePermission('ai.chat'), async (req, res,
 - Tổng số sinh viên: ${totalStudents}
 - Tổng số học phần: ${totalCourseGroups}
 - Tổng số nhân viên CSKH đang hoạt động: ${totalStaff}
-- Nhiệm vụ gọi điện theo trạng thái: ${formatStatusCounts(callStats) || 'chưa có'}
+- Hồ sơ chăm sóc sinh viên theo trạng thái: ${formatStatusCounts(callStats) || 'chưa có'}
 - Nhiệm vụ nội bộ theo trạng thái: ${formatStatusCounts(taskStats) || 'chưa có'}
 - Các mức cảnh báo vắng (tính theo tiết nghỉ):
 ${describeLevels(levels)}`;
@@ -252,7 +253,7 @@ router.post(
         .select('title category priority status reviewScore reviewNote reworkCount')
         .lean();
 
-      const { tasks: t, calls: c, rates } = row;
+      const { tasks: t, care: c, rates } = row;
       const pct = (value) => (value === null ? 'chưa có dữ liệu' : `${value}%`);
       const categories =
         Object.entries(t.byCategory)
@@ -286,9 +287,9 @@ CÔNG VIỆC ĐƯỢC GIAO (tổng ${t.total}):
 Theo loại công việc:
 ${categories}
 
-CHĂM SÓC SINH VIÊN (tổng ${c.total} nhiệm vụ gọi điện): đã liên hệ ${c.contacted}, không bắt máy ${c.unreachable}, chưa gọi ${c.pending}, trung bình ${c.avgAttempts ?? 0} lần gọi/nhiệm vụ.
+CHĂM SÓC SINH VIÊN (tổng ${c.total} hồ sơ được giao): đang chăm sóc ${c.inProgress}, chờ duyệt kết thúc ${c.closing}, đã kết thúc ${c.closed} (trong đó ${c.improved} hồ sơ sinh viên tiến bộ / ổn định); đã làm ${c.stepsDone}/${c.stepsTotal} bước chăm sóc.
 
-TỶ LỆ: hoàn thành ${pct(rates.completion)}, đúng hạn ${pct(rates.onTime)}, chất lượng ${pct(rates.quality)}, liên hệ được ${pct(rates.care)}.
+TỶ LỆ: hoàn thành ${pct(rates.completion)}, đúng hạn ${pct(rates.onTime)}, chất lượng ${pct(rates.quality)}, bước chăm sóc đã làm ${pct(rates.care)}.
 KPI tham khảo do hệ thống tính: ${row.kpiScore ?? 'chưa đủ dữ liệu'}${row.kpiScore === null ? '' : '/100'} (${row.kpiRating}).
 
 Nhận xét gần đây của người duyệt:

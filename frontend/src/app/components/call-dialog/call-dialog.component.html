@@ -92,13 +92,11 @@
             (change)="method.set('stringee')"
           />
           <span>
-            <span class="block text-sm font-semibold text-slate-800"
-              >Gọi qua tổng đài (tự động ghi âm)</span
-            >
+            <span class="block text-sm font-semibold text-slate-800">Gọi qua tổng đài</span>
             <span class="block text-xs text-slate-500">
               {{
                 stringeeAvailable()
-                  ? 'Gọi ngay trên trình duyệt bằng tai nghe/micro, cuộc gọi được ghi âm tự động.'
+                  ? 'Gọi ngay trên trình duyệt bằng tai nghe/micro; nếu chọn ghi âm, tổng đài tự ghi.'
                   : 'Chưa cấu hình tổng đài Stringee trên máy chủ.'
               }}
             </span>
@@ -106,10 +104,37 @@
         </label>
       </fieldset>
 
-      <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-3">
-        Cuộc gọi được lưu vào lịch sử. Nếu ghi âm, hãy thông báo cho người nghe rằng cuộc gọi đang
-        được ghi âm.
-      </p>
+      <fieldset class="space-y-2">
+        <legend class="text-sm font-medium text-slate-700 mb-1">Ghi âm cuộc gọi này?</legend>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            *ngFor="
+              let option of [
+                { value: true, label: '🎙️ Có ghi âm' },
+                { value: false, label: 'Không ghi âm' },
+              ]
+            "
+            type="button"
+            (click)="record.set(option.value)"
+            [attr.aria-pressed]="record() === option.value"
+            class="h-10 rounded-lg border text-sm font-semibold transition-colors"
+            [ngClass]="
+              record() === option.value
+                ? 'border-violet-500 bg-violet-50 text-violet-700'
+                : 'border-slate-200 text-slate-600 hover:border-violet-300'
+            "
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <p
+          *ngIf="record()"
+          class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5"
+        >
+          Hãy thông báo cho người nghe rằng cuộc gọi đang được ghi âm. Bạn nghe lại được bản ghi của
+          mình; Trưởng phòng / Phó hiệu trưởng nghe được mọi bản ghi.
+        </p>
+      </fieldset>
 
       <p
         *ngIf="!canStartCall()"
@@ -123,10 +148,16 @@
       <button
         type="button"
         (click)="start()"
-        [disabled]="busy() || !selectedPhone() || !canStartCall()"
+        [disabled]="busy() || !selectedPhone() || !canStartCall() || record() === null"
         class="w-full h-11 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-semibold"
       >
-        {{ busy() ? 'Đang bắt đầu...' : 'Gọi ' + (selectedPhone() || '') }}
+        {{
+          busy()
+            ? 'Đang bắt đầu...'
+            : record() === null
+              ? 'Chọn có ghi âm hay không'
+              : 'Gọi ' + (selectedPhone() || '')
+        }}
       </button>
     </ng-container>
 
@@ -183,7 +214,7 @@
           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
         ></textarea>
       </div>
-      <div *ngIf="method() === 'dien_thoai'" class="space-y-1.5">
+      <div *ngIf="method() === 'dien_thoai' && record()" class="space-y-1.5">
         <label for="call-recording" class="block text-sm font-medium text-slate-700"
           >File ghi âm (không bắt buộc)</label
         >
@@ -196,7 +227,7 @@
         />
         <p class="text-xs text-slate-500">mp3, m4a, wav, aac, ogg, amr — tối đa 50MB.</p>
       </div>
-      <p *ngIf="method() === 'stringee'" class="text-xs text-slate-500">
+      <p *ngIf="method() === 'stringee' && record()" class="text-xs text-slate-500">
         Bản ghi âm của tổng đài sẽ có trong Lịch sử cuộc gọi sau ít phút.
       </p>
       <button

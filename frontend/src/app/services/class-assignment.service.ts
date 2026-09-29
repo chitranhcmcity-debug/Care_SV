@@ -37,11 +37,11 @@ export class ClassAssignmentService {
     fromStaffId: string;
     toStaffId: string;
     classCodes?: string[];
-  }): Observable<{ message: string; transferredClasses: string[]; reassignedTaskCount: number }> {
+  }): Observable<{ message: string; transferredClasses: string[]; reassignedCaseCount: number }> {
     return this.http.post<{
       message: string;
       transferredClasses: string[];
-      reassignedTaskCount: number;
+      reassignedCaseCount: number;
     }>(`${this.apiUrl}/transfer`, payload);
   }
 }

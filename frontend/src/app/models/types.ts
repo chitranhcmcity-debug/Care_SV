@@ -14,8 +14,10 @@ export type Permission =
   | 'attendance.override'
   | 'courses.manage'
   | 'excel.import'
-  | 'callTasks.update'
-  | 'callTasks.viewAll'
+  | 'care.work'
+  | 'care.manage'
+  | 'care.propose'
+  | 'recordings.viewAll'
   | 'classes.assign'
   | 'warnings.configure'
   | 'tasks.manage'
@@ -83,25 +85,6 @@ export interface CourseGroup {
   students?: Student[];
 }
 
-export interface CallTask {
-  _id: string;
-  student?: Student; // mapped from studentId
-  studentId?: Student; // populated student object
-  courseGroup?: CourseGroup; // mapped from courseGroupId
-  courseGroupId?: CourseGroup;
-  assignedStaff?: { _id?: string; fullName: string; email: string } | null; // null = manager queue
-  absenceDate?: string;
-  status?: CallStatus;
-  callStatus: CallStatus;
-  callNote: string;
-  absenceReasonCategory?: string;
-  callbackDate?: string | null;
-  isCallbackDue?: boolean;
-  callAttempts?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 export interface SystemSettings {
   _id?: string;
   systemTitle: string;
@@ -155,9 +138,9 @@ export interface ClassAssignmentOverview {
     email: string;
     status: User['status'];
     managedClasses: string[];
-    openTasks: number;
+    openCases: number;
   }[];
-  unassignedQueue: number;
+  awaitingCases: number;
 }
 
 export interface ClassAssignmentRecord {
@@ -188,16 +171,16 @@ export interface IntegrationItem {
 }
 
 export interface TimelineItem {
-  type: 'call_task' | 'attendance';
+  type: 'care_case' | 'call' | 'attendance';
   date: string;
   title: string;
   courseGroup?: CourseGroup;
   staff?: { fullName: string; email?: string };
   status: string;
   note?: string;
-  absenceReasonCategory?: string;
-  callbackDate?: string;
-  callAttempts?: number;
+  caseId?: string;
+  stepsDone?: number;
+  stepsTotal?: number;
 }
 
 // Stored values are unaccented codes mirroring backend/utils/hangSo.js; VI_LABELS holds the
@@ -235,12 +218,33 @@ export const TASK_PRIORITY_LABELS = {
 export type TaskPriority = keyof typeof TASK_PRIORITY_LABELS;
 export const TASK_PRIORITIES = Object.keys(TASK_PRIORITY_LABELS) as TaskPriority[];
 
-export const CALL_STATUS = {
-  PENDING: 'chua_goi',
-  UNREACHABLE: 'khong_bat_may',
-  CONTACTED: 'da_lien_he',
+/** Hồ sơ chăm sóc (mirrors CARE_STATUS in the backend). */
+export const CARE_STATUS = {
+  AWAITING: 'cho_chi_dao',
+  IN_PROGRESS: 'dang_cham_soc',
+  CLOSING: 'cho_duyet_ket_thuc',
+  CLOSED: 'da_ket_thuc',
 } as const;
-export type CallStatus = (typeof CALL_STATUS)[keyof typeof CALL_STATUS];
+export type CareStatus = (typeof CARE_STATUS)[keyof typeof CARE_STATUS];
+export const CARE_STATUS_LABELS: Record<CareStatus, string> = {
+  cho_chi_dao: 'Chờ chỉ đạo',
+  dang_cham_soc: 'Đang chăm sóc',
+  cho_duyet_ket_thuc: 'Chờ duyệt kết thúc',
+  da_ket_thuc: 'Đã kết thúc',
+};
+export const CARE_SOURCE_LABELS = {
+  canh_bao: 'Cảnh báo vắng học',
+  de_xuat: 'Đề xuất chăm sóc',
+  giao_viec: 'Chỉ đạo từ giao việc',
+} as const;
+export type CareSource = keyof typeof CARE_SOURCE_LABELS;
+export const CARE_RESULT_LABELS = {
+  tien_bo: 'Đã tiến bộ, đi học đều',
+  on_dinh: 'Ổn định, tiếp tục theo dõi',
+  khong_tien_bo: 'Chưa tiến bộ',
+  nghi_hoc: 'Đã nghỉ học / bảo lưu',
+} as const;
+export type CareResult = keyof typeof CARE_RESULT_LABELS;
 
 export const SHIFT = { MORNING: 'sang', AFTERNOON: 'chieu', EVENING: 'toi' } as const;
 export type Shift = (typeof SHIFT)[keyof typeof SHIFT];
@@ -266,9 +270,13 @@ export const VI_LABELS: Record<string, string> = {
   cho_duyet: 'Chờ duyệt',
   hoan_thanh: 'Hoàn thành',
   bi_tu_choi: 'Bị từ chối',
-  chua_goi: 'Chưa gọi',
-  khong_bat_may: 'Không bắt máy',
-  da_lien_he: 'Đã liên hệ',
+  ...CARE_STATUS_LABELS,
+  ...CARE_SOURCE_LABELS,
+  ...CARE_RESULT_LABELS,
+  nghe_may: 'Nghe máy',
+  khong_nghe_may: 'Không nghe máy',
+  may_ban: 'Máy bận',
+  sai_so: 'Sai số',
   sang: 'Sáng',
   chieu: 'Chiều',
   toi: 'Tối',
@@ -334,12 +342,16 @@ export interface StaffProgressRow {
     avgCompletionDays: number | null;
     byCategory: Partial<Record<TaskCategory, { total: number; completed: number }>>;
   };
-  calls: {
+  /** Care cases assigned in the period. */
+  care: {
     total: number;
-    contacted: number;
-    unreachable: number;
-    pending: number;
-    avgAttempts: number | null;
+    inProgress: number;
+    closing: number;
+    closed: number;
+    /** Closed with the student improved or stable. */
+    improved: number;
+    stepsDone: number;
+    stepsTotal: number;
   };
   /** Percentages 0–100, null = no data for that part. */
   rates: {
@@ -357,4 +369,5 @@ export interface Student360Profile {
   timeline: TimelineItem[];
   totalAbsences: number;
   totalCalls: number;
+  totalCases: number;
 }

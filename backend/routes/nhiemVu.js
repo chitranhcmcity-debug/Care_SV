@@ -156,7 +156,7 @@ router.get('/pending-count', verifyToken, requireSignedIn, async (req, res, next
 });
 
 // GET /api/tasks/staff-progress?from=YYYY-MM-DD&to=YYYY-MM-DD (Trưởng phòng / PHT: tiến độ &
-// KPI của từng nhân viên, tính trên công việc và nhiệm vụ gọi điện tạo trong khoảng thời gian)
+// KPI của từng nhân viên, tính trên công việc và hồ sơ chăm sóc tạo trong khoảng thời gian)
 router.get(
   '/staff-progress',
   verifyToken,

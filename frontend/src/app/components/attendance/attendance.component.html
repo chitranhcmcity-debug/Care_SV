@@ -39,23 +39,18 @@
           📝 Điểm Danh<span class="hidden md:inline"> Lớp</span>
         </button>
 
-        <button
-          (click)="activeTab = 'calls'"
-          [ngClass]="
-            activeTab === 'calls'
-              ? 'bg-violet-600 text-white font-bold shadow-sm'
-              : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
-          "
-          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all relative cursor-pointer"
+        <a
+          *ngIf="canOpenCare"
+          routerLink="/care"
+          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all text-slate-700 hover:text-slate-900 font-bold hover:bg-white text-center"
         >
-          <span>📞 Nhiệm Vụ Gọi</span>
+          🗂️ Hồ sơ chăm sóc
           <span
-            *ngIf="unreadCallsCount > 0"
-            class="ml-1.5 px-2 py-0.5 rounded-full bg-rose-600 text-white text-xs font-bold animate-pulse"
+            *ngIf="myOpenCases > 0"
+            class="ml-1.5 px-2 py-0.5 rounded-full bg-violet-600 text-white text-xs font-bold"
+            >{{ myOpenCases }}</span
           >
-            {{ unreadCallsCount }}
-          </span>
-        </button>
+        </a>
       </div>
     </div>
 
@@ -108,20 +103,18 @@
           </div>
         </div>
 
-        <div
-          (click)="activeTab = 'calls'"
-          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1 relative"
+        <a
+          routerLink="/care"
+          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1 relative block"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Cuộc Gọi CSKH</div>
-          <div class="text-3xl font-bold text-amber-600">
-            {{ unreadCallsCount }} <span class="text-xs font-normal text-slate-400">tồn</span>
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Hồ Sơ Chăm Sóc
           </div>
-          <div class="text-xs text-amber-600 font-bold">📞 Cần liên hệ</div>
-          <span
-            *ngIf="unreadCallsCount > 0"
-            class="absolute top-4 right-4 w-3 h-3 rounded-full bg-rose-500 animate-ping"
-          ></span>
-        </div>
+          <div class="text-3xl font-bold text-violet-600">
+            {{ myOpenCases }} <span class="text-xs font-normal text-slate-400">đang mở</span>
+          </div>
+          <div class="text-xs text-violet-600 font-bold">🗂️ Tôi đề xuất / phụ trách</div>
+        </a>
 
         <div
           (click)="activeTab = 'attendance'"
@@ -482,11 +475,11 @@
                 {{ submitResult.message }}
               </div>
               <div
-                *ngIf="submitResult.taskAssignments?.length"
+                *ngIf="submitResult.openedCases?.length"
                 class="text-xs text-amber-200 font-bold mt-0.5"
               >
-                📞 Đã tự động phân công {{ submitResult.taskAssignments.length }} nhiệm vụ gọi điện
-                CSKH cho nhân viên.
+                🗂️ {{ submitResult.openedCases.length }} sinh viên chạm mức cảnh báo — đã mở hồ sơ
+                chăm sóc.
               </div>
             </div>
           </div>
@@ -1088,7 +1081,7 @@
                   <th class="p-4 text-center min-w-[160px]">Tỷ Lệ %</th>
                   <th class="p-4 text-left min-w-[130px]">SĐT SV</th>
                   <th class="p-4 text-left min-w-[130px]">SĐT PH</th>
-                  <th class="p-4 text-center min-w-[120px]">CSKH</th>
+                  <th class="p-4 text-center min-w-[140px]">Hồ sơ chăm sóc</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
@@ -1217,27 +1210,26 @@
                   </td>
                   <td class="p-4 text-center">
                     <span
-                      *ngIf="row.callStatus"
-                      class="px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1"
-                      [ngClass]="{
-                        'bg-rose-50 text-rose-700 border-rose-200': row.callStatus === 'chua_goi',
-                        'bg-amber-50 text-amber-700 border-amber-200':
-                          row.callStatus === 'khong_bat_may',
-                        'bg-emerald-50 text-emerald-700 border-emerald-200':
-                          row.callStatus === 'da_lien_he',
-                      }"
+                      *ngIf="row.careStatus && row.careStatus !== 'da_ket_thuc'; else proposeCell"
+                      class="px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1 bg-violet-50 text-violet-700 border-violet-200"
+                      [title]="row.assignedStaff ? 'Nhân viên: ' + row.assignedStaff : ''"
                     >
-                      <span
-                        class="w-1.5 h-1.5 rounded-full"
-                        [ngClass]="{
-                          'bg-rose-500': row.callStatus === 'chua_goi',
-                          'bg-amber-500': row.callStatus === 'khong_bat_may',
-                          'bg-emerald-500': row.callStatus === 'da_lien_he',
-                        }"
-                      ></span>
-                      <span>{{ row.callStatus | viLabel }}</span>
+                      <span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                      <span>{{ row.careStatus | viLabel }}</span>
                     </span>
-                    <span *ngIf="!row.callStatus" class="text-xs text-slate-400">—</span>
+                    <ng-template #proposeCell>
+                      <button
+                        *ngIf="canProposeCare; else noCase"
+                        type="button"
+                        (click)="proposeCare(row.student)"
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold border border-dashed border-violet-300 text-violet-700 hover:bg-violet-50"
+                      >
+                        + Đề xuất chăm sóc
+                      </button>
+                      <ng-template #noCase
+                        ><span class="text-xs text-slate-400">—</span></ng-template
+                      >
+                    </ng-template>
                   </td>
                 </tr>
               </tbody>
@@ -1281,25 +1273,53 @@
             </button>
           </div>
           <div
-            *ngIf="submitResult.taskAssignments?.length"
-            class="bg-slate-50 rounded-xl p-3 space-y-1"
+            *ngIf="submitResult.openedCases?.length"
+            class="bg-violet-50 rounded-xl p-3 space-y-1"
           >
-            <div class="text-xs font-bold text-slate-700 uppercase">Phân Bổ Nhiệm Vụ CSKH:</div>
+            <div class="text-xs font-bold text-violet-800 uppercase">Đã mở hồ sơ chăm sóc:</div>
             <div
-              *ngFor="let ta of submitResult.taskAssignments.slice(0, 5)"
+              *ngFor="let oc of submitResult.openedCases"
               class="text-xs font-medium text-slate-600 flex items-center gap-2"
             >
-              <span class="text-rose-600 font-bold">{{ ta.studentCode }}</span>
-              <span>{{ ta.studentName }}</span>
-              <span class="text-slate-400">→</span>
-              <span class="text-blue-900 font-bold">{{ ta.staffName }}</span>
+              <span class="text-rose-600 font-bold">{{ oc.studentCode }}</span>
+              <span>{{ oc.studentName }}</span>
+              <span class="text-slate-400">·</span>
+              <span class="text-violet-800 font-bold">{{ oc.level }}</span>
             </div>
-            <div
-              *ngIf="submitResult.taskAssignments.length > 5"
-              class="text-xs text-slate-400 font-medium"
+          </div>
+          <div *ngIf="submitResult.absentStudents?.length" class="space-y-2">
+            <div class="text-sm font-bold text-slate-800">
+              Có {{ submitResult.absentStudents.length }} sinh viên vắng. Gọi điện ngay?
+            </div>
+            <div class="max-h-56 overflow-y-auto space-y-1.5">
+              <div
+                *ngFor="let st of submitResult.absentStudents"
+                class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50"
+              >
+                <span class="text-xs text-slate-700 min-w-0 truncate"
+                  ><b>{{ st.studentCode }}</b> · {{ st.fullName }}</span
+                >
+                <button
+                  type="button"
+                  (click)="
+                    callStudent($event, st, st.phone ? 'sinh_vien' : 'phu_huynh', {
+                      courseGroupId: selectedGroupId,
+                    })
+                  "
+                  [disabled]="!st.phone && !st.parentPhone"
+                  class="shrink-0 px-3 h-8 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs font-bold"
+                >
+                  📞 Gọi
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="submitResult = null"
+              class="w-full h-9 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
             >
-              ... và {{ submitResult.taskAssignments.length - 5 }} SV khác
-            </div>
+              Không gọi lúc này
+            </button>
           </div>
         </div>
       </div>
@@ -1383,179 +1403,6 @@
               <span>Xác Nhận Lý Do</span>
             </button>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- TAB 3: HỘP THƯ NHIỆM VỤ GỌI ĐIỆN CSKH     -->
-    <!-- ========================================== -->
-    <div *ngIf="activeTab === 'calls'" class="space-y-5 animate-fade-in">
-      <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>📞</span>
-              <span>NHIỆM VỤ GỌI ĐIỆN CSKH ĐƯỢC GÁN</span>
-            </h3>
-            <p class="text-xs text-slate-500 font-medium">
-              Danh sách các sinh viên vắng học cần liên hệ hỏi thăm lý do
-            </p>
-          </div>
-          <span
-            class="px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold"
-          >
-            {{ unreadCallsCount }} Nhiệm vụ chờ xử lý
-          </span>
-        </div>
-
-        <!-- Status Filter Pills -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1">
-          <button
-            type="button"
-            (click)="taskFilterStatus = ''"
-            [ngClass]="
-              taskFilterStatus === ''
-                ? 'bg-violet-600 text-white font-bold'
-                : 'bg-slate-100 text-slate-600 font-bold'
-            "
-            class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
-          >
-            Tất cả cuộc gọi
-          </button>
-          <button
-            type="button"
-            (click)="taskFilterStatus = 'chua_goi'"
-            [ngClass]="
-              taskFilterStatus === 'chua_goi'
-                ? 'bg-rose-600 text-white font-bold'
-                : 'bg-slate-100 text-slate-600 font-bold'
-            "
-            class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
-          >
-            🔴 Chưa gọi
-          </button>
-          <button
-            type="button"
-            (click)="taskFilterStatus = 'khong_bat_may'"
-            [ngClass]="
-              taskFilterStatus === 'khong_bat_may'
-                ? 'bg-amber-600 text-white font-bold'
-                : 'bg-slate-100 text-slate-600 font-bold'
-            "
-            class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
-          >
-            🟡 Không bắt máy
-          </button>
-          <button
-            type="button"
-            (click)="taskFilterStatus = 'da_lien_he'"
-            [ngClass]="
-              taskFilterStatus === 'da_lien_he'
-                ? 'bg-emerald-700 text-white font-bold'
-                : 'bg-slate-100 text-slate-600 font-bold'
-            "
-            class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-200 whitespace-nowrap cursor-pointer"
-          >
-            🟢 Đã liên hệ
-          </button>
-        </div>
-      </div>
-
-      <!-- Task Cards List -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          *ngFor="let task of filteredCallTasks"
-          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between"
-        >
-          <div class="space-y-3">
-            <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
-              <div class="space-y-1">
-                <div class="font-bold text-slate-900 text-base flex items-center gap-2">
-                  <span>🎓 {{ task.studentId?.fullName || 'Sinh Viên' }}</span>
-                  <span
-                    class="text-xs font-sans tabular-nums font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200"
-                  >
-                    {{ task.studentId?.studentCode }}
-                  </span>
-                </div>
-                <div class="text-xs text-slate-500 font-medium">
-                  Lớp: <b>{{ task.studentId?.classCode }}</b> | Ngành:
-                  <b>{{ task.studentId?.major || 'CNTT' }}</b>
-                </div>
-              </div>
-
-              <span
-                class="px-3 py-1 rounded-full text-xs font-bold border"
-                [ngClass]="{
-                  'bg-rose-100 text-rose-900 border-rose-300': task.status === 'chua_goi',
-                  'bg-amber-100 text-amber-900 border-amber-300': task.status === 'khong_bat_may',
-                  'bg-emerald-100 text-emerald-900 border-emerald-300':
-                    task.status === 'da_lien_he',
-                }"
-              >
-                {{ task.status | viLabel }}
-              </span>
-            </div>
-
-            <!-- Phone Numbers & One Touch Call Buttons -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <a
-                [href]="'tel:' + (task.studentId?.phone || '')"
-                (click)="callStudent($event, task.studentId, 'sinh_vien', { callTaskId: task._id })"
-                class="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 font-bold text-slate-800 flex items-center justify-between touch-target"
-              >
-                <span
-                  >📱 SĐT SV: <b>{{ task.studentId?.phone || 'Chưa cập nhật' }}</b></span
-                >
-                <span class="text-blue-900 font-bold">📞 Gọi</span>
-              </a>
-              <a
-                [href]="'tel:' + (task.studentId?.parentPhone || '')"
-                (click)="callStudent($event, task.studentId, 'phu_huynh', { callTaskId: task._id })"
-                class="p-2.5 rounded-xl bg-amber-50/80 hover:bg-amber-100 border border-amber-200 font-bold text-amber-950 flex items-center justify-between touch-target"
-              >
-                <span
-                  >👨‍👩‍👧 SĐT PH: <b>{{ task.studentId?.parentPhone || 'Chưa cập nhật' }}</b></span
-                >
-                <span class="text-amber-900 font-bold">📞 Gọi PH</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Note Input & Status Update Form -->
-          <div class="pt-2 space-y-2 border-t border-slate-100">
-            <input
-              type="text"
-              [(ngModel)]="task.callNote"
-              placeholder="✍️ Nhập ghi chú kết quả cuộc gọi..."
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600"
-            />
-
-            <div class="flex items-center justify-end space-x-2">
-              <button
-                type="button"
-                (click)="updateTaskStatus(task._id, 'khong_bat_may', task.callNote)"
-                class="px-3 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold touch-target cursor-pointer"
-              >
-                🟡 Không Bắt Máy
-              </button>
-              <button
-                type="button"
-                (click)="updateTaskStatus(task._id, 'da_lien_he', task.callNote)"
-                class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm touch-target cursor-pointer"
-              >
-                ✅ Hoàn Thành
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          *ngIf="filteredCallTasks.length === 0"
-          class="col-span-full p-10 text-center bg-white border border-slate-200 rounded-3xl text-slate-400 text-xs font-medium"
-        >
-          🎉 Không có nhiệm vụ gọi điện nào trong danh sách này.
         </div>
       </div>
     </div>

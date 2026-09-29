@@ -14,7 +14,7 @@ export const CALL_OUTCOME_LABELS: Record<Exclude<CallOutcome, ''>, string> = {
   sai_so: 'Sai số / không liên lạc được',
 };
 
-/** Who to call; opened from attendance, call tasks or the student records page. */
+/** Who to call; opened from attendance, a care case or the student records page. */
 export interface CallRequest {
   student: {
     _id: string;
@@ -24,7 +24,7 @@ export interface CallRequest {
     parentPhone?: string;
   };
   target?: CallTarget;
-  callTaskId?: string;
+  careCaseId?: string;
   courseGroupId?: string;
 }
 
@@ -43,7 +43,12 @@ export interface CallLog {
   endedAt?: string | null;
   durationSec: number;
   stringeeCallId?: string;
+  /** The caller chose to record this call. */
+  record?: boolean;
   recording?: { mimeType: string; size: number; source: 'tai_len' | 'stringee' } | null;
+  careCaseId?: { _id: string; status: string } | string | null;
+  /** The viewer may play this call's recording (their own call, or recordings.viewAll). */
+  canPlay?: boolean;
   createdAt: string;
 }
 
@@ -85,7 +90,8 @@ export class CallService {
     studentId: string;
     target: CallTarget;
     method: CallMethod;
-    callTaskId?: string;
+    record: boolean;
+    careCaseId?: string;
     courseGroupId?: string;
   }): Observable<StartCallResponse> {
     return this.http.post<StartCallResponse>(this.apiUrl, payload);
@@ -109,18 +115,25 @@ export class CallService {
     return this.http.get(`${this.apiUrl}/${id}/recording`, { responseType: 'blob' });
   }
 
-  list(query: { studentId?: string; page?: number; limit?: number } = {}): Observable<{
+  /** scope 'all' lists everyone's calls (recordings.viewAll); otherwise the user's own. */
+  list(
+    query: { studentId?: string; scope?: 'all'; page?: number; limit?: number } = {},
+  ): Observable<{
     items: CallLog[];
     total: number;
     page: number;
     limit: number;
+    canViewAll: boolean;
   }> {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(query))
       if (value !== undefined && value !== '') params = params.set(key, String(value));
-    return this.http.get<{ items: CallLog[]; total: number; page: number; limit: number }>(
-      this.apiUrl,
-      { params },
-    );
+    return this.http.get<{
+      items: CallLog[];
+      total: number;
+      page: number;
+      limit: number;
+      canViewAll: boolean;
+    }>(this.apiUrl, { params });
   }
 }

@@ -3,10 +3,10 @@ const router = express.Router();
 const NguoiDung = require('../models/NguoiDung');
 const SinhVien = require('../models/SinhVien');
 const LichSuPhanCong = require('../models/LichSuPhanCong');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const { verifyToken, requirePermission } = require('../middleware/xacThuc');
 const { assert, validateId } = require('../utils/kiemTra');
-const { OPEN_CALL_STATUSES } = require('../utils/hangSo');
+const { CARE_STATUS, OPEN_CARE_STATUSES } = require('../utils/hangSo');
 const {
   normalizeClass,
   syncLegacyAssignments,
@@ -14,12 +14,12 @@ const {
 } = require('../services/dichVuPhanCongLop');
 
 // Reading is open to anyone who oversees care work (admin can view); changes need classes.assign.
-const canRead = requirePermission('classes.assign', 'callTasks.viewAll');
+const canRead = requirePermission('classes.assign', 'care.manage');
 const canWrite = requirePermission('classes.assign');
 router.use(verifyToken);
 
 // GET /api/class-assignments — every administrative class with its current staff, plus staff
-// workload and the size of the unassigned call queue.
+// workload (open care cases) and how many cases wait for a directive.
 router.get('/', canRead, async (req, res, next) => {
   try {
     await syncLegacyAssignments();
@@ -33,11 +33,11 @@ router.get('/', canRead, async (req, res, next) => {
       NguoiDung.find({ role: 'staff' }).select('fullName email status managedClasses').sort({
         fullName: 1,
       }),
-      NhiemVuGoiDien.aggregate([
-        { $match: { status: { $in: OPEN_CALL_STATUSES }, assignedStaffId: { $ne: null } } },
+      HoSoChamSoc.aggregate([
+        { $match: { status: { $in: [...OPEN_CARE_STATUSES] }, assignedStaffId: { $ne: null } } },
         { $group: { _id: '$assignedStaffId', count: { $sum: 1 } } },
       ]),
-      NhiemVuGoiDien.countDocuments({ assignedStaffId: null, status: { $in: OPEN_CALL_STATUSES } }),
+      HoSoChamSoc.countDocuments({ status: CARE_STATUS.AWAITING }),
     ]);
     const activeMap = new Map(active.map((r) => [r.classCode, r]));
     const openMap = new Map(openByStaff.map((o) => [String(o._id), o.count]));
@@ -57,9 +57,9 @@ router.get('/', canRead, async (req, res, next) => {
         email: s.email,
         status: s.status,
         managedClasses: s.managedClasses,
-        openTasks: openMap.get(String(s._id)) || 0,
+        openCases: openMap.get(String(s._id)) || 0,
       })),
-      unassignedQueue: queueCount,
+      awaitingCases: queueCount,
     });
   } catch (error) {
     next(error);
@@ -87,7 +87,7 @@ router.get('/history', canRead, async (req, res, next) => {
   }
 });
 
-// PUT /api/class-assignments/:classCode — body { staffId } (null/'' = thu hồi, về hàng chờ).
+// PUT /api/class-assignments/:classCode — body { staffId } (null/'' = thu hồi phân công).
 router.put('/:classCode', canWrite, async (req, res, next) => {
   try {
     const staffId = req.body?.staffId || null;
@@ -104,8 +104,8 @@ router.put('/:classCode', canWrite, async (req, res, next) => {
       message: result.unchanged
         ? `Lớp ${code} đã do ${result.staff.fullName} phụ trách.`
         : result.staff
-          ? `Đã giao lớp ${code} cho ${result.staff.fullName} (${result.movedTasks} cuộc gọi đang mở chuyển theo).`
-          : `Đã thu hồi phân công lớp ${code}; ${result.movedTasks} cuộc gọi đang mở về hàng chờ.`,
+          ? `Đã giao lớp ${code} cho ${result.staff.fullName} (${result.movedCases} hồ sơ chăm sóc đang mở chuyển theo).`
+          : `Đã thu hồi phân công lớp ${code}; ${result.movedCases} hồ sơ chăm sóc chờ chỉ đạo.`,
       ...result,
     });
   } catch (error) {
@@ -132,7 +132,7 @@ router.post('/transfer', canWrite, async (req, res, next) => {
       codes.every((c) => from.managedClasses.includes(c)),
       'Nhân viên chuyển giao không phụ trách các lớp này',
     );
-    let movedTasks = 0;
+    let movedCases = 0;
     let toStaff = null;
     for (const classCode of codes) {
       const result = await assignClass({
@@ -141,13 +141,13 @@ router.post('/transfer', canWrite, async (req, res, next) => {
         by: req.user.id,
         reason: req.body?.reason || 'Bàn giao lớp',
       });
-      movedTasks += result.movedTasks;
+      movedCases += result.movedCases;
       toStaff = result.staff;
     }
     res.json({
-      message: `Đã bàn giao ${codes.length} lớp (${codes.join(', ')}) và ${movedTasks} cuộc gọi đang mở từ ${from.fullName} sang ${toStaff.fullName}.`,
+      message: `Đã bàn giao ${codes.length} lớp (${codes.join(', ')}) và ${movedCases} hồ sơ chăm sóc đang mở từ ${from.fullName} sang ${toStaff.fullName}.`,
       transferredClasses: codes,
-      reassignedTaskCount: movedTasks,
+      reassignedCaseCount: movedCases,
     });
   } catch (error) {
     next(error);

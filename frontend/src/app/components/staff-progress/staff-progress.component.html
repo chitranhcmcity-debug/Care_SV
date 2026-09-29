@@ -103,7 +103,7 @@
             <th class="p-3 text-center">Quá hạn</th>
             <th class="p-3 text-center">Đúng hạn</th>
             <th class="p-3 text-center">Chất lượng</th>
-            <th class="p-3 text-center">Liên hệ SV</th>
+            <th class="p-3 text-center">Hồ sơ chăm sóc</th>
             <th class="p-3 text-right"></th>
           </tr>
         </thead>
@@ -173,7 +173,7 @@
                 </div>
               </td>
               <td class="p-3 text-center font-semibold text-slate-800">
-                {{ r.calls.total ? r.calls.contacted + '/' + r.calls.total : '—' }}
+                {{ r.care.total ? r.care.closed + '/' + r.care.total + ' xong' : '—' }}
               </td>
               <td class="p-3 text-right" (click)="$event.stopPropagation()">
                 <button
@@ -207,7 +207,9 @@
                     </div>
                     <div class="text-[11px] text-slate-500 pt-1">
                       Hoàn thành TB {{ r.tasks.avgCompletionDays ?? '—' }} ngày/việc · trễ hạn
-                      {{ r.tasks.completedLate }} · SV không bắt máy {{ r.calls.unreachable }}
+                      {{ r.tasks.completedLate }} · bước chăm sóc {{ r.care.stepsDone }}/{{
+                        r.care.stepsTotal
+                      }}
                     </div>
                   </div>
                   <div class="lg:col-span-2 space-y-2">

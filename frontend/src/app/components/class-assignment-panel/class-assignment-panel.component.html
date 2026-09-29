@@ -5,15 +5,11 @@
         <h3 class="text-lg md:text-xl font-bold text-slate-900">🏫 Phân lớp hành chính cho CSKH</h3>
         <p class="text-xs text-slate-500 font-medium mt-0.5 max-w-2xl">
           Mỗi lớp do một nhân viên phụ trách; nhân viên chỉ xem và chăm sóc sinh viên các lớp của
-          mình. Khi chuyển lớp, cuộc gọi đang mở đi theo lớp và lịch sử phân công được lưu lại.
+          mình. Hồ sơ chăm sóc của sinh viên trong lớp mặc định giao cho nhân viên phụ trách; khi
+          chuyển lớp, hồ sơ đang mở đi theo lớp và lịch sử phân công được lưu lại.
         </p>
       </div>
-      <button
-        *ngIf="canEdit"
-        type="button"
-        (click)="openTransfer()"
-        class="ca-handover"
-      >
+      <button *ngIf="canEdit" type="button" (click)="openTransfer()" class="ca-handover">
         🔄 Bàn giao lớp
       </button>
     </div>
@@ -42,14 +38,14 @@
         </div>
       </div>
       <a
-        routerLink="/call-tasks"
+        routerLink="/care"
         class="ca-stat ca-stat--link"
-        [attr.data-tone]="overview()?.unassignedQueue ? 'rose' : 'green'"
+        [attr.data-tone]="overview()?.awaitingCases ? 'rose' : 'green'"
       >
-        <span class="ca-stat-icon" aria-hidden="true">📞</span>
+        <span class="ca-stat-icon" aria-hidden="true">🗂️</span>
         <div>
-          <div class="ca-stat-label">Hàng chờ cuộc gọi</div>
-          <div class="ca-stat-value">{{ overview()?.unassignedQueue || 0 }}</div>
+          <div class="ca-stat-label">Hồ sơ chờ chỉ đạo</div>
+          <div class="ca-stat-value">{{ overview()?.awaitingCases || 0 }}</div>
         </div>
       </a>
     </div>
@@ -90,9 +86,11 @@
             [class.is-unassigned]="!c.staff"
           >
             <td class="p-3">
-              <span class="ca-class" [attr.data-tone]="c.staff ? tones[ci % tones.length] : 'amber'">{{
-                c.classCode
-              }}</span>
+              <span
+                class="ca-class"
+                [attr.data-tone]="c.staff ? tones[ci % tones.length] : 'amber'"
+                >{{ c.classCode }}</span
+              >
             </td>
             <td class="p-3 text-center">
               <span class="ca-count">{{ c.studentCount }}</span>
@@ -162,28 +160,18 @@
               <div class="text-xs text-slate-500 truncate">{{ s.email }}</div>
             </div>
           </div>
-          <span
-            class="ca-open shrink-0"
-            [class.is-busy]="s.openTasks"
-            >{{ s.openTasks }} cuộc gọi mở</span
+          <span class="ca-open shrink-0" [class.is-busy]="s.openCases"
+            >{{ s.openCases }} hồ sơ đang mở</span
           >
         </div>
         <div class="flex flex-wrap gap-1.5">
-          <span
-            *ngFor="let code of s.managedClasses"
-            class="ca-chip"
-            >{{ code }}</span
-          >
+          <span *ngFor="let code of s.managedClasses" class="ca-chip">{{ code }}</span>
           <span *ngIf="!s.managedClasses.length" class="text-xs text-slate-400 italic"
             >Chưa phụ trách lớp nào</span
           >
         </div>
         <div class="flex flex-wrap gap-2">
-          <button
-            type="button"
-            (click)="openHistory({ staff: s })"
-            class="ca-btn"
-          >
+          <button type="button" (click)="openHistory({ staff: s })" class="ca-btn">
             🕘 Lịch sử
           </button>
           <button

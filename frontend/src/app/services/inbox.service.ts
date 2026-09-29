@@ -5,13 +5,13 @@ import { Observable } from 'rxjs';
 
 /** Work waiting for the user; `new` = appeared since they last opened the bell. */
 export interface InboxSummary {
-  callTasks: { pending: number; new: number };
+  care: { pending: number; new: number };
   tasks: { pending: number; new: number };
   unseen: number;
 }
 
 /** Kinds of work; each is marked seen by the bell or by opening its page. */
-export type InboxScope = 'callTasks' | 'tasks';
+export type InboxScope = 'care' | 'tasks';
 
 /** The header bell (GET /api/notifications). */
 @Injectable({ providedIn: 'root' })

@@ -1,10 +1,40 @@
 /* Colour slots used by the stat tiles, class chips and staff cards. */
-[data-tone='violet'] { --tone: #7c3aed; --tone-2: #a855f7; --tint: #f5f3ff; --soft: #ddd6fe; }
-[data-tone='pink']   { --tone: #db2777; --tone-2: #f472b6; --tint: #fdf2f8; --soft: #fbcfe8; }
-[data-tone='blue']   { --tone: #0284c7; --tone-2: #38bdf8; --tint: #f0f9ff; --soft: #bae6fd; }
-[data-tone='green']  { --tone: #059669; --tone-2: #34d399; --tint: #ecfdf5; --soft: #a7f3d0; }
-[data-tone='amber']  { --tone: #d97706; --tone-2: #fbbf24; --tint: #fffbeb; --soft: #fde68a; }
-[data-tone='rose']   { --tone: #e11d48; --tone-2: #fb7185; --tint: #fff1f2; --soft: #fecdd3; }
+[data-tone='violet'] {
+  --tone: #7c3aed;
+  --tone-2: #a855f7;
+  --tint: #f5f3ff;
+  --soft: #ddd6fe;
+}
+[data-tone='pink'] {
+  --tone: #db2777;
+  --tone-2: #f472b6;
+  --tint: #fdf2f8;
+  --soft: #fbcfe8;
+}
+[data-tone='blue'] {
+  --tone: #0284c7;
+  --tone-2: #38bdf8;
+  --tint: #f0f9ff;
+  --soft: #bae6fd;
+}
+[data-tone='green'] {
+  --tone: #059669;
+  --tone-2: #34d399;
+  --tint: #ecfdf5;
+  --soft: #a7f3d0;
+}
+[data-tone='amber'] {
+  --tone: #d97706;
+  --tone-2: #fbbf24;
+  --tint: #fffbeb;
+  --soft: #fde68a;
+}
+[data-tone='rose'] {
+  --tone: #e11d48;
+  --tone-2: #fb7185;
+  --tint: #fff1f2;
+  --soft: #fecdd3;
+}
 
 /* ---------- Panels ---------- */
 .ca-card {

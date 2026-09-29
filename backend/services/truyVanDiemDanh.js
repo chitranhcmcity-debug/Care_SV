@@ -1,5 +1,5 @@
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const { getWarningLevels, periodInfo, evaluate } = require('./dichVuCanhBao');
 const { dayBounds, dateKey } = require('../utils/kiemTra');
@@ -172,17 +172,18 @@ async function getSummary(group) {
     }
   }
 
-  // Get call task status for each student
-  const callTasks = await NhiemVuGoiDien.find({ courseGroupId })
+  // Latest care case of each student (open or closed).
+  const careCases = await HoSoChamSoc.find({
+    studentId: { $in: (group.students || []).map((st) => st._id) },
+  })
+    .select('studentId status assignedStaffId')
     .populate('assignedStaffId', 'fullName')
-    .sort({ createdAt: -1 });
-
-  const latestTaskMap = {};
-  for (const task of callTasks) {
-    const sid = task.studentId.toString();
-    if (!latestTaskMap[sid]) {
-      latestTaskMap[sid] = task;
-    }
+    .sort({ createdAt: -1 })
+    .lean();
+  const latestCaseMap = {};
+  for (const c of careCases) {
+    const sid = c.studentId.toString();
+    if (!latestCaseMap[sid]) latestCaseMap[sid] = c;
   }
 
   // Absences are counted in periods (tiết) and ranked by the configured warning levels.
@@ -197,7 +198,7 @@ async function getSummary(group) {
     const excusedCount = excusedCountMap[sid] || 0;
     const attendCount = totalSessions - (absentCount + excusedCount);
     const attendRate = totalSessions > 0 ? Math.round((attendCount / totalSessions) * 100) : 100;
-    const latestTask = latestTaskMap[sid];
+    const latestCase = latestCaseMap[sid];
 
     return {
       student: st,
@@ -207,9 +208,9 @@ async function getSummary(group) {
       attendCount,
       attendRate,
       ...evaluate(absentCount, info, levels),
-      callStatus: latestTask?.status || null,
-      callNote: latestTask?.callNote || null,
-      assignedStaff: latestTask?.assignedStaffId?.fullName || null,
+      careCaseId: latestCase?._id || null,
+      careStatus: latestCase?.status || null,
+      assignedStaff: latestCase?.assignedStaffId?.fullName || null,
     };
   });
 

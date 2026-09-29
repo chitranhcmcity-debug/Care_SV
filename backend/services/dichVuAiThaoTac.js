@@ -6,15 +6,14 @@ const crypto = require('crypto');
 const SinhVien = require('../models/SinhVien');
 const NguoiDung = require('../models/NguoiDung');
 const NhiemVu = require('../models/NhiemVu');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const { can } = require('./dichVuPhanQuyen');
-const { updateCallTask } = require('./dichVuNhiemVuGoiDien');
 const { createTask, acknowledgeTask, reviewTask } = require('./dichVuNhiemVu');
 const { assignClass } = require('./dichVuPhanCongLop');
 const { assert, normalizeClass, parseOptionalDate } = require('../utils/kiemTra');
 const {
-  CALL_STATUS,
-  OPEN_CALL_STATUSES,
+  CARE_STATUS,
+  OPEN_CARE_STATUSES,
   TASK_STATUS,
   TASK_CATEGORY_LABEL,
   TASK_PRIORITY_LABEL,
@@ -72,73 +71,68 @@ async function findTaskByTitle(filter, title) {
 // run(user, payload) → { message, navigate? }. Both steps re-validate everything.
 const ACTIONS = [
   {
-    name: 'cap_nhat_cuoc_goi',
-    label: 'Ghi kết quả cuộc gọi chăm sóc (trạng thái, ghi chú, hẹn gọi lại)',
+    name: 'cap_nhat_ho_so_cham_soc',
+    label: 'Cập nhật hồ sơ chăm sóc (nguyên nhân, hướng giải quyết, báo khó khăn)',
     description:
-      'Soạn việc cập nhật kết quả nhiệm vụ gọi điện của một sinh viên do chính người dùng phụ trách: trạng thái (chua_goi | khong_bat_may | da_lien_he), ghi chú, lý do vắng, ngày hẹn gọi lại (YYYY-MM-DD). Chỉ soạn; người dùng phải bấm Xác nhận.',
+      'Soạn việc cập nhật hồ sơ chăm sóc đang mở của một sinh viên do chính người dùng được giao: nguyên nhân tìm hiểu được, hướng giải quyết, hoặc một khó khăn cần báo lên cấp quản lý. Chỉ soạn; người dùng phải bấm Xác nhận.',
     input_schema: {
       type: 'object',
       properties: {
         mssv: { type: 'string', description: 'Mã số sinh viên' },
-        trangThai: { type: 'string', enum: Object.values(CALL_STATUS) },
-        ghiChu: { type: 'string' },
-        lyDoVang: { type: 'string' },
-        henGoiLai: { type: 'string', description: 'YYYY-MM-DD; để trống nếu không hẹn' },
+        nguyenNhan: { type: 'string' },
+        huongGiaiQuyet: { type: 'string' },
+        khoKhan: { type: 'string', description: 'Khó khăn cần báo cấp quản lý' },
       },
       required: ['mssv'],
       additionalProperties: false,
     },
-    allowed: (u) => u.role === 'staff' && can(u, 'callTasks.update'),
+    allowed: (u) => u.role === 'staff' && can(u, 'care.work'),
     async prepare(user, input) {
       const student = await SinhVien.findOne({ studentCode: text(input.mssv, 'MSSV', 30) });
       assert(student, `Không có sinh viên MSSV ${input.mssv}`);
-      const task = await NhiemVuGoiDien.findOne({
+      const careCase = await HoSoChamSoc.findOne({
         studentId: student._id,
         assignedStaffId: user.id,
-      })
-        .sort({ status: 1, absenceDate: -1 })
-        .populate('courseGroupId', 'groupCode');
-      assert(task, `Bạn không có nhiệm vụ gọi điện nào cho ${student.fullName}`);
-      const open = await NhiemVuGoiDien.findOne({
-        studentId: student._id,
-        assignedStaffId: user.id,
-        status: { $in: OPEN_CALL_STATUSES },
-      })
-        .sort({ absenceDate: -1 })
-        .populate('courseGroupId', 'groupCode');
-      const target = open || task;
-      const callbackDate = input.henGoiLai ? parseOptionalDate(input.henGoiLai) : undefined;
+        status: { $in: [...OPEN_CARE_STATUSES] },
+      });
+      assert(careCase, `Bạn không có hồ sơ chăm sóc đang mở cho ${student.fullName}`);
       const payload = {
-        taskId: String(target._id),
-        status: input.trangThai,
-        callNote: optionalText(input.ghiChu),
-        absenceReasonCategory: optionalText(input.lyDoVang, 100),
-        callbackDate: callbackDate ? callbackDate.toISOString() : undefined,
+        caseId: String(careCase._id),
+        cause: optionalText(input.nguyenNhan, 2000),
+        solution: optionalText(input.huongGiaiQuyet, 2000),
+        difficulty: optionalText(input.khoKhan, 2000),
       };
       assert(
-        payload.status || payload.callNote || payload.absenceReasonCategory || payload.callbackDate,
-        'Cần ít nhất một thông tin để cập nhật (trạng thái, ghi chú, lý do hoặc hẹn gọi lại)',
+        payload.cause || payload.solution || payload.difficulty,
+        'Cần ít nhất một thông tin: nguyên nhân, hướng giải quyết hoặc khó khăn',
       );
       return {
-        title: `Cập nhật cuộc gọi — ${student.fullName} (${student.studentCode})`,
+        title: `Cập nhật hồ sơ chăm sóc — ${student.fullName} (${student.studentCode})`,
         details: [
-          `Học phần vắng: ${target.courseGroupId?.groupCode || '—'} · ngày ${fmtDate(target.absenceDate)}`,
-          payload.status &&
-            `Trạng thái: ${toLabel(target.status)} → ${toLabel(payload.status)}`,
-          payload.callNote && `Ghi chú: ${payload.callNote}`,
-          payload.absenceReasonCategory && `Lý do vắng: ${payload.absenceReasonCategory}`,
-          payload.callbackDate && `Hẹn gọi lại: ${fmtDate(payload.callbackDate)}`,
+          payload.cause && `Nguyên nhân: ${payload.cause}`,
+          payload.solution && `Hướng giải quyết: ${payload.solution}`,
+          payload.difficulty && `Báo khó khăn: ${payload.difficulty}`,
         ].filter(Boolean),
         payload,
       };
     },
     async run(user, p) {
-      const task = await NhiemVuGoiDien.findById(p.taskId);
-      assert(task, 'Nhiệm vụ gọi điện không còn tồn tại', 404);
-      assert(String(task.assignedStaffId) === user.id, 'Nhiệm vụ không còn thuộc về bạn', 403);
-      const { taskId, ...fields } = p;
-      await updateCallTask(task, fields);
-      return { message: 'Đã cập nhật kết quả cuộc gọi.', navigate: '/call-tasks' };
+      const careCase = await HoSoChamSoc.findById(p.caseId);
+      assert(careCase, 'Hồ sơ chăm sóc không còn tồn tại', 404);
+      assert(String(careCase.assignedStaffId) === user.id, 'Hồ sơ không còn thuộc về bạn', 403);
+      assert(careCase.status !== CARE_STATUS.CLOSED, 'Hồ sơ đã kết thúc');
+      if (p.cause) careCase.cause = p.cause;
+      if (p.solution) careCase.solution = p.solution;
+      if (p.cause || p.solution)
+        careCase.notes.push({
+          kind: 'su_kien',
+          authorId: user.id,
+          text: `Cập nhật qua AI Care — ${[p.cause && `Nguyên nhân: ${p.cause}`, p.solution && `Hướng giải quyết: ${p.solution}`].filter(Boolean).join('; ')}`,
+        });
+      if (p.difficulty)
+        careCase.notes.push({ kind: 'kho_khan', authorId: user.id, text: p.difficulty });
+      await careCase.save();
+      return { message: 'Đã cập nhật hồ sơ chăm sóc.', navigate: `/care?case=${careCase._id}` };
     },
   },
   {
@@ -191,7 +185,9 @@ const ACTIONS = [
     allowed: (u) => can(u, 'tasks.manage'),
     async prepare(user, input) {
       const staff = await findStaff(input.nhanVien);
-      const dueDate = input.hanChot ? parseOptionalDate(input.hanChot, 'Hạn chót không hợp lệ') : null;
+      const dueDate = input.hanChot
+        ? parseOptionalDate(input.hanChot, 'Hạn chót không hợp lệ')
+        : null;
       const payload = {
         assignedTo: String(staff._id),
         title: text(input.tieuDe, 'tiêu đề', 200),
@@ -267,12 +263,12 @@ const ACTIONS = [
     name: 'phan_lop_cskh',
     label: 'Phân / chuyển lớp hành chính cho nhân viên CSKH',
     description:
-      'Soạn việc giao một lớp hành chính cho nhân viên CSKH (tìm theo tên), hoặc thu hồi (nhanVien để trống) — các cuộc gọi đang mở của lớp chuyển theo. Chỉ soạn; người dùng phải bấm Xác nhận.',
+      'Soạn việc giao một lớp hành chính cho nhân viên CSKH (tìm theo tên), hoặc thu hồi (nhanVien để trống) — hồ sơ chăm sóc đang mở của nhân viên cũ cho sinh viên lớp đó chuyển theo. Chỉ soạn; người dùng phải bấm Xác nhận.',
     input_schema: {
       type: 'object',
       properties: {
         lop: { type: 'string', description: 'Mã lớp hành chính, vd CD25CT1' },
-        nhanVien: { type: 'string', description: 'Tên nhân viên; bỏ trống = thu hồi về hàng chờ' },
+        nhanVien: { type: 'string', description: 'Tên nhân viên; bỏ trống = thu hồi phân công' },
       },
       required: ['lop'],
       additionalProperties: false,
@@ -290,8 +286,8 @@ const ACTIONS = [
         details: [
           `Sĩ số: ${size} sinh viên`,
           staff
-            ? 'Các cuộc gọi đang mở của lớp sẽ chuyển sang nhân viên này.'
-            : 'Các cuộc gọi đang mở của lớp sẽ về hàng chờ Trưởng phòng.',
+            ? 'Hồ sơ chăm sóc đang mở của lớp sẽ chuyển sang nhân viên này.'
+            : 'Hồ sơ chăm sóc đang mở của lớp sẽ chờ Trưởng phòng / PHT chỉ đạo.',
         ],
         payload: { classCode, staffId: staff ? String(staff._id) : null },
       };
@@ -305,8 +301,8 @@ const ACTIONS = [
       });
       return {
         message: result.staff
-          ? `Đã giao lớp ${p.classCode} cho ${result.staff.fullName} (${result.movedTasks} cuộc gọi chuyển theo).`
-          : `Đã thu hồi lớp ${p.classCode}; ${result.movedTasks} cuộc gọi về hàng chờ.`,
+          ? `Đã giao lớp ${p.classCode} cho ${result.staff.fullName} (${result.movedCases} hồ sơ chăm sóc chuyển theo).`
+          : `Đã thu hồi lớp ${p.classCode}; ${result.movedCases} hồ sơ chờ chỉ đạo.`,
         navigate: '/management?tab=classes',
       };
     },
@@ -317,7 +313,7 @@ const ACTIONS = [
 const PAGES = {
   '/students': 'Hồ sơ sinh viên',
   '/attendance': 'Điểm danh',
-  '/call-tasks': 'Nhiệm vụ gọi điện',
+  '/care': 'Hồ sơ chăm sóc',
   '/tasks': 'Nhiệm vụ được giao',
   '/timetable': 'Thời khóa biểu',
   '/calls': 'Lịch sử cuộc gọi',

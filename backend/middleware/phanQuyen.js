@@ -1,6 +1,8 @@
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
 const SinhVien = require('../models/SinhVien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
+const { OPEN_CARE_STATUSES } = require('../utils/hangSo');
 const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
 const { can } = require('../services/dichVuPhanQuyen');
 
@@ -8,14 +10,24 @@ const { can } = require('../services/dichVuPhanQuyen');
  * Whether a user may see (and call) a student:
  * - Roles granted 'students.view' (Trưởng phòng by default; admin read-only): every student.
  * - Giảng viên: students enrolled in a course group they teach.
- * - Nhân viên CSKH: only students of the administrative classes currently assigned to them.
+ * - Nhân viên CSKH: students of the administrative classes currently assigned to them, and any
+ *   student whose open care case they were directed to.
  */
 async function canAccessStudent(user, student) {
   if (can(user, 'students.view')) return true;
   if (user.role === 'teacher')
     return Boolean(await NhomHocPhan.exists({ teacherId: user.id, students: student._id }));
   if (user.role === 'staff')
-    return (user.managedClasses || []).includes(normalizeClass(student.classCode));
+    return (
+      (user.managedClasses || []).includes(normalizeClass(student.classCode)) ||
+      Boolean(
+        await HoSoChamSoc.exists({
+          studentId: student._id,
+          assignedStaffId: user.id,
+          status: { $in: [...OPEN_CARE_STATUSES] },
+        }),
+      )
+    );
   return false;
 }
 

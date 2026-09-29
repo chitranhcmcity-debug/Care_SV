@@ -53,10 +53,11 @@ const restToken = () => {
  * SCCO for answer_url: record the call, then bridge the browser to the external number.
  * Only called after the call log was validated, so callers cannot dial arbitrary numbers.
  */
-function recordAndConnect({ to, eventUrl }) {
+/** SCCO for an outgoing call: connect to `to`, recording it only when the caller chose to. */
+function recordAndConnect({ to, eventUrl, record = true }) {
   const c = config();
   return [
-    { action: 'record', eventUrl, format: 'mp3' },
+    ...(record ? [{ action: 'record', eventUrl, format: 'mp3' }] : []),
     {
       action: 'connect',
       from: { type: 'external', number: c.hotline, alias: c.hotline },

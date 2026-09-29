@@ -5,7 +5,9 @@ import { Student, Student360Profile } from '../../models/types';
 import { StudentInput, StudentService } from '../../services/student.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
-import { CallTaskService } from '../../services/call-task.service';
+import { Router } from '@angular/router';
+import { ViLabelPipe } from '../../utils/label.pipe';
+import { CareCaseService, CareCaseSummary } from '../../services/care-case.service';
 import { CallLog, CallService, CALL_OUTCOME_LABELS } from '../../services/call.service';
 
 const PAGE_SIZE = 20;
@@ -32,17 +34,28 @@ const EMPTY_FORM: StudentInput = {
 @Component({
   selector: 'app-students',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ViLabelPipe],
   templateUrl: './students.component.html',
   styleUrl: './students.component.css',
 })
 export class StudentsComponent implements OnInit {
   private readonly studentsApi = inject(StudentService);
-  private readonly callTasks = inject(CallTaskService);
+  private readonly careCases = inject(CareCaseService);
+  private readonly router = inject(Router);
   readonly calls = inject(CallService);
   private readonly notify = inject(NotificationService);
+  private readonly auth = inject(AuthService);
   /** Add / edit / delete students (same permission as the Excel import). */
-  readonly canManage = inject(AuthService).can('excel.import');
+  readonly canManage = this.auth.can('excel.import');
+  /** Trưởng phòng / PHT hear every recording, so they see every call to the student. */
+  readonly seesAllCalls = this.auth.can('recordings.viewAll');
+  readonly canOpenCare =
+    !this.auth.isAdmin() && (this.auth.can('care.manage') || this.auth.can('care.propose'));
+  /** The student's care cases, newest first (one at most is open). */
+  readonly studentCases = signal<CareCaseSummary[]>([]);
+  readonly openCase = computed(() => this.studentCases().find((c) => c.status !== 'da_ket_thuc'));
+  /** Proposal form in the profile: null = closed. */
+  proposal: { reason: string } | null = null;
 
   /** Add/edit form: null = closed; editingId '' = adding a new student. */
   form: StudentInput | null = null;
@@ -113,7 +126,10 @@ export class StudentsComponent implements OnInit {
     this.selected.set(student);
     this.profile.set(null);
     this.showAllCalls.set(false);
-    this.callTasks.getStudent360Profile(student._id).subscribe((p) => this.profile.set(p));
+    this.proposal = null;
+    this.studentCases.set([]);
+    this.studentsApi.profile(student._id).subscribe((p) => this.profile.set(p));
+    this.careCases.forStudent(student._id).subscribe((c) => this.studentCases.set(c));
     this.loadStudentCalls(student._id);
   }
 
@@ -150,7 +166,7 @@ export class StudentsComponent implements OnInit {
     const ok = await this.notify.confirm({
       title: `Xóa sinh viên ${student.fullName}?`,
       message:
-        'Sinh viên sẽ bị gỡ khỏi các học phần; điểm danh, nhiệm vụ gọi điện và lịch sử cuộc gọi của sinh viên cũng bị xóa. Không thể hoàn tác.',
+        'Sinh viên sẽ bị gỡ khỏi các học phần; điểm danh, hồ sơ chăm sóc và lịch sử cuộc gọi của sinh viên cũng bị xóa. Không thể hoàn tác.',
       confirmText: 'Xóa',
       danger: true,
     });
@@ -176,7 +192,29 @@ export class StudentsComponent implements OnInit {
   }
 
   private loadStudentCalls(studentId: string) {
-    this.calls.list({ studentId, limit: 10 }).subscribe((res) => this.studentCalls.set(res.items));
+    this.calls
+      .list({ studentId, limit: 10, scope: this.seesAllCalls ? 'all' : undefined })
+      .subscribe((res) => this.studentCalls.set(res.items));
+  }
+
+  goToCase(id: string) {
+    this.router.navigate(['/care'], { queryParams: { case: id } });
+  }
+
+  /** Opens a care case for the student: a proposal, or waiting for the manager's directive. */
+  submitProposal(student: Student) {
+    const reason = this.proposal?.reason.trim();
+    if (!reason) return this.notify.error('Nhập lý do cần chăm sóc');
+    this.careCases.create({ studentId: student._id, reason }).subscribe({
+      next: (c) => {
+        this.notify.success('Đã mở hồ sơ chăm sóc');
+        this.goToCase(c._id);
+      },
+      error: (err) => {
+        if (err.status === 409 && err.error?.caseId) this.goToCase(err.error.caseId);
+        else this.notify.error(err.error?.message || 'Không mở được hồ sơ');
+      },
+    });
   }
 
   callerName(call: CallLog): string {

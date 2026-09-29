@@ -5,13 +5,13 @@ const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
 const CuocGoi = require('../models/CuocGoi');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const subscription = require('../services/dichVuGoiDichVu');
 const payos = require('../services/dichVuPayOS');
 const { describeIntegrations } = require('../services/dichVuCauHinhApi');
 const { getWarningLevels, periodInfo, evaluate } = require('../services/dichVuCanhBao');
 const { verifyToken, requireAdmin } = require('../middleware/xacThuc');
-const { CALL_STATUS, OPEN_CALL_STATUSES } = require('../utils/hangSo');
+const { CARE_STATUS } = require('../utils/hangSo');
 
 const DAYS = 7;
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
@@ -52,19 +52,19 @@ async function attendancePerDay(since) {
   return days;
 }
 
-/** Call tasks raised since `since`, split into contacted / not called / unreachable / callback. */
-async function callTaskBreakdown(since) {
-  const tasks = await NhiemVuGoiDien.find({ createdAt: { $gte: since } })
-    .select('status callbackDate')
-    .lean();
-  const result = { contacted: 0, pending: 0, unreachable: 0, callback: 0 };
-  for (const t of tasks) {
-    if (t.status === CALL_STATUS.CONTACTED) result.contacted++;
-    else if (t.callbackDate) result.callback++;
-    else if (t.status === CALL_STATUS.UNREACHABLE) result.unreachable++;
-    else result.pending++;
-  }
-  return result;
+/** Calls made since `since`, by how they went. */
+async function callOutcomes(since) {
+  const rows = await CuocGoi.aggregate([
+    { $match: { createdAt: { $gte: since } } },
+    { $group: { _id: '$outcome', count: { $sum: 1 } } },
+  ]);
+  const by = Object.fromEntries(rows.map((r) => [r._id, r.count]));
+  return {
+    answered: by.nghe_may || 0,
+    noAnswer: by.khong_nghe_may || 0,
+    busy: (by.may_ban || 0) + (by.sai_so || 0),
+    unrecorded: by[''] || 0,
+  };
 }
 
 /** The most severe (then most recent) students at a warning level, plus how many there are. */
@@ -159,18 +159,18 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
       courseGroups,
       groupsWithoutTeacher,
       assignedClasses,
-      openCallTasks,
-      contactedCallTasks,
+      awaitingCases,
+      inProgressCases,
       attendanceByDay,
       callsByDay,
       callsWithRecording,
       attendanceBreakdown,
-      callBreakdown,
+      outcomes,
       warnings,
       newUsers,
       newStudents,
       newGroups,
-      newCallTasks,
+      newCases,
     ] = await Promise.all([
       subscription.getSubscription(),
       countBy('role'),
@@ -185,8 +185,8 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
       NhomHocPhan.countDocuments(),
       NhomHocPhan.countDocuments({ teacherId: null }),
       NguoiDung.distinct('managedClasses', { role: 'staff', status: 'active' }),
-      NhiemVuGoiDien.countDocuments({ status: { $in: OPEN_CALL_STATUSES } }),
-      NhiemVuGoiDien.countDocuments({ status: CALL_STATUS.CONTACTED }),
+      HoSoChamSoc.countDocuments({ status: CARE_STATUS.AWAITING }),
+      HoSoChamSoc.countDocuments({ status: CARE_STATUS.IN_PROGRESS }),
       perDay(DiemDanh, since),
       perDay(CuocGoi, since),
       CuocGoi.countDocuments({
@@ -194,12 +194,12 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         'recording.storedName': { $exists: true },
       }),
       attendancePerDay(since),
-      callTaskBreakdown(since),
+      callOutcomes(since),
       latestWarnings(),
       perDay(NguoiDung, since),
       perDay(SinhVien, since),
       perDay(NhomHocPhan, since),
-      perDay(NhiemVuGoiDien, since),
+      perDay(HoSoChamSoc, since),
     ]);
 
     const assigned = new Set(assignedClasses);
@@ -216,7 +216,7 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
           users: newUsers[key] || 0,
           students: newStudents[key] || 0,
           courseGroups: newGroups[key] || 0,
-          callTasks: newCallTasks[key] || 0,
+          careCases: newCases[key] || 0,
         },
       };
     });
@@ -236,7 +236,8 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         courseGroups,
         groupsWithoutTeacher,
       },
-      callTasks: { open: openCallTasks, contacted: contactedCallTasks, week: callBreakdown },
+      careCases: { awaiting: awaitingCases, inProgress: inProgressCases },
+      callOutcomes: outcomes,
       warnings,
       activity,
       callsWithRecording,

@@ -66,7 +66,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly highlights = [
     {
       title: 'Tự động',
-      text: 'Tự động giao cuộc gọi theo lớp phụ trách, nhắc lịch và theo dõi tiến độ.',
+      text: 'Tự động mở hồ sơ chăm sóc và giao nhân viên phụ trách lớp, theo dõi tiến độ.',
       icon: ICONS.bolt,
       tone: 'from-violet-500 to-fuchsia-500 shadow-fuchsia-500/30',
     },
@@ -211,16 +211,16 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       text: 'Ghi nhận sinh viên vắng ngay trong giờ học của học phần.',
     },
     {
-      title: 'Tự động giao cuộc gọi',
-      text: 'Mỗi sinh viên vắng thành một cuộc gọi cho nhân viên phụ trách lớp của em đó.',
+      title: 'Cảnh báo & chỉ đạo',
+      text: 'Sinh viên chạm mức cảnh báo được mở hồ sơ chăm sóc, Trưởng phòng / PHT chỉ đạo người chăm sóc.',
     },
     {
-      title: 'CSKH liên hệ',
-      text: 'Gọi điện, ghi lý do vắng, hẹn gọi lại, AI gợi ý cách trao đổi.',
+      title: 'CSKH chăm sóc',
+      text: 'Gọi điện, tìm nguyên nhân, đưa hướng giải quyết theo các bước — AI gợi ý, báo khó khăn.',
     },
     {
-      title: 'Cảnh báo kịp thời',
-      text: 'Sinh viên chạm mức cảnh báo hiện ngay trên báo cáo cho Trưởng phòng.',
+      title: 'Đánh giá & chốt hồ sơ',
+      text: 'Nhân viên báo cáo kết quả, lãnh đạo duyệt, hồ sơ vào lịch sử.',
     },
   ];
 

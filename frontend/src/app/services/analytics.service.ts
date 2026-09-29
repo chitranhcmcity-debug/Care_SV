@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../config/api';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { WarningLevel } from '../models/types';
+import { CareStatus, WarningLevel } from '../models/types';
 
 export interface WarningRow {
   student: {
@@ -21,18 +21,19 @@ export interface WarningRow {
   absentPercent: number | null;
   warningLevel: WarningLevel;
   isAtRisk: boolean;
-  lastCallStatus: string;
-  lastCallNote: string;
+  careCaseId: string | null;
+  careStatus: CareStatus | null;
+  careCause: string;
   assignedStaff: string;
 }
 
 export interface AnalyticsSummary {
   metrics: {
-    totalTasks: number;
-    completedTasks: number;
-    pendingTasks: number;
-    retryTasks: number;
-    unassignedTasks: number;
+    totalCases: number;
+    awaitingCases: number;
+    inProgressCases: number;
+    closingCases: number;
+    closedCases: number;
     examBanRiskCount: number;
     warningCount: number;
   };
@@ -41,23 +42,7 @@ export interface AnalyticsSummary {
   warningList: WarningRow[];
   courseAbsenceStats: { courseCode: string; absentCount: number }[];
   reasonStats: { reason: string; count: number }[];
-  examBanRiskList: {
-    student: {
-      _id: string;
-      studentCode: string;
-      fullName: string;
-      classCode: string;
-      major: string;
-      phone?: string;
-      parentPhone?: string;
-    };
-    courseCode: string;
-    courseName?: string;
-    absentCount: number;
-    lastCallStatus: string;
-    lastCallNote: string;
-    assignedStaff: string;
-  }[];
+  examBanRiskList: WarningRow[];
 }
 
 @Injectable({

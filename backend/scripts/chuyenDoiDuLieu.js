@@ -1,16 +1,11 @@
 // Brings data from older versions up to date. Safe to run on every startup: once
 // converted, nothing matches the legacy names/values and every step is a no-op.
 const mongoose = require('mongoose');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const CuocGoi = require('../models/CuocGoi');
 const NhiemVu = require('../models/NhiemVu');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const SinhVien = require('../models/SinhVien');
-const {
-  CALL_STATUS_LABEL,
-  TASK_STATUS_LABEL,
-  SHIFT_LABEL,
-  WEEKDAY_LABEL,
-} = require('../utils/hangSo');
+const { TASK_STATUS_LABEL, SHIFT_LABEL, WEEKDAY_LABEL } = require('../utils/hangSo');
 
 // 1. Old English collection names -> unaccented Vietnamese names.
 const LEGACY_COLLECTIONS = Object.freeze({
@@ -72,7 +67,6 @@ async function renameArrayValues(Model, field, labels) {
 
 async function migrateEnumCodes() {
   const counts = await Promise.all([
-    renameValues(NhiemVuGoiDien, 'status', CALL_STATUS_LABEL),
     renameValues(NhiemVu, 'status', TASK_STATUS_LABEL),
     renameValues(NhomHocPhan, 'shift', SHIFT_LABEL),
     renameArrayValues(NhomHocPhan, 'scheduleDays', WEEKDAY_LABEL),
@@ -90,8 +84,21 @@ async function normalizeClassCodes() {
   if (modifiedCount) console.log(`Normalized the class code of ${modifiedCount} students.`);
 }
 
+// 4. Calls from before the "record?" question were always recorded; keep them playable.
+async function markLegacyRecordings() {
+  const { modifiedCount } = await CuocGoi.collection.updateMany(
+    {
+      record: { $exists: false },
+      $or: [{ recording: { $ne: null } }, { stringeeCallId: { $nin: ['', null] } }],
+    },
+    { $set: { record: true } },
+  );
+  if (modifiedCount) console.log(`Marked ${modifiedCount} earlier calls as recorded.`);
+}
+
 module.exports = async function migrateLegacyData() {
   await renameCollections();
   await migrateEnumCodes();
   await normalizeClassCodes();
+  await markLegacyRecordings();
 };

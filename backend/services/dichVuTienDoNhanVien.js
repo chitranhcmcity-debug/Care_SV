@@ -1,12 +1,12 @@
 // Theo dõi tiến độ & năng lực nhân viên: số liệu khách quan từ công việc được giao (NhiemVu) và
-// nhiệm vụ gọi điện chăm sóc (NhiemVuGoiDien). Dùng cho tab "Tiến độ nhân viên" và AI đánh giá.
+// hồ sơ chăm sóc sinh viên (HoSoChamSoc). Dùng cho tab "Tiến độ nhân viên" và AI đánh giá.
 const NhiemVu = require('../models/NhiemVu');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const NguoiDung = require('../models/NguoiDung');
 const {
   TASK_STATUS,
   OPEN_TASK_STATUSES,
-  CALL_STATUS,
+  CARE_STATUS,
   TASK_CATEGORIES,
 } = require('../utils/hangSo');
 
@@ -18,7 +18,7 @@ const KPI_WEIGHTS = Object.freeze({
   completion: 0.3, // hoàn thành / (hoàn thành + quá hạn chưa xong)
   onTime: 0.25, // việc có hạn chót được nộp đúng hạn
   quality: 0.25, // điểm chất lượng trung bình người duyệt chấm (1–5)
-  care: 0.2, // nhiệm vụ gọi điện đã liên hệ được
+  care: 0.2, // các bước chăm sóc đã hoàn thành trong hồ sơ được giao
 });
 
 function kpiRating(score) {
@@ -44,8 +44,8 @@ function isOverdue(task, now) {
   );
 }
 
-/** Metrics for one staff member from their tasks and call tasks (both already period-filtered). */
-function summarize(tasks, calls, now = Date.now()) {
+/** Metrics for one staff member from their tasks and care cases (both already period-filtered). */
+function summarize(tasks, cases, now = Date.now()) {
   const byStatus = Object.fromEntries(Object.values(TASK_STATUS).map((s) => [s, 0]));
   const byCategory = {};
   for (const task of tasks) {
@@ -71,14 +71,15 @@ function summarize(tasks, calls, now = Date.now()) {
     .filter((t) => t.completedAt && t.createdAt)
     .map((t) => (new Date(t.completedAt) - new Date(t.createdAt)) / DAY_MS);
 
-  const callCount = (status) => calls.filter((c) => c.status === status).length;
-  const contacted = callCount(CALL_STATUS.CONTACTED);
+  const caseCount = (status) => cases.filter((c) => c.status === status).length;
+  const stepsTotal = cases.reduce((sum, c) => sum + (c.steps?.length ?? 0), 0);
+  const stepsDone = cases.reduce((sum, c) => sum + (c.steps?.filter((s) => s.done).length ?? 0), 0);
 
   const rates = {
     completion: ratio(completed.length, completed.length + overdue.length),
     onTime: ratio(onTime.length, completedWithDue.length),
     quality: scores.length ? (average(scores) - 1) / 4 : null,
-    care: ratio(contacted, calls.length),
+    care: ratio(stepsDone, stepsTotal),
   };
   const parts = Object.entries(KPI_WEIGHTS).filter(([key]) => rates[key] !== null);
   const weightSum = parts.reduce((sum, [, w]) => sum + w, 0);
@@ -106,12 +107,14 @@ function summarize(tasks, calls, now = Date.now()) {
       avgCompletionDays: round(average(completionDays)),
       byCategory,
     },
-    calls: {
-      total: calls.length,
-      contacted,
-      unreachable: callCount(CALL_STATUS.UNREACHABLE),
-      pending: callCount(CALL_STATUS.PENDING),
-      avgAttempts: round(average(calls.map((c) => c.callAttempts ?? 0))),
+    care: {
+      total: cases.length,
+      inProgress: caseCount(CARE_STATUS.IN_PROGRESS),
+      closing: caseCount(CARE_STATUS.CLOSING),
+      closed: caseCount(CARE_STATUS.CLOSED),
+      improved: cases.filter((c) => ['tien_bo', 'on_dinh'].includes(c.closing?.result)).length,
+      stepsDone,
+      stepsTotal,
     },
     rates: Object.fromEntries(Object.entries(rates).map(([k, v]) => [k, round(v && v * 100, 0)])),
     kpiScore,
@@ -137,14 +140,14 @@ async function staffProgress({ from = null, to = null, staffId = null } = {}) {
   const staffList = await NguoiDung.find(userFilter).select('fullName email status').lean();
   const ids = staffList.map((s) => s._id);
   const period = periodFilter(from, to);
-  const [tasks, calls] = await Promise.all([
+  const [tasks, cases] = await Promise.all([
     NhiemVu.find({ assignedTo: { $in: ids }, ...period })
       .select(
         'assignedTo status category priority dueDate progress reviewScore reworkCount submittedAt completedAt createdAt',
       )
       .lean(),
-    NhiemVuGoiDien.find({ assignedStaffId: { $in: ids }, ...period })
-      .select('assignedStaffId status callAttempts')
+    HoSoChamSoc.find({ assignedStaffId: { $in: ids }, ...period })
+      .select('assignedStaffId status steps.done closing.result')
       .lean(),
   ]);
   const group = (list, key) => {
@@ -157,7 +160,7 @@ async function staffProgress({ from = null, to = null, staffId = null } = {}) {
     return map;
   };
   const tasksByStaff = group(tasks, 'assignedTo');
-  const callsByStaff = group(calls, 'assignedStaffId');
+  const casesByStaff = group(cases, 'assignedStaffId');
   const now = Date.now();
 
   return staffList
@@ -165,11 +168,11 @@ async function staffProgress({ from = null, to = null, staffId = null } = {}) {
       staff: { _id: s._id, fullName: s.fullName, email: s.email, status: s.status },
       ...summarize(
         tasksByStaff.get(String(s._id)) ?? [],
-        callsByStaff.get(String(s._id)) ?? [],
+        casesByStaff.get(String(s._id)) ?? [],
         now,
       ),
     }))
-    .filter((row) => row.staff.status === 'active' || row.tasks.total || row.calls.total)
+    .filter((row) => row.staff.status === 'active' || row.tasks.total || row.care.total)
     .sort((a, b) => (b.kpiScore ?? -1) - (a.kpiScore ?? -1) || b.tasks.total - a.tasks.total);
 }
 

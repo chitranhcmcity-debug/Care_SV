@@ -40,9 +40,9 @@ export class AiService {
 
   private readonly http = inject(HttpClient);
 
-  /** Gợi ý lời khuyên khi gọi điện cho sinh viên của 1 nhiệm vụ gọi điện cụ thể. */
-  getCallAdvice(callTaskId: string): Observable<{ advice: string }> {
-    return this.http.post<{ advice: string }>(`${this.apiUrl}/call-advice`, { callTaskId });
+  /** Gợi ý lời khuyên khi gọi điện cho sinh viên của một hồ sơ chăm sóc. */
+  getCallAdvice(careCaseId: string): Observable<{ advice: string }> {
+    return this.http.post<{ advice: string }>(`${this.apiUrl}/call-advice`, { careCaseId });
   }
 
   /** Tóm tắt + nhận xét nhanh minh chứng của 1 nhiệm vụ nội bộ (Giao Việc). */

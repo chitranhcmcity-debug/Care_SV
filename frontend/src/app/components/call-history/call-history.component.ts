@@ -2,10 +2,11 @@ import { Component, OnDestroy, effect, inject, signal, untracked } from '@angula
 import { CommonModule } from '@angular/common';
 import { CALL_OUTCOME_LABELS, CallLog, CallService } from '../../services/call.service';
 import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
 
 const PAGE_SIZE = 20;
 
-/** The signed-in user's own call log, with recordings. */
+/** The signed-in user's call log with recordings; Trưởng phòng / PHT can switch to everyone's. */
 @Component({
   selector: 'app-call-history',
   standalone: true,
@@ -26,6 +27,9 @@ export class CallHistoryComponent implements OnDestroy {
   readonly loadingRecording = signal<string | null>(null);
   readonly uploading = signal<string | null>(null);
   readonly outcomeLabels: Record<string, string> = CALL_OUTCOME_LABELS;
+  /** recordings.viewAll: may list and hear every call. */
+  readonly canViewAll = inject(AuthService).can('recordings.viewAll');
+  readonly showAll = signal(false);
 
   constructor() {
     // First load, and again whenever a call is saved from the dialog.
@@ -46,14 +50,25 @@ export class CallHistoryComponent implements OnDestroy {
   load(page: number) {
     this.loading.set(true);
     this.page.set(page);
-    this.calls.list({ page, limit: PAGE_SIZE }).subscribe({
-      next: (res) => {
-        this.items.set(res.items);
-        this.total.set(res.total);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.calls
+      .list({ page, limit: PAGE_SIZE, scope: this.showAll() ? 'all' : undefined })
+      .subscribe({
+        next: (res) => {
+          this.items.set(res.items);
+          this.total.set(res.total);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+  }
+
+  setShowAll(value: boolean) {
+    this.showAll.set(value);
+    this.load(1);
+  }
+
+  callerName(call: CallLog): string {
+    return typeof call.callerId === 'string' ? '' : call.callerId.fullName;
   }
 
   student(call: CallLog) {

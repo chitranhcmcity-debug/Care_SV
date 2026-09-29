@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const NhiemVu = require('../models/NhiemVu');
 const NguoiDung = require('../models/NguoiDung');
 const LichSuPhanCong = require('../models/LichSuPhanCong');
@@ -26,7 +26,8 @@ const { canAccessStudent } = require('../middleware/phanQuyen');
 const { actionTools, handleActionTool } = require('./dichVuAiThaoTac');
 const {
   ROLE_LABEL,
-  OPEN_CALL_STATUSES,
+  CARE_STATUS,
+  OPEN_CARE_STATUSES,
   TASK_STATUS,
   SHIFT_LABEL,
   WEEKDAY_LABEL,
@@ -176,24 +177,21 @@ const TOOLS = [
         .select('studentCode fullName classCode')
         .lean();
       const studentMap = Object.fromEntries(students.map((s) => [String(s._id), s]));
-      const latestCalls = await NhiemVuGoiDien.find({
+      const latestCases = await HoSoChamSoc.find({
         studentId: { $in: rows.map((r) => r._id.student) },
       })
         .sort({ createdAt: -1 })
-        .select('studentId courseGroupId status absenceReasonCategory')
+        .select('studentId status cause')
         .lean();
-      const callKey = (g, s) => `${g}:${s}`;
-      const callMap = {};
-      for (const c of latestCalls) {
-        const key = callKey(c.courseGroupId, c.studentId);
-        if (!callMap[key]) callMap[key] = c;
-      }
+      const caseMap = {};
+      for (const c of latestCases)
+        if (!caseMap[String(c.studentId)]) caseMap[String(c.studentId)] = c;
       return {
         cacMucCanhBao: describeLevels(levels),
         danhSach: rows.map((r) => {
           const s = studentMap[String(r._id.student)];
           const g = groupMap[String(r._id.group)];
-          const call = callMap[callKey(r._id.group, r._id.student)];
+          const careCase = caseMap[String(r._id.student)];
           return {
             mssv: s?.studentCode,
             hoTen: s?.fullName,
@@ -203,9 +201,9 @@ const TOOLS = [
             soTietNghi: r.absentPeriods,
             phanTramTongTiet: r.absentPercent,
             mucCanhBao: warningText(r),
-            chamSocGanNhat: call
-              ? `${toLabel(call.status)}${call.absenceReasonCategory ? ` — ${call.absenceReasonCategory}` : ''}`
-              : 'Chưa có nhiệm vụ gọi',
+            hoSoChamSoc: careCase
+              ? `${toLabel(careCase.status)}${careCase.cause ? ` — ${careCase.cause}` : ''}`
+              : 'Chưa có hồ sơ chăm sóc',
           };
         }),
       };
@@ -293,12 +291,10 @@ const TOOLS = [
                   },
                 },
               ]),
-              NhiemVuGoiDien.find({ studentId: s._id })
+              HoSoChamSoc.find({ studentId: s._id })
                 .sort({ createdAt: -1 })
                 .limit(5)
-                .select(
-                  'status callNote absenceReasonCategory absenceDate callbackDate callAttempts',
-                )
+                .select('status reason cause solution steps.done closing.result createdAt')
                 .lean(),
             ]);
             return {
@@ -311,13 +307,14 @@ const TOOLS = [
                 hocPhan: a.g[0] ? `${a.g[0].courseName} (${a.g[0].groupCode})` : 'Học phần đã xóa',
                 soBuoiVang: a.count,
               })),
-              lichSuChamSoc: calls.map((c) => ({
-                ngayVang: fmtDate(c.absenceDate),
+              hoSoChamSoc: calls.map((c) => ({
+                ngayMo: fmtDate(c.createdAt),
                 trangThai: toLabel(c.status),
-                lyDo: c.absenceReasonCategory || null,
-                ghiChu: c.callNote || null,
-                soLanGoi: c.callAttempts,
-                henGoiLai: fmtDate(c.callbackDate),
+                lyDoMo: c.reason || null,
+                nguyenNhan: c.cause || null,
+                huongGiaiQuyet: c.solution || null,
+                buocDaLam: `${c.steps.filter((st) => st.done).length}/${c.steps.length}`,
+                ketQua: c.closing?.result ? toLabel(c.closing.result) : null,
               })),
             };
           }),
@@ -326,38 +323,33 @@ const TOOLS = [
     },
   },
   {
-    name: 'nhiem_vu_goi_dien_cua_toi',
-    label: 'Danh sách cuộc gọi chăm sóc cần xử lý của tôi',
+    name: 'ho_so_cham_soc_cua_toi',
+    label: 'Hồ sơ chăm sóc sinh viên tôi đang phụ trách',
     description:
-      'Nhiệm vụ gọi điện chưa hoàn tất được giao cho chính người dùng, ưu tiên các cuộc đến hạn gọi lại.',
+      'Hồ sơ chăm sóc đang mở được giao cho chính người dùng: sinh viên, lý do, chỉ đạo, các bước đã làm, hạn.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
-    allowed: (u) => u.role === 'staff' && can(u, 'callTasks.update'),
+    allowed: (u) => u.role === 'staff' && can(u, 'care.work'),
     async run(user) {
-      const now = new Date();
-      const tasks = await NhiemVuGoiDien.find({
+      const cases = await HoSoChamSoc.find({
         assignedStaffId: user.id,
-        status: { $in: OPEN_CALL_STATUSES },
+        status: { $in: [...OPEN_CARE_STATUSES] },
       })
         .populate('studentId', 'studentCode fullName classCode')
-        .populate('courseGroupId', 'groupCode courseName')
-        .sort({ absenceDate: 1 })
+        .sort({ dueDate: 1, updatedAt: -1 })
         .lean();
-      const due = (t) => Boolean(t.callbackDate && new Date(t.callbackDate) <= now);
-      tasks.sort((a, b) => Number(due(b)) - Number(due(a)));
       return {
-        tongSo: tasks.length,
-        denHanGoiLai: tasks.filter(due).length,
-        danhSach: tasks.slice(0, MAX_ROWS).map((t) => ({
-          mssv: t.studentId?.studentCode,
-          hoTen: t.studentId?.fullName,
-          lop: t.studentId?.classCode,
-          hocPhan: t.courseGroupId?.courseName,
-          ngayVang: fmtDate(t.absenceDate),
-          trangThai: toLabel(t.status),
-          soLanGoi: t.callAttempts,
-          henGoiLai: fmtDate(t.callbackDate),
-          denHanGoiLai: due(t),
-          ghiChu: t.callNote || null,
+        tongSo: cases.length,
+        danhSach: cases.slice(0, MAX_ROWS).map((c) => ({
+          mssv: c.studentId?.studentCode,
+          hoTen: c.studentId?.fullName,
+          lop: c.studentId?.classCode,
+          trangThai: toLabel(c.status),
+          lyDo: c.reason || null,
+          chiDao: c.directive || null,
+          han: fmtDate(c.dueDate),
+          buocDaLam: `${c.steps.filter((st) => st.done).length}/${c.steps.length}`,
+          buocTiepTheo: c.steps.find((st) => !st.done)?.title || null,
+          nguyenNhan: c.cause || null,
         })),
       };
     },
@@ -393,7 +385,7 @@ const TOOLS = [
     name: 'tong_quan_he_thong',
     label: 'Số liệu tổng quan toàn trường',
     description:
-      'Tổng số sinh viên, học phần, nhân viên, buổi điểm danh, nhiệm vụ gọi điện và nhiệm vụ nội bộ theo trạng thái.',
+      'Tổng số sinh viên, học phần, nhân viên, buổi điểm danh, hồ sơ chăm sóc và nhiệm vụ nội bộ theo trạng thái.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
     // School-wide numbers: only for the whole-school AI right (reports.view is class-scoped for CSKH).
     allowed: (u) => can(u, 'ai.chat'),
@@ -418,12 +410,9 @@ const TOOLS = [
         NguoiDung.countDocuments({ role: 'staff', status: 'active' }),
         NguoiDung.countDocuments({ role: 'teacher', status: 'active' }),
         DiemDanh.countDocuments(),
-        byStatus(NhiemVuGoiDien),
+        byStatus(HoSoChamSoc),
         byStatus(NhiemVu),
-        NhiemVuGoiDien.countDocuments({
-          assignedStaffId: null,
-          status: { $in: OPEN_CALL_STATUSES },
-        }),
+        HoSoChamSoc.countDocuments({ status: CARE_STATUS.AWAITING }),
         getWarningLevels(),
       ]);
       return {
@@ -432,9 +421,9 @@ const TOOLS = [
         nhanVienCSKH: nhanVien,
         giangVien,
         buoiDiemDanh,
-        nhiemVuGoiDien: goiDien,
+        hoSoChamSoc: goiDien,
         nhiemVuNoiBo: noiBo,
-        cuocGoiTrongHangChoChuaPhanCong: hangCho,
+        hoSoChoChiDao: hangCho,
         cacMucCanhBao: describeLevels(levels),
       };
     },
@@ -442,13 +431,13 @@ const TOOLS = [
   {
     name: 'ly_do_vang_pho_bien',
     label: 'Phân tích lý do vắng học',
-    description: 'Thống kê lý do vắng đã ghi nhận qua các cuộc gọi chăm sóc (theo nhóm lý do).',
+    description: 'Các nguyên nhân vắng học nhân viên đã tìm hiểu được trong hồ sơ chăm sóc.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
     allowed: (u) => can(u, 'reports.view'),
     async run() {
-      const rows = await NhiemVuGoiDien.aggregate([
-        { $match: { absenceReasonCategory: { $nin: ['', null] } } },
-        { $group: { _id: '$absenceReasonCategory', count: { $sum: 1 } } },
+      const rows = await HoSoChamSoc.aggregate([
+        { $match: { cause: { $nin: ['', null] } } },
+        { $group: { _id: '$cause', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 15 },
       ]);
@@ -459,27 +448,29 @@ const TOOLS = [
     name: 'khoi_luong_nhan_vien',
     label: 'Khối lượng công việc và tiến độ nhân viên CSKH',
     description:
-      'Theo từng nhân viên CSKH: số cuộc gọi đang mở, đến hạn gọi lại, đã liên hệ, và nhiệm vụ nội bộ đang làm / chờ duyệt / quá hạn.',
+      'Theo từng nhân viên CSKH: số hồ sơ chăm sóc đang làm, chờ duyệt kết thúc, quá hạn, đã kết thúc, và nhiệm vụ nội bộ đang làm / chờ duyệt / quá hạn.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
-    allowed: (u) => can(u, 'tasks.manage') || can(u, 'callTasks.viewAll'),
+    allowed: (u) => can(u, 'tasks.manage') || can(u, 'care.manage'),
     async run() {
       const now = new Date();
       const [staff, calls, tasks] = await Promise.all([
         NguoiDung.find({ role: 'staff', status: 'active' }).select('fullName').lean(),
-        NhiemVuGoiDien.aggregate([
+        HoSoChamSoc.aggregate([
+          { $match: { assignedStaffId: { $ne: null } } },
           {
             $group: {
               _id: '$assignedStaffId',
-              open: { $sum: { $cond: [{ $in: ['$status', OPEN_CALL_STATUSES] }, 1, 0] } },
-              contacted: { $sum: { $cond: [{ $in: ['$status', OPEN_CALL_STATUSES] }, 0, 1] } },
-              callbackDue: {
+              open: { $sum: { $cond: [{ $eq: ['$status', CARE_STATUS.IN_PROGRESS] }, 1, 0] } },
+              closing: { $sum: { $cond: [{ $eq: ['$status', CARE_STATUS.CLOSING] }, 1, 0] } },
+              closed: { $sum: { $cond: [{ $eq: ['$status', CARE_STATUS.CLOSED] }, 1, 0] } },
+              overdue: {
                 $sum: {
                   $cond: [
                     {
                       $and: [
-                        { $in: ['$status', OPEN_CALL_STATUSES] },
-                        { $ne: ['$callbackDate', null] },
-                        { $lte: ['$callbackDate', now] },
+                        { $eq: ['$status', CARE_STATUS.IN_PROGRESS] },
+                        { $ne: ['$dueDate', null] },
+                        { $lt: ['$dueDate', now] },
                       ],
                     },
                     1,
@@ -536,9 +527,10 @@ const TOOLS = [
           const t = taskMap[String(s._id)] || {};
           return {
             hoTen: s.fullName,
-            cuocGoiDangMo: c.open || 0,
-            denHanGoiLai: c.callbackDue || 0,
-            daLienHe: c.contacted || 0,
+            hoSoDangChamSoc: c.open || 0,
+            hoSoChoDuyetKetThuc: c.closing || 0,
+            hoSoQuaHan: c.overdue || 0,
+            hoSoDaKetThuc: c.closed || 0,
             viecDangLam: t.inProgress || 0,
             viecChoDuyet: t.submitted || 0,
             viecQuaHan: t.overdue || 0,
@@ -575,7 +567,7 @@ const TOOLS = [
     name: 'lop_phu_trach_cua_toi',
     label: 'Các lớp hành chính tôi đang phụ trách',
     description:
-      'Lớp hành chính nhân viên đang phụ trách (sĩ số, phụ trách từ ngày nào), tổng cuộc gọi đang mở và các lớp đã từng phụ trách.',
+      'Lớp hành chính nhân viên đang phụ trách (sĩ số, phụ trách từ ngày nào), số hồ sơ chăm sóc đang mở và các lớp đã từng phụ trách.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
     allowed: isStaff,
     async run(user) {
@@ -588,9 +580,9 @@ const TOOLS = [
         { $group: { _id: '$classCode', n: { $sum: 1 } } },
       ]);
       const countMap = Object.fromEntries(counts.map((c) => [c._id, c.n]));
-      const open = await NhiemVuGoiDien.countDocuments({
+      const open = await HoSoChamSoc.countDocuments({
         assignedStaffId: user.id,
-        status: { $in: OPEN_CALL_STATUSES },
+        status: { $in: [...OPEN_CARE_STATUSES] },
       });
       return {
         dangPhuTrach: current.map((h) => ({
@@ -598,7 +590,7 @@ const TOOLS = [
           siSo: countMap[h.classCode] || 0,
           tuNgay: fmtDate(h.startedAt),
         })),
-        tongCuocGoiDangMo: open,
+        hoSoChamSocDangMo: open,
         daTungPhuTrach: history
           .filter((h) => !h.active)
           .slice(0, 15)
@@ -613,11 +605,11 @@ const TOOLS = [
   },
   {
     name: 'phan_cong_lop',
-    label: 'Phân công lớp hành chính và hàng chờ chưa phân công',
+    label: 'Phân công lớp hành chính và hồ sơ chờ chỉ đạo',
     description:
-      'Lớp nào do nhân viên nào phụ trách, lớp nào chưa có người phụ trách, số cuộc gọi đang nằm trong hàng chờ chưa phân công, và lịch sử chuyển lớp gần đây.',
+      'Lớp nào do nhân viên nào phụ trách, lớp nào chưa có người phụ trách, số hồ sơ chăm sóc đang chờ chỉ đạo, và lịch sử chuyển lớp gần đây.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
-    allowed: (u) => can(u, 'classes.assign') || can(u, 'callTasks.viewAll'),
+    allowed: (u) => can(u, 'classes.assign') || can(u, 'care.manage'),
     async run() {
       const [classes, active, queue, recent] = await Promise.all([
         SinhVien.aggregate([
@@ -626,10 +618,7 @@ const TOOLS = [
           { $sort: { _id: 1 } },
         ]),
         LichSuPhanCong.find({ active: true }).lean(),
-        NhiemVuGoiDien.countDocuments({
-          assignedStaffId: null,
-          status: { $in: OPEN_CALL_STATUSES },
-        }),
+        HoSoChamSoc.countDocuments({ status: CARE_STATUS.AWAITING }),
         LichSuPhanCong.find({ active: false }).sort({ endedAt: -1 }).limit(10).lean(),
       ]);
       const owner = new Map(active.map((a) => [a.classCode, a]));
@@ -640,7 +629,7 @@ const TOOLS = [
           nhanVienPhuTrach: owner.get(c._id)?.staffName || 'CHƯA PHÂN CÔNG',
           tuNgay: fmtDate(owner.get(c._id)?.startedAt),
         })),
-        cuocGoiTrongHangCho: queue,
+        hoSoChoChiDao: queue,
         chuyenLopGanDay: recent.map((r) => ({
           lop: r.classCode,
           nhanVienCu: r.staffName,
@@ -697,7 +686,7 @@ const ROLE_PROFILES = {
     focus:
       'Hỗ trợ giảng viên: nắm lịch dạy và giờ mở điểm danh, theo dõi tiết nghỉ và mức cảnh báo của sinh viên lớp mình, gợi ý cách nhắc nhở và trao đổi với sinh viên.',
     pages:
-      '"Điểm danh" (chỉ mở trong giờ học theo thời khóa biểu, sửa được đến hết ngày; xem lịch sử và thống kê tiết nghỉ), "Thời khóa biểu", "Lịch sử cuộc gọi" (mọi cuộc gọi cho sinh viên đều được lưu).',
+      '"Điểm danh" (chỉ mở trong giờ học theo thời khóa biểu, sửa được đến hết ngày; sau khi lưu có thể chọn gọi cho sinh viên vắng hoặc bỏ qua; xem lịch sử và thống kê tiết nghỉ), "Hồ sơ chăm sóc" (đề xuất chăm sóc sinh viên có dấu hiệu bỏ học và xem tiến độ hồ sơ mình đề xuất), "Thời khóa biểu", "Lịch sử cuộc gọi" (chỉ nghe lại ghi âm cuộc gọi của mình).',
     suggestions: [
       'Hôm nay tôi có lớp nào, mấy giờ được điểm danh?',
       'Sinh viên nào trong các lớp của tôi đã chạm mức cảnh báo?',
@@ -707,27 +696,27 @@ const ROLE_PROFILES = {
   },
   staff: {
     focus:
-      'Hỗ trợ nhân viên chăm sóc sinh viên (CSKH) các lớp hành chính được phân công: sắp xếp thứ tự gọi điện theo mức cảnh báo, chuẩn bị nội dung cuộc gọi, ghi nhận kết quả, theo dõi nhiệm vụ được giao.',
+      'Hỗ trợ nhân viên chăm sóc sinh viên (CSKH): làm các hồ sơ chăm sóc được giao theo chỉ đạo của cấp quản lý — ưu tiên hồ sơ gấp, chuẩn bị nội dung cuộc gọi, tìm hiểu nguyên nhân, đề xuất hướng giải quyết, báo khó khăn, theo dõi nhiệm vụ được giao.',
     pages:
-      '"Chăm sóc SV" (danh sách cuộc gọi của các lớp mình phụ trách, cập nhật trạng thái, hẹn gọi lại, gợi ý AI), "Giao việc" (xác nhận và nộp minh chứng), "Báo cáo" (chỉ lớp mình phụ trách), "Lịch sử cuộc gọi".',
+      '"Hồ sơ chăm sóc" (hồ sơ được giao: các bước chăm sóc, gọi điện, nguyên nhân, hướng giải quyết, trao đổi với cấp quản lý, đề nghị kết thúc), "Giao việc" (xác nhận và nộp minh chứng), "Báo cáo" (chỉ lớp mình phụ trách), "Lịch sử cuộc gọi" (chỉ nghe lại ghi âm của mình).',
     suggestions: [
-      'Hôm nay tôi nên gọi cho ai trước?',
+      'Hôm nay tôi nên ưu tiên hồ sơ chăm sóc nào?',
       'Lớp tôi phụ trách có sinh viên nào chạm mức cảnh báo?',
-      'Soạn kịch bản gọi cho sinh viên sắp bị cấm thi',
+      'Soạn kịch bản gọi cho sinh viên nghỉ học nhiều',
     ],
     actionSuggestions: [
-      'Giúp tôi ghi kết quả cuộc gọi cho một sinh viên',
+      'Giúp tôi ghi nguyên nhân và hướng giải quyết vào hồ sơ của một sinh viên',
       'Xác nhận tôi đã nhận việc mới nhất',
     ],
   },
   manager: {
     focus:
-      'Hỗ trợ Trưởng phòng / Phó hiệu trưởng: tổng quan chuyên cần toàn trường theo các mức cảnh báo, phân lớp cho nhân viên CSKH và xử lý hàng chờ chưa phân công, giao việc và giám sát tiến độ, gợi ý điều chỉnh mức cảnh báo.',
+      'Hỗ trợ Trưởng phòng / Phó hiệu trưởng: tổng quan chuyên cần toàn trường theo các mức cảnh báo, chỉ đạo nhân viên chăm sóc các hồ sơ chờ chỉ đạo, theo dõi hồ sơ đã chăm sóc tới đâu, duyệt kết thúc hồ sơ, phân lớp cho nhân viên CSKH, giao việc và giám sát tiến độ.',
     pages:
-      '"Quản lý" (giao việc, duyệt minh chứng, phân lớp CSKH & lịch sử phân công, học phần & thời khóa biểu, cấu hình mức cảnh báo, báo cáo), "Sinh viên", "Chăm sóc SV" (giám sát, hàng chờ), "Điểm danh" (sửa ngoài giờ khi cần), "Lịch sử cuộc gọi".',
+      '"Hồ sơ chăm sóc" (hồ sơ chờ chỉ đạo, đang chăm sóc, chờ duyệt kết thúc, lịch sử), "Quản lý" (giao việc, duyệt minh chứng, phân lớp CSKH & lịch sử phân công, học phần & thời khóa biểu, cấu hình mức cảnh báo, báo cáo), "Sinh viên", "Điểm danh" (sửa ngoài giờ khi cần), "Lịch sử cuộc gọi" (nghe lại mọi ghi âm).',
     suggestions: [
       'Tóm tắt tình hình chuyên cần theo từng mức cảnh báo',
-      'Lớp nào chưa có nhân viên phụ trách? Hàng chờ còn bao nhiêu cuộc gọi?',
+      'Lớp nào chưa có nhân viên phụ trách? Còn bao nhiêu hồ sơ chờ chỉ đạo?',
       'Nhân viên nào đang quá tải hoặc chậm tiến độ?',
     ],
     actionSuggestions: [
@@ -739,7 +728,7 @@ const ROLE_PROFILES = {
     focus:
       'Hỗ trợ Quản trị viên hệ thống: tài khoản, phân quyền, cấu hình hệ thống / API / giao diện, gói dịch vụ. Admin được xem dữ liệu nghiệp vụ để hỗ trợ kỹ thuật nhưng không thao tác nghiệp vụ (giao việc, cảnh báo, phân lớp thuộc Trưởng phòng).',
     pages:
-      '"Quản trị" (tài khoản, phân quyền, cấu hình hệ thống, cấu hình API, giao diện web), "Gói dịch vụ"; xem (chỉ đọc) "Sinh viên", "Chăm sóc SV", "Báo cáo".',
+      '"Quản trị" (tài khoản, phân quyền, cấu hình hệ thống, cấu hình API, giao diện web), "Gói dịch vụ"; xem (chỉ đọc) "Sinh viên", "Hồ sơ chăm sóc", "Báo cáo".',
     suggestions: [
       'Các kết nối API (AI, tổng đài, email) đã cấu hình đủ chưa?',
       'Gói dịch vụ còn bao nhiêu ngày?',
@@ -779,18 +768,19 @@ Nhiệm vụ của bạn với vai trò này: ${profile.focus}
 Các trang chức năng người dùng này có thể mở: ${profile.pages}
 
 Quy định hiện hành của trường (theo cấu hình mới nhất):
-- Phân vai: Admin quản trị hệ thống (tài khoản, phân quyền, cấu hình, API, giao diện) và chỉ xem dữ liệu nghiệp vụ. Trưởng phòng / Phó hiệu trưởng giao việc, phân lớp cho nhân viên CSKH, cấu hình mức cảnh báo. Nhân viên CSKH chăm sóc sinh viên theo lớp hành chính được phân công và chỉ xem được các lớp đó; khi chuyển lớp, lịch sử phân công vẫn được lưu. Giảng viên điểm danh học phần mình dạy và có thể gọi điện cho sinh viên (mọi cuộc gọi đều được lưu lịch sử).
+- Phân vai: Admin quản trị hệ thống (tài khoản, phân quyền, cấu hình, API, giao diện) và chỉ xem dữ liệu nghiệp vụ. Trưởng phòng / Phó hiệu trưởng chỉ đạo chăm sóc, duyệt kết thúc hồ sơ, giao việc, phân lớp cho nhân viên CSKH, cấu hình mức cảnh báo. Nhân viên CSKH làm các hồ sơ chăm sóc được giao và xem được sinh viên các lớp mình phụ trách; khi chuyển lớp, lịch sử phân công vẫn được lưu. Giảng viên điểm danh học phần mình dạy, có thể gọi cho sinh viên vắng (không bắt buộc) và đề xuất chăm sóc.
+- Hồ sơ chăm sóc: khi sinh viên chạm một mức cảnh báo vắng, hệ thống mở hồ sơ và mặc định giao cho nhân viên phụ trách lớp hành chính của sinh viên (lớp chưa có người phụ trách thì chờ Trưởng phòng / PHT chỉ đạo). Giảng viên, nhân viên cũng có thể đề xuất mở hồ sơ cho sinh viên có dấu hiệu bỏ học; hồ sơ đề xuất chờ cấp quản lý chỉ đạo. Hồ sơ có các bước chăm sóc (mặc định, do quản lý tạo hoặc AI gợi ý), nguyên nhân, hướng giải quyết, trao đổi hai chiều và các cuộc gọi. Nhân viên đề nghị kết thúc kèm báo cáo kết quả, Trưởng phòng / PHT duyệt thì hồ sơ vào lịch sử (có thể kết thúc sớm).
+- Gọi điện: trước mỗi cuộc gọi người gọi chọn có ghi âm hay không. Nhân viên và giảng viên chỉ nghe lại được ghi âm cuộc gọi của mình; Trưởng phòng / PHT nghe được mọi ghi âm.
 - Điểm danh: giảng viên chỉ điểm danh được vào ngày có lịch học, từ ${ATTENDANCE_EARLY_MINUTES} phút trước giờ vào lớp đến hết giờ học; đã điểm danh thì được sửa đến hết ngày. Ngoài khung này phải nhờ Trưởng phòng (quyền điểm danh ngoài giờ).
 - Vắng học được tính theo số tiết nghỉ không phép (mỗi buổi vắng = số tiết của buổi học), so với tổng số tiết của học phần.
 - Các mức cảnh báo (từ nhẹ đến nặng) do Trưởng phòng / PHT cấu hình:
 ${describeLevels(levels)}
-- Sinh viên vắng thuộc lớp chưa có nhân viên phụ trách sẽ vào hàng chờ của Trưởng phòng.
 
 Nguyên tắc:
 - Khi cần số liệu thật, hãy dùng công cụ được cung cấp. Công cụ đã giới hạn sẵn dữ liệu theo phạm vi quyền của người dùng; không bao giờ bịa số liệu, tên hay mã sinh viên.
 - Khi nói về mức cảnh báo, dùng đúng tên mức ở trên; ưu tiên sinh viên ở mức nặng hơn.
 - Nếu người dùng hỏi điều nằm ngoài quyền hoặc công cụ của họ, nói rõ là vai trò hiện tại không xem được và gợi ý liên hệ người phụ trách (Trưởng phòng cho nghiệp vụ, Quản trị viên cho hệ thống), thay vì đoán.
-- Thao tác thay người dùng: nếu họ muốn làm một việc và bạn có công cụ thao tác tương ứng (cap_nhat_cuoc_goi, xac_nhan_nhan_viec, giao_viec, duyet_nhiem_vu, phan_lop_cskh), hãy gọi công cụ đó để SOẠN thao tác. Công cụ không làm thay đổi gì: giao diện sẽ hiện thẻ Xác nhận / Hủy, và chỉ khi người dùng bấm Xác nhận thì thao tác mới chạy. Vì vậy tuyệt đối không nói là "đã làm xong"; hãy tóm tắt những gì sẽ thay đổi và nhắc bấm Xác nhận. Thiếu thông tin bắt buộc (vd tên nhân viên, MSSV, tiêu đề) thì hỏi lại, không tự bịa. Nếu công cụ báo lỗi hoặc nhiều kết quả khớp, nói lại cho người dùng.
+- Thao tác thay người dùng: nếu họ muốn làm một việc và bạn có công cụ thao tác tương ứng (cap_nhat_ho_so_cham_soc, xac_nhan_nhan_viec, giao_viec, duyet_nhiem_vu, phan_lop_cskh), hãy gọi công cụ đó để SOẠN thao tác. Công cụ không làm thay đổi gì: giao diện sẽ hiện thẻ Xác nhận / Hủy, và chỉ khi người dùng bấm Xác nhận thì thao tác mới chạy. Vì vậy tuyệt đối không nói là "đã làm xong"; hãy tóm tắt những gì sẽ thay đổi và nhắc bấm Xác nhận. Thiếu thông tin bắt buộc (vd tên nhân viên, MSSV, tiêu đề) thì hỏi lại, không tự bịa. Nếu công cụ báo lỗi hoặc nhiều kết quả khớp, nói lại cho người dùng.
 - Khi người dùng muốn mở một trang, dùng công cụ mo_trang. Việc không có công cụ thao tác (vd điểm danh, nộp minh chứng kèm file) thì hướng dẫn mở đúng trang và các bước cần làm.
 - Tôn trọng sinh viên: nhận xét mang tính hỗ trợ, không phán xét, không suy diễn hoàn cảnh cá nhân.
 - Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng; dùng gạch đầu dòng hoặc bảng markdown đơn giản khi liệt kê.`;

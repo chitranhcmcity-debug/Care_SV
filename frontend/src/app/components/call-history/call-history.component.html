@@ -3,11 +3,34 @@
     <div class="flex items-center gap-3">
       <span class="ch-intro-icon" aria-hidden="true">📞</span>
       <p class="text-sm text-slate-600">
-        Các cuộc gọi bạn đã thực hiện trên hệ thống.
-        Mỗi lần gọi từ app đều được lưu lại.
+        {{
+          showAll()
+            ? 'Mọi cuộc gọi trên hệ thống; bạn nghe lại được mọi bản ghi âm.'
+            : 'Các cuộc gọi bạn đã thực hiện. Bạn chỉ nghe lại được ghi âm cuộc gọi của mình.'
+        }}
       </p>
     </div>
-    <span class="ch-count"><b>{{ total() }}</b> cuộc gọi</span>
+    <div *ngIf="canViewAll" class="flex rounded-xl border border-violet-200 p-0.5 text-xs">
+      <button
+        type="button"
+        (click)="setShowAll(false)"
+        class="px-3 py-1.5 rounded-lg font-semibold"
+        [ngClass]="!showAll() ? 'bg-violet-600 text-white' : 'text-slate-600'"
+      >
+        Của tôi
+      </button>
+      <button
+        type="button"
+        (click)="setShowAll(true)"
+        class="px-3 py-1.5 rounded-lg font-semibold"
+        [ngClass]="showAll() ? 'bg-violet-600 text-white' : 'text-slate-600'"
+      >
+        Tất cả mọi người
+      </button>
+    </div>
+    <span class="ch-count"
+      ><b>{{ total() }}</b> cuộc gọi</span
+    >
   </section>
 
   <section class="card-3d overflow-x-auto">
@@ -34,7 +57,9 @@
             <td class="p-4 whitespace-nowrap">
               <div class="font-bold text-slate-900 tabular-nums">
                 {{ c.createdAt | date: 'HH:mm' }}
-                <span class="font-medium text-slate-500">{{ c.createdAt | date: 'dd/MM/yyyy' }}</span>
+                <span class="font-medium text-slate-500">{{
+                  c.createdAt | date: 'dd/MM/yyyy'
+                }}</span>
               </div>
               <span class="ch-method" [class.is-phone]="c.method !== 'stringee'">
                 {{ c.method === 'stringee' ? '☁️ Qua tổng đài' : '📱 Điện thoại' }}
@@ -53,12 +78,17 @@
               <div *ngIf="c.courseGroupId" class="text-xs text-slate-500">
                 {{ c.courseGroupId.groupCode }}
               </div>
+              <div *ngIf="showAll()" class="text-xs text-violet-700 font-semibold">
+                Người gọi: {{ callerName(c) }}
+              </div>
             </td>
             <td class="p-4 whitespace-nowrap">
               <span class="ch-target" [class.is-parent]="c.target === 'phu_huynh'">
                 {{ c.target === 'phu_huynh' ? '👪 Phụ huynh' : '🎓 Sinh viên' }}
               </span>
-              <div class="mt-1 text-xs font-semibold text-slate-500 tabular-nums">{{ c.phoneNumber }}</div>
+              <div class="mt-1 text-xs font-semibold text-slate-500 tabular-nums">
+                {{ c.phoneNumber }}
+              </div>
             </td>
             <td class="p-4">
               <span
@@ -85,8 +115,9 @@
               <span class="ch-duration">{{ formatDuration(c.durationSec) }}</span>
             </td>
             <td class="p-4 whitespace-nowrap space-y-1">
+              <span *ngIf="!c.record" class="text-xs text-slate-400">Không ghi âm</span>
               <button
-                *ngIf="c.recording || c.method === 'stringee'"
+                *ngIf="c.record && c.canPlay && (c.recording || c.method === 'stringee')"
                 type="button"
                 (click)="play(c)"
                 [disabled]="loadingRecording() === c._id"
@@ -96,7 +127,7 @@
                 {{ loadingRecording() === c._id ? 'Đang tải...' : 'Nghe' }}
               </button>
               <label
-                *ngIf="!c.recording && c.method === 'dien_thoai'"
+                *ngIf="c.record && !c.recording && c.method === 'dien_thoai' && !showAll()"
                 class="ch-upload"
               >
                 {{ uploading() === c._id ? 'Đang tải lên...' : '⬆ Tải ghi âm' }}

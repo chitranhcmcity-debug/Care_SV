@@ -49,6 +49,35 @@ describe('Call dialog access', () => {
     expect(dialog.method()).toBe('stringee');
   });
 
+  it('asks whether to record before calling, and sends the answer with the call', () => {
+    const auth = TestBed.inject(AuthService);
+    auth.currentUser.set({
+      id: 'staff',
+      fullName: 'Staff',
+      email: 'staff@example.test',
+      role: 'staff',
+      status: 'active',
+    });
+    const fixture = TestBed.createComponent(CallDialogComponent);
+    const dialog = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    dialog.calls.open({
+      student: { _id: 'student', fullName: 'Student', phone: '0912345678' },
+      careCaseId: 'case-1',
+    });
+    fixture.detectChanges();
+    http.expectOne('/api/calls/config').flush({ stringee: false, hotline: '' });
+    // No answer yet: nothing is started.
+    dialog.start();
+    http.expectNone('/api/calls');
+    dialog.record.set(false);
+    dialog.start();
+    const req = http.expectOne('/api/calls');
+    expect(req.request.body).toEqual(
+      expect.objectContaining({ record: false, careCaseId: 'case-1' }),
+    );
+  });
+
   it('explains admin access and prevents submitting a call', () => {
     const auth = TestBed.inject(AuthService);
     auth.currentUser.set({

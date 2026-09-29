@@ -23,7 +23,7 @@ const CuocGoiSchema = new mongoose.Schema(
     // dien_thoai = opened the device's dialer (tel:); stringee = browser call via switchboard.
     method: { type: String, enum: ['dien_thoai', 'stringee'], required: true },
     // Where the call was started from, when relevant.
-    callTaskId: { type: mongoose.Schema.Types.ObjectId, ref: 'NhiemVuGoiDien', default: null },
+    careCaseId: { type: mongoose.Schema.Types.ObjectId, ref: 'HoSoChamSoc', default: null },
     courseGroupId: { type: mongoose.Schema.Types.ObjectId, ref: 'NhomHocPhan', default: null },
     status: { type: String, enum: ['dang_goi', 'ket_thuc'], default: 'dang_goi' },
     outcome: {
@@ -35,6 +35,9 @@ const CuocGoiSchema = new mongoose.Schema(
     startedAt: { type: Date, default: Date.now },
     endedAt: { type: Date, default: null },
     durationSec: { type: Number, default: 0, min: 0 },
+    // The caller chose to record this call (asked before every call); otherwise no recording
+    // is made, fetched or accepted.
+    record: { type: Boolean, default: false },
     stringeeCallId: { type: String, default: '' },
     recording: { type: RecordingSchema, default: null },
   },
@@ -43,5 +46,6 @@ const CuocGoiSchema = new mongoose.Schema(
 
 CuocGoiSchema.index({ callerId: 1, createdAt: -1 });
 CuocGoiSchema.index({ studentId: 1, createdAt: -1 });
+CuocGoiSchema.index({ careCaseId: 1, createdAt: -1 });
 
 module.exports = mongoose.model('CuocGoi', CuocGoiSchema, 'cuoc_goi');

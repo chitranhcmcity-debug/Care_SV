@@ -20,7 +20,7 @@ const PAGE_ACCESS: Record<string, (auth: AuthService) => boolean> = {
   '/management': (a) => !a.isAdmin() && a.canAny(...DASHBOARD_PERMISSIONS),
   '/students': (a) => a.can('students.view'),
   '/attendance': (a) => a.canAny('attendance.take', 'attendance.override'),
-  '/call-tasks': (a) => a.canAny('callTasks.update', 'callTasks.viewAll'),
+  '/care': (a) => a.canAny('care.work', 'care.manage', 'care.propose'),
   '/tasks': (a) => a.isStaff(),
   '/timetable': () => true,
   '/calls': () => true,
@@ -30,7 +30,7 @@ const PAGE_ACCESS: Record<string, (auth: AuthService) => boolean> = {
 const ROLE_HOME: Record<Role, string> = {
   admin: '/admin',
   manager: '/management',
-  staff: '/call-tasks',
+  staff: '/care',
   teacher: '/attendance',
 };
 

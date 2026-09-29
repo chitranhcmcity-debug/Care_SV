@@ -4,7 +4,6 @@ const NhomHocPhan = require('../models/NhomHocPhan');
 const SinhVien = require('../models/SinhVien');
 const NguoiDung = require('../models/NguoiDung');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const { verifyToken, requirePermission, requireSignedIn } = require('../middleware/xacThuc');
 const { SHIFT, DEFAULT_SCHEDULE_DAYS } = require('../utils/hangSo');
 const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
@@ -226,12 +225,11 @@ router.delete('/:id', verifyToken, requirePermission('courses.manage'), async (r
       return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
     }
 
-    // Every route that reads DiemDanh/NhiemVuGoiDien for a group first loads the group
+    // Every route that reads DiemDanh for a group first loads the group
     // (requireCourseAccess), so once it's gone those records become permanently
     // unreachable orphans. Remove them, and drop the group from its students' list.
     await Promise.all([
       DiemDanh.deleteMany({ courseGroupId: deleted._id }),
-      NhiemVuGoiDien.deleteMany({ courseGroupId: deleted._id }),
       deleted.students?.length &&
         SinhVien.updateMany(
           { _id: { $in: deleted.students } },

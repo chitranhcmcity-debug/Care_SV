@@ -57,10 +57,10 @@ const NAV_ITEMS: NavItem[] = [
     icon: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM16 3v4M8 3v4M3 11h18M9 16l2 2 4-4',
   },
   {
-    path: '/call-tasks',
-    label: 'Nhiệm vụ gọi điện',
-    short: 'Gọi điện',
-    icon: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+    path: '/care',
+    label: 'Hồ sơ chăm sóc',
+    short: 'Chăm sóc',
+    icon: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM9 11h6M12 8v6',
     badge: 'unread',
   },
   {
@@ -114,11 +114,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   unreadCount = 0;
   pendingTaskCount = 0;
   /** Unseen work per kind (sidebar badges) and in total (bell badge). */
-  callTasksNew = 0;
+  careNew = 0;
   tasksNew = 0;
   unseenCount = 0;
   /** What was new when the bell was opened, so the list can still mark it. */
-  newCallTasks = 0;
+  newCare = 0;
   newTasks = 0;
   sidebarOpen = false; // mobile drawer
   sidebarCollapsed = false; // desktop
@@ -187,13 +187,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private apply(res: InboxSummary) {
-    this.unreadCount = res.callTasks.pending;
+    this.unreadCount = res.care.pending;
     this.pendingTaskCount = res.tasks.pending;
-    this.callTasksNew = res.callTasks.new;
+    this.careNew = res.care.new;
     this.tasksNew = res.tasks.new;
     this.unseenCount = res.unseen;
     if (!this.notificationsOpen) {
-      this.newCallTasks = res.callTasks.new;
+      this.newCare = res.care.new;
       this.newTasks = res.tasks.new;
     }
     // Zoneless: an HTTP response is not a template event, so re-render explicitly.
@@ -203,10 +203,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** On the call-task or task page, new work of that kind is seen as soon as it shows up. */
   private markPageSeen() {
     const path = this.router.url.split(/[?#]/)[0];
-    const scope: InboxScope | null =
-      path === '/call-tasks' ? 'callTasks' : path === '/tasks' ? 'tasks' : null;
-    const pending =
-      scope === 'callTasks' ? this.callTasksNew : scope === 'tasks' ? this.tasksNew : 0;
+    const scope: InboxScope | null = path === '/care' ? 'care' : path === '/tasks' ? 'tasks' : null;
+    const pending = scope === 'care' ? this.careNew : scope === 'tasks' ? this.tasksNew : 0;
     if (!scope || !pending) return;
     this.inbox.markSeen(scope).subscribe({ next: (res) => this.apply(res), error: () => {} });
   }
@@ -217,13 +215,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.notificationsOpen = true;
     this.profileMenuOpen = false;
     if (!this.unseenCount) return;
-    this.unseenCount = this.callTasksNew = this.tasksNew = 0;
+    this.unseenCount = this.careNew = this.tasksNew = 0;
     this.inbox.markSeen().subscribe({ error: () => {} });
   }
 
   closeNotifications() {
     this.notificationsOpen = false;
-    this.newCallTasks = 0;
+    this.newCare = 0;
     this.newTasks = 0;
   }
 
@@ -324,11 +322,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   /** Shown to anyone who can receive call tasks or assigned tasks. */
   get showNotifications(): boolean {
-    return this.authService.canOpen('/call-tasks') || this.authService.canOpen('/tasks');
+    return this.authService.canOpen('/care') || this.authService.canOpen('/tasks');
   }
 
   badgeCount(item: NavItem): number {
-    if (item.badge === 'unread') return this.callTasksNew;
+    if (item.badge === 'unread') return this.careNew;
     if (item.badge === 'pendingTasks') return this.tasksNew;
     return 0;
   }

@@ -19,7 +19,7 @@ const NguoiDungSchema = new mongoose.Schema(
     managedClasses: [{ type: String }],
     // When the user last looked at each kind of work (bell or its page); newer work is unseen.
     notificationsSeen: {
-      callTasks: { type: Date, default: null },
+      care: { type: Date, default: null },
       tasks: { type: Date, default: null },
     },
   },

@@ -8,7 +8,7 @@ const errorHandler = require('./middleware/xuLyLoi');
 const authRoutes = require('./routes/xacThuc');
 const excelRoutes = require('./routes/nhapXuatExcel');
 const attendanceRoutes = require('./routes/diemDanh');
-const callTaskRoutes = require('./routes/nhiemVuGoiDien');
+const careCaseRoutes = require('./routes/hoSoChamSoc');
 const analyticsRoutes = require('./routes/thongKe');
 const settingsRoutes = require('./routes/caiDat');
 const permissionRoutes = require('./routes/phanQuyen');
@@ -46,7 +46,7 @@ app.use('/api/overview', overviewRoutes);
 // Business features: locked with 402 once the subscription has expired.
 app.use('/api/excel', requireActiveSubscription, excelRoutes);
 app.use('/api/attendance', requireActiveSubscription, attendanceRoutes);
-app.use('/api/call-tasks', requireActiveSubscription, callTaskRoutes);
+app.use('/api/care-cases', requireActiveSubscription, careCaseRoutes);
 app.use('/api/analytics', requireActiveSubscription, analyticsRoutes);
 app.use('/api/course-groups', requireActiveSubscription, courseGroupRoutes);
 app.use('/api/tasks', requireActiveSubscription, taskRoutes);

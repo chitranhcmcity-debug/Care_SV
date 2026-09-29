@@ -5,9 +5,16 @@ const router = express.Router();
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const CuocGoi = require('../models/CuocGoi');
-const { verifyToken, requirePermission } = require('../middleware/xacThuc');
+const {
+  verifyToken,
+  requirePermission,
+  requireSignedIn,
+  requireOperator,
+} = require('../middleware/xacThuc');
+const { requireStudentAccess } = require('../middleware/phanQuyen');
+const { toLabel } = require('../utils/hangSo');
 const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
 const { getUploadDir } = require('../utils/moiTruong');
 
@@ -138,7 +145,7 @@ router.delete('/:id', verifyToken, requirePermission('excel.import'), async (req
           },
         },
       ),
-      NhiemVuGoiDien.deleteMany({ studentId: student._id }),
+      HoSoChamSoc.deleteMany({ studentId: student._id }),
       CuocGoi.deleteMany({ studentId: student._id }),
     ]);
     const recordingDir = path.join(getUploadDir(), 'recordings');
@@ -149,5 +156,117 @@ router.delete('/:id', verifyToken, requirePermission('excel.import'), async (req
     next(error);
   }
 });
+
+// GET /api/students/:studentId/profile — 360° timeline: absences, care cases and calls.
+router.get(
+  '/:studentId/profile',
+  verifyToken,
+  requireSignedIn,
+  requireStudentAccess,
+  async (req, res, next) => {
+    try {
+      const { student } = req; // loaded and access-checked by requireStudentAccess
+      const [attendanceRecords, cases, calls] = await Promise.all([
+        DiemDanh.find({
+          $or: [{ absentStudents: student._id }, { 'excusedStudents.studentId': student._id }],
+        })
+          .populate('courseGroupId', 'groupCode courseName')
+          .populate('recordedBy', 'fullName email')
+          .sort({ date: -1 }),
+        HoSoChamSoc.find({ studentId: student._id })
+          .select(
+            'status source reason cause solution assignedStaffId steps.done closing createdAt',
+          )
+          .populate('assignedStaffId', 'fullName email')
+          .sort({ createdAt: -1 })
+          .lean(),
+        CuocGoi.find({ studentId: student._id })
+          .select('callerId target outcome note durationSec careCaseId createdAt')
+          .populate('callerId', 'fullName role')
+          .sort({ createdAt: -1 })
+          .limit(50)
+          .lean(),
+      ]);
+      const sid = student._id.toString();
+      const timeline = [
+        ...cases.map((c) => ({
+          type: 'care_case',
+          date: c.createdAt,
+          title: `Hồ sơ chăm sóc: ${toLabel(c.status)}`,
+          caseId: c._id,
+          staff: c.assignedStaffId,
+          status: c.status,
+          note: [
+            c.reason,
+            c.cause && `Nguyên nhân: ${c.cause}`,
+            c.solution && `Hướng giải quyết: ${c.solution}`,
+          ]
+            .filter(Boolean)
+            .join(' · '),
+          stepsDone: c.steps.filter((st) => st.done).length,
+          stepsTotal: c.steps.length,
+        })),
+        ...calls.map((c) => ({
+          type: 'call',
+          date: c.createdAt,
+          title: `Cuộc gọi ${c.target === 'phu_huynh' ? 'phụ huynh' : 'sinh viên'}`,
+          staff: c.callerId,
+          status: c.outcome,
+          note: c.note,
+          caseId: c.careCaseId,
+        })),
+        ...attendanceRecords.map((att) => {
+          const isAbsent = att.absentStudents.some((id) => id.toString() === sid);
+          const excusedItem = att.excusedStudents.find(
+            (item) => item.studentId?.toString() === sid,
+          );
+          return {
+            type: 'attendance',
+            date: att.date,
+            title: isAbsent ? 'Báo Vắng Học' : 'Vắng Có Lý Do',
+            courseGroup: att.courseGroupId,
+            staff: att.recordedBy,
+            status: isAbsent ? 'Vắng' : 'Có lý do',
+            note: excusedItem ? excusedItem.reason : '',
+          };
+        }),
+      ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      res.json({
+        student,
+        timeline,
+        totalAbsences: attendanceRecords.filter((att) =>
+          att.absentStudents.some((id) => id.toString() === sid),
+        ).length,
+        totalCalls: calls.length,
+        totalCases: cases.length,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// PUT /api/students/:studentId/tags — body { tags: string[] }.
+router.put(
+  '/:studentId/tags',
+  verifyToken,
+  requireOperator,
+  requireStudentAccess,
+  async (req, res, next) => {
+    try {
+      const { tags } = req.body ?? {};
+      assert(
+        Array.isArray(tags) && tags.every((tag) => typeof tag === 'string'),
+        'Thẻ nhãn phải là một mảng',
+      );
+      req.student.tags = tags;
+      await req.student.save();
+      res.json({ message: 'Cập nhật thẻ nhãn thành công!', tags: req.student.tags });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 module.exports = router;

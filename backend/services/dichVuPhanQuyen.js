@@ -5,6 +5,7 @@ const {
   CONFIGURABLE_ROLES,
   DEFAULT_ROLE_PERMISSIONS,
   ADMIN_PERMISSIONS,
+  LEGACY_PERMISSIONS,
 } = require('../utils/hangSo');
 
 // Every authenticated request reads the matrix, so keep it in memory briefly. Saving through
@@ -12,8 +13,31 @@ const {
 const CACHE_MS = 30 * 1000;
 let cache = null;
 
+/**
+ * A matrix saved before a key existed grants that key from the old keys it replaced
+ * (LEGACY_PERMISSIONS), so upgrading keeps every role's rights. Once saved again it holds the
+ * new keys and is left alone.
+ */
+function upgrade(stored) {
+  const lists = CONFIGURABLE_ROLES.map((role) => stored?.[role]).filter(Array.isArray);
+  const isLegacy =
+    lists.length && !lists.some((list) => list.some((key) => key in LEGACY_PERMISSIONS));
+  if (!isLegacy) return stored;
+  return Object.fromEntries(
+    CONFIGURABLE_ROLES.map((role) => {
+      const list = stored?.[role];
+      if (!Array.isArray(list)) return [role, list];
+      const added = Object.entries(LEGACY_PERMISSIONS)
+        .filter(([, old]) => old.some((key) => list.includes(key)))
+        .map(([key]) => key);
+      return [role, [...list, ...added]];
+    }),
+  );
+}
+
 /** Stored matrix merged over the defaults, with unknown or non-applicable keys dropped. */
-function normalize(stored) {
+function normalize(rawStored) {
+  const stored = upgrade(rawStored);
   return Object.fromEntries(
     CONFIGURABLE_ROLES.map((role) => {
       const list = Array.isArray(stored?.[role]) ? stored[role] : DEFAULT_ROLE_PERMISSIONS[role];

@@ -31,8 +31,9 @@ export interface StudentSummary {
   warningLevel: WarningLevel | null;
   /** Reached a level marked as exam ban. */
   isAtRisk: boolean;
-  callStatus: string | null;
-  callNote: string | null;
+  /** Latest care case of the student (open or closed). */
+  careCaseId: string | null;
+  careStatus: string | null;
   assignedStaff: string | null;
 }
 
@@ -55,15 +56,17 @@ export interface SubmitAttendanceResult {
   message: string;
   attendance: { _id: string; courseGroupId: string; date: string; absentStudents: string[] };
   isUpdate: boolean;
-  createdTasksCount: number;
-  taskAssignments: {
-    staffName: string;
-    /** Class without a responsible staff member: the call waits in the manager's queue. */
-    unassigned?: boolean;
-    studentName: string;
+  /** The absent students, so the lecturer may call them (optional). */
+  absentStudents: {
+    _id: string;
     studentCode: string;
+    fullName: string;
     classCode: string;
+    phone?: string;
+    parentPhone?: string;
   }[];
+  /** Students who reached a warning level and got a care case. */
+  openedCases: { caseId: string; studentName: string; studentCode: string; level: string }[];
 }
 
 export interface ScheduleSession {

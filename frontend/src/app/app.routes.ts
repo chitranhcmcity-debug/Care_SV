@@ -57,11 +57,11 @@ export const routes: Routes = [
     canActivate: [pageGuard],
   },
   {
-    path: 'call-tasks',
-    loadComponent: () =>
-      import('./components/call-task/call-task.component').then((m) => m.CallTaskComponent),
+    path: 'care',
+    loadComponent: () => import('./components/care/care.component').then((m) => m.CareComponent),
     canActivate: [pageGuard],
   },
+  { path: 'call-tasks', redirectTo: 'care' },
   {
     path: 'billing',
     loadComponent: () =>

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AdminTab, visibleDashboardTabs } from './dashboard-tabs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -41,7 +41,10 @@ import {
   TaskPriority,
   TASK_CATEGORIES,
   TASK_PRIORITIES,
+  Student,
 } from '../../models/types';
+import { StudentService } from '../../services/student.service';
+import { CareCaseService } from '../../services/care-case.service';
 import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
 import {
   countTasksByStatus,
@@ -68,6 +71,7 @@ const emptyTaskForm = () => ({
     CommonModule,
     FormsModule,
     ViLabelPipe,
+    RouterLink,
     ClassAssignmentPanelComponent,
     WarningConfigComponent,
     IntegrationsPanelComponent,
@@ -209,6 +213,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly visibleTabs = visibleDashboardTabs(this.auth);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly studentApi = inject(StudentService);
+  private readonly careCaseService = inject(CareCaseService);
   private readonly destroyRef = inject(DestroyRef);
   /** AI staff assessment belongs to whoever manages tasks (Trưởng phòng). */
   readonly canAssessStaff = this.auth.can('tasks.manage');
@@ -304,6 +310,74 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly lastProgressNote = lastProgressNote;
   readonly taskProgress = taskProgress;
 
+  // ---- "Chăm sóc sinh viên" task for one student → a directed care case.
+  readonly canDirectCare = this.auth.can('care.manage') && this.auth.can('students.view');
+  careStudentQuery = '';
+  careStudentResults: Student[] = [];
+  careStudent: Student | null = null;
+
+  findCareStudents() {
+    const q = this.careStudentQuery.trim();
+    if (q.length < 2) {
+      this.careStudentResults = [];
+      return;
+    }
+    this.studentApi.list({ search: q, limit: 8 }).subscribe({
+      next: (res) => {
+        this.careStudentResults = res.items;
+        this.cdr.detectChanges();
+      },
+      error: () => (this.careStudentResults = []),
+    });
+  }
+
+  pickCareStudent(student: Student) {
+    this.careStudent = student;
+    this.careStudentResults = [];
+    this.careStudentQuery = `${student.studentCode} · ${student.fullName}`;
+  }
+
+  private createCareFromTask() {
+    const student = this.careStudent!;
+    this.isCreatingTask = true;
+    this.careCaseService
+      .create({
+        studentId: student._id,
+        reason: this.taskForm.title.trim(),
+        assignedStaffId: this.taskForm.assignedTo,
+        directive: this.taskForm.description.trim(),
+        dueDate: this.taskForm.dueDate || null,
+        fromTask: true,
+      })
+      .pipe(
+        finalize(() => {
+          this.isCreatingTask = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (c) => {
+          this.triggerToast(
+            'success',
+            'Đã Mở Hồ Sơ Chăm Sóc!',
+            `Đã chỉ đạo chăm sóc ${student.fullName}.`,
+          );
+          this.taskForm = emptyTaskForm();
+          this.careStudent = null;
+          this.careStudentQuery = '';
+          this.router.navigate(['/care'], { queryParams: { case: c._id } });
+        },
+        error: (err) =>
+          this.triggerToast(
+            'error',
+            'Không Mở Được Hồ Sơ',
+            err.status === 409
+              ? 'Sinh viên đã có hồ sơ chăm sóc đang mở — hãy chỉ đạo trong hồ sơ đó.'
+              : err.error?.message || 'Không mở được hồ sơ chăm sóc',
+          ),
+      });
+  }
+
   createTask() {
     if (
       !this.taskForm.title.trim() ||
@@ -317,6 +391,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       );
       return;
     }
+    if (this.taskForm.category === 'cham_soc_sv' && this.careStudent)
+      return this.createCareFromTask();
     this.isCreatingTask = true;
     this.cdr.detectChanges();
     this.taskService
@@ -621,7 +697,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   async deleteCourseGroup(id: string) {
     const ok = await this.notify.confirm({
       title: 'Xóa nhóm học phần?',
-      message: 'Toàn bộ điểm danh và nhiệm vụ gọi điện của học phần này cũng sẽ bị xóa.',
+      message: 'Toàn bộ điểm danh của học phần này cũng sẽ bị xóa.',
       confirmText: 'Xóa học phần',
       danger: true,
     });

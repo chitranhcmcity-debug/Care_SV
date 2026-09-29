@@ -7,10 +7,12 @@ const router = express.Router();
 const CuocGoi = require('../models/CuocGoi');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
-const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
+const HoSoChamSoc = require('../models/HoSoChamSoc');
 const stringee = require('../services/dichVuStringee');
 const { verifyToken, requireSignedIn, requireOperator } = require('../middleware/xacThuc');
 const { canAccessStudent } = require('../middleware/phanQuyen');
+const { can } = require('../services/dichVuPhanQuyen');
+const { CARE_STATUS, DEFAULT_CARE_STEPS } = require('../utils/hangSo');
 const { assert, validateId } = require('../utils/kiemTra');
 const { getAppUrl, getUploadDir } = require('../utils/moiTruong');
 
@@ -63,21 +65,32 @@ const callPopulation = [
   { path: 'callerId', select: 'fullName email role' },
   { path: 'studentId', select: 'studentCode fullName classCode' },
   { path: 'courseGroupId', select: 'groupCode courseName' },
+  { path: 'careCaseId', select: 'status' },
 ];
 
-/** Loads :id; only the caller may read or change a call. */
-const loadCall = async (req, res, next) => {
+/** Whether the user may play a call's recording: their own calls, or every call with
+ *  recordings.viewAll (Trưởng phòng / PHT). */
+const canHear = (user, call) =>
+  String(call.callerId?._id ?? call.callerId) === user.id || can(user, 'recordings.viewAll');
+
+/** Loads :id; only the caller may change a call (listening is widened by canHear). */
+const findCall = (check, message) => async (req, res, next) => {
   try {
     validateId(req.params.id);
     const call = await CuocGoi.findById(req.params.id);
     assert(call, 'Không tìm thấy cuộc gọi', 404);
-    assert(String(call.callerId) === req.user.id, 'Bạn không có quyền với cuộc gọi này', 403);
+    assert(check(req.user, call), message, 403);
     req.call = call;
     next();
   } catch (error) {
     next(error);
   }
 };
+const loadCall = findCall(
+  (user, call) => String(call.callerId) === user.id,
+  'Bạn không có quyền với cuộc gọi này',
+);
+const loadCallToHear = findCall(canHear, 'Bạn chỉ được nghe lại cuộc gọi của mình');
 
 // ======================= Stringee callbacks (public, called by Stringee) =======================
 
@@ -107,6 +120,7 @@ router.all('/stringee/answer', async (req, res) => {
       stringee.recordAndConnect({
         to: call.phoneNumber,
         eventUrl: `${getAppUrl()}/api/calls/stringee/event`,
+        record: call.record,
       }),
     );
   } catch {
@@ -126,7 +140,8 @@ router.get('/config', (req, res) => {
 });
 
 // POST /api/calls — start a call to a student or their parent; returns the number to dial
-// (and a Stringee client token when calling through the switchboard).
+// (and a Stringee client token when calling through the switchboard). body.record: the caller
+// agreed to record the call (asked every time).
 router.post(
   '/',
   (req, res, next) => {
@@ -140,7 +155,8 @@ router.post(
   },
   async (req, res, next) => {
     try {
-      const { studentId, target, method, callTaskId, courseGroupId } = req.body ?? {};
+      const { studentId, target, method, careCaseId, courseGroupId, record } = req.body ?? {};
+      assert(record === undefined || typeof record === 'boolean', 'Lựa chọn ghi âm không hợp lệ');
       validateId(studentId);
       assert(['sinh_vien', 'phu_huynh'].includes(target), 'Chọn gọi sinh viên hoặc phụ huynh');
       assert(['dien_thoai', 'stringee'].includes(method), 'Phương thức gọi không hợp lệ');
@@ -164,11 +180,18 @@ router.post(
       );
 
       // Optional context must belong to the same student / the caller.
-      if (callTaskId) {
-        validateId(callTaskId);
+      if (careCaseId) {
+        validateId(careCaseId);
+        const careCase = await HoSoChamSoc.findById(careCaseId);
         assert(
-          await NhiemVuGoiDien.exists({ _id: callTaskId, studentId: student._id }),
-          'Nhiệm vụ gọi điện không khớp sinh viên',
+          careCase && String(careCase.studentId) === String(student._id),
+          'Hồ sơ chăm sóc không khớp sinh viên',
+        );
+        assert(careCase.status !== CARE_STATUS.CLOSED, 'Hồ sơ chăm sóc đã kết thúc');
+        assert(
+          can(req.user, 'care.manage') || String(careCase.assignedStaffId) === req.user.id,
+          'Bạn không được giao hồ sơ này',
+          403,
         );
       }
       if (courseGroupId) {
@@ -192,8 +215,9 @@ router.post(
         target,
         phoneNumber,
         method,
-        callTaskId: callTaskId || null,
+        careCaseId: careCaseId || null,
         courseGroupId: courseGroupId || null,
+        record: Boolean(record),
       });
       res.status(201).json({
         call,
@@ -235,11 +259,40 @@ router.put('/:id/end', loadCall, async (req, res, next) => {
     if (typeof stringeeCallId === 'string' && stringeeCallId && !call.stringeeCallId)
       call.stringeeCallId = stringeeCallId.slice(0, 100);
     await call.save();
+    if (call.careCaseId) await logToCase(call, req.user.id);
     res.json({ call: await call.populate(callPopulation) });
   } catch (error) {
     next(error);
   }
 });
+
+const OUTCOME_LABEL = {
+  nghe_may: 'nghe máy',
+  khong_nghe_may: 'không nghe máy',
+  may_ban: 'máy bận',
+  sai_so: 'sai số',
+};
+/** A finished call shows up in its care case; an answered one ticks the "contact" step. */
+async function logToCase(call, userId) {
+  const careCase = await HoSoChamSoc.findById(call.careCaseId);
+  if (!careCase) return;
+  const who = call.target === 'phu_huynh' ? 'phụ huynh' : 'sinh viên';
+  const minutes = Math.round(call.durationSec / 60);
+  careCase.notes.push({
+    kind: 'cuoc_goi',
+    authorId: userId,
+    callId: call._id,
+    text: `Gọi ${who}${call.outcome ? ` — ${OUTCOME_LABEL[call.outcome]}` : ''}${
+      call.durationSec ? ` (${minutes || '<1'} phút)` : ''
+    }${call.note ? `: ${call.note}` : ''}`,
+  });
+  const contact = careCase.steps.find((s) => s.title === DEFAULT_CARE_STEPS[0] && !s.done);
+  if (call.outcome === 'nghe_may' && contact) {
+    contact.done = true;
+    contact.doneAt = new Date();
+  }
+  await careCase.save();
+}
 
 // POST /api/calls/:id/recording — attach a recording made on the phone (multipart "file").
 router.post('/:id/recording', loadCall, (req, res, next) => {
@@ -250,6 +303,7 @@ router.post('/:id/recording', loadCall, (req, res, next) => {
           ? Object.assign(new Error('File ghi âm tối đa 50MB'), { status: 400 })
           : uploadError;
       assert(req.file, 'Chưa chọn file ghi âm');
+      assert(req.call.record, 'Cuộc gọi này đã chọn không ghi âm');
       const previous = req.call.recording;
       req.call.recording = {
         storedName: req.file.filename,
@@ -269,10 +323,11 @@ router.post('/:id/recording', loadCall, (req, res, next) => {
 });
 
 // GET /api/calls/:id/recording — stream the recording (fetched from Stringee on first use).
-router.get('/:id/recording', loadCall, async (req, res, next) => {
+// The caller hears their own calls; recordings.viewAll hears everyone's.
+router.get('/:id/recording', loadCallToHear, async (req, res, next) => {
   try {
     const call = req.call;
-    if (!call.recording && call.stringeeCallId) {
+    if (!call.recording && call.stringeeCallId && call.record) {
       const downloaded = await stringee.downloadRecording(call.stringeeCallId);
       if (downloaded) {
         const storedName = randomName(EXT_BY_MIME[downloaded.mimeType] || '.mp3');
@@ -298,14 +353,15 @@ router.get('/:id/recording', loadCall, async (req, res, next) => {
   }
 });
 
-// GET /api/calls — history of the signed-in user's own calls, whatever their role.
-// Query: studentId, page, limit.
+// GET /api/calls — the signed-in user's own calls; with scope=all (recordings.viewAll) everyone's.
+// Query: scope, studentId, page, limit.
 router.get('/', async (req, res, next) => {
   try {
-    const { studentId } = req.query;
+    const { studentId, scope } = req.query;
     const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
     const page = Math.max(Number(req.query.page) || 1, 1);
-    const filter = { callerId: req.user.id };
+    const everyone = scope === 'all' && can(req.user, 'recordings.viewAll');
+    const filter = everyone ? {} : { callerId: req.user.id };
     if (studentId) {
       validateId(studentId);
       filter.studentId = studentId;
@@ -318,7 +374,18 @@ router.get('/', async (req, res, next) => {
         .limit(limit),
       CuocGoi.countDocuments(filter),
     ]);
-    res.json({ items, total, page, limit });
+    res.json({
+      items: items.map((call) => ({
+        ...call.toObject(),
+        canPlay:
+          canHear(req.user, call) &&
+          Boolean(call.recording || (call.record && call.stringeeCallId)),
+      })),
+      total,
+      page,
+      limit,
+      canViewAll: can(req.user, 'recordings.viewAll'),
+    });
   } catch (error) {
     next(error);
   }

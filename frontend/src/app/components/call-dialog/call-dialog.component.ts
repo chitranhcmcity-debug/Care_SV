@@ -74,6 +74,8 @@ export class CallDialogComponent implements OnDestroy {
   readonly step = signal<Step>('setup');
   readonly target = signal<CallTarget>('sinh_vien');
   readonly method = signal<CallMethod>('dien_thoai');
+  /** Asked before every call; nothing is recorded unless the caller says yes. */
+  readonly record = signal<boolean | null>(null);
   readonly stringeeAvailable = signal(false);
   readonly busy = signal(false);
   readonly callLog = signal<CallLog | null>(null);
@@ -103,6 +105,7 @@ export class CallDialogComponent implements OnDestroy {
       this.step.set('setup');
       this.target.set(req.target ?? (req.student.phone ? 'sinh_vien' : 'phu_huynh'));
       this.method.set('dien_thoai');
+      this.record.set(null);
       this.callLog.set(null);
       this.elapsed.set(0);
       this.stringeeState.set('');
@@ -114,7 +117,7 @@ export class CallDialogComponent implements OnDestroy {
         this.calls.config().subscribe({
           next: (c) => {
             this.stringeeAvailable.set(c.stringee);
-            // Prefer the real switchboard call (recorded) whenever the server supports it.
+            // Prefer the switchboard call whenever the server supports it.
             if (c.stringee && this.step() === 'setup') this.method.set('stringee');
           },
           error: () => this.stringeeAvailable.set(false),
@@ -130,14 +133,17 @@ export class CallDialogComponent implements OnDestroy {
 
   start() {
     const req = this.request();
-    if (!req || !this.selectedPhone() || this.busy() || !this.canStartCall()) return;
+    const record = this.record();
+    if (!req || !this.selectedPhone() || this.busy() || !this.canStartCall() || record === null)
+      return;
     this.busy.set(true);
     this.calls
       .start({
         studentId: req.student._id,
         target: this.target(),
         method: this.method(),
-        callTaskId: req.callTaskId,
+        record,
+        careCaseId: req.careCaseId,
         courseGroupId: req.courseGroupId,
       })
       .subscribe({
@@ -266,7 +272,7 @@ export class CallDialogComponent implements OnDestroy {
       });
       call.on('signalingstate', (state: { code: number; reason?: string }) => {
         if (state.code === STRINGEE_ANSWERED_CODE) {
-          this.stringeeState.set('Đã kết nối — đang ghi âm');
+          this.stringeeState.set(this.record() ? 'Đã kết nối — đang ghi âm' : 'Đã kết nối');
           this.startTimer();
         } else if (STRINGEE_ENDED_CODES.has(state.code)) {
           this.stringeeState.set(state.reason || 'Cuộc gọi đã kết thúc');

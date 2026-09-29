@@ -143,20 +143,20 @@
           <div class="px-3 py-2 text-sm font-semibold text-slate-900">Thông báo</div>
           <a
             *ngIf="unreadCount > 0"
-            routerLink="/call-tasks"
+            routerLink="/care"
             (click)="closeNotifications()"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
           >
             <span
               class="w-9 h-9 shrink-0 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center"
-              >📞</span
+              >🗂️</span
             >
             <span class="flex-1 text-sm text-slate-700">
-              <strong class="text-slate-900">{{ unreadCount }}</strong> nhiệm vụ gọi điện chưa gọi
+              <strong class="text-slate-900">{{ unreadCount }}</strong> hồ sơ chăm sóc cần xử lý
               <span
-                *ngIf="newCallTasks"
+                *ngIf="newCare"
                 class="ml-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"
-                >{{ newCallTasks }} mới</span
+                >{{ newCare }} mới</span
               >
             </span>
           </a>
@@ -364,34 +364,34 @@
         </g>
       </svg>
       <div class="relative px-6 py-5 flex flex-wrap items-center justify-between gap-2">
-      <h1 class="text-xl font-extrabold tracking-tight">{{ pageTitle }}</h1>
-      <div
-        class="flex items-center gap-2 text-sm text-white/85 bg-white/15 backdrop-blur px-3 py-1.5 rounded-full"
-      >
-        <svg
-          class="w-4 h-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
+        <h1 class="text-xl font-extrabold tracking-tight">{{ pageTitle }}</h1>
+        <div
+          class="flex items-center gap-2 text-sm text-white/85 bg-white/15 backdrop-blur px-3 py-1.5 rounded-full"
         >
-          <path
-            d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <svg
-          class="w-3.5 h-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-        <span class="text-white font-semibold">{{ pageTitle }}</span>
-      </div>
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <svg
+            class="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="text-white font-semibold">{{ pageTitle }}</span>
+        </div>
       </div>
     </div>
 

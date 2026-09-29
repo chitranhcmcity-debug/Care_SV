@@ -19,12 +19,32 @@
     <div *ngFor="let f of statCards" class="task-stat" [attr.data-tone]="f.tone">
       <span class="task-stat-icon">
         <svg class="" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="f.icon">
-          <g *ngSwitchCase="'all'"><rect x="3.5" y="3.5" width="7" height="7" rx="2" /><rect x="13.5" y="3.5" width="7" height="7" rx="2" /><rect x="3.5" y="13.5" width="7" height="7" rx="2" /><rect x="13.5" y="13.5" width="7" height="7" rx="2" /></g>
-          <g *ngSwitchCase="'new'"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 16v4M17 18h4" /></g>
-          <g *ngSwitchCase="'play'"><circle cx="12" cy="12" r="9" /><path d="M10 8.5v7l6-3.5z" /></g>
-          <g *ngSwitchCase="'clock'"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></g>
-          <g *ngSwitchCase="'done'"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></g>
-          <g *ngSwitchCase="'undo'"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></g>
+          <g *ngSwitchCase="'all'">
+            <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+            <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+            <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+            <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+          </g>
+          <g *ngSwitchCase="'new'">
+            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+            <path d="M19 16v4M17 18h4" />
+          </g>
+          <g *ngSwitchCase="'play'">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M10 8.5v7l6-3.5z" />
+          </g>
+          <g *ngSwitchCase="'clock'">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </g>
+          <g *ngSwitchCase="'done'">
+            <circle cx="12" cy="12" r="9" />
+            <path d="m8 12 3 3 5-6" />
+          </g>
+          <g *ngSwitchCase="'undo'">
+            <path d="M9 14 4 9l5-5" />
+            <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+          </g>
         </svg>
       </span>
       <div>
@@ -47,13 +67,33 @@
       (click)="filterStatus = f.value; loadTasks()"
     >
       <svg class="task-filter-icon" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="f.icon">
-          <g *ngSwitchCase="'all'"><rect x="3.5" y="3.5" width="7" height="7" rx="2" /><rect x="13.5" y="3.5" width="7" height="7" rx="2" /><rect x="3.5" y="13.5" width="7" height="7" rx="2" /><rect x="13.5" y="13.5" width="7" height="7" rx="2" /></g>
-          <g *ngSwitchCase="'new'"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 16v4M17 18h4" /></g>
-          <g *ngSwitchCase="'play'"><circle cx="12" cy="12" r="9" /><path d="M10 8.5v7l6-3.5z" /></g>
-          <g *ngSwitchCase="'clock'"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></g>
-          <g *ngSwitchCase="'done'"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></g>
-          <g *ngSwitchCase="'undo'"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></g>
-        </svg>
+        <g *ngSwitchCase="'all'">
+          <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+          <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+          <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+          <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+        </g>
+        <g *ngSwitchCase="'new'">
+          <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+          <path d="M19 16v4M17 18h4" />
+        </g>
+        <g *ngSwitchCase="'play'">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M10 8.5v7l6-3.5z" />
+        </g>
+        <g *ngSwitchCase="'clock'">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </g>
+        <g *ngSwitchCase="'done'">
+          <circle cx="12" cy="12" r="9" />
+          <path d="m8 12 3 3 5-6" />
+        </g>
+        <g *ngSwitchCase="'undo'">
+          <path d="M9 14 4 9l5-5" />
+          <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+        </g>
+      </svg>
       {{ f.label }}
     </button>
   </div>

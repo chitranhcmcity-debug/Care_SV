@@ -9,7 +9,8 @@ const geminiModel = () => process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash'
 // Gemini 2.5 counts thinking tokens in max_tokens; keep thinking small and budget it on top.
 const GEMINI_THINKING_TOKENS = 1024;
 const usesChatCompletions = () =>
-  provider() === 'gemini' || (process.env.OPENAI_API_MODE?.trim().toLowerCase() || 'chat') === 'chat';
+  provider() === 'gemini' ||
+  (process.env.OPENAI_API_MODE?.trim().toLowerCase() || 'chat') === 'chat';
 
 /** Default to Trikun; Gemini must be selected explicitly. */
 function provider() {
@@ -34,7 +35,8 @@ function cachedClient(key, baseURL) {
 function openaiClient() {
   const key = process.env.OPENAI_API_KEY?.trim();
   const baseURL =
-    process.env.OPENAI_BASE_URL?.trim().replace(/\/+$/, '') || 'https://api-trikun.up.railway.app/v1';
+    process.env.OPENAI_BASE_URL?.trim().replace(/\/+$/, '') ||
+    'https://api-trikun.up.railway.app/v1';
   assert(
     key,
     'Trợ lý AI chưa được cấu hình. Quản trị viên cần nhập API key OpenAI trong Quản trị → Cấu hình API.',
