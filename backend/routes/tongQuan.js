@@ -9,6 +9,7 @@ const NhiemVuGoiDien = require('../models/NhiemVuGoiDien');
 const subscription = require('../services/dichVuGoiDichVu');
 const payos = require('../services/dichVuPayOS');
 const { describeIntegrations } = require('../services/dichVuCauHinhApi');
+const { getWarningLevels, periodInfo, evaluate } = require('../services/dichVuCanhBao');
 const { verifyToken, requireAdmin } = require('../middleware/xacThuc');
 const { CALL_STATUS, OPEN_CALL_STATUSES } = require('../utils/hangSo');
 
@@ -28,6 +29,97 @@ async function perDay(Model, since) {
     },
   ]);
   return Object.fromEntries(rows.map((r) => [r._id, r.count]));
+}
+
+/** Present / excused / absent student counts per day of the sessions recorded since `since`. */
+async function attendancePerDay(since) {
+  const sessions = await DiemDanh.find({ createdAt: { $gte: since } })
+    .select('courseGroupId absentStudents excusedStudents createdAt')
+    .lean();
+  const groups = await NhomHocPhan.find({ _id: { $in: sessions.map((s) => s.courseGroupId) } })
+    .select('students')
+    .lean();
+  const size = new Map(groups.map((g) => [String(g._id), (g.students || []).length]));
+  const days = {};
+  for (const s of sessions) {
+    const day = (days[dayKey(s.createdAt)] ??= { present: 0, excused: 0, absent: 0 });
+    const absent = (s.absentStudents || []).length;
+    const excused = (s.excusedStudents || []).length;
+    day.absent += absent;
+    day.excused += excused;
+    day.present += Math.max(0, (size.get(String(s.courseGroupId)) || 0) - absent - excused);
+  }
+  return days;
+}
+
+/** Call tasks raised since `since`, split into contacted / not called / unreachable / callback. */
+async function callTaskBreakdown(since) {
+  const tasks = await NhiemVuGoiDien.find({ createdAt: { $gte: since } })
+    .select('status callbackDate')
+    .lean();
+  const result = { contacted: 0, pending: 0, unreachable: 0, callback: 0 };
+  for (const t of tasks) {
+    if (t.status === CALL_STATUS.CONTACTED) result.contacted++;
+    else if (t.callbackDate) result.callback++;
+    else if (t.status === CALL_STATUS.UNREACHABLE) result.unreachable++;
+    else result.pending++;
+  }
+  return result;
+}
+
+/** The most severe (then most recent) students at a warning level, plus how many there are. */
+async function latestWarnings(limit = 4) {
+  const sessions = await DiemDanh.find({ 'absentStudents.0': { $exists: true } })
+    .select('courseGroupId absentStudents date createdAt')
+    .lean();
+  const perPair = new Map(); // "groupId_studentId" -> { count, last }
+  for (const s of sessions) {
+    const when = s.date || s.createdAt;
+    for (const sid of s.absentStudents) {
+      const key = `${s.courseGroupId}_${sid}`;
+      const row = perPair.get(key) ?? { count: 0, last: when };
+      row.count++;
+      if (when > row.last) row.last = when;
+      perPair.set(key, row);
+    }
+  }
+  if (!perPair.size) return { count: 0, items: [] };
+  const [levels, groups] = await Promise.all([
+    getWarningLevels(),
+    NhomHocPhan.find({ _id: { $in: [...new Set(sessions.map((s) => s.courseGroupId))] } })
+      .select('groupCode courseName scheduleDays startDate endDate periodsPerSession totalPeriods')
+      .lean(),
+  ]);
+  const groupMap = new Map(groups.map((g) => [String(g._id), g]));
+  const rank = (level) => levels.findIndex((l) => l.name === level.name);
+  const flagged = [];
+  for (const [key, row] of perPair) {
+    const [gid, sid] = key.split('_');
+    const group = groupMap.get(gid);
+    if (!group) continue;
+    const result = evaluate(row.count, periodInfo(group), levels);
+    if (result.warningLevel) flagged.push({ sid, group, last: row.last, ...result });
+  }
+  flagged.sort((a, b) => rank(b.warningLevel) - rank(a.warningLevel) || b.last - a.last);
+  const top = flagged.slice(0, limit);
+  const students = await SinhVien.find({ _id: { $in: top.map((f) => f.sid) } })
+    .select('studentCode fullName')
+    .lean();
+  const studentMap = new Map(students.map((st) => [String(st._id), st]));
+  return {
+    count: flagged.length,
+    items: top
+      .filter((f) => studentMap.has(f.sid))
+      .map((f) => ({
+        student: studentMap.get(f.sid),
+        groupCode: f.group.groupCode,
+        level: f.warningLevel.name,
+        color: f.warningLevel.color,
+        examBan: f.isAtRisk,
+        absentPeriods: f.absentPeriods,
+        lastAbsence: f.last,
+      })),
+  };
 }
 
 const countBy = async (field) =>
@@ -72,6 +164,13 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
       attendanceByDay,
       callsByDay,
       callsWithRecording,
+      attendanceBreakdown,
+      callBreakdown,
+      warnings,
+      newUsers,
+      newStudents,
+      newGroups,
+      newCallTasks,
     ] = await Promise.all([
       subscription.getSubscription(),
       countBy('role'),
@@ -94,6 +193,13 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         createdAt: { $gte: since },
         'recording.storedName': { $exists: true },
       }),
+      attendancePerDay(since),
+      callTaskBreakdown(since),
+      latestWarnings(),
+      perDay(NguoiDung, since),
+      perDay(SinhVien, since),
+      perDay(NhomHocPhan, since),
+      perDay(NhiemVuGoiDien, since),
     ]);
 
     const assigned = new Set(assignedClasses);
@@ -101,7 +207,18 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
       const day = new Date(since);
       day.setDate(since.getDate() + i);
       const key = dayKey(day);
-      return { date: key, attendance: attendanceByDay[key] || 0, calls: callsByDay[key] || 0 };
+      return {
+        date: key,
+        attendance: attendanceByDay[key] || 0,
+        calls: callsByDay[key] || 0,
+        students: attendanceBreakdown[key] ?? { present: 0, excused: 0, absent: 0 },
+        created: {
+          users: newUsers[key] || 0,
+          students: newStudents[key] || 0,
+          courseGroups: newGroups[key] || 0,
+          callTasks: newCallTasks[key] || 0,
+        },
+      };
     });
 
     res.json({
@@ -119,7 +236,8 @@ router.get('/', verifyToken, requireAdmin, async (req, res, next) => {
         courseGroups,
         groupsWithoutTeacher,
       },
-      callTasks: { open: openCallTasks, contacted: contactedCallTasks },
+      callTasks: { open: openCallTasks, contacted: contactedCallTasks, week: callBreakdown },
+      warnings,
       activity,
       callsWithRecording,
       integrations: integrationStatus(),

@@ -22,9 +22,35 @@ export interface SystemOverview {
     courseGroups: number;
     groupsWithoutTeacher: number;
   };
-  callTasks: { open: number; contacted: number };
+  callTasks: {
+    open: number;
+    contacted: number;
+    /** Call tasks raised in the last 7 days, by where they stand now. */
+    week: { contacted: number; pending: number; unreachable: number; callback: number };
+  };
+  /** Students at a warning level: how many, and the most severe / most recent few. */
+  warnings: {
+    count: number;
+    items: {
+      student: { _id: string; studentCode: string; fullName: string };
+      groupCode: string;
+      level: string;
+      color: string;
+      examBan: boolean;
+      absentPeriods: number;
+      lastAbsence: string;
+    }[];
+  };
   /** Last 7 days, oldest first; date is YYYY-MM-DD in school time. */
-  activity: { date: string; attendance: number; calls: number }[];
+  activity: {
+    date: string;
+    attendance: number;
+    calls: number;
+    /** Students present / excused / absent in the sessions recorded that day. */
+    students: { present: number; excused: number; absent: number };
+    /** Records created that day. */
+    created: { users: number; students: number; courseGroups: number; callTasks: number };
+  }[];
   callsWithRecording: number;
   integrations: { name: string; configured: boolean }[];
 }

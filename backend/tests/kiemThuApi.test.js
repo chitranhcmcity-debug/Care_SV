@@ -1984,6 +1984,10 @@ test('system overview is admin-only and summarises accounts, data, activity and 
   assert.equal(data.students, await SinhVien.countDocuments());
   assert.equal(activity.length, 7);
   assert.ok(activity.every((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date)));
+  assert.ok(activity.every((d) => d.students.present >= 0 && d.created.users >= 0));
+  const week = res.body.callTasks.week;
+  assert.ok(['contacted', 'pending', 'unreachable', 'callback'].every((k) => week[k] >= 0));
+  assert.ok(res.body.warnings.items.length <= Math.min(4, res.body.warnings.count));
   assert.ok(integrations.some((g) => g.name === 'Email (SMTP)'));
   assert.equal(typeof subscription.active, 'boolean');
 });

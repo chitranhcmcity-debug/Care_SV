@@ -339,7 +339,7 @@
     [ngClass]="sidebarCollapsed ? 'md:ml-5' : ''"
   >
     <!-- Breadcrumb card (mobile shows the title in the app bar instead) -->
-    <div class="page-hero hidden md:block mx-4 md:mx-6 mt-5">
+    <div *ngIf="showPageHero" class="page-hero hidden md:block mx-4 md:mx-6 mt-5">
       <svg
         class="page-hero-art"
         viewBox="0 0 800 96"
