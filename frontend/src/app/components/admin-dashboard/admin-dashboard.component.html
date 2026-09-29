@@ -378,7 +378,7 @@
       <button
         type="submit"
         [disabled]="isCreatingStaff"
-        class="py-3.5 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
+        class="py-3.5 px-6 bg-violet-600 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
       >
         <span>{{ isCreatingStaff ? 'Đang tạo...' : '➕ THÊM TÀI KHOẢN' }}</span>
       </button>
@@ -969,7 +969,7 @@
         <button
           (click)="loadAnalytics()"
           [disabled]="isRefreshingAnalytics"
-          class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all"
+          class="px-4 py-1.5 bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 disabled:opacity-60 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors"
         >
           <span [class.animate-spin]="isRefreshingAnalytics">🔄</span>
           {{ isRefreshingAnalytics ? 'Đang tải...' : 'Làm Mới' }}
@@ -1634,7 +1634,7 @@
           <button
             type="submit"
             [disabled]="isSavingCourse"
-            class="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer disabled:cursor-not-allowed"
+            class="px-6 py-3 rounded-xl bg-violet-600 disabled:opacity-60 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer disabled:cursor-not-allowed"
           >
             <svg
               *ngIf="isSavingCourse"
@@ -1733,7 +1733,7 @@
             <button
               type="button"
               (click)="enrollSingleStudent()"
-              class="px-3.5 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs touch-target"
+              class="px-3.5 py-2 rounded-lg bg-violet-600 text-white font-bold text-xs touch-target"
             >
               ➕ Thêm SV
             </button>
@@ -1888,7 +1888,7 @@
           <button
             type="submit"
             [disabled]="isUpdatingStaff"
-            class="px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:bg-slate-400 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+            class="px-6 py-3 rounded-xl bg-violet-600 disabled:opacity-60 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
           >
             <span>{{ isUpdatingStaff ? 'Đang lưu...' : '💾 LƯU THAY ĐỔI' }}</span>
           </button>
@@ -2029,7 +2029,7 @@
       <button
         (click)="saveSettings()"
         [disabled]="isSavingSettings"
-        class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer disabled:opacity-60"
+        class="px-6 py-3 bg-violet-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer disabled:opacity-60"
       >
         <span>{{ isSavingSettings ? 'Đang lưu...' : '💾 Lưu cấu hình' }}</span>
       </button>

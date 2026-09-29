@@ -3,24 +3,13 @@
   <!-- MAIN CONTAINER: ADAPTIVE MOBILE & DESKTOP PC UI           -->
   <!-- ========================================================= -->
   <main class="mx-4 md:mx-6 my-5 space-y-5">
-    <!-- Header banner (PC); on mobile only the tab switcher shows, pinned under the app bar -->
+    <!-- Mode switcher: a slim toolbar under the page title; pinned under the app bar on mobile -->
     <div
-      class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 md:static md:flex md:bg-white md:border md:border-slate-200 md:p-6 md:rounded-3xl md:shadow-sm items-center justify-between gap-6"
+      class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 md:static md:flex md:bg-white md:border md:border-slate-200 md:px-4 md:py-3 md:rounded-2xl md:shadow-sm items-center justify-between gap-4"
     >
-      <div class="hidden md:block space-y-1">
-        <div
-          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200"
-        >
-          📊 BẢNG QUẢN LÝ & ĐIỂM DANH HỌC PHẦN (VĂN PHÒNG)
-        </div>
-        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">
-          Xin chào, {{ currentUser?.fullName }} 👋
-        </h2>
-        <p class="text-xs text-slate-500 font-medium">
-          Giao diện tối giản văn phòng dành cho máy tính. Quản lý lớp học phần, điểm danh và nhiệm
-          vụ gọi điện CSKH.
-        </p>
-      </div>
+      <p class="hidden md:block text-sm text-slate-500">
+        Xin chào <b class="text-slate-800">{{ currentUser?.fullName }}</b> — chọn chế độ làm việc:
+      </p>
 
       <!-- PC Quick Mode Selector Tabs -->
       <div
