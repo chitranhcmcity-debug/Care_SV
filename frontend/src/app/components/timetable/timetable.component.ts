@@ -7,9 +7,9 @@ import { ViLabelPipe } from '../../utils/label.pipe';
 const WEEK = ['thu_2', 'thu_3', 'thu_4', 'thu_5', 'thu_6', 'thu_7', 'chu_nhat'];
 const SHIFT_ORDER: Record<string, number> = { sang: 0, chieu: 1, toi: 2 };
 const SHIFT_TONE: Record<string, string> = {
-  sang: 'bg-amber-50 border-amber-200 text-amber-900',
-  chieu: 'bg-blue-50 border-blue-200 text-blue-900',
-  toi: 'bg-violet-50 border-violet-200 text-violet-900',
+  sang: 'bg-amber-50/90 border-amber-200 text-amber-900 hover:border-amber-300',
+  chieu: 'bg-sky-50/90 border-sky-200 text-sky-900 hover:border-sky-300',
+  toi: 'bg-violet-50/90 border-violet-200 text-violet-900 hover:border-violet-300',
 };
 
 /** Weekly timetable of every course group (read-only, no student data). */

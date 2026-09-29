@@ -14,7 +14,7 @@
       type="button"
       (click)="save()"
       [disabled]="saving()"
-      class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm rounded-xl shadow-md disabled:opacity-60"
+      class="px-6 py-3 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-violet-500/25 hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 disabled:translate-y-0"
     >
       {{ saving() ? 'Đang lưu...' : '💾 Lưu cấu hình' }}
     </button>
@@ -28,7 +28,7 @@
         type="button"
         (click)="addLevel()"
         [disabled]="levels.length >= 10"
-        class="px-3 py-2 rounded-lg border border-blue-300 text-blue-700 text-xs font-bold hover:bg-blue-50 disabled:opacity-50"
+        class="px-4 py-2 rounded-xl border border-violet-300 bg-violet-50/70 text-violet-700 text-xs font-bold hover:bg-violet-100 hover:border-violet-400 hover:-translate-y-0.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:translate-y-0"
       >
         ➕ Thêm mức
       </button>
