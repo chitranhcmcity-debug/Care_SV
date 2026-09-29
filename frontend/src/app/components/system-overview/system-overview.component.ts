@@ -70,6 +70,28 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return `${WEEKDAYS[new Date(y, m - 1, d).getDay()]} ${d}/${m}`;
   }
 
+  /** Share of all accounts held by one role, in % (for the small bar next to each role). */
+  roleShare(role: Role): number {
+    const users = this.data()?.users;
+    return users?.total ? ((users.byRole[role] || 0) / users.total) * 100 : 0;
+  }
+
+  /** "Trần Thị Mai" → "TM". */
+  initials(name = ''): string {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+  }
+
+  integrationIcon(name: string): string {
+    const n = name.toLowerCase();
+    if (n.includes('ai')) return '🤖';
+    if (n.includes('stringee') || n.includes('tổng đài')) return '☎️';
+    if (n.includes('email') || n.includes('smtp')) return '✉️';
+    if (n.includes('payos')) return '💳';
+    return '🔗';
+  }
+
   get pendingUsers(): number {
     return this.data()?.users.byStatus.unverified ?? 0;
   }
