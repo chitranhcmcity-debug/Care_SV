@@ -228,6 +228,184 @@ a:focus-visible {
 @tailwind components;
 @tailwind utilities;
 
+/* ===================== Young & lively theme (signed-in pages) =====================
+   Applied to the routed page area (<main class="app-main">), after Tailwind so it can
+   refine the utility classes the pages already use: gradient primary buttons, soft cards,
+   tinted stat cards, friendlier tables and headings. The brand colour still comes from
+   --brand-* (admin setting); pink and amber are fixed accents. */
+:root {
+  --accent-pink: #db2777;
+  --accent-amber: #f59e0b;
+  --soft-border: #ebe8f7;
+  --hero-gradient: linear-gradient(
+    115deg,
+    rgb(var(--brand-600)) 0%,
+    #c026d3 55%,
+    var(--accent-pink) 80%,
+    var(--accent-amber) 120%
+  );
+}
+
+/* Sidebar: the current page is a gradient pill. */
+.nav-active {
+  color: #fff;
+  background-image: var(--hero-gradient);
+  box-shadow: 0 10px 20px -12px rgb(192 38 211 / 0.8);
+}
+
+.app-main {
+  background:
+    radial-gradient(900px 420px at 100% -10%, rgb(var(--brand-100) / 0.55), transparent 70%),
+    radial-gradient(700px 380px at -10% 110%, rgb(252 231 243 / 0.7), transparent 70%),
+    #f4f3fb;
+}
+
+/* Cards: white surfaces get a light violet border and a soft glow. */
+.app-main .bg-white.border,
+.app-main .bg-white.shadow-sm,
+.app-main .bg-white.shadow {
+  border-color: var(--soft-border);
+  box-shadow: 0 8px 24px -14px rgba(76, 29, 149, 0.22);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Tinted cards (stat tiles, notices): a gentle two-tone gradient instead of a flat fill. */
+.app-main .bg-violet-50.border,
+.app-main .bg-violet-50.rounded-2xl {
+  background-image: linear-gradient(135deg, rgb(var(--brand-50)), #fdf4ff);
+}
+.app-main .bg-amber-50.border {
+  background-image: linear-gradient(135deg, #fffbeb, #fef3c7);
+}
+.app-main .bg-rose-50.border,
+.app-main .bg-red-50.border {
+  background-image: linear-gradient(135deg, #fff1f2, #ffe4e6);
+}
+.app-main .bg-emerald-50.border {
+  background-image: linear-gradient(135deg, #ecfdf5, #d1fae5);
+}
+.app-main .bg-blue-50.border,
+.app-main .bg-sky-50.border,
+.app-main .bg-indigo-50.border {
+  background-image: linear-gradient(135deg, #eff6ff, #e0e7ff);
+}
+
+/* Primary actions and brand banners: brand → pink gradient with a coloured glow. */
+.app-main .bg-violet-600 {
+  background-image: var(--hero-gradient);
+  background-size: 140% 140%;
+  background-position: 0% 50%;
+  transition:
+    background-position 0.4s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+.app-main button.bg-violet-600,
+.app-main a.bg-violet-600 {
+  box-shadow: 0 10px 22px -12px rgb(219 39 119 / 0.7);
+}
+.app-main button.bg-violet-600:hover:not(:disabled),
+.app-main a.bg-violet-600:hover {
+  background-position: 100% 50%;
+  transform: translateY(-1px);
+}
+/* Decorative circles on the violet/blue banners read better as white glass on a gradient. */
+.app-main .bg-violet-600 > .bg-violet-800,
+.app-main .bg-violet-600 > .bg-violet-800\/50,
+.app-main .bg-blue-500 > .bg-blue-700,
+.app-main .bg-blue-500 > .bg-blue-700\/50 {
+  background-color: rgb(255 255 255 / 0.12);
+}
+.app-main .bg-violet-600 .bg-violet-800 {
+  background-color: rgb(255 255 255 / 0.18);
+}
+.app-main .bg-blue-500.rounded-2xl {
+  background-image: linear-gradient(115deg, #0ea5e9, #6366f1 70%, #a855f7);
+}
+
+/* Other solid action colours keep their hue but get the same lift. */
+.app-main a.bg-emerald-700,
+.app-main button.bg-emerald-600,
+.app-main button.bg-rose-600 {
+  box-shadow: 0 10px 22px -12px rgb(15 23 42 / 0.45);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+.app-main a.bg-emerald-700:hover,
+.app-main button.bg-emerald-600:hover:not(:disabled),
+.app-main button.bg-rose-600:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Headings: bolder and tighter; shouty ALL-CAPS page titles become normal case. */
+.app-main h2,
+.app-main h3 {
+  letter-spacing: -0.015em;
+}
+.app-main h2.uppercase {
+  text-transform: none;
+  font-weight: 800;
+}
+
+/* Tables: tinted header, airy rows, hover highlight. */
+.app-main table thead tr {
+  background: linear-gradient(90deg, rgb(var(--brand-50)), #fdf4ff);
+}
+.app-main table thead th {
+  color: rgb(var(--brand-800));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.app-main table tbody tr {
+  transition: background-color 0.15s ease;
+}
+.app-main table tbody tr:hover {
+  background-color: rgb(var(--brand-50) / 0.55);
+}
+
+/* Form fields: rounder, with a faint brand tint while idle. */
+.app-main input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
+.app-main select,
+.app-main textarea {
+  border-radius: 12px;
+}
+
+/* Pills everywhere. */
+.badge {
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* Page hero (navbar): the page title on a gradient cover, like the student profile. */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  color: #fff;
+  background: var(--hero-gradient);
+  box-shadow: 0 18px 36px -22px rgb(192 38 211 / 0.8);
+}
+.page-hero svg.page-hero-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-main .bg-violet-600,
+  .app-main a.bg-emerald-700,
+  .app-main button.bg-emerald-600,
+  .app-main button.bg-rose-600 {
+    transition: none;
+  }
+}
+
 /* iOS Safari zooms in on any field under 16px when it is focused and never zooms back out,
    leaving the page slightly too big. Phones get 16px fields; desktop keeps its compact size. */
 @media (max-width: 767px) {

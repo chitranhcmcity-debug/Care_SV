@@ -51,12 +51,13 @@ module.exports = {
         },
       },
       fontWeight: { extrabold: '700', black: '700' },
-      borderRadius: { '2xl': '12px', '3xl': '16px' },
+      // Rounder corners and soft, slightly violet shadows for a younger, friendlier look.
+      borderRadius: { md: '10px', lg: '12px', xl: '16px', '2xl': '20px', '3xl': '24px' },
       boxShadow: {
-        sm: '0 1px 2px 0 rgba(32, 40, 45, 0.04)',
-        DEFAULT: '0 2px 14px 0 rgba(32, 40, 45, 0.08)',
-        lg: '0 8px 24px 0 rgba(32, 40, 45, 0.08)',
-        xl: '0 12px 32px 0 rgba(32, 40, 45, 0.12)',
+        sm: '0 2px 8px -2px rgba(76, 29, 149, 0.08)',
+        DEFAULT: '0 6px 20px -8px rgba(76, 29, 149, 0.16)',
+        lg: '0 14px 32px -12px rgba(76, 29, 149, 0.2)',
+        xl: '0 22px 44px -16px rgba(76, 29, 149, 0.26)',
       },
     },
   },
