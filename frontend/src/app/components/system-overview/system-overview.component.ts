@@ -30,6 +30,23 @@ const ICONS = {
   check: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8.5 12l2.5 2.5 4.5-5',
 };
 
+/** Fills fields an older API may not send yet, so one missing field cannot break the page. */
+function withDefaults(d: SystemOverview): SystemOverview {
+  return {
+    ...d,
+    callTasks: {
+      ...d.callTasks,
+      week: d.callTasks.week ?? { contacted: 0, pending: 0, unreachable: 0, callback: 0 },
+    },
+    warnings: d.warnings ?? { count: 0, items: [] },
+    activity: d.activity.map((a) => ({
+      ...a,
+      students: a.students ?? { present: 0, excused: 0, absent: 0 },
+      created: a.created ?? { users: 0, students: 0, courseGroups: 0, callTasks: 0 },
+    })),
+  };
+}
+
 /** Admin landing tab: accounts, data, 7-day activity, subscription and integrations. */
 @Component({
   selector: 'app-system-overview',
@@ -176,7 +193,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.overview.get().subscribe({
       next: (data) => {
-        this.data.set(data);
+        this.data.set(withDefaults(data));
         this.error.set('');
         this.updatedAt.set(new Date());
         this.loading.set(false);
