@@ -27,6 +27,7 @@ type StaffRow = ClassAssignmentOverview['staffs'][number];
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './class-assignment-panel.component.html',
+  styleUrl: './class-assignment-panel.component.css',
 })
 export class ClassAssignmentPanelComponent implements OnInit {
   private readonly service = inject(ClassAssignmentService);
@@ -37,6 +38,16 @@ export class ClassAssignmentPanelComponent implements OnInit {
   /** Show the per-staff "AI assessment" button (needs tasks.manage). */
   @Input() canAssessStaff = false;
   @Output() assessStaff = new EventEmitter<User>();
+
+  /** Colour slots cycled over class chips and staff cards. */
+  readonly tones = ['violet', 'pink', 'blue', 'green'];
+
+  /** "Trần Thị Mai" → "TM". */
+  initials(name = ''): string {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+  }
 
   readonly canEdit = this.auth.can('classes.assign');
   readonly overview = signal<ClassAssignmentOverview | null>(null);
