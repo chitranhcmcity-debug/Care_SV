@@ -133,6 +133,9 @@ async function createCompletion({ maxTokens, ...options }) {
   try {
     completion = await api.chat.completions.create({
       model,
+      // Some compatible proxies (e.g. Trikun) stream by default unless told otherwise, and the
+      // SDK then cannot parse the reply as one JSON object.
+      stream: false,
       ...(gemini ? { reasoning_effort: 'low' } : {}),
       max_tokens: maxTokens + (gemini ? GEMINI_THINKING_TOKENS : 0),
       ...options,
