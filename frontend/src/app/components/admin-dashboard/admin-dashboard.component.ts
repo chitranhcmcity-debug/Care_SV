@@ -1080,6 +1080,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** "Trần Thị Mai" → "TM", for the avatar in the staff list. */
+  staffInitials(name = ''): string {
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+  }
+
   openEditStaffModal(staff: User) {
     this.editingStaffId = staff.id || (staff as any)._id || '';
     this.editStaffName = staff.fullName;

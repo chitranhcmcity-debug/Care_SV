@@ -321,11 +321,11 @@
     <!-- Add Staff Form -->
     <form
       (ngSubmit)="createStaffAccount()"
-      class="p-6 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+      class="staff-form p-6 pt-7 grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
     >
       <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase mb-2"
-          >Họ và Tên <span class="text-rose-600">*</span></label
+        <label class="staff-label" data-tone="0"
+          >👤 Họ và tên <span class="text-rose-500">*</span></label
         >
         <input
           type="text"
@@ -333,12 +333,12 @@
           name="newStaffName"
           required
           placeholder="VD: Nguyễn Văn B"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 bg-white"
+          class="staff-field w-full px-4 py-3 text-sm font-semibold"
         />
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase mb-2"
-          >Địa chỉ Email <span class="text-rose-600">*</span></label
+        <label class="staff-label" data-tone="1"
+          >✉️ Địa chỉ email <span class="text-rose-500">*</span></label
         >
         <input
           type="email"
@@ -346,17 +346,17 @@
           name="newStaffEmail"
           required
           placeholder="staff@itc.edu.vn"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 bg-white"
+          class="staff-field w-full px-4 py-3 text-sm font-semibold"
         />
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase mb-2"
-          >Vai Trò Tài Khoản <span class="text-rose-600">*</span></label
+        <label class="staff-label" data-tone="2"
+          >🏷️ Vai trò tài khoản <span class="text-rose-500">*</span></label
         >
         <select
           [(ngModel)]="newStaffRole"
           name="newStaffRole"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-white"
+          class="staff-field w-full px-4 py-3 text-sm font-bold"
         >
           <option value="staff">🎧 Nhân Viên CSKH</option>
           <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy</option>
@@ -364,23 +364,17 @@
         </select>
       </div>
       <div>
-        <label class="block text-xs font-bold text-slate-700 uppercase mb-2"
-          >Mật Khẩu (Tùy chọn)</label
-        >
+        <label class="staff-label" data-tone="3">🔑 Mật khẩu (tùy chọn)</label>
         <input
           type="text"
           [(ngModel)]="newStaffPass"
           name="newStaffPass"
           placeholder="Mật khẩu ngẫu nhiên"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-sans tabular-nums font-semibold text-slate-900 bg-white"
+          class="staff-field w-full px-4 py-3 text-sm tabular-nums font-semibold"
         />
       </div>
-      <button
-        type="submit"
-        [disabled]="isCreatingStaff"
-        class="py-3.5 px-6 bg-violet-600 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm flex items-center justify-center gap-2"
-      >
-        <span>{{ isCreatingStaff ? 'Đang tạo...' : '➕ THÊM TÀI KHOẢN' }}</span>
+      <button type="submit" [disabled]="isCreatingStaff" class="staff-submit touch-target">
+        <span>{{ isCreatingStaff ? 'Đang tạo...' : '＋ Thêm tài khoản' }}</span>
       </button>
     </form>
 
@@ -432,68 +426,62 @@
     >
       <table class="staff-table w-full text-left border-collapse text-sm">
         <thead>
-          <tr
-            class="bg-slate-100 text-slate-800 uppercase text-xs font-bold border-b border-slate-200"
-          >
-            <th class="p-3">Họ & Tên</th>
-            <th class="p-3">Email</th>
-            <th class="p-3">Vai Trò</th>
-            <th class="p-3">Lớp đang phụ trách</th>
-            <th class="p-3">Trạng Thái</th>
-            <th class="p-3 text-right">Thao Tác</th>
+          <tr>
+            <th class="p-3">👤 Họ &amp; tên</th>
+            <th class="p-3">✉️ Email</th>
+            <th class="p-3">🏷️ Vai trò</th>
+            <th class="p-3">🏫 Lớp đang phụ trách</th>
+            <th class="p-3">⚡ Trạng thái</th>
+            <th class="p-3 text-right">Thao tác</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-200 bg-white">
-          <tr *ngFor="let staff of staffList" class="hover:bg-slate-50 transition-all">
-            <td class="p-3 font-bold text-slate-900">{{ staff.fullName }}</td>
-            <td class="p-3 text-slate-600 font-medium font-sans tabular-nums text-xs">
+        <tbody>
+          <tr
+            *ngFor="let staff of staffList"
+            class="staff-row"
+            [attr.data-tone]="staff.role === 'manager' ? 0 : staff.role === 'staff' ? 2 : 3"
+          >
+            <td class="p-3">
+              <div class="flex items-center gap-3">
+                <span class="staff-avatar">{{ staffInitials(staff.fullName) }}</span>
+                <span class="font-bold text-slate-900">{{ staff.fullName }}</span>
+              </div>
+            </td>
+            <td class="p-3 text-slate-600 font-medium tabular-nums text-xs">
               {{ staff.email }}
             </td>
             <td class="p-3">
-              <span
-                class="px-2 py-0.5 rounded-md text-xs font-semibold border"
-                [ngClass]="
-                  staff.role === 'teacher'
-                    ? 'bg-amber-50 text-amber-900 border-amber-200'
-                    : staff.role === 'manager'
-                      ? 'bg-violet-50 text-violet-900 border-violet-200'
-                      : 'bg-blue-50 text-blue-900 border-blue-200'
-                "
-              >
+              <span class="staff-role">
                 {{
                   staff.role === 'teacher'
-                    ? 'Giảng viên'
+                    ? '👨‍🏫 Giảng viên'
                     : staff.role === 'manager'
-                      ? 'Trưởng phòng / PHT'
-                      : 'Nhân viên CSKH'
+                      ? '🏛️ Trưởng phòng / PHT'
+                      : '🎧 Nhân viên CSKH'
                 }}
               </span>
             </td>
             <td class="p-3">
               <div class="flex flex-wrap items-center gap-1.5">
-                <span
-                  *ngFor="let cCode of staff.managedClasses"
-                  class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-900 font-sans tabular-nums font-bold text-xs border border-slate-300"
+                <span *ngFor="let cCode of staff.managedClasses; let ci = index" class="staff-class"
+                  [attr.data-tone]="ci % 4"
                 >
-                  🏫 {{ cCode }}
+                  {{ cCode }}
                 </span>
-                <span
-                  *ngIf="!staff.managedClasses?.length"
-                  class="text-xs text-slate-400 font-medium italic"
-                >
+                <span *ngIf="!staff.managedClasses?.length" class="staff-empty">
                   Chưa gán lớp
                 </span>
               </div>
             </td>
             <td class="p-3">
               <span
-                class="px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                class="staff-status"
                 [ngClass]="
                   staff.status === 'active'
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    ? 'is-active'
                     : staff.status === 'unverified'
-                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-rose-100 text-rose-800 border border-rose-200'
+                      ? 'is-pending'
+                      : 'is-locked'
                 "
               >
                 {{
@@ -510,45 +498,41 @@
                 <button
                   type="button"
                   (click)="openEditStaffModal(staff)"
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-blue-300 text-blue-800 bg-blue-50 hover:bg-blue-100 transition-all touch-target"
+                  class="act act--edit touch-target"
                 >
-                  Sửa
+                  ✏️ Sửa
                 </button>
                 <button
                   *ngIf="staff.role === 'staff' && canAssessStaff"
                   type="button"
                   (click)="openStaffAiAssessment(staff)"
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-violet-300 text-violet-800 bg-violet-50 hover:bg-violet-100 transition-all touch-target"
+                  class="act act--ai touch-target"
                   title="Đánh giá năng lực bằng AI dựa trên lịch sử xử lý"
                 >
-                  Đánh giá AI
+                  ✨ Đánh giá AI
                 </button>
                 <button
                   type="button"
                   (click)="resetStaffPassword(staff)"
                   title="Đặt lại mật khẩu"
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-300 text-slate-800 bg-slate-100 hover:bg-slate-200 transition-all touch-target"
+                  class="act act--reset touch-target"
                 >
-                  Đặt lại MK
+                  🔑 Đặt lại MK
                 </button>
                 <button
                   type="button"
                   (click)="toggleStaffStatus(staff)"
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold border transition-all touch-target"
-                  [ngClass]="
-                    staff.status === 'active'
-                      ? 'border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100'
-                      : 'border-emerald-400 text-emerald-900 bg-emerald-50 hover:bg-emerald-100'
-                  "
+                  class="act touch-target"
+                  [ngClass]="staff.status === 'active' ? 'act--lock' : 'act--unlock'"
                 >
-                  {{ staff.status === 'active' ? 'Khóa' : 'Mở khóa' }}
+                  {{ staff.status === 'active' ? '🔒 Khóa' : '🔓 Mở khóa' }}
                 </button>
                 <button
                   type="button"
                   (click)="deleteStaffAccount(staff)"
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all touch-target"
+                  class="act act--delete touch-target"
                 >
-                  Xóa
+                  🗑️ Xóa
                 </button>
               </div>
             </td>
