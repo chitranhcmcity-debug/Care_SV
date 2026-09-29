@@ -1,12 +1,17 @@
-/* Staff list: a white card lifted off the tinted page with a clear edge and a soft glow. */
+/* Staff list: a raised white card, with a thicker lower edge, a top highlight and stacked
+   shadows so it reads as a slab sitting above the tinted page. */
 .staff-table-container {
   overflow-x: auto;
-  background: #fff;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfbff 100%);
   border: 1.5px solid var(--card-border);
-  border-radius: 16px;
+  border-bottom: 5px solid #cfc3f2;
+  border-radius: 18px;
   box-shadow:
-    0 2px 4px rgb(76 29 149 / 0.08),
-    0 18px 38px -18px rgb(76 29 149 / 0.45);
+    inset 0 1px 0 #fff,
+    0 1px 1px rgb(76 29 149 / 0.08),
+    0 4px 8px -2px rgb(76 29 149 / 0.12),
+    0 14px 24px -10px rgb(76 29 149 / 0.25),
+    0 30px 50px -24px rgb(76 29 149 / 0.45);
 }
 
 .staff-table {
