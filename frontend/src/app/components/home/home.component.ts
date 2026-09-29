@@ -23,6 +23,16 @@ const ICONS = {
   headset:
     'M4 14v-2a8 8 0 0 1 16 0v2M4 14a2 2 0 0 1 2-2h1v6H6a2 2 0 0 1-2-2v-2zM20 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2v-2zM17 18a4 4 0 0 1-4 3h-1',
   chart: 'M4 19h16M7 16V10M12 16V5M17 16v-4',
+  home: 'M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10',
+  user: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1',
+  flow: 'M4 4h6v6H4zM14 14h6v6h-6zM7 10v4a3 3 0 0 0 3 3h4',
+  cpu: 'M7 7h10v10H7zM10 10h4v4h-4zM9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4',
+  shieldCheck: 'M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3zM9 12l2 2 4-4',
+  cap: 'M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 2.5 9 2.5 12 0v-5',
+  bell: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a2 2 0 0 0 3.4 0',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5',
+  message: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+  play: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM10 8.5v7l6-3.5-6-3.5z',
   sparkles:
     'M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3zM19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z',
 };
@@ -37,19 +47,116 @@ const ICONS = {
 export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly branding = inject(BrandingService);
 
+  readonly icons = ICONS;
+
   readonly navLinks = [
-    { id: 'tinh-nang', label: 'Tính năng' },
-    { id: 'ai-care', label: 'AI Care' },
-    { id: 'quy-trinh', label: 'Quy trình' },
-    { id: 'danh-cho-ai', label: 'Dành cho ai' },
-    { id: 'lien-he', label: 'Liên hệ' },
+    { id: 'tinh-nang', label: 'Tính năng', icon: ICONS.bolt },
+    { id: 'ai-care', label: 'AI Care', icon: ICONS.sparkles },
+    { id: 'quy-trinh', label: 'Quy trình', icon: ICONS.flow },
+    { id: 'danh-cho-ai', label: 'Dành cho ai', icon: ICONS.users },
+    { id: 'lien-he', label: 'Liên hệ', icon: ICONS.phone },
   ];
 
   readonly highlights = [
-    { value: '4', label: 'Vai trò, mỗi vai trò một khu làm việc', icon: ICONS.users },
-    { value: 'Tự động', label: 'Giao cuộc gọi theo lớp phụ trách', icon: ICONS.bolt },
-    { value: 'Theo tiết', label: 'Cảnh báo vắng & cấm thi', icon: ICONS.alert },
-    { value: 'AI Care', label: 'Trợ lý tra cứu & làm việc thay', icon: ICONS.sparkles },
+    {
+      title: 'Tự động',
+      text: 'Tự động giao cuộc gọi theo lớp phụ trách, nhắc lịch và theo dõi tiến độ.',
+      icon: ICONS.bolt,
+      tone: 'from-violet-500 to-fuchsia-500 shadow-fuchsia-500/30',
+    },
+    {
+      title: 'AI Care',
+      text: 'Trợ lý AI tra cứu, đề xuất hành động và soạn sẵn thao tác cho bạn.',
+      icon: ICONS.cpu,
+      tone: 'from-sky-500 to-indigo-500 shadow-indigo-500/30',
+    },
+    {
+      title: 'Theo dõi',
+      text: 'Cảnh báo vắng & cấm thi theo tiết, báo cáo trực quan, quản lý dễ dàng.',
+      icon: ICONS.shieldCheck,
+      tone: 'from-amber-400 to-orange-500 shadow-orange-500/30',
+    },
+    {
+      title: 'Dành cho mọi vai trò',
+      text: 'Từ Ban Giám Hiệu, Phòng CTSV, CSKH đến giảng viên.',
+      icon: ICONS.users,
+      tone: 'from-emerald-400 to-green-500 shadow-emerald-500/30',
+    },
+  ];
+
+  /** The four roles as avatar initials next to the hero buttons. */
+  readonly avatars = [
+    { letter: 'B', tone: 'from-violet-500 to-fuchsia-500' },
+    { letter: 'C', tone: 'from-sky-400 to-indigo-500' },
+    { letter: 'K', tone: 'from-emerald-400 to-teal-500' },
+    { letter: 'G', tone: 'from-amber-400 to-orange-500' },
+  ];
+
+  /** Hero mock-up content — illustrative only, not real data. */
+  readonly mockMenu = [
+    { label: 'Tổng quan', icon: ICONS.home },
+    { label: 'Sinh viên', icon: ICONS.user },
+    { label: 'Điểm danh', icon: ICONS.clock },
+    { label: 'Cảnh báo', icon: ICONS.alert },
+    { label: 'Công việc', icon: ICONS.clipboard },
+    { label: 'Báo cáo', icon: ICONS.chart },
+    { label: 'Tin nhắn', icon: ICONS.message },
+  ];
+  readonly mockStats = [
+    {
+      label: 'Đã liên hệ',
+      value: 38,
+      delta: '↑ 12%',
+      icon: ICONS.phone,
+      card: 'bg-emerald-50 border-emerald-100 text-emerald-700',
+      bar: 'bg-emerald-400',
+    },
+    {
+      label: 'Chưa gọi',
+      value: 15,
+      delta: '↓ 5%',
+      icon: ICONS.clock,
+      card: 'bg-amber-50 border-amber-100 text-amber-700',
+      bar: 'bg-amber-400',
+    },
+    {
+      label: 'Cấm thi',
+      value: 7,
+      delta: '↓ 30%',
+      icon: ICONS.alert,
+      card: 'bg-rose-50 border-rose-100 text-rose-700',
+      bar: 'bg-rose-400',
+    },
+    {
+      label: 'Cần theo dõi',
+      value: 26,
+      delta: '↑ 8%',
+      icon: ICONS.users,
+      card: 'bg-sky-50 border-sky-100 text-sky-700',
+      bar: 'bg-sky-400',
+    },
+  ];
+  readonly mockSpark = [35, 55, 45, 70, 60, 90];
+  readonly mockDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+  readonly mockAlerts = [
+    {
+      title: 'Nguy cơ cấm thi',
+      who: 'SV180123 · Nguyễn Văn An',
+      when: '2 giờ',
+      tone: 'bg-rose-100 text-rose-600',
+    },
+    {
+      title: 'Vắng 3 buổi liên tiếp',
+      who: 'SV180456 · Trần Thị Mai',
+      when: '4 giờ',
+      tone: 'bg-sky-100 text-sky-600',
+    },
+    {
+      title: 'Chưa liên hệ phụ huynh',
+      who: 'SV180789 · Lê Minh Quân',
+      when: '6 giờ',
+      tone: 'bg-amber-100 text-amber-600',
+    },
   ];
 
   // Bento grid: `wide` cards span two columns on large screens.
@@ -145,7 +252,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ];
 
   /** Decorative bar heights (%) for the hero mockup chart — not real data. */
-  readonly mockBars = [42, 68, 35, 80, 56, 92, 64];
+  readonly mockBars = [82, 88, 95, 80, 90, 96, 78];
 
   /** Id of the section currently in view — drives the nav highlight. */
   readonly activeSection = signal('');
@@ -166,7 +273,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       },
       { rootMargin: '-80px 0px -60% 0px' },
     );
-    for (const { id } of this.navLinks) {
+    for (const { id } of [{ id: 'trang-chu' }, ...this.navLinks]) {
       const el = document.getElementById(id);
       if (el) this.sectionObserver.observe(el);
     }
@@ -174,6 +281,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.sectionObserver?.disconnect();
+  }
+
+  scrollTop(event: Event) {
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.activeSection.set('trang-chu');
   }
 
   scrollTo(id: string, event: Event) {
