@@ -109,7 +109,7 @@
   position: relative;
   border-radius: 24px;
   background: #fff;
-  border: 1px solid #eeeaf8;
+  border: 1px solid var(--card-border);
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease,
@@ -125,7 +125,7 @@
 .night {
   position: relative;
   overflow: hidden;
-  border: 1px solid #efe9fb;
+  border: 1px solid var(--card-border);
   background:
     radial-gradient(520px 280px at 90% 0%, rgb(var(--brand-200) / 0.7), transparent 70%),
     radial-gradient(460px 280px at 0% 100%, rgb(251 207 232 / 0.75), transparent 70%),

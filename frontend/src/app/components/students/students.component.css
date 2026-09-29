@@ -75,7 +75,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #eef2f7;
+  border: 1px solid var(--tile-border);
   border-radius: 16px;
   background: #fff;
   transition:
@@ -85,7 +85,7 @@
 }
 
 a.contact-card:hover {
-  border-color: #ddd6fe;
+  border-color: var(--card-border-hover);
   transform: translateY(-1px);
   box-shadow: 0 8px 18px -12px rgb(91 33 182 / 0.45);
 }
@@ -195,7 +195,7 @@ a.contact-card:hover {
   align-items: center;
   gap: 8px;
   padding: 18px;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--card-border);
   border-radius: 16px;
   color: #94a3b8;
   font-size: 13px;

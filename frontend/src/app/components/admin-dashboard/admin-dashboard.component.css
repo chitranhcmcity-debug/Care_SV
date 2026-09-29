@@ -1,6 +1,6 @@
 .staff-table-container {
   overflow-x: auto;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--card-border);
   border-radius: 12px;
 }
 

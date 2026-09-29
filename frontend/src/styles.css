@@ -237,6 +237,9 @@ a:focus-visible {
   --accent-pink: #db2777;
   --accent-amber: #f59e0b;
   --soft-border: #ebe8f7;
+  --card-border: #dcd3f3;
+  --card-border-hover: rgb(var(--brand-300));
+  --tile-border: #e6e0f6;
   --hero-gradient: linear-gradient(
     115deg,
     rgb(var(--brand-600)) 0%,
@@ -260,15 +263,77 @@ a:focus-visible {
     #f4f3fb;
 }
 
-/* Cards: white surfaces get a light violet border and a soft glow. */
-.app-main .bg-white.border,
-.app-main .bg-white.shadow-sm,
-.app-main .bg-white.shadow {
-  border-color: var(--soft-border);
-  box-shadow: 0 8px 24px -14px rgba(76, 29, 149, 0.22);
+/* ---------- Card borders (every page, every role) ----------
+   One outline system so cards read clearly on the tinted page background without looking
+   heavy: a soft lavender edge, a faint inner highlight and a low glow. Only block elements
+   are touched, so inputs, selects and small buttons keep their own borders. */
+.app-main :is(div, section, article, aside, li, form, details, a).border:is(
+    .rounded-md,
+    .rounded-lg,
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-3xl
+  ) {
+  border-width: 1px;
+}
+
+/* White cards (panels, list items, modals). */
+.app-main :is(div, section, article, aside, li, form, details, a).bg-white:is(.border, .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl):is(
+    .rounded-lg,
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-3xl
+  ) {
+  border: 1px solid var(--card-border);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(76 29 149 / 0.06),
+    0 10px 28px -18px rgb(76 29 149 / 0.35);
   transition:
+    border-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.2s ease;
+}
+/* Modals keep their big drop shadow, just with the same edge. */
+.app-main :is(div, section, form).bg-white.shadow-2xl {
+  box-shadow:
+    0 0 0 1px var(--card-border),
+    0 30px 60px -24px rgb(76 29 149 / 0.45);
+  border-color: transparent;
+}
+/* Clickable cards: the edge warms to the brand colour on hover. */
+.app-main a.bg-white.border:hover,
+.app-main :is(div, li).bg-white.border.cursor-pointer:hover {
+  border-color: var(--card-border-hover);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 14px 30px -18px rgb(76 29 149 / 0.45);
+}
+
+/* Info tiles inside cards (grey fills): a visible edge instead of near-white on white. */
+.app-main :is(div, section, li, a, form).border:is(.bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
+  border-color: var(--tile-border);
+}
+
+/* Tinted cards keep their hue but get a matching, clearly visible edge. */
+.app-main :is(div, section, li, a, form).border:is(.bg-violet-50, .bg-violet-100, .bg-purple-50) {
+  border-color: rgb(var(--brand-200) / 0.9);
+}
+.app-main :is(div, section, li, a, form).border:is(.bg-emerald-50, .bg-emerald-100, .bg-green-50) {
+  border-color: #a7f3d0;
+}
+.app-main :is(div, section, li, a, form).border:is(.bg-amber-50, .bg-amber-100, .bg-orange-50, .bg-yellow-50) {
+  border-color: #fcd34d;
+}
+.app-main :is(div, section, li, a, form).border:is(.bg-rose-50, .bg-rose-100, .bg-red-50) {
+  border-color: #fda4af;
+}
+.app-main :is(div, section, li, a, form).border:is(.bg-blue-50, .bg-blue-100, .bg-sky-50, .bg-indigo-50, .bg-indigo-100) {
+  border-color: #bfdbfe;
+}
+/* Dashed drop zones stay dashed, just easier to spot. */
+.app-main .border-dashed {
+  border-color: rgb(var(--brand-300) / 0.7);
 }
 
 /* Tinted cards (stat tiles, notices): a gentle two-tone gradient instead of a flat fill. */
