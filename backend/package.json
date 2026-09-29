@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:railway": "node --env-file=.env.railway server.js",
     "dev": "nodemon server.js",
     "create:manager": "node scripts/taoTaiKhoanQuanLy.js",
     "seed:demo": "node scripts/taoDuLieuDemo.js",

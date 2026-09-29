@@ -124,7 +124,7 @@ trong một tiến trình; unique index chống bản ghi trùng, nhưng lưu đ
 ### Railway
 
 `railway.json` và `package.json` ở thư mục gốc đã cấu hình sẵn: Railway chạy `npm run build`
-(cài backend, cài frontend kèm devDependencies, build Angular) rồi `npm start`, health check
+(cài backend, cài frontend kèm devDependencies, build Angular) rồi `npm run start:railway --prefix backend`, health check
 `/api/health`. Biến cần đặt cho service:
 
 | Biến                            | Giá trị                                                                           |
@@ -139,3 +139,22 @@ trong một tiến trình; unique index chống bản ghi trùng, nhưng lưu đ
 Gắn một Volume cho service (mount path tùy ý, vd. `/data`): file ghi âm và minh chứng được lưu
 vào `<mount path>/uploads` nên không mất khi deploy lại. Không có Volume thì các file này mất sau
 mỗi lần deploy. SMTP, OpenAI, Stringee, PayOS là tùy chọn (xem `backend/.env.example`).
+
+Trợ lý AI trên Railway nạp mặc định công khai từ `backend/.env.railway`:
+
+```dotenv
+AI_PROVIDER=openai
+OPENAI_API_MODE=chat
+OPENAI_BASE_URL=https://api-trikun.up.railway.app/v1
+OPENAI_MODEL=ag/gemini-3.5-flash-low
+```
+
+Trong service Railway → Variables, đặt `OPENAI_API_KEY` bằng key của API này rồi deploy.
+Không đưa key vào Git. Biến đã đặt trên Railway được ưu tiên hơn file mặc định; nếu service
+đang có bốn biến trên với giá trị khác, cần sửa hoặc xóa chúng để dùng cấu hình này.
+Cấu hình đã lưu ở Quản trị → Cấu hình API có ưu tiên cao nhất, nên cũng cần cập nhật nếu đã lưu.
+File `.env` cục bộ không được push lên Railway.
+
+Model 3.5 được giữ theo yêu cầu, nhưng lần gọi thử ngày 29/09/2026 nhà cung cấp báo đã ngừng
+hoạt động. Có thể đổi `OPENAI_MODEL` trên Railway hoặc giao diện quản trị khi cần;
+`ag/gemini-3.7-flash-low` đã được kiểm tra chat và gọi công cụ thành công.
