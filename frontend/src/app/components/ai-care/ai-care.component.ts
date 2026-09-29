@@ -45,6 +45,19 @@ export class AiCareComponent {
   readonly facing = signal<'left' | 'right'>('left');
   private wanderTimer?: ReturnType<typeof setTimeout>;
   private paused = false;
+  // Drag to move: once the user drops the robot somewhere it stays there (no more wandering),
+  // so it never flies back over what they were reading.
+  readonly dragging = signal(false);
+  private drag: {
+    pointerId: number;
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+    moved: boolean;
+  } | null = null;
+  private pinnedPos: { x: number; y: number } | null = null;
+  private suppressClick = false;
   private readonly reducedMotion =
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -74,6 +87,63 @@ export class AiCareComponent {
     this.travelMs.set(0);
     if (this.open()) this.pos.set(this.dockPosition());
     else this.pos.update(({ x, y }) => ({ x: Math.min(x, maxX), y: Math.min(y, maxY) }));
+    if (this.pinnedPos && !this.open()) this.pinnedPos = this.pos();
+  }
+
+  onPointerDown(event: PointerEvent) {
+    if (event.button !== 0) return;
+    const { x, y } = this.pos();
+    this.drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: x,
+      originY: y,
+      moved: false,
+    };
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  onPointerMove(event: PointerEvent) {
+    const drag = this.drag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    // A few pixels of jitter is still a click.
+    if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      clearTimeout(this.wanderTimer);
+      this.dragging.set(true);
+      this.flying.set(false);
+      this.tilt.set(0);
+      this.travelMs.set(0);
+    }
+    if (Math.abs(event.movementX) > 1) this.facing.set(event.movementX > 0 ? 'right' : 'left');
+    const { minX, minY, maxX, maxY } = this.bounds();
+    this.pos.set({
+      x: Math.min(maxX, Math.max(minX, drag.originX + dx)),
+      y: Math.min(maxY, Math.max(minY, drag.originY + dy)),
+    });
+  }
+
+  onPointerUp(event: PointerEvent) {
+    const drag = this.drag;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    this.drag = null;
+    if (!drag.moved) return; // a plain click: (click) opens the chat
+    this.dragging.set(false);
+    this.suppressClick = true; // the click fired after a drag must not open the chat
+    if (this.open()) return; // moved while the chat is open: it docks again when closed
+    this.pinnedPos = this.pos();
+  }
+
+  onClick() {
+    if (this.suppressClick) {
+      this.suppressClick = false;
+      return;
+    }
+    this.toggle();
   }
 
   @HostListener('document:keydown.escape')
@@ -131,7 +201,7 @@ export class AiCareComponent {
 
   private scheduleWander(delay: number) {
     clearTimeout(this.wanderTimer);
-    if (this.reducedMotion || this.paused || this.open()) return;
+    if (this.reducedMotion || this.paused || this.open() || this.pinnedPos || this.drag) return;
     this.wanderTimer = setTimeout(() => {
       const { minX, minY, maxX, maxY } = this.bounds();
       const ms = this.flyTo({
@@ -152,6 +222,13 @@ export class AiCareComponent {
     if (this.open()) {
       // Park next to the chat panel.
       const ms = this.flyTo(this.dockPosition(), 900);
+      this.wanderTimer = setTimeout(() => {
+        this.flying.set(false);
+        this.tilt.set(0);
+      }, ms);
+    } else if (this.pinnedPos) {
+      // Go back to where the user put it.
+      const ms = this.flyTo(this.pinnedPos, 900);
       this.wanderTimer = setTimeout(() => {
         this.flying.set(false);
         this.tilt.set(0);

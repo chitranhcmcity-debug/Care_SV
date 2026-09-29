@@ -13,7 +13,11 @@
   padding: 0;
   border: 0;
   background: none;
-  cursor: pointer;
+  cursor: grab;
+  /* The robot can be dragged with a finger without scrolling the page. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
   transition-property: transform;
   transition-timing-function: cubic-bezier(0.45, 0, 0.3, 1);
   will-change: transform;
@@ -56,6 +60,21 @@
 }
 .robot-img.is-shown {
   opacity: 1;
+}
+
+/* Picked up: a little bigger, no tooltip, and the shadow drops away. */
+.robot-launcher.is-dragging {
+  cursor: grabbing;
+}
+.is-dragging .robot-body {
+  transform: scale(1.08);
+  transition: transform 0.15s ease;
+}
+.is-dragging .robot-tip {
+  opacity: 0 !important;
+}
+.is-dragging .robot-shadow {
+  opacity: 0;
 }
 
 .robot-shadow {

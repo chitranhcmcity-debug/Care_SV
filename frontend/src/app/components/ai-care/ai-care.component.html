@@ -3,9 +3,14 @@
   type="button"
   class="robot-launcher"
   [class.is-flying]="flying()"
+  [class.is-dragging]="dragging()"
   [style.transform]="'translate3d(' + pos().x + 'px,' + pos().y + 'px,0)'"
   [style.transition-duration]="travelMs() + 'ms'"
-  (click)="toggle()"
+  (click)="onClick()"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
   (mouseenter)="pause()"
   (mouseleave)="resume()"
   (focus)="pause()"
@@ -13,7 +18,9 @@
   [attr.aria-expanded]="open()"
   [attr.aria-label]="open() ? 'Đóng trợ lý AI Care' : 'Mở trợ lý AI Care'"
 >
-  <span class="robot-tip">{{ open() ? 'Đóng AI Care' : 'Hỏi AI Care' }}</span>
+  <span class="robot-tip">{{
+    open() ? 'Đóng AI Care' : 'Hỏi AI Care · giữ & kéo để dời chỗ'
+  }}</span>
   <span class="robot-body" [style.--tilt]="tilt() + 'deg'">
     <!-- Two drawings of the wizard robot; the one facing the flight direction is shown. -->
     <span class="robot-float">
