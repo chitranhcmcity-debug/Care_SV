@@ -16,42 +16,46 @@
 
   <!-- Overview Metric Cards -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-    <div class="bg-amber-50 border border-amber-200 p-4 rounded-md text-center space-y-1 shadow-sm">
-      <div class="text-xs text-amber-800 font-bold uppercase">Mới Giao</div>
-      <div class="text-xl font-bold text-amber-900">{{ newCount }}</div>
-    </div>
-    <div class="bg-blue-50 border border-blue-200 p-4 rounded-md text-center space-y-1 shadow-sm">
-      <div class="text-xs text-blue-800 font-bold uppercase">Đang Thực Hiện</div>
-      <div class="text-xl font-bold text-blue-900">{{ inProgressCount }}</div>
-    </div>
-    <div
-      class="bg-purple-50 border border-purple-200 p-4 rounded-md text-center space-y-1 shadow-sm"
-    >
-      <div class="text-xs text-purple-800 font-bold uppercase">Chờ Duyệt</div>
-      <div class="text-xl font-bold text-purple-900">{{ waitingCount }}</div>
-    </div>
-    <div
-      class="bg-emerald-50 border border-emerald-200 p-4 rounded-md text-center space-y-1 shadow-sm"
-    >
-      <div class="text-xs text-emerald-800 font-bold uppercase">Hoàn Thành</div>
-      <div class="text-xl font-bold text-emerald-900">{{ doneCount }}</div>
+    <div *ngFor="let f of statCards" class="task-stat" [attr.data-tone]="f.tone">
+      <span class="task-stat-icon">
+        <svg class="" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="f.icon">
+          <g *ngSwitchCase="'all'"><rect x="3.5" y="3.5" width="7" height="7" rx="2" /><rect x="13.5" y="3.5" width="7" height="7" rx="2" /><rect x="3.5" y="13.5" width="7" height="7" rx="2" /><rect x="13.5" y="13.5" width="7" height="7" rx="2" /></g>
+          <g *ngSwitchCase="'new'"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 16v4M17 18h4" /></g>
+          <g *ngSwitchCase="'play'"><circle cx="12" cy="12" r="9" /><path d="M10 8.5v7l6-3.5z" /></g>
+          <g *ngSwitchCase="'clock'"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></g>
+          <g *ngSwitchCase="'done'"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></g>
+          <g *ngSwitchCase="'undo'"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></g>
+        </svg>
+      </span>
+      <div>
+        <div class="task-stat-label">{{ f.label }}</div>
+        <div class="task-stat-value">{{ f.count() }}</div>
+      </div>
     </div>
   </div>
 
-  <!-- Filter -->
-  <div class="bg-white border border-slate-200 p-4 rounded-md shadow-sm">
-    <select
-      [(ngModel)]="filterStatus"
-      (change)="loadTasks()"
-      class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+  <!-- Filter: status pills with line icons -->
+  <div class="card-3d p-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Lọc theo trạng thái">
+    <button
+      *ngFor="let f of statusFilters"
+      type="button"
+      role="radio"
+      [attr.aria-checked]="filterStatus === f.value"
+      class="task-filter"
+      [attr.data-tone]="f.tone"
+      [class.is-active]="filterStatus === f.value"
+      (click)="filterStatus = f.value; loadTasks()"
     >
-      <option value="">Tất cả Trạng thái</option>
-      <option value="moi_giao">🆕 Mới giao</option>
-      <option value="da_xac_nhan">▶️ Đã xác nhận</option>
-      <option value="cho_duyet">⏳ Chờ duyệt</option>
-      <option value="hoan_thanh">✅ Hoàn thành</option>
-      <option value="bi_tu_choi">↩️ Bị từ chối</option>
-    </select>
+      <svg class="task-filter-icon" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="f.icon">
+          <g *ngSwitchCase="'all'"><rect x="3.5" y="3.5" width="7" height="7" rx="2" /><rect x="13.5" y="3.5" width="7" height="7" rx="2" /><rect x="3.5" y="13.5" width="7" height="7" rx="2" /><rect x="13.5" y="13.5" width="7" height="7" rx="2" /></g>
+          <g *ngSwitchCase="'new'"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 16v4M17 18h4" /></g>
+          <g *ngSwitchCase="'play'"><circle cx="12" cy="12" r="9" /><path d="M10 8.5v7l6-3.5z" /></g>
+          <g *ngSwitchCase="'clock'"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></g>
+          <g *ngSwitchCase="'done'"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></g>
+          <g *ngSwitchCase="'undo'"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></g>
+        </svg>
+      {{ f.label }}
+    </button>
   </div>
 
   <!-- Task Cards -->

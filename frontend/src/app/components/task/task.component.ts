@@ -29,10 +29,28 @@ interface EvidenceDraft {
   standalone: true,
   imports: [CommonModule, FormsModule, ViLabelPipe],
   templateUrl: './task.component.html',
+  styleUrl: './task.component.css',
 })
 export class TaskComponent implements OnInit {
   tasks: WorkTask[] = [];
   filterStatus: TaskStatus | '' = '';
+
+  /** Status filter pills (icon keys map to inline SVGs in the template). */
+  readonly statusFilters: { value: TaskStatus | ''; label: string; icon: string; tone: string }[] = [
+    { value: '', label: 'Tất cả', icon: 'all', tone: 'violet' },
+    { value: 'moi_giao', label: 'Mới giao', icon: 'new', tone: 'amber' },
+    { value: 'da_xac_nhan', label: 'Đã xác nhận', icon: 'play', tone: 'blue' },
+    { value: 'cho_duyet', label: 'Chờ duyệt', icon: 'clock', tone: 'purple' },
+    { value: 'hoan_thanh', label: 'Hoàn thành', icon: 'done', tone: 'green' },
+    { value: 'bi_tu_choi', label: 'Bị từ chối', icon: 'undo', tone: 'rose' },
+  ];
+
+  readonly statCards = [
+    { label: 'Mới giao', icon: 'new', tone: 'amber', count: () => this.newCount },
+    { label: 'Đang thực hiện', icon: 'play', tone: 'blue', count: () => this.inProgressCount },
+    { label: 'Chờ duyệt', icon: 'clock', tone: 'purple', count: () => this.waitingCount },
+    { label: 'Hoàn thành', icon: 'done', tone: 'green', count: () => this.doneCount },
+  ];
   loading = false;
 
   private drafts = new Map<string, EvidenceDraft>();

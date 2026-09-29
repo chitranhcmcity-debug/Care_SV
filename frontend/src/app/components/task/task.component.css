@@ -1,0 +1,103 @@
+/* Colour per status; used by the stat cards and the filter pills. */
+[data-tone='violet'] { --tone: #7c3aed; --tone-2: #c026d3; --tint: #f5f3ff; --soft: #ddd6fe; }
+[data-tone='amber']  { --tone: #d97706; --tone-2: #f59e0b; --tint: #fffbeb; --soft: #fde68a; }
+[data-tone='blue']   { --tone: #2563eb; --tone-2: #38bdf8; --tint: #eff6ff; --soft: #bfdbfe; }
+[data-tone='purple'] { --tone: #9333ea; --tone-2: #d946ef; --tint: #faf5ff; --soft: #e9d5ff; }
+[data-tone='green']  { --tone: #059669; --tone-2: #34d399; --tint: #ecfdf5; --soft: #a7f3d0; }
+[data-tone='rose']   { --tone: #e11d48; --tone-2: #fb7185; --tint: #fff1f2; --soft: #fecdd3; }
+
+svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Stat cards ---------- */
+.task-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--soft);
+  border-bottom-width: 4px;
+  border-radius: 18px;
+  background: linear-gradient(150deg, #fff 35%, var(--tint));
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 16px 30px -18px color-mix(in srgb, var(--tone) 70%, transparent);
+  transition: transform 0.2s ease;
+}
+.task-stat:hover {
+  transform: translateY(-2px);
+}
+.task-stat-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--tone), var(--tone-2));
+  box-shadow: 0 8px 16px -8px var(--tone);
+}
+.task-stat-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.task-stat-label {
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.task-stat-value {
+  color: #0f172a;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Status filter pills ---------- */
+.task-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px 0 11px;
+  border: 1.5px solid var(--soft);
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--tone);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+.task-filter:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px -10px var(--tone);
+}
+.task-filter:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--tone) 35%, transparent);
+  outline-offset: 2px;
+}
+.task-filter.is-active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--tone), var(--tone-2));
+  color: #fff;
+  box-shadow: 0 10px 20px -10px var(--tone);
+}
+.task-filter-icon {
+  width: 18px;
+  height: 18px;
+}
