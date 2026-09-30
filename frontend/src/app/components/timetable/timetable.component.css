@@ -576,3 +576,49 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Fit fixes: all 7 days visible, cards fill their hours ---------- */
+.tt-grid {
+  grid-template-columns: 76px repeat(7, minmax(0, 1fr));
+  column-gap: 8px;
+  min-width: 1060px;
+}
+.tt-head {
+  margin: 0 6px 6px;
+}
+.tt-time {
+  margin: 0 6px;
+}
+.tt-cell {
+  padding: 4px 5px;
+  min-width: 0;
+}
+.tt-cell > .tt-card {
+  flex: 1 1 auto;
+}
+.tt-card {
+  padding: 9px 8px;
+  min-width: 0;
+}
+.tt-code,
+.tt-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.tt-empty {
+  padding: 16px 6px;
+}
+.tt-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  box-shadow: 0 12px 20px -12px #7c3aed;
+}
+.tt-empty-icon svg {
+  width: 26px;
+  height: 26px;
+}

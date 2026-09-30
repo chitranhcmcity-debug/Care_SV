@@ -149,30 +149,51 @@ export class TimetableComponent implements OnInit {
     }
     const hours = Array.from({ length: maxH - minH }, (_, i) => minH + i);
 
-    const blocks = new Map<
-      string,
-      { col: number; rowStart: number; rowEnd: number; day: string; entries: TimetableEntry[] }
-    >();
+    // Classes whose hours overlap on the same day share one block; separate blocks for them
+    // would occupy the same grid area and hide each other.
+    const blocks: {
+      col: number;
+      rowStart: number;
+      rowEnd: number;
+      day: string;
+      entries: TimetableEntry[];
+    }[] = [];
     const counts: Record<string, number> = Object.fromEntries(WEEK.map((d) => [d, 0]));
     const busy: Record<string, Set<number>> = Object.fromEntries(WEEK.map((d) => [d, new Set()]));
+    const byDay: Record<string, { from: number; to: number; entry: TimetableEntry }[]> =
+      Object.fromEntries(WEEK.map((d) => [d, []]));
     for (const { entry, day } of occ) {
       counts[day]++;
-      const key = `${day}|${this.slotKey(entry)}`;
       const [s, e] = this.hoursOf(entry);
       const from = Math.floor(s);
       const to = Math.ceil(e);
       for (let h = from; h < to; h++) busy[day].add(h);
-      const block = blocks.get(key);
-      if (block) block.entries.push(entry);
-      else
-        blocks.set(key, {
-          col: WEEK.indexOf(day) + 2,
-          rowStart: from - minH + 2,
-          rowEnd: to - minH + 2,
-          day,
-          entries: [entry],
-        });
+      byDay[day].push({ from, to, entry });
     }
+    WEEK.forEach((day, i) => {
+      const items = byDay[day].sort((a, b) => a.from - b.from || a.to - b.to);
+      let cur: { from: number; to: number; entries: TimetableEntry[] } | null = null;
+      const flush = () => {
+        if (cur)
+          blocks.push({
+            col: i + 2,
+            rowStart: cur.from - minH + 2,
+            rowEnd: cur.to - minH + 2,
+            day,
+            entries: cur.entries,
+          });
+      };
+      for (const it of items) {
+        if (cur && it.from < cur.to) {
+          cur.to = Math.max(cur.to, it.to);
+          cur.entries.push(it.entry);
+        } else {
+          flush();
+          cur = { from: it.from, to: it.to, entries: [it.entry] };
+        }
+      }
+      flush();
+    });
 
     const empties: { col: number; row: number }[] = [];
     WEEK.forEach((day, i) => {
@@ -180,7 +201,7 @@ export class TimetableComponent implements OnInit {
       for (const h of hours) if (!busy[day].has(h)) empties.push({ col: i + 2, row: h - minH + 2 });
     });
 
-    return { hours, blocks: [...blocks.values()], empties, counts };
+    return { hours, blocks, empties, counts };
   });
 
   /** Sessions today, for the banner (ignores the week being browsed and the class filter). */
