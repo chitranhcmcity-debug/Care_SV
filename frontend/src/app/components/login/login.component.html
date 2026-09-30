@@ -1,15 +1,15 @@
 <div class="lg-page min-h-screen p-0 sm:p-4 lg:p-5">
-<div class="lg-shell min-h-[calc(100vh-2.5rem)] grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+<div class="lg-shell min-h-screen sm:min-h-[calc(100vh-2rem)] lg:h-[calc(100vh-2.5rem)] lg:min-h-[600px] grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
   <!-- Left: form -->
   <div
-    class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20"
+    class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20 lg:overflow-y-auto"
     [ngClass]="mode === 'login' ? 'py-6' : 'py-8'"
   >
     <!-- Brand -->
     <a routerLink="/" class="relative flex items-center gap-3 w-fit">
       <img [src]="branding.logo()" alt="Logo ITC" width="48" height="48" class="object-contain" />
       <div class="leading-tight">
-        <div class="font-bold text-slate-900">{{ branding.title() }} Student Care System</div>
+        <div class="font-bold text-slate-900">{{ branding.title() }}</div>
         <div class="text-xs text-slate-500">Điểm danh &amp; chăm sóc sinh viên</div>
       </div>
     </a>
@@ -52,7 +52,7 @@
             </h1>
             <p class="text-[15px] text-slate-500 leading-relaxed">
               Quản lý điểm danh, lớp học và chăm sóc sinh viên dễ dàng hơn với
-              {{ branding.title() }} Student Care System.
+              {{ branding.title() }}.
             </p>
           </ng-container>
         </div>
@@ -596,12 +596,12 @@
       <path d="M510 770l60-26-22 38-10-14z" fill="#fff" fill-opacity="0.9" />
     </svg>
 
-    <div class="relative flex flex-col w-full p-10 xl:p-14">
+    <div class="relative flex flex-col w-full min-h-0 px-10 py-8 xl:px-12">
       <!-- Floating preview cards + mascot -->
-      <div class="relative flex-1 min-h-[440px]">
-        <p class="lg-script hidden xl:block absolute left-2 top-6">Your Future<br />&nbsp;&nbsp;&nbsp;Our Care ♡</p>
+      <div class="relative flex-1 min-h-[330px]">
+        <p class="lg-script hidden xl:block absolute left-2 top-2">Your Future<br />&nbsp;&nbsp;&nbsp;Our Care ♡</p>
 
-        <div class="lg-float absolute right-0 top-0 w-[330px] p-5">
+        <div class="lg-float absolute right-0 top-0 w-[300px] p-4">
           <div class="flex items-center justify-between">
             <span class="flex items-center gap-2.5 text-sm font-bold text-slate-900">
               <span class="lg-av lg-av--1"></span> Điểm danh buổi học
@@ -625,7 +625,7 @@
           </div>
         </div>
 
-        <div class="lg-float absolute left-0 top-[150px] w-[270px] p-5 -rotate-[6deg]">
+        <div class="lg-float absolute left-0 top-[110px] w-[250px] p-4 -rotate-[6deg]">
           <div class="flex items-start gap-3">
             <span class="lg-tile bg-violet-100 text-violet-600">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -642,7 +642,7 @@
           </div>
         </div>
 
-        <div class="lg-float absolute left-2 top-[330px] w-[260px] p-5 rotate-[2deg]">
+        <div class="lg-float absolute left-2 top-[250px] w-[240px] p-4 rotate-[2deg]">
           <div class="flex items-start gap-3">
             <span class="lg-tile bg-rose-100 text-rose-600">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -662,18 +662,18 @@
           alt=""
           width="300"
           height="250"
-          class="lg-robot absolute right-0 xl:right-6 top-[170px] w-[210px] xl:w-[280px] h-auto"
+          class="lg-robot absolute right-0 xl:right-6 top-[130px] w-[190px] xl:w-[230px] h-auto"
         />
-        <span class="lg-bubble hidden xl:grid absolute right-[300px] top-[190px]">
+        <span class="lg-bubble hidden xl:grid absolute right-[250px] top-[150px]">
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7" /></svg>
         </span>
-        <span class="lg-bubble hidden xl:grid absolute right-0 top-[260px]">
+        <span class="lg-bubble hidden xl:grid absolute right-0 top-[230px]">
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" /></svg>
         </span>
       </div>
 
-      <div class="relative space-y-3 max-w-lg">
-        <h2 class="text-3xl xl:text-[40px] font-extrabold leading-tight tracking-tight">
+      <div class="relative space-y-2 max-w-lg mt-4">
+        <h2 class="text-[28px] xl:text-[34px] font-extrabold leading-tight tracking-tight">
           Không để sinh viên<br />nào bị bỏ lại <span class="lg-underline">phía sau.</span>
         </h2>
         <p class="text-white/80 text-sm leading-relaxed">
@@ -681,7 +681,7 @@
         </p>
       </div>
 
-      <div class="relative mt-8 grid grid-cols-3 gap-4">
+      <div class="relative mt-5 grid grid-cols-3 gap-4">
         <div class="flex items-center gap-3">
           <span class="lg-feat bg-gradient-to-br from-violet-400 to-violet-600">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" /></svg>

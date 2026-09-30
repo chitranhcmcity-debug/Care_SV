@@ -100,7 +100,7 @@
 .lg-script {
   color: #fff;
   font-family: 'Segoe Script', 'Brush Script MT', cursive;
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.35;
   opacity: 0.9;
   transform: rotate(-10deg);
@@ -190,11 +190,16 @@
 }
 .lg-feat {
   flex-shrink: 0;
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border-radius: 16px;
   display: grid;
   place-items: center;
   color: #fff;
   box-shadow: 0 12px 22px -12px rgb(30 27 75 / 0.6);
+}
+/* Keep browser autofill from painting the fields blue. */
+.lg-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px #f8f7fd inset;
+  -webkit-text-fill-color: #0f172a;
 }
