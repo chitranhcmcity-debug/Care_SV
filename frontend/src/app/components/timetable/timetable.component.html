@@ -102,52 +102,96 @@
           >
             <div *ngIf="!grid().days[day][s.key]?.length" class="tt-slot" aria-hidden="true"></div>
 
-            <article
+            <button
               *ngFor="let g of grid().days[day][s.key]"
+              type="button"
               class="tt-card"
               [attr.data-tone]="tone(g)"
               [class.is-mine]="g.isMine && !onlyMine()"
-              [title]="
-                'Ca ' +
-                (g.shift | viLabel) +
-                (g.startDate
-                  ? ' · ' + (g.startDate | date: 'dd/MM') + '–' + (g.endDate | date: 'dd/MM/yyyy')
-                  : '')
-              "
+              (click)="open(g, day)"
             >
-              <div class="flex items-start gap-2">
-                <span class="tt-icon" aria-hidden="true">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                    <path [attr.d]="icons[tone(g)]" />
-                  </svg>
-                </span>
-                <div class="min-w-0 flex-1">
-                  <div class="tt-code">{{ g.groupCode }}</div>
-                  <div *ngIf="g.courseName" class="tt-name">{{ g.courseName }}</div>
-                </div>
-              </div>
-
-              <div class="mt-2 space-y-1 text-[11.5px] text-slate-600 leading-snug">
-                <div *ngIf="g.room" class="tt-meta">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5" />
-                  </svg>
-                  <span class="truncate">{{ g.room }}</span>
-                </div>
-                <div class="tt-meta">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5" />
-                  </svg>
-                  <span class="truncate flex-1">{{ g.teacherName || 'Chưa phân công GV' }}</span>
-                  <span class="tt-sv">{{ g.studentCount }} SV</span>
-                </div>
-              </div>
-
-              <span *ngIf="g.isMine && !onlyMine()" class="tt-mine">★ Lớp của tôi</span>
-            </article>
+              <span class="tt-icon" aria-hidden="true">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <path [attr.d]="icons[tone(g)]" />
+                </svg>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="tt-code">{{ g.groupCode }}</span>
+                <span *ngIf="g.courseName" class="tt-name">{{ g.courseName }}</span>
+              </span>
+            </button>
           </div>
         </ng-container>
       </ng-container>
     </section>
+  </div>
+
+  <!-- Session detail popup -->
+  <div
+    *ngIf="selected() as sel"
+    class="tt-overlay"
+    (click)="close()"
+  >
+    <div
+      class="tt-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="sel.entry.groupCode"
+      [attr.data-tone]="tone(sel.entry)"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="tt-modal-head">
+        <span class="tt-icon tt-icon--lg" aria-hidden="true">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="icons[tone(sel.entry)]" />
+          </svg>
+        </span>
+        <div class="min-w-0 flex-1">
+          <h2 class="tt-modal-code">{{ sel.entry.groupCode }}</h2>
+          <p *ngIf="sel.entry.courseName" class="text-sm font-semibold text-slate-600">
+            {{ sel.entry.courseName }}
+          </p>
+          <span *ngIf="sel.entry.isMine" class="tt-mine">★ Lớp của tôi</span>
+        </div>
+        <button type="button" class="tt-close" aria-label="Đóng" (click)="close()">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        </button>
+      </header>
+
+      <dl class="tt-info">
+        <div>
+          <dt>Ngày học</dt>
+          <dd>{{ sel.day | viLabel }}</dd>
+        </div>
+        <div>
+          <dt>Ca học</dt>
+          <dd>
+            Ca {{ sel.entry.shift | viLabel }}
+            <span *ngIf="sel.entry.startTime && sel.entry.endTime">
+              · {{ sel.entry.startTime }}–{{ sel.entry.endTime }}</span
+            >
+          </dd>
+        </div>
+        <div>
+          <dt>Phòng</dt>
+          <dd>{{ sel.entry.room || 'Chưa có phòng' }}</dd>
+        </div>
+        <div>
+          <dt>Giảng viên</dt>
+          <dd>{{ sel.entry.teacherName || 'Chưa phân công giảng viên' }}</dd>
+        </div>
+        <div>
+          <dt>Sĩ số</dt>
+          <dd>{{ sel.entry.studentCount }} sinh viên</dd>
+        </div>
+        <div *ngIf="sel.entry.startDate">
+          <dt>Thời gian học</dt>
+          <dd>
+            {{ sel.entry.startDate | date: 'dd/MM/yyyy' }} –
+            {{ sel.entry.endDate | date: 'dd/MM/yyyy' }}
+          </dd>
+        </div>
+      </dl>
+    </div>
   </div>
 </div>

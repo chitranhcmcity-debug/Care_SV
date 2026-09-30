@@ -155,39 +155,45 @@
 }
 
 /* ---------- Class cards (colour per course) ---------- */
-.tt-card[data-tone='0'] {
+[data-tone='0'] {
   --tone: #ea580c;
   --tone-2: #fb923c;
   --tint: #fff4e8;
 }
-.tt-card[data-tone='1'] {
+[data-tone='1'] {
   --tone: #0284c7;
   --tone-2: #38bdf8;
   --tint: #ecf7ff;
 }
-.tt-card[data-tone='2'] {
+[data-tone='2'] {
   --tone: #7c3aed;
   --tone-2: #a78bfa;
   --tint: #f4efff;
 }
-.tt-card[data-tone='3'] {
+[data-tone='3'] {
   --tone: #db2777;
   --tone-2: #f472b6;
   --tint: #fff0f6;
 }
-.tt-card[data-tone='4'] {
+[data-tone='4'] {
   --tone: #059669;
   --tone-2: #34d399;
   --tint: #ecfdf4;
 }
-.tt-card[data-tone='5'] {
+[data-tone='5'] {
   --tone: #e11d48;
   --tone-2: #fb7185;
   --tint: #fff1f3;
 }
 .tt-card {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
   padding: 10px;
+  text-align: left;
+  cursor: pointer;
   border: 1.5px solid color-mix(in srgb, var(--tone) 14%, white);
   border-radius: 14px;
   background: linear-gradient(165deg, color-mix(in srgb, var(--tint) 60%, white), var(--tint));
@@ -216,44 +222,25 @@
   background: linear-gradient(145deg, var(--tone-2), var(--tone));
   box-shadow: 0 8px 14px -8px var(--tone);
 }
+.tt-card:focus-visible {
+  outline: 2px solid var(--tone);
+  outline-offset: 2px;
+}
 .tt-code {
-  overflow: hidden;
+  display: block;
   color: color-mix(in srgb, var(--tone) 80%, #1e1b4b);
   font-size: 12px;
   font-weight: 800;
   line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-break: break-word;
 }
 .tt-name {
-  overflow: hidden;
-  margin-top: 1px;
+  display: block;
+  margin-top: 2px;
   color: color-mix(in srgb, var(--tone) 55%, #64748b);
-  font-size: 11px;
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tt-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-.tt-meta svg {
-  flex-shrink: 0;
-  width: 12px;
-  height: 12px;
-  color: var(--tone);
-}
-.tt-sv {
-  flex-shrink: 0;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.8);
-  color: var(--tone);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 .tt-mine {
   display: inline-block;
@@ -264,4 +251,93 @@
   color: #fff;
   font-size: 10px;
   font-weight: 700;
+}
+
+/* ---------- Session popup ---------- */
+.tt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(30 27 75 / 0.35);
+  backdrop-filter: blur(3px);
+}
+.tt-modal {
+  width: min(440px, 100%);
+  border-radius: 24px;
+  background:
+    radial-gradient(260px 140px at 100% 0%, color-mix(in srgb, var(--tone-2) 22%, transparent), transparent 70%),
+    #fff;
+  box-shadow: 0 30px 60px -24px rgb(30 27 75 / 0.5);
+  overflow: hidden;
+}
+.tt-modal::before {
+  display: block;
+  height: 5px;
+  content: '';
+  background: linear-gradient(90deg, var(--tone), var(--tone-2));
+}
+.tt-modal-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 20px 16px;
+  border-bottom: 1.5px dashed color-mix(in srgb, var(--tone) 18%, white);
+}
+.tt-icon--lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+}
+.tt-modal-code {
+  color: color-mix(in srgb, var(--tone) 80%, #1e1b4b);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+  word-break: break-word;
+}
+.tt-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  background: #f1f5f9;
+}
+.tt-close:hover {
+  color: #0f172a;
+  background: #e2e8f0;
+}
+.tt-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px 20px 20px;
+}
+.tt-info > div {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--tint);
+}
+.tt-info dt {
+  color: var(--tone);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.tt-info dd {
+  margin-top: 2px;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+}
+@media (max-width: 420px) {
+  .tt-info {
+    grid-template-columns: 1fr;
+  }
 }

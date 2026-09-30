@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StudentService, TimetableEntry } from '../../services/student.service';
 import { AuthService } from '../../services/auth.service';
@@ -45,6 +45,16 @@ export class TimetableComponent implements OnInit {
   readonly week = WEEK;
   readonly shifts = SHIFTS;
   readonly icons = COURSE_ICONS;
+  readonly selected = signal<{ entry: TimetableEntry; day: string } | null>(null);
+
+  open(entry: TimetableEntry, day: string) {
+    this.selected.set({ entry, day });
+  }
+
+  @HostListener('document:keydown.escape')
+  close() {
+    this.selected.set(null);
+  }
 
   /** Dates of the current Monday–Sunday week, shown under each weekday. */
   readonly weekDates = (() => {
