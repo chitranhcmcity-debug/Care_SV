@@ -60,62 +60,69 @@
 
 /*
  * Turning: the bottom-right corner lifts first (as if pinched), the sheet rolls up over the
- * binding and settles behind it. Each segment eases in and out so the motion stays soft.
+ * binding and settles behind it. Many small keyframes with gentle easing keep it soft, like paper
+ * that bends rather than a rigid card that flips.
  */
 .dc-page.is-turning {
   z-index: 3;
-  animation: dc-turn 1.7s forwards;
+  animation: dc-turn 2.4s cubic-bezier(0.37, 0, 0.25, 1) forwards;
 }
 @keyframes dc-turn {
   0% {
-    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
-    animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateZ(0);
   }
-  14% {
-    transform: rotateX(5deg) rotateY(-8deg) rotateZ(-1.2deg);
-    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  10% {
+    transform: rotateX(3deg) rotateY(-6deg) rotateZ(-0.8deg) translateZ(6px);
   }
-  42% {
-    transform: rotateX(58deg) rotateY(-14deg) rotateZ(-3deg);
-    animation-timing-function: cubic-bezier(0.35, 0, 0.5, 1);
+  24% {
+    transform: rotateX(20deg) rotateY(-12deg) rotateZ(-2deg) translateZ(14px);
+  }
+  40% {
+    transform: rotateX(55deg) rotateY(-14deg) rotateZ(-2.6deg) translateZ(18px);
+  }
+  56% {
+    transform: rotateX(95deg) rotateY(-11deg) rotateZ(-2deg) translateZ(16px);
   }
   72% {
-    transform: rotateX(130deg) rotateY(-9deg) rotateZ(-1.5deg);
+    transform: rotateX(135deg) rotateY(-6deg) rotateZ(-1deg) translateZ(10px);
     opacity: 1;
-    animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
+  }
+  88% {
+    transform: rotateX(165deg) rotateY(-2deg) rotateZ(-0.3deg) translateZ(4px);
+    opacity: 0.7;
   }
   100% {
-    transform: rotateX(176deg) rotateY(0deg) rotateZ(0deg);
+    transform: rotateX(178deg) rotateY(0deg) rotateZ(0deg) translateZ(0);
     opacity: 0;
   }
 }
-/* Swap to the back of the paper as the sheet passes upright, so the turn reads the same
+/* Cross-fade to the back of the paper as the sheet passes upright, so the turn reads the same
    even where the browser ignores backface-visibility. */
 .dc-back {
   opacity: 0;
 }
 .dc-page.is-turning .dc-front {
-  animation: dc-face-out 1.7s linear forwards;
+  animation: dc-face-out 2.4s linear forwards;
 }
 .dc-page.is-turning .dc-back {
-  animation: dc-face-in 1.7s linear forwards;
+  animation: dc-face-in 2.4s linear forwards;
 }
 @keyframes dc-face-out {
   0%,
-  53% {
+  46% {
     opacity: 1;
   }
-  54%,
+  58%,
   100% {
     opacity: 0;
   }
 }
 @keyframes dc-face-in {
   0%,
-  53% {
+  46% {
     opacity: 0;
   }
-  54%,
+  58%,
   100% {
     opacity: 1;
   }
@@ -129,30 +136,28 @@
   pointer-events: none;
   background: linear-gradient(
     320deg,
-    rgb(30 27 75 / 0.32) 0%,
-    rgb(255 255 255 / 0.25) 22%,
-    transparent 55%
+    rgb(30 27 75 / 0.28) 0%,
+    rgb(255 255 255 / 0.22) 24%,
+    transparent 58%
   );
   opacity: 0;
-  animation: dc-shade 1.7s ease-in-out forwards;
+  animation: dc-shade 2.4s ease-in-out forwards;
 }
 @keyframes dc-shade {
-  45% {
-    opacity: 1;
-  }
+  50%,
   100% {
     opacity: 1;
   }
 }
-/* The sheet underneath starts in the shadow of the one being lifted. */
+/* The sheet underneath starts in the shadow of the one being lifted and brightens slowly. */
 .dc-page.is-next .dc-front::after {
   position: absolute;
   inset: 0;
   z-index: 10;
   content: '';
   pointer-events: none;
-  background: linear-gradient(180deg, rgb(30 27 75 / 0.22), transparent 75%);
-  animation: dc-unshade 1.7s ease-in-out forwards;
+  background: linear-gradient(180deg, rgb(30 27 75 / 0.2), transparent 75%);
+  animation: dc-unshade 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 @keyframes dc-unshade {
   to {
@@ -181,8 +186,8 @@
   background: linear-gradient(135deg, #fff 0%, #f1ebff 48%, rgb(76 29 149 / 0.18) 50%, transparent 56%);
   filter: drop-shadow(-3px -3px 4px rgb(76 29 149 / 0.15));
   transition:
-    width 0.4s ease,
-    height 0.4s ease;
+    width 0.6s cubic-bezier(0.34, 1.3, 0.64, 1),
+    height 0.6s cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 .dc:hover .dc-page.is-current .dc-corner,
 .dc-page.is-turning .dc-corner {
