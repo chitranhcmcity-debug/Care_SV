@@ -250,7 +250,15 @@
           </h3>
           <div class="at-picker-tools">
             <label class="at-search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" /></svg>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="m21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" />
+              </svg>
               <input
                 type="search"
                 [(ngModel)]="courseSearch"
@@ -320,9 +328,7 @@
           <div class="at-status-line">
             <span
               class="at-lock"
-              [attr.data-state]="
-                readOnly ? 'view' : attendanceWindow?.open ? 'open' : 'locked'
-              "
+              [attr.data-state]="readOnly ? 'view' : attendanceWindow?.open ? 'open' : 'locked'"
             >
               {{
                 readOnly
@@ -416,7 +422,8 @@
                 ><b>{{ selectedGroup?.students?.length || 0 }}</b> sinh viên</span
               >
               <span class="at-stat"
-                ><b>{{ recordedSessionsCount }}</b>/{{ allSessions.length }} buổi đã điểm danh</span
+                ><b>{{ recordedSessionsCount }}</b
+                >/{{ allSessions.length }} buổi đã điểm danh</span
               >
               <button type="button" class="at-btn-soft" (click)="loadHistory()">↻ Tải lại</button>
             </div>
@@ -425,7 +432,15 @@
           <!-- Filters -->
           <div *ngIf="selectedGroup && allSessions.length" class="at-filters">
             <label class="at-search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" /></svg>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path d="m21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" />
+              </svg>
               <input
                 type="search"
                 [(ngModel)]="matrixSearch"
@@ -553,7 +568,9 @@
                         [attr.aria-disabled]="isSessionLocked(session)"
                         [title]="cellTitle(student._id, session)"
                         (click)="toggleStudentInMatrix(student._id, session, student.fullName)"
-                        (contextmenu)="onCellContextMenu($event, student._id, student.fullName, session)"
+                        (contextmenu)="
+                          onCellContextMenu($event, student._id, student.fullName, session)
+                        "
                       >
                         {{ cellMark[cellStatus(student._id, session)] }}
                       </button>
@@ -569,9 +586,10 @@
                       >{{ getTotalAbsentForStudent(student._id) }} V</span
                     >
                     <small
-                      >{{ getTotalAbsentForStudent(student._id) * periodsPerSession }} tiết<ng-container
-                        *ngIf="getTotalExcusedForStudent(student._id) > 0"
-                      >
+                      >{{
+                        getTotalAbsentForStudent(student._id) * periodsPerSession
+                      }}
+                      tiết<ng-container *ngIf="getTotalExcusedForStudent(student._id) > 0">
                         · {{ getTotalExcusedForStudent(student._id) }} P</ng-container
                       ></small
                     >

@@ -503,7 +503,11 @@
   width: min(440px, 100%);
   border-radius: 24px;
   background:
-    radial-gradient(260px 140px at 100% 0%, color-mix(in srgb, var(--tone-2) 22%, transparent), transparent 70%),
+    radial-gradient(
+      260px 140px at 100% 0%,
+      color-mix(in srgb, var(--tone-2) 22%, transparent),
+      transparent 70%
+    ),
     #fff;
   box-shadow: 0 30px 60px -24px rgb(30 27 75 / 0.5);
   overflow: hidden;

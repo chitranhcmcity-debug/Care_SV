@@ -1688,8 +1688,7 @@ test('PayOS: a manager buys a plan, signed webhook extends the subscription exac
     );
     // The admin only sets prices; buying is for Trưởng phòng / PHT.
     assert.equal(
-      (await request('/billing/orders', tokens.admin, 'POST', { planCode: 'goi_1_thang' }))
-        .status,
+      (await request('/billing/orders', tokens.admin, 'POST', { planCode: 'goi_1_thang' })).status,
       403,
     );
     assert.equal(

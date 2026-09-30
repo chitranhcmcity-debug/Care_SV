@@ -1,47 +1,34 @@
-<div class="mx-4 md:mx-6 my-5 space-y-5">
+<div class="bl">
   <!-- Current subscription -->
-  <section class="bg-white rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
-    <div class="space-y-1">
-      <div class="text-sm text-slate-500">Gói sử dụng hiện tại</div>
-      <div *ngIf="status() as s; else loadingStatus" class="space-y-1">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="text-xl font-semibold text-slate-900">
-            {{ currentPlanName() }}
-          </span>
+  <section class="bl-card bl-current">
+    <span class="bl-current-icon" aria-hidden="true">💳</span>
+    <div class="bl-current-info">
+      <div class="bl-label">Gói sử dụng hiện tại</div>
+      <div *ngIf="status() as s; else loadingStatus">
+        <div class="bl-current-name">
+          {{ currentPlanName() }}
           <span
-            class="px-2.5 py-0.5 rounded-full text-xs font-semibold border"
-            [ngClass]="
-              !s.active
-                ? 'bg-rose-50 text-rose-700 border-rose-200'
-                : s.daysLeft <= 7
-                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            "
+            class="bl-days"
+            [attr.data-state]="!s.active ? 'expired' : s.daysLeft <= 7 ? 'soon' : 'ok'"
           >
             {{ !s.active ? 'Đã hết hạn' : 'Còn ' + s.daysLeft + ' ngày' }}
           </span>
         </div>
-        <div class="text-sm text-slate-600">
+        <div class="bl-muted">
           {{ s.active ? 'Sử dụng tới' : 'Hết hạn từ' }}
           <strong>{{ s.expiresAt | date: 'HH:mm dd/MM/yyyy' }}</strong>
         </div>
       </div>
-      <ng-template #loadingStatus
-        ><div class="text-sm text-slate-400">Đang tải...</div></ng-template
-      >
+      <ng-template #loadingStatus><div class="bl-muted">Đang tải...</div></ng-template>
     </div>
-    <p class="text-sm text-slate-500 max-w-md">
-      Trưởng phòng / Phó hiệu trưởng thanh toán gói cho toàn hệ thống; gia hạn sớm được cộng dồn
-      vào thời gian còn lại. Khi hết hạn, các chức năng điểm danh, gọi điện, nhiệm vụ và báo cáo
-      tạm khóa cho tới khi gia hạn.
+    <p class="bl-note">
+      Trưởng phòng / Phó hiệu trưởng thanh toán gói cho toàn hệ thống; gia hạn sớm được cộng dồn vào
+      thời gian còn lại. Khi hết hạn, các chức năng điểm danh, gọi điện, nhiệm vụ và báo cáo tạm
+      khóa cho tới khi gia hạn.
     </p>
   </section>
 
-  <div
-    *ngIf="status() && !status()!.payosConfigured"
-    role="alert"
-    class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm"
-  >
+  <div *ngIf="status() && !status()!.payosConfigured" role="alert" class="bl-alert">
     <ng-container *ngIf="isAdmin; else askAdmin">
       Máy chủ chưa cấu hình PayOS. Hãy khai báo <code>PAYOS_CLIENT_ID</code>,
       <code>PAYOS_API_KEY</code>, <code>PAYOS_CHECKSUM_KEY</code> trong biến môi trường của backend
@@ -53,183 +40,149 @@
   </div>
 
   <!-- Plans -->
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
-    <div
+  <section class="bl-plans">
+    <article
       *ngFor="let plan of plans(); let last = last"
-      class="relative bg-white rounded-xl p-6 flex flex-col gap-4 border"
-      [ngClass]="last ? 'border-violet-400 ring-1 ring-violet-400' : 'border-transparent'"
+      class="bl-card bl-plan"
+      [class.is-best]="last && plans().length > 1"
     >
-      <span
-        *ngIf="last"
-        class="absolute -top-3 left-6 px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-xs font-semibold"
-        >Tiết kiệm nhất</span
-      >
+      <span *ngIf="last && plans().length > 1" class="bl-ribbon">Tiết kiệm nhất</span>
       <div>
-        <div class="font-semibold text-slate-900">{{ plan.name }}</div>
-        <div class="text-sm text-slate-500">{{ plan.months }} tháng sử dụng</div>
+        <h3>{{ plan.name }}</h3>
+        <div class="bl-muted">{{ plan.months }} tháng sử dụng</div>
       </div>
       <div>
-        <div class="text-2xl font-bold text-slate-900">{{ formatVnd(plan.amount) }}</div>
-        <div class="text-xs text-slate-500">
+        <div class="bl-price">{{ formatVnd(plan.amount) }}</div>
+        <div class="bl-muted">
           ≈ {{ formatVnd(perMonth(plan)) }}/tháng
-          <span *ngIf="savingPercent(plan)" class="text-emerald-600 font-semibold">
+          <span *ngIf="savingPercent(plan)" class="bl-save">
             · tiết kiệm {{ savingPercent(plan) }}%</span
           >
         </div>
       </div>
-      <p *ngIf="!canBuy" class="mt-auto text-xs text-slate-500">
+      <p *ngIf="!canBuy" class="bl-muted bl-plan-foot">
         Trưởng phòng / Phó hiệu trưởng thanh toán gói này.
       </p>
       <button
         *ngIf="canBuy"
         type="button"
+        class="bl-plan-foot"
+        [ngClass]="last ? 'bl-btn-primary' : 'bl-btn-soft'"
         (click)="buy(plan)"
         [disabled]="!!buyingPlan() || !status()?.payosConfigured"
-        class="mt-auto h-11 rounded-lg text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-        [ngClass]="
-          last
-            ? 'bg-violet-600 hover:bg-violet-700 text-white'
-            : 'bg-violet-50 hover:bg-violet-100 text-violet-700'
-        "
       >
         {{ buyingPlan() === plan.code ? 'Đang chuyển tới PayOS...' : 'Thanh toán qua PayOS' }}
       </button>
-    </div>
+    </article>
   </section>
 
   <!-- Price list (Admin) -->
-  <section *ngIf="isAdmin" class="bg-white rounded-xl p-6 space-y-4">
-    <div class="flex flex-wrap items-center justify-between gap-3">
+  <section *ngIf="isAdmin" class="bl-card bl-section">
+    <div class="bl-section-head">
       <div>
-        <h2 class="font-semibold text-slate-900">Cấu hình bảng giá</h2>
-        <p class="text-sm text-slate-500">
-          Giá áp dụng cho lần mua tiếp theo; các đơn đã tạo giữ nguyên giá cũ.
-        </p>
+        <h2>Cấu hình bảng giá</h2>
+        <p class="bl-muted">Giá áp dụng cho lần mua tiếp theo; các đơn đã tạo giữ nguyên giá cũ.</p>
       </div>
       <button
         type="button"
+        class="bl-btn-soft"
         (click)="addDraft()"
         [disabled]="drafts().length >= maxPlans"
-        class="px-4 h-10 rounded-lg border border-violet-300 text-violet-700 text-sm font-semibold hover:bg-violet-50 disabled:opacity-50"
       >
         ＋ Thêm gói
       </button>
     </div>
-    <div class="space-y-3">
-      <div
-        *ngFor="let d of drafts(); let i = index"
-        class="grid grid-cols-1 sm:grid-cols-[minmax(0,2fr)_120px_minmax(0,1.2fr)_44px] gap-3 items-end p-3 rounded-xl border border-violet-100 bg-violet-50/40"
-      >
-        <label class="block">
-          <span class="block text-xs font-semibold text-slate-500 mb-1">Tên gói</span>
-          <input
-            [(ngModel)]="d.name"
-            [name]="'plan-name-' + i"
-            maxlength="50"
-            class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-sm"
-          />
+    <div class="bl-drafts">
+      <div *ngFor="let d of drafts(); let i = index" class="bl-draft">
+        <label class="bl-field">
+          <span>Tên gói</span>
+          <input [(ngModel)]="d.name" [name]="'plan-name-' + i" maxlength="50" />
         </label>
-        <label class="block">
-          <span class="block text-xs font-semibold text-slate-500 mb-1">Số tháng</span>
+        <label class="bl-field">
+          <span>Số tháng</span>
           <input
             type="number"
             min="1"
             max="60"
             [(ngModel)]="d.months"
             [name]="'plan-months-' + i"
-            class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-sm"
           />
         </label>
-        <label class="block">
-          <span class="block text-xs font-semibold text-slate-500 mb-1">Giá (đ)</span>
+        <label class="bl-field">
+          <span>Giá (đ)</span>
           <input
             type="number"
             min="2000"
             step="1000"
             [(ngModel)]="d.amount"
             [name]="'plan-amount-' + i"
-            class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-white text-sm"
           />
         </label>
         <button
           type="button"
+          class="bl-remove"
           (click)="removeDraft(i)"
           [disabled]="drafts().length === 1"
           aria-label="Xóa gói"
           title="Xóa gói"
-          class="h-10 rounded-lg border border-rose-200 text-rose-600 bg-white hover:bg-rose-50 disabled:opacity-40"
         >
           ✕
         </button>
       </div>
     </div>
-    <div class="flex justify-end gap-2">
-      <button
-        type="button"
-        (click)="resetDrafts()"
-        [disabled]="savingPlans()"
-        class="px-4 h-10 rounded-lg border border-slate-300 text-slate-600 text-sm font-semibold hover:bg-slate-50"
-      >
+    <div class="bl-actions">
+      <button type="button" class="bl-btn-ghost" (click)="resetDrafts()" [disabled]="savingPlans()">
         Hoàn tác
       </button>
-      <button
-        type="button"
-        (click)="savePlans()"
-        [disabled]="savingPlans()"
-        class="px-5 h-10 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold disabled:opacity-60"
-      >
+      <button type="button" class="bl-btn-primary" (click)="savePlans()" [disabled]="savingPlans()">
         {{ savingPlans() ? 'Đang lưu...' : 'Lưu bảng giá' }}
       </button>
     </div>
   </section>
 
   <!-- History -->
-  <section class="bg-white rounded-xl p-6 space-y-4">
-    <h2 class="font-semibold text-slate-900">Lịch sử thanh toán</h2>
-    <div *ngIf="!orders().length" class="text-sm text-slate-500">Chưa có giao dịch nào.</div>
-    <div *ngIf="orders().length" class="overflow-x-auto">
-      <table class="w-full text-sm">
+  <section class="bl-card bl-section">
+    <div class="bl-section-head">
+      <h2>Lịch sử thanh toán</h2>
+    </div>
+    <div *ngIf="!orders().length" class="bl-empty">Chưa có giao dịch nào.</div>
+    <div *ngIf="orders().length" class="bl-table-wrap">
+      <table class="bl-table">
         <thead>
-          <tr class="text-left text-slate-500 border-b border-slate-200">
-            <th class="py-2 pr-4 font-medium">Mã đơn</th>
-            <th class="py-2 pr-4 font-medium">Gói</th>
-            <th class="py-2 pr-4 font-medium">Số tiền</th>
-            <th class="py-2 pr-4 font-medium">Trạng thái</th>
-            <th class="py-2 pr-4 font-medium">Thời gian</th>
-            <th class="py-2 font-medium"></th>
+          <tr>
+            <th>Mã đơn</th>
+            <th>Gói</th>
+            <th>Số tiền</th>
+            <th>Trạng thái</th>
+            <th>Thời gian</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let order of orders()" class="border-b border-slate-100 last:border-0">
-            <td class="py-3 pr-4 font-mono text-xs text-slate-700">{{ order.orderCode }}</td>
-            <td class="py-3 pr-4">{{ order.planName }}</td>
-            <td class="py-3 pr-4 whitespace-nowrap">{{ formatVnd(order.amount) }}</td>
-            <td class="py-3 pr-4">
-              <span
-                class="px-2 py-0.5 rounded-full text-xs font-semibold border whitespace-nowrap"
-                [ngClass]="statusTone[order.status]"
-                >{{ statusLabel[order.status] }}</span
-              >
-              <div *ngIf="order.extendedTo" class="text-xs text-slate-500 mt-1">
+          <tr *ngFor="let order of orders()">
+            <td class="bl-code">{{ order.orderCode }}</td>
+            <td>{{ order.planName }}</td>
+            <td class="bl-nowrap">{{ formatVnd(order.amount) }}</td>
+            <td>
+              <span class="bl-status" [attr.data-status]="order.status">{{
+                statusLabel[order.status]
+              }}</span>
+              <div *ngIf="order.extendedTo" class="bl-sub">
                 Gia hạn tới {{ order.extendedTo | date: 'dd/MM/yyyy' }}
               </div>
             </td>
-            <td class="py-3 pr-4 text-xs text-slate-500 whitespace-nowrap">
+            <td class="bl-sub bl-nowrap">
               {{ order.paidAt || order.createdAt | date: 'HH:mm dd/MM/yyyy' }}
               <div *ngIf="order.createdBy">{{ order.createdBy.fullName }}</div>
             </td>
-            <td class="py-3 text-right whitespace-nowrap">
+            <td class="bl-row-actions">
               <ng-container *ngIf="order.status === 'cho_thanh_toan'">
-                <a
-                  [href]="order.checkoutUrl"
-                  class="text-violet-600 hover:underline font-medium text-xs mr-3"
-                  >Tiếp tục thanh toán</a
-                >
+                <a [href]="order.checkoutUrl" class="bl-link">Tiếp tục thanh toán</a>
                 <button
                   type="button"
+                  class="bl-link is-muted"
                   (click)="sync(order.orderCode)"
                   [disabled]="syncingOrder() === order.orderCode"
-                  class="text-slate-600 hover:text-slate-900 font-medium text-xs disabled:opacity-60"
                 >
                   {{ syncingOrder() === order.orderCode ? 'Đang kiểm tra...' : 'Kiểm tra lại' }}
                 </button>

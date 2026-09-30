@@ -77,14 +77,19 @@ router.post('/orders', verifyToken, requireBuyer, async (req, res, next) => {
 // POST /api/billing/orders/:orderCode/sync (Admin, Trưởng phòng / PHT)
 // Called when PayOS redirects back, and by the "Kiểm tra lại" button. Asks PayOS directly,
 // so it works even where PayOS cannot reach our webhook (e.g. localhost).
-router.post('/orders/:orderCode/sync', verifyToken, requireBillingViewer, async (req, res, next) => {
-  try {
-    const order = await subscription.syncOrder(await findOrder(req.params.orderCode));
-    res.json({ order, subscription: await subscription.getSubscription() });
-  } catch (error) {
-    next(error);
-  }
-});
+router.post(
+  '/orders/:orderCode/sync',
+  verifyToken,
+  requireBillingViewer,
+  async (req, res, next) => {
+    try {
+      const order = await subscription.syncOrder(await findOrder(req.params.orderCode));
+      res.json({ order, subscription: await subscription.getSubscription() });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // POST /api/billing/payos-webhook (Public, PayOS → us). Trusted only if the signature
 // matches our checksum key. Always 200 for well-formed calls so PayOS stops retrying.

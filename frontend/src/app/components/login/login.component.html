@@ -1,235 +1,112 @@
 <div class="lg-page min-h-screen p-0 sm:p-4 lg:p-5">
-<div class="lg-shell min-h-screen sm:min-h-[calc(100vh-2rem)] lg:h-[calc(100vh-2.5rem)] lg:min-h-[600px] grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
-  <!-- Left: form -->
   <div
-    class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20 lg:overflow-y-auto"
-    [ngClass]="mode === 'login' ? 'py-6' : 'py-8'"
+    class="lg-shell min-h-screen sm:min-h-[calc(100vh-2rem)] lg:h-[calc(100vh-2.5rem)] lg:min-h-[600px] grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]"
   >
-    <!-- Brand -->
-    <a routerLink="/" class="relative flex items-center gap-3 w-fit">
-      <img [src]="branding.logo()" alt="Logo ITC" width="48" height="48" class="object-contain" />
-      <div class="leading-tight">
-        <div class="font-bold text-slate-900">{{ branding.title() }}</div>
-        <div class="text-xs text-slate-500">Điểm danh &amp; chăm sóc sinh viên</div>
-      </div>
-    </a>
-
+    <!-- Left: form -->
     <div
-      class="flex-1 flex items-center justify-center"
-      [ngClass]="mode === 'login' ? 'py-4' : 'py-10'"
+      class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20 lg:overflow-y-auto"
+      [ngClass]="mode === 'login' ? 'py-6' : 'py-8'"
     >
-      <div class="w-full max-w-[420px]" [ngClass]="mode === 'login' ? 'space-y-4' : 'space-y-7'">
-        <!-- Heading -->
-        <div class="space-y-2" [ngSwitch]="mode">
-          <ng-container *ngSwitchCase="'register'">
-            <h1 class="text-[32px] font-extrabold leading-tight tracking-tight"><span class="lg-grad">Tạo tài khoản</span></h1>
-            <p class="text-sm text-slate-500">
-              Dành cho Giảng viên và Nhân viên. Sau khi Trưởng phòng / Phó hiệu trưởng xác nhận, bạn
-              sẽ nhận key kích hoạt qua email.
-            </p>
-          </ng-container>
-          <ng-container *ngSwitchCase="'forgot'">
-            <h1 class="text-[32px] font-extrabold leading-tight tracking-tight"><span class="lg-grad">Quên mật khẩu?</span></h1>
-            <p class="text-sm text-slate-500">
-              Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết để bạn đặt mật khẩu mới.
-            </p>
-          </ng-container>
-          <ng-container *ngSwitchCase="'reset'">
-            <h1 class="text-[32px] font-extrabold leading-tight tracking-tight"><span class="lg-grad">Đặt mật khẩu mới</span></h1>
-            <p class="text-sm text-slate-500">
-              Mật khẩu mới có ít nhất {{ minPasswordLength }} ký tự. Sau khi đổi, mọi phiên đăng
-              nhập cũ sẽ bị đăng xuất.
-            </p>
-          </ng-container>
-          <ng-container *ngSwitchDefault>
-            <span class="lg-kicker">Chào mừng trở lại 👋</span>
-            <h1 class="text-[32px] sm:text-[40px] font-extrabold text-slate-900 leading-tight tracking-tight">
-              <span class="lg-grad">Đăng nhập</span> để tiếp tục
-            </h1>
-            <p class="text-[15px] text-slate-500 leading-relaxed">
-              Quản lý điểm danh, lớp học và chăm sóc sinh viên dễ dàng hơn với
-              {{ branding.title() }}.
-            </p>
-          </ng-container>
+      <!-- Brand -->
+      <a routerLink="/" class="relative flex items-center gap-3 w-fit">
+        <img [src]="branding.logo()" alt="Logo ITC" width="48" height="48" class="object-contain" />
+        <div class="leading-tight">
+          <div class="font-bold text-slate-900">{{ branding.title() }}</div>
+          <div class="text-xs text-slate-500">Điểm danh &amp; chăm sóc sinh viên</div>
         </div>
+      </a>
 
-        <!-- Error Alert -->
-        <div
-          *ngIf="errorMessage"
-          role="alert"
-          class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-2"
-        >
-          <svg
-            class="w-5 h-5 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
-          </svg>
-          <span>{{ errorMessage }}</span>
-        </div>
-
-        <!-- Success Alert -->
-        <div
-          *ngIf="successMessage"
-          role="status"
-          class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-2"
-        >
-          <svg
-            class="w-5 h-5 shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path d="m8 12 3 3 5-6" />
-          </svg>
-          <span>{{ successMessage }}</span>
-        </div>
-
-        <!-- Password field used by login / register / reset -->
-        <ng-template #passwordField let-id="id" let-label="label" let-autocomplete="autocomplete">
-          <div class="space-y-1.5">
-            <label [for]="id" class="block text-sm font-medium text-slate-700">{{ label }}</label>
-            <div class="relative">
-              <svg
-                class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
+      <div
+        class="flex-1 flex items-center justify-center"
+        [ngClass]="mode === 'login' ? 'py-4' : 'py-10'"
+      >
+        <div class="w-full max-w-[420px]" [ngClass]="mode === 'login' ? 'space-y-4' : 'space-y-7'">
+          <!-- Heading -->
+          <div class="space-y-2" [ngSwitch]="mode">
+            <ng-container *ngSwitchCase="'register'">
+              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+                <span class="lg-grad">Tạo tài khoản</span>
+              </h1>
+              <p class="text-sm text-slate-500">
+                Dành cho Giảng viên và Nhân viên. Sau khi Trưởng phòng / Phó hiệu trưởng xác nhận,
+                bạn sẽ nhận key kích hoạt qua email.
+              </p>
+            </ng-container>
+            <ng-container *ngSwitchCase="'forgot'">
+              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+                <span class="lg-grad">Quên mật khẩu?</span>
+              </h1>
+              <p class="text-sm text-slate-500">
+                Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết để bạn đặt mật khẩu mới.
+              </p>
+            </ng-container>
+            <ng-container *ngSwitchCase="'reset'">
+              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+                <span class="lg-grad">Đặt mật khẩu mới</span>
+              </h1>
+              <p class="text-sm text-slate-500">
+                Mật khẩu mới có ít nhất {{ minPasswordLength }} ký tự. Sau khi đổi, mọi phiên đăng
+                nhập cũ sẽ bị đăng xuất.
+              </p>
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              <span class="lg-kicker">Chào mừng trở lại 👋</span>
+              <h1
+                class="text-[32px] sm:text-[40px] font-extrabold text-slate-900 leading-tight tracking-tight"
               >
-                <rect x="5" y="11" width="14" height="10" rx="2" />
-                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-              </svg>
-              <input
-                [id]="id"
-                [type]="showPassword ? 'text' : 'password'"
-                [autocomplete]="autocomplete"
-                [(ngModel)]="password"
-                name="password"
-                required
-                placeholder="Nhập mật khẩu"
-                class="w-full h-12 pl-11 pr-12 lg-input"
-              />
-              <button
-                type="button"
-                (click)="showPassword = !showPassword"
-                [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
-                [attr.aria-pressed]="showPassword"
-                [title]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
-                class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-              >
-                <!-- eye -->
-                <svg
-                  *ngIf="!showPassword"
-                  class="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                >
-                  <path
-                    d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"
-                    stroke-linejoin="round"
-                  />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <!-- eye-off -->
-                <svg
-                  *ngIf="showPassword"
-                  class="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                >
-                  <path
-                    d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.2 3.1M6.6 6.6C3.8 8.3 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"
-                  />
-                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" />
-                </svg>
-              </button>
-            </div>
+                <span class="lg-grad">Đăng nhập</span> để tiếp tục
+              </h1>
+              <p class="text-[15px] text-slate-500 leading-relaxed">
+                Quản lý điểm danh, lớp học và chăm sóc sinh viên dễ dàng hơn với
+                {{ branding.title() }}.
+              </p>
+            </ng-container>
           </div>
-        </ng-template>
 
-        <!-- Confirm-password field used by register / reset -->
-        <ng-template #confirmField>
-          <div class="space-y-1.5">
-            <label for="confirm-password" class="block text-sm font-medium text-slate-700"
-              >Nhập lại mật khẩu</label
-            >
-            <input
-              id="confirm-password"
-              [type]="showPassword ? 'text' : 'password'"
-              autocomplete="new-password"
-              [(ngModel)]="confirmPassword"
-              name="confirmPassword"
-              required
-              placeholder="Nhập lại mật khẩu"
-              class="w-full h-12 px-4 lg-input"
-            />
-          </div>
-        </ng-template>
-
-        <!-- Submit button shared by every form -->
-        <ng-template #submitButton let-label="label" let-busy="busy">
-          <button
-            type="submit"
-            [disabled]="loading"
-            class="lg-submit relative w-full h-[54px] disabled:opacity-70 text-white font-bold text-[15px] flex items-center justify-center gap-2.5"
+          <!-- Error Alert -->
+          <div
+            *ngIf="errorMessage"
+            role="alert"
+            class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-2"
           >
             <svg
-              *ngIf="!loading && mode === 'login'"
-              class="w-5 h-5"
+              class="w-5 h-5 shrink-0"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-              aria-hidden="true"
+              stroke-width="1.8"
             >
-              <rect x="5" y="11" width="14" height="10" rx="2" />
-              <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
             </svg>
-            <svg *ngIf="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
-              />
-            </svg>
-            <span>{{ loading ? busy : label }}</span>
-            <span class="lg-submit-arrow" aria-hidden="true">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </span>
-          </button>
-        </ng-template>
+            <span>{{ errorMessage }}</span>
+          </div>
 
-        <!-- ============ LOGIN ============ -->
-        <ng-container *ngIf="mode === 'login'">
-          <form (ngSubmit)="onLogin()" class="space-y-3" novalidate>
+          <!-- Success Alert -->
+          <div
+            *ngIf="successMessage"
+            role="status"
+            class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-2"
+          >
+            <svg
+              class="w-5 h-5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8 12 3 3 5-6" />
+            </svg>
+            <span>{{ successMessage }}</span>
+          </div>
+
+          <!-- Password field used by login / register / reset -->
+          <ng-template #passwordField let-id="id" let-label="label" let-autocomplete="autocomplete">
             <div class="space-y-1.5">
-              <label for="login-email" class="block text-sm font-medium text-slate-700"
-                >Tài khoản đăng nhập</label
-              >
+              <label [for]="id" class="block text-sm font-medium text-slate-700">{{ label }}</label>
               <div class="relative">
                 <svg
                   class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
@@ -238,453 +115,657 @@
                   stroke="currentColor"
                   stroke-width="1.8"
                 >
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round" />
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
                 </svg>
                 <input
-                  id="login-email"
-                  type="text"
-                  autocomplete="username"
-                  [(ngModel)]="email"
-                  (ngModelChange)="needsKey = false"
-                  name="email"
+                  [id]="id"
+                  [type]="showPassword ? 'text' : 'password'"
+                  [autocomplete]="autocomplete"
+                  [(ngModel)]="password"
+                  name="password"
                   required
-                  placeholder="Nhập tài khoản hoặc email"
-                  class="w-full h-12 pl-11 pr-11 lg-input"
+                  placeholder="Nhập mật khẩu"
+                  class="w-full h-12 pl-11 pr-12 lg-input"
                 />
                 <button
-                  *ngIf="email"
                   type="button"
-                  (click)="email = ''"
-                  aria-label="Xóa tài khoản đã nhập"
-                  title="Xóa"
-                  class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                  (click)="showPassword = !showPassword"
+                  [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                  [attr.aria-pressed]="showPassword"
+                  [title]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+                  class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                 >
-                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="m9.5 9.5 5 5M14.5 9.5l-5 5" />
+                  <!-- eye -->
+                  <svg
+                    *ngIf="!showPassword"
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <path
+                      d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"
+                      stroke-linejoin="round"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  <!-- eye-off -->
+                  <svg
+                    *ngIf="showPassword"
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                  >
+                    <path
+                      d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-2.2 3.1M6.6 6.6C3.8 8.3 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"
+                    />
+                    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" />
                   </svg>
                 </button>
               </div>
             </div>
+          </ng-template>
 
-            <ng-container
-              *ngTemplateOutlet="
-                passwordField;
-                context: {
-                  id: 'login-password',
-                  label: 'Mật khẩu',
-                  autocomplete: 'current-password',
-                }
-              "
-            ></ng-container>
-
-            <!-- Shown once the server asks for the key emailed after a manager's approval. -->
-            <div *ngIf="needsKey" class="space-y-1.5">
-              <label for="login-key" class="block text-sm font-medium text-slate-700"
-                >Key kích hoạt</label
+          <!-- Confirm-password field used by register / reset -->
+          <ng-template #confirmField>
+            <div class="space-y-1.5">
+              <label for="confirm-password" class="block text-sm font-medium text-slate-700"
+                >Nhập lại mật khẩu</label
               >
               <input
-                id="login-key"
-                type="text"
-                autocomplete="one-time-code"
-                spellcheck="false"
-                [(ngModel)]="activationKey"
-                name="activationKey"
-                placeholder="VD: ABCD-EFGH-JKMN"
-                class="w-full h-12 px-4 lg-input font-mono tracking-widest uppercase"
+                id="confirm-password"
+                [type]="showPassword ? 'text' : 'password'"
+                autocomplete="new-password"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                required
+                placeholder="Nhập lại mật khẩu"
+                class="w-full h-12 px-4 lg-input"
               />
-              <p class="text-xs text-slate-500">
-                Key được gửi vào email của bạn sau khi Trưởng phòng / Phó hiệu trưởng xác nhận. Chỉ
-                cần nhập một lần.
+            </div>
+          </ng-template>
+
+          <!-- Submit button shared by every form -->
+          <ng-template #submitButton let-label="label" let-busy="busy">
+            <button
+              type="submit"
+              [disabled]="loading"
+              class="lg-submit relative w-full h-[54px] disabled:opacity-70 text-white font-bold text-[15px] flex items-center justify-center gap-2.5"
+            >
+              <svg
+                *ngIf="!loading && mode === 'login'"
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+              <svg *ngIf="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+                />
+              </svg>
+              <span>{{ loading ? busy : label }}</span>
+              <span class="lg-submit-arrow" aria-hidden="true">
+                <svg
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </span>
+            </button>
+          </ng-template>
+
+          <!-- ============ LOGIN ============ -->
+          <ng-container *ngIf="mode === 'login'">
+            <form (ngSubmit)="onLogin()" class="space-y-3" novalidate>
+              <div class="space-y-1.5">
+                <label for="login-email" class="block text-sm font-medium text-slate-700"
+                  >Tài khoản đăng nhập</label
+                >
+                <div class="relative">
+                  <svg
+                    class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                  >
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M5 20a7 7 0 0 1 14 0" stroke-linecap="round" />
+                  </svg>
+                  <input
+                    id="login-email"
+                    type="text"
+                    autocomplete="username"
+                    [(ngModel)]="email"
+                    (ngModelChange)="needsKey = false"
+                    name="email"
+                    required
+                    placeholder="Nhập tài khoản hoặc email"
+                    class="w-full h-12 pl-11 pr-11 lg-input"
+                  />
+                  <button
+                    *ngIf="email"
+                    type="button"
+                    (click)="email = ''"
+                    aria-label="Xóa tài khoản đã nhập"
+                    title="Xóa"
+                    class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    >
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="m9.5 9.5 5 5M14.5 9.5l-5 5" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <ng-container
+                *ngTemplateOutlet="
+                  passwordField;
+                  context: {
+                    id: 'login-password',
+                    label: 'Mật khẩu',
+                    autocomplete: 'current-password',
+                  }
+                "
+              ></ng-container>
+
+              <!-- Shown once the server asks for the key emailed after a manager's approval. -->
+              <div *ngIf="needsKey" class="space-y-1.5">
+                <label for="login-key" class="block text-sm font-medium text-slate-700"
+                  >Key kích hoạt</label
+                >
+                <input
+                  id="login-key"
+                  type="text"
+                  autocomplete="one-time-code"
+                  spellcheck="false"
+                  [(ngModel)]="activationKey"
+                  name="activationKey"
+                  placeholder="VD: ABCD-EFGH-JKMN"
+                  class="w-full h-12 px-4 lg-input font-mono tracking-widest uppercase"
+                />
+                <p class="text-xs text-slate-500">
+                  Key được gửi vào email của bạn sau khi Trưởng phòng / Phó hiệu trưởng xác nhận.
+                  Chỉ cần nhập một lần.
+                </p>
+              </div>
+
+              <div class="flex justify-end -mt-2">
+                <a
+                  routerLink="/forgot-password"
+                  class="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
+                  >Quên mật khẩu?</a
+                >
+              </div>
+
+              <ng-container
+                *ngTemplateOutlet="
+                  submitButton;
+                  context: { label: 'Đăng nhập', busy: 'Đang xác thực...' }
+                "
+              ></ng-container>
+            </form>
+
+            <p class="text-sm text-slate-500 text-center">
+              Chưa có tài khoản?
+              <a
+                routerLink="/register"
+                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                >Đăng ký ngay</a
+              >
+            </p>
+
+            <!-- Quick login (dev builds only) -->
+            <div *ngIf="quickAccounts.length" class="space-y-2">
+              <div class="flex items-center gap-3 text-xs text-slate-400">
+                <span class="h-px flex-1 bg-slate-200"></span>
+                Đăng nhập nhanh
+                <span class="h-px flex-1 bg-slate-200"></span>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  *ngFor="let account of quickAccounts"
+                  type="button"
+                  (click)="useQuickAccount(account.email)"
+                  [title]="account.email"
+                  [attr.aria-pressed]="email === account.email"
+                  [disabled]="loading"
+                  class="group flex items-center gap-2 py-2 px-2 rounded-lg border transition-all text-left"
+                  [ngClass]="
+                    email === account.email
+                      ? 'border-violet-500 bg-violet-50'
+                      : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/50'
+                  "
+                >
+                  <span
+                    class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold"
+                    [ngClass]="account.tone"
+                    >{{ account.initial }}</span
+                  >
+                  <span class="min-w-0 flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-slate-700 leading-tight">{{
+                      account.label
+                    }}</span>
+                    <span class="text-xs text-slate-500">{{ account.email }}</span>
+                  </span>
+                </button>
+              </div>
+              <p class="text-xs text-slate-400 text-center">
+                Chọn tài khoản để điền tên đăng nhập, sau đó nhập mật khẩu.
               </p>
             </div>
+          </ng-container>
 
-            <div class="flex justify-end -mt-2">
-              <a
-                routerLink="/forgot-password"
-                class="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
-                >Quên mật khẩu?</a
-              >
-            </div>
+          <!-- ============ REGISTER ============ -->
+          <ng-container *ngIf="mode === 'register'">
+            <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-5" novalidate>
+              <fieldset class="space-y-1.5">
+                <legend class="block text-sm font-medium text-slate-700 mb-1.5">Bạn là</legend>
+                <div class="grid grid-cols-2 gap-2">
+                  <label
+                    *ngFor="
+                      let option of [
+                        {
+                          value: 'teacher',
+                          label: 'Giảng viên',
+                          hint: 'Điểm danh lớp được phân công',
+                        },
+                        {
+                          value: 'staff',
+                          label: 'Nhân viên CSKH',
+                          hint: 'Gọi điện chăm sóc sinh viên',
+                        },
+                      ]
+                    "
+                    class="flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-colors"
+                    [ngClass]="
+                      role === option.value
+                        ? 'border-violet-500 bg-violet-50'
+                        : 'border-slate-200 hover:border-violet-300'
+                    "
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      class="sr-only"
+                      [value]="option.value"
+                      [(ngModel)]="role"
+                    />
+                    <span class="text-sm font-semibold text-slate-800">{{ option.label }}</span>
+                    <span class="text-xs text-slate-500">{{ option.hint }}</span>
+                  </label>
+                </div>
+              </fieldset>
 
-            <ng-container
-              *ngTemplateOutlet="
-                submitButton;
-                context: { label: 'Đăng nhập', busy: 'Đang xác thực...' }
-              "
-            ></ng-container>
-          </form>
-
-          <p class="text-sm text-slate-500 text-center">
-            Chưa có tài khoản?
-            <a
-              routerLink="/register"
-              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
-              >Đăng ký ngay</a
-            >
-          </p>
-
-          <!-- Quick login (dev builds only) -->
-          <div *ngIf="quickAccounts.length" class="space-y-2">
-            <div class="flex items-center gap-3 text-xs text-slate-400">
-              <span class="h-px flex-1 bg-slate-200"></span>
-              Đăng nhập nhanh
-              <span class="h-px flex-1 bg-slate-200"></span>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <button
-                *ngFor="let account of quickAccounts"
-                type="button"
-                (click)="useQuickAccount(account.email)"
-                [title]="account.email"
-                [attr.aria-pressed]="email === account.email"
-                [disabled]="loading"
-                class="group flex items-center gap-2 py-2 px-2 rounded-lg border transition-all text-left"
-                [ngClass]="
-                  email === account.email
-                    ? 'border-violet-500 bg-violet-50'
-                    : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/50'
-                "
-              >
-                <span
-                  class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold"
-                  [ngClass]="account.tone"
-                  >{{ account.initial }}</span
+              <div class="space-y-1.5">
+                <label for="register-name" class="block text-sm font-medium text-slate-700"
+                  >Họ và tên</label
                 >
-                <span class="min-w-0 flex flex-col gap-0.5">
-                  <span class="text-xs font-medium text-slate-700 leading-tight">{{
-                    account.label
-                  }}</span>
-                  <span class="text-xs text-slate-500">{{ account.email }}</span>
-                </span>
-              </button>
-            </div>
-            <p class="text-xs text-slate-400 text-center">
-              Chọn tài khoản để điền tên đăng nhập, sau đó nhập mật khẩu.
-            </p>
-          </div>
-        </ng-container>
-
-        <!-- ============ REGISTER ============ -->
-        <ng-container *ngIf="mode === 'register'">
-          <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-5" novalidate>
-            <fieldset class="space-y-1.5">
-              <legend class="block text-sm font-medium text-slate-700 mb-1.5">Bạn là</legend>
-              <div class="grid grid-cols-2 gap-2">
-                <label
-                  *ngFor="
-                    let option of [
-                      {
-                        value: 'teacher',
-                        label: 'Giảng viên',
-                        hint: 'Điểm danh lớp được phân công',
-                      },
-                      {
-                        value: 'staff',
-                        label: 'Nhân viên CSKH',
-                        hint: 'Gọi điện chăm sóc sinh viên',
-                      },
-                    ]
-                  "
-                  class="flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-colors"
-                  [ngClass]="
-                    role === option.value
-                      ? 'border-violet-500 bg-violet-50'
-                      : 'border-slate-200 hover:border-violet-300'
-                  "
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    class="sr-only"
-                    [value]="option.value"
-                    [(ngModel)]="role"
-                  />
-                  <span class="text-sm font-semibold text-slate-800">{{ option.label }}</span>
-                  <span class="text-xs text-slate-500">{{ option.hint }}</span>
-                </label>
+                <input
+                  id="register-name"
+                  type="text"
+                  autocomplete="name"
+                  [(ngModel)]="fullName"
+                  name="fullName"
+                  required
+                  maxlength="100"
+                  placeholder="VD: Nguyễn Văn A"
+                  class="w-full h-12 px-4 lg-input"
+                />
               </div>
-            </fieldset>
 
-            <div class="space-y-1.5">
-              <label for="register-name" class="block text-sm font-medium text-slate-700"
-                >Họ và tên</label
+              <div class="space-y-1.5">
+                <label for="register-email" class="block text-sm font-medium text-slate-700"
+                  >Email</label
+                >
+                <input
+                  id="register-email"
+                  type="email"
+                  autocomplete="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  required
+                  placeholder="ten@itc.edu.vn"
+                  class="w-full h-12 px-4 lg-input"
+                />
+              </div>
+
+              <ng-container
+                *ngTemplateOutlet="
+                  passwordField;
+                  context: {
+                    id: 'register-password',
+                    label: 'Mật khẩu',
+                    autocomplete: 'new-password',
+                  }
+                "
+              ></ng-container>
+              <ng-container *ngTemplateOutlet="confirmField"></ng-container>
+
+              <p *ngIf="role === 'teacher'" class="text-xs text-slate-500">
+                Giảng viên chỉ xem và điểm danh được các lớp do quản trị viên phân công cho mình.
+              </p>
+
+              <ng-container
+                *ngTemplateOutlet="
+                  submitButton;
+                  context: { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
+                "
+              ></ng-container>
+            </form>
+
+            <p class="text-sm text-slate-500 text-center">
+              Đã có tài khoản?
+              <a
+                routerLink="/login"
+                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                >Đăng nhập</a
               >
-              <input
-                id="register-name"
-                type="text"
-                autocomplete="name"
-                [(ngModel)]="fullName"
-                name="fullName"
-                required
-                maxlength="100"
-                placeholder="VD: Nguyễn Văn A"
-                class="w-full h-12 px-4 lg-input"
-              />
-            </div>
-
-            <div class="space-y-1.5">
-              <label for="register-email" class="block text-sm font-medium text-slate-700"
-                >Email</label
-              >
-              <input
-                id="register-email"
-                type="email"
-                autocomplete="email"
-                [(ngModel)]="email"
-                name="email"
-                required
-                placeholder="ten@itc.edu.vn"
-                class="w-full h-12 px-4 lg-input"
-              />
-            </div>
-
-            <ng-container
-              *ngTemplateOutlet="
-                passwordField;
-                context: {
-                  id: 'register-password',
-                  label: 'Mật khẩu',
-                  autocomplete: 'new-password',
-                }
-              "
-            ></ng-container>
-            <ng-container *ngTemplateOutlet="confirmField"></ng-container>
-
-            <p *ngIf="role === 'teacher'" class="text-xs text-slate-500">
-              Giảng viên chỉ xem và điểm danh được các lớp do quản trị viên phân công cho mình.
             </p>
+          </ng-container>
 
-            <ng-container
-              *ngTemplateOutlet="
-                submitButton;
-                context: { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
-              "
-            ></ng-container>
-          </form>
-
-          <p class="text-sm text-slate-500 text-center">
-            Đã có tài khoản?
-            <a
-              routerLink="/login"
-              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
-              >Đăng nhập</a
-            >
-          </p>
-        </ng-container>
-
-        <!-- ============ FORGOT PASSWORD ============ -->
-        <ng-container *ngIf="mode === 'forgot'">
-          <form *ngIf="!successMessage" (ngSubmit)="onForgot()" class="space-y-5" novalidate>
-            <div class="space-y-1.5">
-              <label for="forgot-email" class="block text-sm font-medium text-slate-700"
-                >Email</label
+          <!-- ============ FORGOT PASSWORD ============ -->
+          <ng-container *ngIf="mode === 'forgot'">
+            <form *ngIf="!successMessage" (ngSubmit)="onForgot()" class="space-y-5" novalidate>
+              <div class="space-y-1.5">
+                <label for="forgot-email" class="block text-sm font-medium text-slate-700"
+                  >Email</label
+                >
+                <input
+                  id="forgot-email"
+                  type="email"
+                  autocomplete="email"
+                  [(ngModel)]="email"
+                  name="email"
+                  required
+                  placeholder="Email đã đăng ký"
+                  class="w-full h-12 px-4 lg-input"
+                />
+              </div>
+              <ng-container
+                *ngTemplateOutlet="
+                  submitButton;
+                  context: { label: 'Gửi liên kết đặt lại', busy: 'Đang gửi...' }
+                "
+              ></ng-container>
+            </form>
+            <p class="text-sm text-slate-500 text-center">
+              <a
+                routerLink="/login"
+                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                >← Quay lại đăng nhập</a
               >
-              <input
-                id="forgot-email"
-                type="email"
-                autocomplete="email"
-                [(ngModel)]="email"
-                name="email"
-                required
-                placeholder="Email đã đăng ký"
-                class="w-full h-12 px-4 lg-input"
-              />
-            </div>
-            <ng-container
-              *ngTemplateOutlet="
-                submitButton;
-                context: { label: 'Gửi liên kết đặt lại', busy: 'Đang gửi...' }
-              "
-            ></ng-container>
-          </form>
-          <p class="text-sm text-slate-500 text-center">
-            <a
-              routerLink="/login"
-              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
-              >← Quay lại đăng nhập</a
-            >
-          </p>
-        </ng-container>
+            </p>
+          </ng-container>
 
-        <!-- ============ RESET PASSWORD ============ -->
-        <ng-container *ngIf="mode === 'reset'">
-          <form
-            *ngIf="!successMessage && !linkMissing"
-            (ngSubmit)="onReset()"
-            class="space-y-5"
-            novalidate
-          >
-            <ng-container
-              *ngTemplateOutlet="
-                passwordField;
-                context: {
-                  id: 'reset-password',
-                  label: 'Mật khẩu mới',
-                  autocomplete: 'new-password',
-                }
-              "
-            ></ng-container>
-            <ng-container *ngTemplateOutlet="confirmField"></ng-container>
-            <ng-container
-              *ngTemplateOutlet="
-                submitButton;
-                context: { label: 'Đổi mật khẩu', busy: 'Đang lưu...' }
-              "
-            ></ng-container>
-          </form>
-          <p class="text-sm text-slate-500 text-center space-x-3">
-            <a
-              routerLink="/login"
-              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
-              >Đăng nhập</a
+          <!-- ============ RESET PASSWORD ============ -->
+          <ng-container *ngIf="mode === 'reset'">
+            <form
+              *ngIf="!successMessage && !linkMissing"
+              (ngSubmit)="onReset()"
+              class="space-y-5"
+              novalidate
             >
-            <a
-              *ngIf="errorMessage"
-              routerLink="/forgot-password"
-              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
-              >Yêu cầu liên kết mới</a
-            >
-          </p>
-        </ng-container>
+              <ng-container
+                *ngTemplateOutlet="
+                  passwordField;
+                  context: {
+                    id: 'reset-password',
+                    label: 'Mật khẩu mới',
+                    autocomplete: 'new-password',
+                  }
+                "
+              ></ng-container>
+              <ng-container *ngTemplateOutlet="confirmField"></ng-container>
+              <ng-container
+                *ngTemplateOutlet="
+                  submitButton;
+                  context: { label: 'Đổi mật khẩu', busy: 'Đang lưu...' }
+                "
+              ></ng-container>
+            </form>
+            <p class="text-sm text-slate-500 text-center space-x-3">
+              <a
+                routerLink="/login"
+                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                >Đăng nhập</a
+              >
+              <a
+                *ngIf="errorMessage"
+                routerLink="/forgot-password"
+                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                >Yêu cầu liên kết mới</a
+              >
+            </p>
+          </ng-container>
+        </div>
       </div>
+
+      <p class="relative text-xs text-slate-400 text-center">
+        Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026
+      </p>
     </div>
 
-    <p class="relative text-xs text-slate-400 text-center">
-      Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026
-    </p>
-  </div>
-
-  <!-- Right: brand panel (illustrative preview, not live data) -->
-  <div class="lg-right hidden lg:flex relative overflow-hidden text-white" aria-hidden="true">
-    <svg class="lg-right-art" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
-      <circle cx="560" cy="560" r="230" fill="#fff" fill-opacity="0.08" />
-      <circle cx="680" cy="80" r="160" fill="#fff" fill-opacity="0.07" />
-      <g fill="#fff" fill-opacity="0.8">
-        <path d="M470 330l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" />
-        <path d="M620 260l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" />
-        <path d="M600 640l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" />
-        <circle cx="240" cy="560" r="2.4" />
-        <circle cx="660" cy="420" r="2" />
-      </g>
-      <path
-        d="M560 790c40 10 70-10 80-40s-20-50-40-30 10 60 60 50"
-        fill="none"
-        stroke="#fff"
-        stroke-opacity="0.5"
-        stroke-width="2"
-        stroke-dasharray="5 7"
-      />
-      <path d="M510 770l60-26-22 38-10-14z" fill="#fff" fill-opacity="0.9" />
-    </svg>
-
-    <div class="relative flex flex-col w-full min-h-0 px-10 py-8 xl:px-12">
-      <!-- Floating preview cards + mascot -->
-      <div class="relative flex-1 min-h-[330px]">
-        <p class="lg-script hidden xl:block absolute left-2 top-2">Your Future<br />&nbsp;&nbsp;&nbsp;Our Care ♡</p>
-
-        <div class="lg-float absolute right-0 top-0 w-[300px] p-4">
-          <div class="flex items-center justify-between">
-            <span class="flex items-center gap-2.5 text-sm font-bold text-slate-900">
-              <span class="lg-av lg-av--1"></span> Điểm danh buổi học
-            </span>
-            <span class="text-violet-600 font-extrabold text-xl">
-              2<span class="text-sm text-slate-400 font-semibold">/15</span>
-            </span>
-          </div>
-          <div class="mt-3 flex items-center gap-1.5">
-            <span class="lg-av lg-av--1"></span>
-            <span class="lg-av lg-av--2"></span>
-            <span class="lg-av lg-av--3"></span>
-            <span class="lg-av lg-av--4"></span>
-            <span class="lg-av lg-av--more">+3</span>
-          </div>
-          <div class="mt-4 flex items-center gap-3">
-            <span class="flex-1 h-2 rounded-full bg-violet-100 overflow-hidden">
-              <span class="block h-full w-[80%] rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500"></span>
-            </span>
-            <span class="text-xs font-semibold text-slate-500">80%</span>
-          </div>
-        </div>
-
-        <div class="lg-float absolute left-0 top-[110px] w-[250px] p-4 -rotate-[6deg]">
-          <div class="flex items-start gap-3">
-            <span class="lg-tile bg-violet-100 text-violet-600">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
-              </svg>
-            </span>
-            <div class="text-slate-900">
-              <div class="text-sm font-bold">Thời khóa biểu</div>
-              <div class="mt-2 text-xs text-slate-500">Hôm nay</div>
-              <div class="text-xs text-slate-400">07:00 - 11:30</div>
-              <div class="text-sm font-semibold">Thiết kế đồ họa 2D</div>
-              <div class="text-xs text-slate-400">Phòng Lab Mac</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="lg-float absolute left-2 top-[250px] w-[240px] p-4 rotate-[2deg]">
-          <div class="flex items-start gap-3">
-            <span class="lg-tile bg-rose-100 text-rose-600">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 9v4m0 4h.01M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
-              </svg>
-            </span>
-            <div class="flex-1">
-              <div class="text-sm font-bold text-slate-900">Cảnh báo sinh viên</div>
-              <div class="text-3xl font-extrabold text-rose-500 leading-tight">2</div>
-              <div class="text-xs text-slate-400">trường hợp cần xử lý</div>
-            </div>
-          </div>
-        </div>
-
-        <img
-          src="robot-ai-right.webp"
-          alt=""
-          width="300"
-          height="250"
-          class="lg-robot absolute right-0 xl:right-6 top-[130px] w-[190px] xl:w-[230px] h-auto"
+    <!-- Right: brand panel (illustrative preview, not live data) -->
+    <div class="lg-right hidden lg:flex relative overflow-hidden text-white" aria-hidden="true">
+      <svg class="lg-right-art" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
+        <circle cx="560" cy="560" r="230" fill="#fff" fill-opacity="0.08" />
+        <circle cx="680" cy="80" r="160" fill="#fff" fill-opacity="0.07" />
+        <g fill="#fff" fill-opacity="0.8">
+          <path d="M470 330l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" />
+          <path d="M620 260l5 12 12 5-12 5-5 12-5-12-12-5 12-5z" />
+          <path d="M600 640l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" />
+          <circle cx="240" cy="560" r="2.4" />
+          <circle cx="660" cy="420" r="2" />
+        </g>
+        <path
+          d="M560 790c40 10 70-10 80-40s-20-50-40-30 10 60 60 50"
+          fill="none"
+          stroke="#fff"
+          stroke-opacity="0.5"
+          stroke-width="2"
+          stroke-dasharray="5 7"
         />
-        <span class="lg-bubble hidden xl:grid absolute right-[250px] top-[150px]">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7" /></svg>
-        </span>
-        <span class="lg-bubble hidden xl:grid absolute right-0 top-[230px]">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" /></svg>
-        </span>
-      </div>
+        <path d="M510 770l60-26-22 38-10-14z" fill="#fff" fill-opacity="0.9" />
+      </svg>
 
-      <div class="relative space-y-2 max-w-lg mt-4">
-        <h2 class="text-[28px] xl:text-[34px] font-extrabold leading-tight tracking-tight">
-          Không để sinh viên<br />nào bị bỏ lại <span class="lg-underline">phía sau.</span>
-        </h2>
-        <p class="text-white/80 text-sm leading-relaxed">
-          Điểm danh, cảnh báo vắng học, hồ sơ chăm sóc sinh viên và báo cáo — tất cả trong một nơi.
-        </p>
-      </div>
+      <div class="relative flex flex-col w-full min-h-0 px-10 py-8 xl:px-12">
+        <!-- Floating preview cards + mascot -->
+        <div class="relative flex-1 min-h-[330px]">
+          <p class="lg-script hidden xl:block absolute left-2 top-2">
+            Your Future<br />&nbsp;&nbsp;&nbsp;Our Care ♡
+          </p>
 
-      <div class="relative mt-5 grid grid-cols-3 gap-4">
-        <div class="flex items-center gap-3">
-          <span class="lg-feat bg-gradient-to-br from-violet-400 to-violet-600">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" /></svg>
+          <div class="lg-float absolute right-0 top-0 w-[300px] p-4">
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-2.5 text-sm font-bold text-slate-900">
+                <span class="lg-av lg-av--1"></span> Điểm danh buổi học
+              </span>
+              <span class="text-violet-600 font-extrabold text-xl">
+                2<span class="text-sm text-slate-400 font-semibold">/15</span>
+              </span>
+            </div>
+            <div class="mt-3 flex items-center gap-1.5">
+              <span class="lg-av lg-av--1"></span>
+              <span class="lg-av lg-av--2"></span>
+              <span class="lg-av lg-av--3"></span>
+              <span class="lg-av lg-av--4"></span>
+              <span class="lg-av lg-av--more">+3</span>
+            </div>
+            <div class="mt-4 flex items-center gap-3">
+              <span class="flex-1 h-2 rounded-full bg-violet-100 overflow-hidden">
+                <span
+                  class="block h-full w-[80%] rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500"
+                ></span>
+              </span>
+              <span class="text-xs font-semibold text-slate-500">80%</span>
+            </div>
+          </div>
+
+          <div class="lg-float absolute left-0 top-[110px] w-[250px] p-4 -rotate-[6deg]">
+            <div class="flex items-start gap-3">
+              <span class="lg-tile bg-violet-100 text-violet-600">
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="3" />
+                  <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
+                </svg>
+              </span>
+              <div class="text-slate-900">
+                <div class="text-sm font-bold">Thời khóa biểu</div>
+                <div class="mt-2 text-xs text-slate-500">Hôm nay</div>
+                <div class="text-xs text-slate-400">07:00 - 11:30</div>
+                <div class="text-sm font-semibold">Thiết kế đồ họa 2D</div>
+                <div class="text-xs text-slate-400">Phòng Lab Mac</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg-float absolute left-2 top-[250px] w-[240px] p-4 rotate-[2deg]">
+            <div class="flex items-start gap-3">
+              <span class="lg-tile bg-rose-100 text-rose-600">
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12 9v4m0 4h.01M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
+                  />
+                </svg>
+              </span>
+              <div class="flex-1">
+                <div class="text-sm font-bold text-slate-900">Cảnh báo sinh viên</div>
+                <div class="text-3xl font-extrabold text-rose-500 leading-tight">2</div>
+                <div class="text-xs text-slate-400">trường hợp cần xử lý</div>
+              </div>
+            </div>
+          </div>
+
+          <img
+            src="robot-ai-right.webp"
+            alt=""
+            width="300"
+            height="250"
+            class="lg-robot absolute right-0 xl:right-6 top-[130px] w-[190px] xl:w-[230px] h-auto"
+          />
+          <span class="lg-bubble hidden xl:grid absolute right-[250px] top-[150px]">
+            <svg
+              class="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m5 12 5 5L20 7" />
+            </svg>
           </span>
-          <span class="text-sm font-semibold leading-snug">Quản lý lớp học<br />dễ dàng</span>
+          <span class="lg-bubble hidden xl:grid absolute right-0 top-[230px]">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" />
+            </svg>
+          </span>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="lg-feat bg-gradient-to-br from-amber-300 to-orange-500">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22m7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z" /></svg>
-          </span>
-          <span class="text-sm font-semibold leading-snug">Theo dõi &amp; cảnh báo<br />kịp thời</span>
+
+        <div class="relative space-y-2 max-w-lg mt-4">
+          <h2 class="text-[28px] xl:text-[34px] font-extrabold leading-tight tracking-tight">
+            Không để sinh viên<br />nào bị bỏ lại <span class="lg-underline">phía sau.</span>
+          </h2>
+          <p class="text-white/80 text-sm leading-relaxed">
+            Điểm danh, cảnh báo vắng học, hồ sơ chăm sóc sinh viên và báo cáo — tất cả trong một
+            nơi.
+          </p>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="lg-feat bg-gradient-to-br from-sky-300 to-blue-500">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" /></svg>
-          </span>
-          <span class="text-sm font-semibold leading-snug">Báo cáo trực quan<br />hiệu quả</span>
+
+        <div class="relative mt-5 grid grid-cols-3 gap-4">
+          <div class="flex items-center gap-3">
+            <span class="lg-feat bg-gradient-to-br from-violet-400 to-violet-600">
+              <svg
+                class="w-6 h-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"
+                />
+              </svg>
+            </span>
+            <span class="text-sm font-semibold leading-snug">Quản lý lớp học<br />dễ dàng</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="lg-feat bg-gradient-to-br from-amber-300 to-orange-500">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22m7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"
+                />
+              </svg>
+            </span>
+            <span class="text-sm font-semibold leading-snug"
+              >Theo dõi &amp; cảnh báo<br />kịp thời</span
+            >
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="lg-feat bg-gradient-to-br from-sky-300 to-blue-500">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" />
+              </svg>
+            </span>
+            <span class="text-sm font-semibold leading-snug">Báo cáo trực quan<br />hiệu quả</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 </div>

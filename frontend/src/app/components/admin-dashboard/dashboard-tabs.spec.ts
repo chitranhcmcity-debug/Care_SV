@@ -21,9 +21,7 @@ describe('Manager dashboard', () => {
   });
 
   it('does not expose the overview after report permission is revoked', () => {
-    expect(visibleDashboardTabs(manager(['tasks.manage'])).map((tab) => tab.id)).toEqual([
-      'tasks',
-    ]);
+    expect(visibleDashboardTabs(manager(['tasks.manage'])).map((tab) => tab.id)).toEqual(['tasks']);
   });
 });
 

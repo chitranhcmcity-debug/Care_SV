@@ -259,15 +259,15 @@ a:focus-visible {
 .app-main {
   background:
     radial-gradient(900px 420px at 100% -10%, rgb(var(--brand-100) / 0.55), transparent 70%),
-    radial-gradient(700px 380px at -10% 110%, rgb(252 231 243 / 0.7), transparent 70%),
-    #ecebf6;
+    radial-gradient(700px 380px at -10% 110%, rgb(252 231 243 / 0.7), transparent 70%), #ecebf6;
 }
 
 /* ---------- Card borders (every page, every role) ----------
    One outline system so cards read clearly on the tinted page background without looking
    heavy: a soft lavender edge, a faint inner highlight and a low glow. Only block elements
    are touched, so inputs, selects and small buttons keep their own borders. */
-.app-main :is(div, section, article, aside, li, form, details, a).border:is(
+.app-main
+  :is(div, section, article, aside, li, form, details, a).border:is(
     .rounded-md,
     .rounded-lg,
     .rounded-xl,
@@ -278,13 +278,16 @@ a:focus-visible {
 }
 
 /* White cards (panels, list items, modals). */
-.app-main :is(div, section, article, aside, li, form, details, a).bg-white:is(.border, .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl):is(
-    .rounded-md,
-    .rounded-lg,
-    .rounded-xl,
-    .rounded-2xl,
-    .rounded-3xl
-  ) {
+.app-main
+  :is(div, section, article, aside, li, form, details, a).bg-white:is(
+    .border,
+    .shadow-sm,
+    .shadow,
+    .shadow-md,
+    .shadow-lg,
+    .shadow-xl,
+    .shadow-2xl
+  ):is(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl) {
   border: 1.5px solid var(--card-border);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.9),
@@ -327,7 +330,8 @@ a:focus-visible {
 }
 
 /* Info tiles inside cards (grey fills): a visible edge instead of near-white on white. */
-.app-main :is(div, section, li, a, form).border:is(.bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
+.app-main
+  :is(div, section, li, a, form).border:is(.bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
   border-color: var(--tile-border);
 }
 
@@ -338,13 +342,26 @@ a:focus-visible {
 .app-main :is(div, section, li, a, form).border:is(.bg-emerald-50, .bg-emerald-100, .bg-green-50) {
   border-color: #a7f3d0;
 }
-.app-main :is(div, section, li, a, form).border:is(.bg-amber-50, .bg-amber-100, .bg-orange-50, .bg-yellow-50) {
+.app-main
+  :is(div, section, li, a, form).border:is(
+    .bg-amber-50,
+    .bg-amber-100,
+    .bg-orange-50,
+    .bg-yellow-50
+  ) {
   border-color: #fcd34d;
 }
 .app-main :is(div, section, li, a, form).border:is(.bg-rose-50, .bg-rose-100, .bg-red-50) {
   border-color: #fda4af;
 }
-.app-main :is(div, section, li, a, form).border:is(.bg-blue-50, .bg-blue-100, .bg-sky-50, .bg-indigo-50, .bg-indigo-100) {
+.app-main
+  :is(div, section, li, a, form).border:is(
+    .bg-blue-50,
+    .bg-blue-100,
+    .bg-sky-50,
+    .bg-indigo-50,
+    .bg-indigo-100
+  ) {
   border-color: #bfdbfe;
 }
 /* Dashed drop zones stay dashed, just easier to spot. */
@@ -463,7 +480,13 @@ a:focus-visible {
 
 /* Page hero (navbar): the page title on a gradient cover, like the student profile. */
 .page-hero {
-  --hero-bg: linear-gradient(105deg, rgb(var(--brand-600)) 0%, #9333ea 35%, #c026d3 65%, #ec4899 92%);
+  --hero-bg: linear-gradient(
+    105deg,
+    rgb(var(--brand-600)) 0%,
+    #9333ea 35%,
+    #c026d3 65%,
+    #ec4899 92%
+  );
   --hero-accent: #7c3aed;
   position: relative;
   overflow: hidden;
@@ -484,7 +507,14 @@ a:focus-visible {
 }
 /* Lavender: the pastel purple–pink family of the app, lighter than the default hero. */
 .page-hero--teal {
-  --hero-bg: linear-gradient(105deg, #6d28d9 0%, #8b5cf6 35%, #a855f7 65%, #e879f9 90%, #f472b6 110%);
+  --hero-bg: linear-gradient(
+    105deg,
+    #6d28d9 0%,
+    #8b5cf6 35%,
+    #a855f7 65%,
+    #e879f9 90%,
+    #f472b6 110%
+  );
   --hero-accent: #8b5cf6;
 }
 .page-hero--sunset {

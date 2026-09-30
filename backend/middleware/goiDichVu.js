@@ -6,7 +6,8 @@ async function requireActiveSubscription(req, res, next) {
   try {
     if (await isSubscriptionActive()) return next();
     res.status(402).json({
-      message: 'Gói sử dụng hệ thống đã hết hạn. Trưởng phòng / Phó hiệu trưởng vui lòng gia hạn để tiếp tục.',
+      message:
+        'Gói sử dụng hệ thống đã hết hạn. Trưởng phòng / Phó hiệu trưởng vui lòng gia hạn để tiếp tục.',
       code: 'SUBSCRIPTION_EXPIRED',
     });
   } catch (error) {

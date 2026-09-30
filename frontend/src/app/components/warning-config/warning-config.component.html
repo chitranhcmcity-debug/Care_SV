@@ -35,7 +35,11 @@
     </div>
 
     <div class="wc-levels">
-      <article *ngFor="let level of levels; let i = index" class="wc-level" [style.--lv]="level.color">
+      <article
+        *ngFor="let level of levels; let i = index"
+        class="wc-level"
+        [style.--lv]="level.color"
+      >
         <div class="wc-level-order">
           <button
             type="button"

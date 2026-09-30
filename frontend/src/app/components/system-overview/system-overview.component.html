@@ -245,8 +245,8 @@
         <a routerLink="/billing" class="font-semibold underline">Gia hạn</a>
       </span>
       <span *ngIf="pendingUsers" class="ov-att-item">
-        {{ pendingUsers }} tài khoản tự đăng ký chưa kích hoạt (chờ Trưởng phòng / PHT duyệt hoặc chờ
-        nhập key).
+        {{ pendingUsers }} tài khoản tự đăng ký chưa kích hoạt (chờ Trưởng phòng / PHT duyệt hoặc
+        chờ nhập key).
         <a routerLink="/admin" [queryParams]="{ tab: 'staff' }" class="font-semibold underline"
           >Xem tài khoản</a
         >

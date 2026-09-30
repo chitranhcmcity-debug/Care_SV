@@ -194,7 +194,10 @@ const EXTRA_USERS = [
 // Activation key of the approved demo sign-up (the real one is emailed; see routes/xacThuc.js).
 const DEMO_ACTIVATION_KEY = 'DEMO-KEYS-2026';
 const keyHash = (key) =>
-  crypto.createHash('sha256').update(key.toUpperCase().replace(/[^A-Z0-9]/g, '')).digest('hex');
+  crypto
+    .createHash('sha256')
+    .update(key.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+    .digest('hex');
 
 const NOTES_BY_REASON = {
   'Bệnh/Sức khỏe': [

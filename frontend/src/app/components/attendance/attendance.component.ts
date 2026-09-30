@@ -247,7 +247,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   /** What one cell shows; a past session nobody recorded shows "–" rather than "present". */
   cellStatus(studentId: string, session: ScheduleSession): keyof AttendanceComponent['cellMark'] {
     if (session.status === 'future') return 'future';
-    if (session.status === 'missing' && this.isSessionLocked(session) && !this.isSessionDirty(session))
+    if (
+      session.status === 'missing' &&
+      this.isSessionLocked(session) &&
+      !this.isSessionDirty(session)
+    )
       return 'missing';
     return this.getStudentStatusInMatrix(studentId, session);
   }
@@ -257,7 +261,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (status === 'missing') return 'Buổi này không được điểm danh';
     if (status === 'present') return 'Có mặt';
     if (status === 'absent') return 'Vắng không phép';
-    return 'Vắng có phép: ' + (this.getStudentExcusedReason(studentId, session) || 'Có đơn xin phép');
+    return (
+      'Vắng có phép: ' + (this.getStudentExcusedReason(studentId, session) || 'Có đơn xin phép')
+    );
   }
 
   /** Right-click on an excused cell edits its reason (editable sessions only). */
@@ -301,7 +307,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.onGroupChange();
     this.cdr.detectChanges();
   }
-
 
   onGroupChange() {
     this.selectedGroup = this.courseGroups.find((g) => g._id === this.selectedGroupId) || null;
@@ -352,8 +357,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.loadAttendanceSummary();
     }
   }
-
-
 
   loadHistory() {
     if (!this.selectedGroupId) return;
@@ -528,15 +531,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-
-
-
-
-
-
-
-
-
   // ─── Helpers cho bảng ma trận điểm danh ───
 
   // Draft Map cho điểm danh ma trận tích chọn: { [sessionKey]: Set<studentId> }
@@ -593,7 +587,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   isSessionLocked(session: ScheduleSession): boolean {
     if (!session) return false;
     if (session.status === 'future' || this.readOnly || !this.attendanceWindow?.open) return true;
-    const today = this.getSessionKey({ scheduledDate: new Date().toISOString() } as ScheduleSession);
+    const today = this.getSessionKey({
+      scheduledDate: new Date().toISOString(),
+    } as ScheduleSession);
     return this.getSessionKey(session) !== today;
   }
 
@@ -840,7 +836,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   get recordedSessionsCount(): number {
     return this.allSessions.filter((s) => s.status === 'recorded').length;
   }
-
 
   /** Tổng số buổi vắng KHÔNG PHÉP của SV */
   getTotalAbsentForStudent(studentId: string): number {

@@ -14,7 +14,10 @@ async function verifyToken(req, res, next) {
   try {
     if (!decoded.id || !/^[a-f\d]{24}$/i.test(decoded.id))
       return res.status(401).json({ message: 'Invalid token' });
-    const user = await NguoiDung.findById(decoded.id).select('-password');
+    // Runs on every request: a plain object is enough (no Mongoose document needed).
+    const user = await NguoiDung.findById(decoded.id)
+      .select('-password -verifyTokenHash -resetTokenHash -activationKeyHash')
+      .lean();
     if (
       !user ||
       user.status !== 'active' ||
@@ -23,7 +26,7 @@ async function verifyToken(req, res, next) {
       return res.status(401).json({ message: 'Session revoked' });
     // Permissions are read live, so a change in the matrix applies without signing in again.
     req.user = {
-      ...user.toObject(),
+      ...user,
       id: String(user._id),
       permissions: await permissionsForRole(user.role),
     };

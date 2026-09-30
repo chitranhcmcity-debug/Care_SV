@@ -13,13 +13,6 @@ const ORDER_STATUS_LABEL: Record<BillingOrder['status'], string> = {
   het_han: 'Hết hạn',
 };
 
-const ORDER_STATUS_TONE: Record<BillingOrder['status'], string> = {
-  cho_thanh_toan: 'bg-amber-50 text-amber-700 border-amber-200',
-  da_thanh_toan: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  da_huy: 'bg-slate-100 text-slate-600 border-slate-200',
-  het_han: 'bg-slate-100 text-slate-600 border-slate-200',
-};
-
 type PlanDraft = { name: string; months: number | null; amount: number | null };
 const MAX_PLANS = 6;
 
@@ -32,6 +25,7 @@ const MAX_PLANS = 6;
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './billing.component.html',
+  styleUrl: './billing.component.css',
 })
 export class BillingComponent implements OnInit {
   private readonly billing = inject(BillingService);
@@ -53,7 +47,6 @@ export class BillingComponent implements OnInit {
   readonly buyingPlan = signal('');
   readonly syncingOrder = signal<number | null>(null);
   readonly statusLabel = ORDER_STATUS_LABEL;
-  readonly statusTone = ORDER_STATUS_TONE;
 
   /** Price of the 1-month plan, the baseline for the savings badge. */
   private readonly baseMonthly = computed(

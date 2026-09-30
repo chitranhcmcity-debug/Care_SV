@@ -32,10 +32,16 @@ const ACTIVATION_KEY_DAYS = 7;
 // Unambiguous characters (no 0/O, 1/I/L) so a key copied by hand still works.
 const KEY_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function newActivationKey() {
-  const chars = Array.from({ length: 12 }, () => KEY_ALPHABET[crypto.randomInt(KEY_ALPHABET.length)]);
+  const chars = Array.from(
+    { length: 12 },
+    () => KEY_ALPHABET[crypto.randomInt(KEY_ALPHABET.length)],
+  );
   return [0, 4, 8].map((i) => chars.slice(i, i + 4).join('')).join('-');
 }
-const normalizeKey = (value) => String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const normalizeKey = (value) =>
+  String(value || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
 const RESET_MINUTES = 30;
 // Minimum gap between two emails to the same address, so the forms cannot be used to spam.
 const EMAIL_COOLDOWN_MS = 60 * 1000;

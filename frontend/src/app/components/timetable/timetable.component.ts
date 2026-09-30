@@ -6,7 +6,11 @@ import { ViLabelPipe } from '../../utils/label.pipe';
 
 const WEEK = ['thu_2', 'thu_3', 'thu_4', 'thu_5', 'thu_6', 'thu_7', 'chu_nhat'];
 const SHIFT_ORDER: Record<string, number> = { sang: 0, chieu: 1, toi: 2 };
-const SHIFT_HOURS: Record<string, [number, number]> = { sang: [7, 11], chieu: [13, 17], toi: [18, 21] };
+const SHIFT_HOURS: Record<string, [number, number]> = {
+  sang: [7, 11],
+  chieu: [13, 17],
+  toi: [18, 21],
+};
 const SHIFTS = [
   { key: 'sang', label: 'Ca sáng' },
   { key: 'chieu', label: 'Ca chiều' },

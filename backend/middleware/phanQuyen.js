@@ -54,10 +54,7 @@ const courseAccess = (mode) => async (req, res, next) => {
     const group = await NhomHocPhan.findById(courseId);
     assert(group, 'Không tìm thấy học phần', 404);
     const isTeacher = String(group.teacherId) === req.user.id && can(req.user, 'attendance.take');
-    const allowed =
-      mode === 'read'
-        ? isTeacher || seesAllCourses(req.user)
-        : isTeacher;
+    const allowed = mode === 'read' ? isTeacher || seesAllCourses(req.user) : isTeacher;
     assert(allowed, 'Bạn không được phân công học phần này', 403);
     req.courseGroup = group;
     next();

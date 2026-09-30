@@ -26,11 +26,7 @@
       Không có yêu cầu nào đang chờ.
     </div>
     <div class="aa-list">
-      <article
-        *ngFor="let r of pending()"
-        class="aa-item"
-        [class.is-focus]="focusId() === r._id"
-      >
+      <article *ngFor="let r of pending()" class="aa-item" [class.is-focus]="focusId() === r._id">
         <span class="aa-avatar" aria-hidden="true">{{ initial(r.fullName) }}</span>
         <div class="aa-info">
           <strong>{{ r.fullName }}</strong>
@@ -81,7 +77,9 @@
           <span class="aa-email">{{ r.email }}</span>
           <span class="aa-meta">
             <span class="aa-role" [attr.data-role]="r.role">{{ roleLabel[r.role] }}</span>
-            <ng-container *ngIf="r.approvedBy">Duyệt bởi {{ r.approvedBy.fullName }} · </ng-container>
+            <ng-container *ngIf="r.approvedBy"
+              >Duyệt bởi {{ r.approvedBy.fullName }} ·
+            </ng-container>
             Key hết hạn {{ r.keyExpiresAt | date: 'dd/MM/yyyy' }}
           </span>
           <span *ngIf="shownKeys()[r._id] as key" class="aa-key">
