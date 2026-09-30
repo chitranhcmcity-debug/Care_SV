@@ -61,9 +61,10 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
   padding: 4px;
-  border: 1px solid #e2daf6;
-  background: #ffffffc9;
+  border: 1.5px solid #dccdf6;
+  background: #fff;
   border-radius: 16px;
+  box-shadow: 0 8px 22px -16px #6d28d952;
 }
 .care-detail-tabs button {
   display: flex;
@@ -107,7 +108,7 @@
   grid-template-columns: 34px minmax(0, 1fr) 24px;
   gap: 10px;
   padding: 14px 10px;
-  border: 1px solid #eee8fb;
+  border: 1.5px solid #e6dbf8;
   border-radius: 16px;
   min-height: 96px;
   background: linear-gradient(110deg, #fdfbff, #fff);

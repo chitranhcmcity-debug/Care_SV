@@ -16,9 +16,11 @@
 }
 .care-card {
   background: #fff;
-  border: 1px solid var(--care-border);
+  border: 1.5px solid #dccdf6;
   border-radius: 22px;
-  box-shadow: 0 6px 24px -14px #8564c938;
+  box-shadow:
+    0 1px 2px #6d28d912,
+    0 12px 30px -16px #6d28d952;
 }
 .care-card--attention {
   background: linear-gradient(120deg, #fff, #fff9eb);
