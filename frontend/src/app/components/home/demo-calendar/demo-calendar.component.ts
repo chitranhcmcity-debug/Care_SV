@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 /** Native size of each page; it is scaled down to fit the hero. */
 const W = 1000;
 const H = 560;
-const FLIP_MS = 2400;
+const FLIP_MS = 1900;
 const PAGE_MS = 6000;
 
 const I = {

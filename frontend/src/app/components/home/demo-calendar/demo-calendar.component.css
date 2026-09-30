@@ -59,94 +59,71 @@
 }
 
 /*
- * Turning: the bottom-right corner lifts first (as if pinched), the sheet rolls up over the
- * binding and settles behind it. Many small keyframes with gentle easing keep it soft, like paper
- * that bends rather than a rigid card that flips.
+ * Turning = peeling: the dog-ear at the bottom-right corner keeps growing along the diagonal
+ * until the whole sheet is folded away, revealing the next page underneath. The fold line
+ * sweeps from the corner to the top-left; the page is cut along it (clip-path) and the folded
+ * flap (the back of the paper) lies over it, mirrored across the fold.
  */
 .dc-page.is-turning {
   z-index: 3;
-  animation: dc-turn 2.4s cubic-bezier(0.37, 0, 0.25, 1) forwards;
 }
-@keyframes dc-turn {
-  0% {
-    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateZ(0);
+/* Cut the sheet along the fold line (45°), which sweeps from the corner to the top-left.
+   The cut and the flap share duration and easing so they stay in step. */
+.dc-page.is-turning .dc-front {
+  animation: dc-peel-cut 1.9s cubic-bezier(0.5, 0.05, 0.3, 1) forwards;
+}
+@keyframes dc-peel-cut {
+  from {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 64px), calc(100% - 64px) 100%, 0 100%);
   }
-  10% {
-    transform: rotateX(3deg) rotateY(-6deg) rotateZ(-0.8deg) translateZ(6px);
-  }
-  24% {
-    transform: rotateX(20deg) rotateY(-12deg) rotateZ(-2deg) translateZ(14px);
-  }
-  40% {
-    transform: rotateX(55deg) rotateY(-14deg) rotateZ(-2.6deg) translateZ(18px);
-  }
-  56% {
-    transform: rotateX(95deg) rotateY(-11deg) rotateZ(-2deg) translateZ(16px);
-  }
-  72% {
-    transform: rotateX(135deg) rotateY(-6deg) rotateZ(-1deg) translateZ(10px);
-    opacity: 1;
-  }
-  88% {
-    transform: rotateX(165deg) rotateY(-2deg) rotateZ(-0.3deg) translateZ(4px);
-    opacity: 0.7;
-  }
-  100% {
-    transform: rotateX(178deg) rotateY(0deg) rotateZ(0deg) translateZ(0);
-    opacity: 0;
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 1900px), calc(100% - 1900px) 100%, 0 100%);
   }
 }
-/* Cross-fade to the back of the paper as the sheet passes upright, so the turn reads the same
-   even where the browser ignores backface-visibility. */
-.dc-back {
+.dc-page.is-turning .dc-corner {
   opacity: 0;
 }
-.dc-page.is-turning .dc-front {
-  animation: dc-face-out 2.4s linear forwards;
+/* The folded flap: a square anchored at the corner whose top-left half is painted, so its
+   shadow follows the triangle. Shading darkens toward the crease like curled paper. */
+.dc-back {
+  display: none;
 }
 .dc-page.is-turning .dc-back {
-  animation: dc-face-in 2.4s linear forwards;
-}
-@keyframes dc-face-out {
-  0%,
-  46% {
-    opacity: 1;
-  }
-  58%,
-  100% {
-    opacity: 0;
-  }
-}
-@keyframes dc-face-in {
-  0%,
-  46% {
-    opacity: 0;
-  }
-  58%,
-  100% {
-    opacity: 1;
-  }
-}
-/* Shade building up on the lifted face, strongest at the pinched corner. */
-.dc-page.is-turning .dc-front::after {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  content: '';
-  pointer-events: none;
+  display: block;
+  inset: auto 0 0 auto;
+  z-index: 4;
+  width: 64px;
+  height: 64px;
+  transform: none;
+  border-radius: 0;
+  box-shadow: none;
+  border-top-left-radius: 38%;
   background: linear-gradient(
-    320deg,
-    rgb(30 27 75 / 0.28) 0%,
-    rgb(255 255 255 / 0.22) 24%,
-    transparent 58%
+    315deg,
+    transparent 50%,
+    #cbbdf2 50%,
+    #e4dafc 56%,
+    #f6f2ff 74%,
+    #ffffff 100%
   );
-  opacity: 0;
-  animation: dc-shade 2.4s ease-in-out forwards;
+  filter: drop-shadow(-10px -8px 14px rgb(76 29 149 / 0.28));
+  animation:
+    dc-peel-flap 1.9s cubic-bezier(0.5, 0.05, 0.3, 1) forwards,
+    dc-flap-fade 1.9s linear forwards;
 }
-@keyframes dc-shade {
-  50%,
-  100% {
+@keyframes dc-peel-flap {
+  to {
+    width: 1900px;
+    height: 1900px;
+  }
+}
+@keyframes dc-flap-fade {
+  0%,
+  78% {
     opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 /* The sheet underneath starts in the shadow of the one being lifted and brightens slowly. */
@@ -156,8 +133,8 @@
   z-index: 10;
   content: '';
   pointer-events: none;
-  background: linear-gradient(180deg, rgb(30 27 75 / 0.2), transparent 75%);
-  animation: dc-unshade 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  background: linear-gradient(315deg, rgb(30 27 75 / 0.16), transparent 70%);
+  animation: dc-unshade 1.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 @keyframes dc-unshade {
   to {
@@ -165,10 +142,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .dc-page.is-turning,
   .dc-page.is-turning .dc-front,
   .dc-page.is-turning .dc-back,
-  .dc-page.is-turning .dc-front::after,
   .dc-page.is-next .dc-front::after {
     animation: none;
   }
