@@ -49,9 +49,9 @@
     </div>
   </section>
 
-  <section class="tt-bar flex flex-wrap items-center gap-x-3 gap-y-2.5 px-3.5 py-2.5">
-    <div class="flex flex-wrap items-center gap-1.5">
-      <p class="text-[13px] font-bold text-slate-800 mr-1">Khung giờ học</p>
+  <section class="tt-bar flex flex-wrap xl:flex-nowrap items-center justify-between gap-x-3 gap-y-2.5 px-3.5 py-2.5">
+    <div class="flex items-center gap-1.5 shrink-0">
+      <p class="text-[13px] font-bold text-slate-800 mr-1 whitespace-nowrap">Khung giờ học</p>
       <span *ngFor="let s of shifts" class="tt-chip" [ngClass]="'tt-' + s.key">
         <svg class="tt-chip-ico" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="s.key">
           <g *ngSwitchCase="'sang'">
@@ -68,7 +68,7 @@
       </span>
     </div>
 
-    <div class="flex items-center gap-2 xl:ml-6">
+    <div class="flex items-center gap-2 shrink-0">
       <div class="tt-week">
         <button type="button" class="tt-week-btn" aria-label="Tuần trước" (click)="shiftWeek(-1)">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -88,7 +88,7 @@
       </button>
     </div>
 
-    <div class="flex flex-wrap items-center gap-2 xl:ml-auto">
+    <div class="flex items-center gap-2 shrink-0">
       <label *ngIf="auth.isTeacher()" class="tt-pill tt-pill--check">
         <input
           type="checkbox"

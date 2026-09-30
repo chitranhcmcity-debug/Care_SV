@@ -22,6 +22,7 @@
   --tint: #f6f0ff;
 }
 .tt-chip {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -114,8 +115,7 @@
   box-shadow: 0 6px 16px -12px rgb(76 29 149 / 0.35);
 }
 .tt-select select {
-  min-width: 120px;
-  max-width: 180px;
+  width: 124px;
   border: 0;
   background: transparent;
   color: #334155;
@@ -140,7 +140,7 @@
   align-items: center;
   gap: 6px;
   height: 29px;
-  padding: 0 12px;
+  padding: 0 11px;
   border-radius: 10px;
   color: #475569;
   font-size: 12.5px;
