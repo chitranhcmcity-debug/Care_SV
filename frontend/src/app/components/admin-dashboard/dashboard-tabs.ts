@@ -65,7 +65,7 @@ export const DASHBOARD_TABS: DashboardTab[] = [
   },
   {
     id: 'classes',
-    label: 'Phân lớp CSKH',
+    label: 'Phân lớp CSSV',
     icon: 'M3 21h18M5 21V7l7-4 7 4v14M9 9h1M14 9h1M9 13h1M14 13h1M9 17h6',
   },
   {
