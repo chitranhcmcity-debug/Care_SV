@@ -44,6 +44,7 @@ const MIN_PASSWORD_LENGTH = 8;
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './login.component.html',
+  styleUrl: './login.component.css',
 })
 export class LoginComponent implements OnInit {
   protected readonly branding = inject(BrandingService);

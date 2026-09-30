@@ -1,0 +1,200 @@
+.lg-page {
+  background:
+    radial-gradient(700px 400px at 0% 0%, #f3edff, transparent 70%),
+    radial-gradient(600px 400px at 100% 100%, #fae8ff, transparent 70%),
+    #f6f4fc;
+}
+.lg-shell {
+  overflow: hidden;
+  background: #fff;
+}
+@media (min-width: 640px) {
+  .lg-shell {
+    border-radius: 28px;
+    box-shadow: 0 30px 70px -40px rgb(76 29 149 / 0.45);
+  }
+}
+.lg-left {
+  background:
+    radial-gradient(260px 260px at -40px 18%, #f1ecfd 60%, transparent 61%),
+    radial-gradient(160px 160px at 100% 72%, #f6f2ff 60%, transparent 61%),
+    #fff;
+}
+
+.lg-kicker {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  font-size: 13px;
+  font-weight: 700;
+}
+.lg-grad {
+  background: linear-gradient(90deg, #7c3aed, #c026d3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lg-input {
+  border: 1.5px solid #ece8f7;
+  border-radius: 16px;
+  background: #f8f7fd;
+  color: #0f172a;
+  font-size: 15px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+.lg-input::placeholder {
+  color: #94a3b8;
+}
+.lg-input:hover {
+  border-color: #ddd6fe;
+}
+.lg-input:focus {
+  outline: none;
+  border-color: #a78bfa;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgb(167 139 250 / 0.18);
+}
+
+.lg-submit {
+  border-radius: 16px;
+  background: linear-gradient(90deg, #6d28d9, #9333ea 55%, #c026d3);
+  box-shadow: 0 16px 30px -14px #7c3aed;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.lg-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 34px -14px #7c3aed;
+}
+.lg-submit-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 0.2);
+  transform: translateY(-50%);
+}
+
+/* ---------- Right panel ---------- */
+.lg-right {
+  background: linear-gradient(160deg, #7c6cf6 0%, #8b5cf6 35%, #a855f7 70%, #c084fc 100%);
+}
+.lg-right-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.lg-script {
+  color: #fff;
+  font-family: 'Segoe Script', 'Brush Script MT', cursive;
+  font-size: 30px;
+  line-height: 1.35;
+  opacity: 0.9;
+  transform: rotate(-10deg);
+}
+.lg-float {
+  border-radius: 22px;
+  background: rgb(255 255 255 / 0.95);
+  box-shadow: 0 24px 40px -20px rgb(30 27 75 / 0.55);
+}
+.lg-tile {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+}
+.lg-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px -4px rgb(30 27 75 / 0.4);
+}
+.lg-av--1 {
+  background: linear-gradient(135deg, #fcd34d, #f59e0b);
+}
+.lg-av--2 {
+  background: linear-gradient(135deg, #93c5fd, #3b82f6);
+}
+.lg-av--3 {
+  background: linear-gradient(135deg, #f9a8d4, #ec4899);
+}
+.lg-av--4 {
+  background: linear-gradient(135deg, #6ee7b7, #10b981);
+}
+.lg-av--more {
+  background: #ede9fe;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 700;
+}
+.lg-robot {
+  filter: drop-shadow(0 24px 30px rgb(30 23 102 / 0.45));
+  animation: lg-float 6s ease-in-out infinite;
+}
+.lg-bubble {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  color: #8b5cf6;
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: 0 16px 28px -14px rgb(30 27 75 / 0.6);
+  transform: rotate(-8deg);
+}
+@keyframes lg-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lg-robot {
+    animation: none;
+  }
+}
+.lg-underline {
+  position: relative;
+  white-space: nowrap;
+}
+.lg-underline::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 4px;
+  border-radius: 999px;
+  content: '';
+  background: linear-gradient(90deg, #f472b6, #fb7185);
+}
+.lg-feat {
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: 0 12px 22px -12px rgb(30 27 75 / 0.6);
+}
