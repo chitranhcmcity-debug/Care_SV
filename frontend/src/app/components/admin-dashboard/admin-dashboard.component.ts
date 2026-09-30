@@ -954,6 +954,50 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       : list;
   }
 
+  get analyticsCards() {
+    const m = this.analyticsData?.metrics;
+    const closing = m?.closingCases || 0;
+    return [
+      {
+        label: 'Hồ sơ chăm sóc',
+        value: m?.totalCases || 0,
+        sub: '',
+        tone: 'an-violet',
+        icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+      },
+      {
+        label: 'Chờ chỉ đạo',
+        value: m?.awaitingCases || 0,
+        sub: '',
+        tone: 'an-amber',
+        icon: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M12 6v6l4 2',
+      },
+      {
+        label: 'Đang chăm sóc',
+        value: m?.inProgressCases || 0,
+        sub: closing ? `${closing} chờ duyệt kết thúc` : '',
+        tone: 'an-sky',
+        icon: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92',
+      },
+      {
+        label: 'Đã kết thúc',
+        value: m?.closedCases || 0,
+        sub: '',
+        tone: 'an-green',
+        icon: 'M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3',
+      },
+      {
+        label: 'Mức cấm thi',
+        value: m?.examBanRiskCount || 0,
+        sub: '',
+        tone: 'an-rose',
+        icon: 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0M12 9v4M12 17h.01',
+      },
+    ];
+  }
+
+  trackCard = (_: number, c: { label: string }) => c.label;
+
   get maxAbsenceCount(): number {
     if (!this.analyticsData?.courseAbsenceStats?.length) return 1;
     return Math.max(...this.analyticsData.courseAbsenceStats.map((s) => s.absentCount), 1);
