@@ -11,7 +11,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 export type Permission =
   | 'students.view'
   | 'attendance.take'
-  | 'attendance.override'
+  | 'attendance.view'
   | 'courses.manage'
   | 'excel.import'
   | 'care.work'
@@ -122,7 +122,10 @@ export interface AttendanceWindow {
   reason: string;
   startTime: string;
   endTime: string;
-  canOverride: boolean;
+  /** Only the lecturer of the group writes; everyone else sees a read-only book. */
+  canWrite: boolean;
+  /** The class is over: the session is final. */
+  locked?: boolean;
 }
 
 export interface ClassAssignmentOverview {

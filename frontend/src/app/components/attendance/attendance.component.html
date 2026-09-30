@@ -240,221 +240,129 @@
     <!-- TAB 2: ĐIỂM DANH LỚP HỌC                   -->
     <!-- ========================================== -->
     <div *ngIf="activeTab === 'attendance'" class="space-y-5 animate-fade-in">
-      <!-- Mode Switch Tabs (Sổ Điểm Danh Ma Trận / Tóm Tắt Vắng) -->
-      <div
-        *ngIf="selectedGroup"
-        class="flex items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex-wrap"
-      >
-        <div class="flex items-center space-x-2">
-          <button
-            (click)="switchAttendanceMode('history')"
-            [ngClass]="
-              attendanceMode === 'history'
-                ? 'bg-violet-600 text-white font-bold shadow-sm'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold'
-            "
-            class="px-4 py-2 text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2"
-          >
-            <span>📋</span>
-            <span>Sổ Điểm Danh Ma Trận</span>
-          </button>
-
-          <button
-            (click)="switchAttendanceMode('summary')"
-            [ngClass]="
-              attendanceMode === 'summary'
-                ? 'bg-rose-700 text-white font-bold shadow-sm'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold'
-            "
-            class="px-4 py-2 text-xs sm:text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2"
-          >
-            <span>📊</span>
-            <span>Tóm Tắt Vắng & Nguy Cơ Cấm Thi</span>
-          </button>
-        </div>
-
-        <div class="text-xs text-slate-500 font-medium px-3 hidden md:flex items-center gap-2">
-          <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-          💡 Nhấp vào biểu tượng <b>✓</b> hoặc <b>✕</b> trên bảng ma trận để tích chọn điểm danh.
-        </div>
-      </div>
-
-      <!-- Course Selector & Grid -->
-      <div class="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
-        <div
-          class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100"
-        >
-          <div>
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>📚</span>
-              <span>CHỌN LỚP HỌC PHẦN CẦN ĐIỂM DANH</span>
-            </h3>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              (click)="toggleShowAllCourses(false)"
-              [ngClass]="
-                !showAllCourses
-                  ? 'bg-violet-600 text-white font-bold'
-                  : 'bg-slate-100 text-slate-600 font-bold'
-              "
-              class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-300 cursor-pointer"
-            >
-              📌 Lớp của tôi
-            </button>
-            <button
-              type="button"
-              (click)="toggleShowAllCourses(true)"
-              [ngClass]="
-                showAllCourses
-                  ? 'bg-violet-700 text-white font-bold'
-                  : 'bg-slate-100 text-slate-600 font-bold'
-              "
-              class="px-3.5 py-1.5 rounded-xl text-xs transition-all border border-slate-300 cursor-pointer"
-            >
-              🌐 Tất cả môn
-            </button>
-          </div>
-        </div>
-
-        <!-- Course Grid Cards -->
-        <div *ngIf="displayCourseGroups.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div
-            *ngFor="let g of displayCourseGroups"
-            (click)="selectCourseGroup(g._id)"
-            [ngClass]="{
-              'ring-2 ring-violet-500 border-violet-500 bg-violet-50/60 shadow-md':
-                selectedGroupId === g._id,
-              'bg-white border-slate-200 hover:border-violet-300 hover:shadow-sm':
-                selectedGroupId !== g._id,
-            }"
-            class="p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex flex-col gap-3.5 group relative"
-          >
-            <!-- Top Row: Shift Badge & Active Selected Pill -->
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span
-                class="px-3 py-1 rounded-full text-sm font-bold border"
-                [ngClass]="{
-                  'bg-amber-100 text-amber-950 border-amber-300': g.shift === 'sang',
-                  'bg-blue-100 text-blue-950 border-blue-300': g.shift === 'chieu',
-                  'bg-purple-100 text-purple-950 border-purple-300': g.shift === 'toi',
-                }"
-              >
-                {{
-                  g.shift === 'chieu'
-                    ? '🌤️ Ca Chiều'
-                    : g.shift === 'toi'
-                      ? '🌙 Ca Tối'
-                      : '☀️ Ca Sáng'
-                }}
-              </span>
-
-              <span
-                *ngIf="selectedGroupId === g._id"
-                class="text-sm font-bold text-emerald-900 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300 flex items-center gap-1"
-              >
-                ✅ Đang chọn
-              </span>
-            </div>
-
-            <!-- Course Title & Code -->
-            <div class="space-y-1">
-              <h4
-                class="font-bold text-slate-900 text-xl sm:text-2xl leading-tight group-hover:text-violet-800 transition-colors"
-              >
-                {{ g.courseName || 'Học Phần' }}
-              </h4>
-              <div class="text-sm font-semibold text-slate-500 tabular-nums">
-                Mã lớp: <span class="text-slate-700">{{ g.groupCode }}</span>
-              </div>
-            </div>
-
-            <!-- Teacher & schedule side by side: small label, large value -->
-            <div class="grid grid-cols-2 gap-2.5">
-              <div class="bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100 min-w-0">
-                <div class="text-xs font-medium text-slate-500">👨‍🏫 Giảng viên</div>
-                <div class="mt-0.5 text-base font-bold text-slate-900 truncate">
-                  {{ g.teacherName || 'Chưa phân công' }}
-                </div>
-              </div>
-              <div class="bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100 min-w-0">
-                <div class="text-xs font-medium text-slate-500">📅 Lịch học</div>
-                <div class="mt-0.5 text-base font-bold text-blue-950">
-                  {{ g.scheduleDays | viLabel }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer Status & Room -->
-            <div class="flex items-center justify-between text-sm gap-2 flex-wrap">
-              <span
-                class="px-3 py-1 rounded-full font-bold border"
-                [ngClass]="getScheduleCheck(g).badgeClass"
-              >
-                {{ getScheduleCheck(g).badgeText }}
-              </span>
-              <span
-                class="ml-auto font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200"
-                >📍 {{ g.room || 'A.101' }}</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div
-          *ngIf="displayCourseGroups.length === 0"
-          class="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl space-y-2"
-        >
-          <div class="text-3xl">📭</div>
-          <div class="font-bold text-slate-800 text-base">Không tìm thấy nhóm học phần nào!</div>
-          <p class="text-xs text-slate-500 font-medium">
-            Bấm "🌐 Tất cả môn" ở trên nếu cần tìm môn dạy thay.
-          </p>
-        </div>
-
-        <!-- Selected Group Timetable Card Info -->
-        <div
-          *ngIf="selectedGroup"
-          class="p-5 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs space-y-3 text-slate-800"
-        >
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="font-bold text-blue-950 text-sm">
-              📌 ĐANG ĐIỂM DANH: {{ selectedGroup.courseName }} ({{ selectedGroup.groupCode }})
-            </div>
-            <div class="text-xs font-bold text-slate-600">
-              Phòng: <b class="text-slate-900 font-bold">📍 {{ selectedGroup.room || 'A.101' }}</b>
-            </div>
-          </div>
-
-          <!-- Attendance window from the timetable (teachers: class hours only, edits same day) -->
-          <div
-            class="pt-2 border-t border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
-          >
-            <div class="flex items-center gap-2 flex-wrap">
-              <span
-                class="px-3 py-1 rounded-full text-xs font-bold border tracking-wide shadow-sm"
-                [ngClass]="
-                  attendanceWindow?.open
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                    : 'bg-rose-50 text-rose-800 border-rose-300'
+      <!-- Class picker: compact, searchable, filtered by shift -->
+      <section class="at-card at-picker">
+        <div class="at-picker-head">
+          <h3 class="at-title">
+            <span class="at-title-icon" aria-hidden="true">📚</span>
+            Lớp học phần
+            <span class="at-count">{{ displayCourseGroups.length }}</span>
+          </h3>
+          <div class="at-picker-tools">
+            <label class="at-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" /></svg>
+              <input
+                type="search"
+                [(ngModel)]="courseSearch"
+                placeholder="Tìm mã lớp, tên môn, giảng viên..."
+                aria-label="Tìm lớp học phần"
+              />
+            </label>
+            <div class="at-seg" role="group" aria-label="Lọc theo ca học">
+              <button
+                *ngFor="
+                  let sh of [
+                    { id: '', label: 'Tất cả' },
+                    { id: 'sang', label: 'Sáng' },
+                    { id: 'chieu', label: 'Chiều' },
+                    { id: 'toi', label: 'Tối' },
+                  ]
                 "
+                type="button"
+                [class.is-active]="filterShift === sh.id"
+                [attr.aria-pressed]="filterShift === sh.id"
+                (click)="filterShift = sh.id"
               >
-                {{ attendanceWindow?.open ? '🟢 Đang mở điểm danh' : '🔒 Đang khóa điểm danh' }}
-              </span>
-              <span *ngIf="attendanceWindow" class="text-xs text-slate-700 font-medium">
-                Giờ học {{ attendanceWindow.startTime }}–{{ attendanceWindow.endTime }} ·
-                {{
-                  attendanceWindow.canOverride
-                    ? 'Bạn có quyền điểm danh / sửa ngoài giờ.'
-                    : attendanceWindow.reason
-                }}
-              </span>
+                {{ sh.label }}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+
+        <div *ngIf="displayCourseGroups.length" class="at-class-grid">
+          <button
+            *ngFor="let g of displayCourseGroups"
+            type="button"
+            class="at-class"
+            [attr.data-shift]="g.shift || 'sang'"
+            [class.is-selected]="selectedGroupId === g._id"
+            [attr.aria-pressed]="selectedGroupId === g._id"
+            (click)="selectCourseGroup(g._id)"
+          >
+            <span class="at-class-top">
+              <strong>{{ g.courseName || 'Học phần' }}</strong>
+              <span class="at-shift">{{
+                g.shift === 'chieu' ? 'Chiều' : g.shift === 'toi' ? 'Tối' : 'Sáng'
+              }}</span>
+            </span>
+            <span class="at-class-code">{{ g.groupCode }}</span>
+            <span class="at-class-meta">
+              <span>👨‍🏫 {{ g.teacherName || 'Chưa phân công' }}</span>
+              <span>📅 {{ g.scheduleDays | viLabel }}</span>
+              <span>📍 {{ g.room || '—' }}</span>
+            </span>
+          </button>
+        </div>
+
+        <div *ngIf="!displayCourseGroups.length" class="at-empty">
+          <div class="text-2xl">📭</div>
+          Không tìm thấy lớp học phần nào phù hợp.
+        </div>
+      </section>
+
+      <!-- Selected class: status of the book + view switch -->
+      <section *ngIf="selectedGroup" class="at-card at-status">
+        <div class="at-status-info">
+          <div class="at-status-name">
+            {{ selectedGroup.courseName }}
+            <span class="at-code-pill">{{ selectedGroup.groupCode }}</span>
+          </div>
+          <div class="at-status-line">
+            <span
+              class="at-lock"
+              [attr.data-state]="
+                readOnly ? 'view' : attendanceWindow?.open ? 'open' : 'locked'
+              "
+            >
+              {{
+                readOnly
+                  ? '👁 Chế độ xem'
+                  : attendanceWindow?.open
+                    ? '🟢 Đang mở điểm danh'
+                    : '🔒 Đã chốt / chưa mở'
+              }}
+            </span>
+            <span *ngIf="attendanceWindow" class="at-muted">
+              Giờ học {{ attendanceWindow.startTime }}–{{ attendanceWindow.endTime }} ·
+              {{
+                readOnly
+                  ? 'Chỉ giảng viên của lớp điểm danh trong giờ học; hết giờ học điểm danh được chốt.'
+                  : attendanceWindow.reason
+              }}
+            </span>
+          </div>
+        </div>
+        <div class="at-seg at-seg-lg" role="tablist" aria-label="Chế độ xem">
+          <button
+            type="button"
+            role="tab"
+            [class.is-active]="attendanceMode === 'history'"
+            [attr.aria-selected]="attendanceMode === 'history'"
+            (click)="switchAttendanceMode('history')"
+          >
+            📋 Sổ điểm danh
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [class.is-active]="attendanceMode === 'summary'"
+            [attr.aria-selected]="attendanceMode === 'summary'"
+            (click)="switchAttendanceMode('summary')"
+          >
+            📊 Tóm tắt vắng & cấm thi
+          </button>
+        </div>
+      </section>
 
       <!-- BẢNG MA TRẬN ĐIỂM DANH TÍCH CHỌN TRỰC TIẾP (Airtable / Notion Style) -->
       <div *ngIf="attendanceMode === 'history'" class="space-y-4 relative pb-24">
@@ -491,411 +399,210 @@
           </button>
         </div>
 
-        <!-- History Table Card -->
-        <div
-          class="bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden"
-        >
-          <!-- Card Header -->
-          <div
-            class="p-5 border-b border-slate-200 bg-slate-50/80 flex items-center justify-between gap-4 flex-wrap"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                class="w-10 h-10 rounded-2xl bg-violet-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-violet-600/20 flex-shrink-0"
-              >
-                📋
-              </div>
+        <!-- Attendance book -->
+        <section class="at-card at-book">
+          <header class="at-book-head">
+            <div class="at-book-title">
+              <span class="at-title-icon" aria-hidden="true">📋</span>
               <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="font-bold text-slate-900 text-base sm:text-lg tracking-tight">
-                    SỔ ĐIỂM DANH MA TRẬN {{ selectedGroup ? '— ' + selectedGroup.courseName : '' }}
-                  </h3>
-                  <span
-                    *ngIf="selectedGroup"
-                    class="px-2.5 py-0.5 rounded-full text-xs font-sans tabular-nums font-bold bg-blue-50 text-blue-900 border border-blue-200"
-                  >
-                    {{ selectedGroup.groupCode }}
-                  </span>
-                </div>
-                <div
-                  class="flex items-center gap-3 text-xs text-slate-500 font-medium mt-0.5 flex-wrap"
-                >
-                  <span
-                    >👥 <b>{{ selectedGroup?.students?.length || 0 }}</b> Sinh viên</span
-                  >
-                  <span>•</span>
-                  <span
-                    >📅 Đã điểm danh <b>{{ recordedSessionsCount }}</b> /
-                    <b>{{ allSessions.length }}</b> buổi</span
-                  >
-                </div>
+                <h3>Sổ điểm danh</h3>
+                <p *ngIf="selectedGroup" class="at-muted">
+                  {{ selectedGroup.courseName }} · {{ selectedGroup.groupCode }}
+                </p>
               </div>
             </div>
-
-            <div class="flex items-center gap-2">
-              <button
-                (click)="loadHistory()"
-                class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
+            <div class="at-stats">
+              <span class="at-stat"
+                ><b>{{ selectedGroup?.students?.length || 0 }}</b> sinh viên</span
               >
-                🔄 Tải Lại
+              <span class="at-stat"
+                ><b>{{ recordedSessionsCount }}</b>/{{ allSessions.length }} buổi đã điểm danh</span
+              >
+              <button type="button" class="at-btn-soft" (click)="loadHistory()">↻ Tải lại</button>
+            </div>
+          </header>
+
+          <!-- Filters -->
+          <div *ngIf="selectedGroup && allSessions.length" class="at-filters">
+            <label class="at-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21 21-4.3-4.3M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0" /></svg>
+              <input
+                type="search"
+                [(ngModel)]="matrixSearch"
+                placeholder="Tìm MSSV hoặc họ tên..."
+                aria-label="Tìm sinh viên trong sổ"
+              />
+            </label>
+            <div class="at-seg" role="group" aria-label="Lọc sinh viên">
+              <button
+                *ngFor="let o of matrixStatusOptions"
+                type="button"
+                [class.is-active]="matrixStatus === o.id"
+                [attr.aria-pressed]="matrixStatus === o.id"
+                (click)="matrixStatus = o.id"
+              >
+                {{ o.label }}
               </button>
+            </div>
+            <label class="at-select">
+              <span>Buổi học</span>
+              <select [(ngModel)]="matrixSessions" aria-label="Chọn các buổi hiển thị">
+                <option value="past">Đã diễn ra</option>
+                <option value="recent">5 buổi gần nhất</option>
+                <option value="all">Tất cả (cả buổi sắp tới)</option>
+              </select>
+            </label>
+            <button
+              *ngIf="matrixSearch || matrixStatus !== 'all' || matrixSessions !== 'past'"
+              type="button"
+              class="at-btn-soft"
+              (click)="resetMatrixFilters()"
+            >
+              Xóa lọc
+            </button>
+            <div class="at-legend" aria-label="Chú thích">
+              <span><i class="is-present">✓</i> Có mặt</span>
+              <span><i class="is-absent">V</i> Vắng</span>
+              <span><i class="is-excused">P</i> Có phép</span>
+              <span><i class="is-future">·</i> Chưa học</span>
             </div>
           </div>
 
-          <!-- Ma trận: 2 Cột Sticky Left (Mã SV, Họ Tên) x Buổi x Cột Sticky Right (Tổng Vắng) -->
           <div
-            *ngIf="allSessions.length > 0 && selectedGroup"
-            class="overflow-x-auto custom-scrollbar"
+            *ngIf="visibleSessions.length && selectedGroup && matrixStudents.length"
+            class="at-table-wrap custom-scrollbar"
           >
-            <table class="w-full text-xs border-collapse min-w-max">
+            <table class="at-table">
               <thead>
-                <!-- Hàng Header 1: Sticky Left | Sessions | Sticky Right -->
-                <tr class="bg-slate-50 text-slate-700 border-b border-slate-200">
-                  <!-- Sticky Left Column 1: Mã SV -->
+                <tr>
+                  <th class="at-sticky at-col-code">MSSV</th>
+                  <th class="at-sticky at-col-name">Họ và tên</th>
                   <th
-                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-0 z-30 bg-slate-50 min-w-[110px] border-r border-slate-200"
-                  >
-                    Mã SV
-                  </th>
-
-                  <!-- Sticky Left Column 2: Họ và Tên -->
-                  <th
-                    class="p-3.5 text-left font-bold uppercase tracking-wider sticky left-[110px] z-30 bg-slate-50 min-w-[190px] border-r border-slate-200 shadow-[4px_0_8px_-4px_rgba(15,23,42,0.12)]"
-                  >
-                    Họ và Tên
-                  </th>
-
-                  <!-- Cột từng buổi học -->
-                  <th
-                    *ngFor="let session of allSessions"
+                    *ngFor="let session of visibleSessions"
+                    class="at-col-session"
+                    [class.is-today]="isTodaySession(session)"
+                    [class.is-active]="
+                      activeSession && getSessionKey(activeSession) === getSessionKey(session)
+                    "
+                    [class.is-editable]="!isSessionLocked(session)"
                     (click)="setActiveSession(session)"
-                    class="p-3 text-center min-w-[105px] border-r border-slate-200 cursor-pointer select-none transition-all relative group"
-                    [ngClass]="{
-                      'bg-violet-50 text-violet-800 border-x-2 border-violet-400':
-                        isTodaySession(session),
-                      'ring-2 ring-inset ring-violet-400 bg-violet-100':
-                        activeSession &&
-                        getSessionKey(activeSession) === getSessionKey(session) &&
-                        !isTodaySession(session),
-                      'bg-slate-50 hover:bg-slate-100 text-slate-700':
-                        (!activeSession ||
-                          getSessionKey(activeSession) !== getSessionKey(session)) &&
-                        !isTodaySession(session),
-                    }"
                   >
-                    <div class="flex flex-col items-center justify-center gap-1">
-                      <!-- Today Badge -->
-                      <span
-                        *ngIf="isTodaySession(session)"
-                        class="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"
-                      >
-                        🔥 Hôm Nay
-                      </span>
-
-                      <!-- Scheduled Date -->
-                      <div class="font-bold text-sm text-slate-900 tracking-tight">
-                        {{ session.scheduledDate | date: 'dd/MM' }}
-                      </div>
-                      <div class="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        {{ formatVietnameseDay(session.scheduledDate) }}
-                      </div>
-
-                      <!-- Status Badge -->
-                      <div class="mt-0.5">
-                        <span
-                          *ngIf="isSessionDirty(session)"
-                          class="inline-flex items-center gap-0.5 bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-xs font-bold"
-                        >
-                          ✏️ Đổi
-                        </span>
-                        <span
-                          *ngIf="
-                            !isSessionDirty(session) &&
-                            isSessionLocked(session) &&
-                            session.status === 'recorded'
-                          "
-                          class="inline-flex items-center text-emerald-700 text-xs font-bold gap-0.5"
-                        >
-                          🔒 Đã chốt
-                        </span>
-                        <span
-                          *ngIf="
-                            !isSessionDirty(session) &&
-                            !isSessionLocked(session) &&
-                            session.status === 'recorded'
-                          "
-                          class="inline-flex items-center text-emerald-700 text-xs font-bold gap-0.5"
-                        >
-                          🟢 Đã lưu
-                        </span>
-                        <span
-                          *ngIf="!isSessionDirty(session) && session.status === 'missing'"
-                          class="inline-flex items-center text-amber-700 text-xs font-bold"
-                        >
-                          🟡 Chưa ghi
-                        </span>
-                        <span
-                          *ngIf="
-                            !isSessionDirty(session) &&
-                            isSessionLocked(session) &&
-                            session.status === 'future'
-                          "
-                          class="inline-flex items-center text-slate-500 text-xs font-bold gap-0.5"
-                        >
-                          🔒 Sắp tới
-                        </span>
-                      </div>
-                    </div>
+                    <span *ngIf="isTodaySession(session)" class="at-today">Hôm nay</span>
+                    <b>{{ session.scheduledDate | date: 'dd/MM' }}</b>
+                    <small>{{ formatVietnameseDay(session.scheduledDate) }}</small>
+                    <span class="at-session-state" [attr.data-state]="sessionState(session)">{{
+                      sessionStateLabel[sessionState(session)]
+                    }}</span>
                   </th>
-
-                  <!-- Sticky Right Column: Tổng Vắng -->
-                  <th
-                    class="p-3.5 text-center font-bold uppercase tracking-wider bg-slate-100 text-slate-700 min-w-[100px] sticky right-0 z-30 border-l border-slate-200 shadow-[-4px_0_8px_-4px_rgba(15,23,42,0.12)]"
-                  >
-                    Tổng Vắng
-                  </th>
+                  <th class="at-sticky-right at-col-total">Tổng vắng</th>
                 </tr>
-
-                <!-- Hàng Header 2: Tổng SV vắng từng buổi -->
-                <tr class="bg-white text-slate-600 border-b border-slate-200">
+                <tr class="at-row-totals">
+                  <td class="at-sticky at-col-code">Vắng/buổi</td>
+                  <td class="at-sticky at-col-name"></td>
                   <td
-                    class="p-2.5 px-3 font-bold text-xs sticky left-0 z-30 bg-white border-r border-slate-200 text-slate-700"
-                  >
-                    Tổng vắng
-                  </td>
-                  <td
-                    class="p-2.5 px-3 font-semibold text-xs sticky left-[110px] z-30 bg-white border-r border-slate-200 shadow-[4px_0_8px_-4px_rgba(15,23,42,0.12)] text-slate-500"
-                  >
-                    từng buổi học
-                  </td>
-                  <td
-                    *ngFor="let session of allSessions"
-                    (click)="setActiveSession(session)"
-                    class="p-2 text-center border-r border-slate-200 cursor-pointer"
-                    [ngClass]="isTodaySession(session) ? 'bg-violet-50' : ''"
+                    *ngFor="let session of visibleSessions"
+                    [class.is-today]="isTodaySession(session)"
                   >
                     <span
-                      class="px-2 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-0.5 border"
-                      [ngClass]="
-                        getAbsentCountForSession(session) > 0
-                          ? 'bg-rose-50 text-rose-700 border-rose-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      "
+                      *ngIf="session.status !== 'future'"
+                      class="at-pill"
+                      [class.is-bad]="getAbsentCountForSession(session) > 0"
+                      >{{ getAbsentCountForSession(session) }}</span
                     >
-                      {{ getAbsentCountForSession(session) }} SV
+                  </td>
+                  <td class="at-sticky-right at-col-total"></td>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let student of matrixStudents; let i = index"
+                  [class.has-warning]="warningFor(student._id)"
+                >
+                  <td class="at-sticky at-col-code">{{ student.studentCode }}</td>
+                  <td class="at-sticky at-col-name">
+                    <span class="at-name">
+                      <span class="at-idx">{{ i + 1 }}</span>
+                      <span class="at-name-text">{{ student.fullName }}</span>
+                      <span
+                        *ngIf="warningFor(student._id) as w"
+                        class="at-warn"
+                        [style.backgroundColor]="w.color"
+                        [title]="w.name"
+                        >{{ w.name }}</span
+                      >
                     </span>
                   </td>
                   <td
-                    class="p-2 text-center sticky right-0 z-30 bg-slate-100 border-l border-slate-200"
-                  ></td>
-                </tr>
-              </thead>
-
-              <tbody class="divide-y divide-slate-200/80">
-                <tr
-                  *ngFor="let student of selectedGroup.students; let i = index"
-                  class="even:bg-slate-50/40 hover:bg-blue-50/40 transition-colors group"
-                  [ngClass]="warningFor(student._id) ? 'bg-rose-50/20' : ''"
-                >
-                  <!-- Sticky Left Column 1: Mã SV -->
-                  <td
-                    class="p-2.5 px-3 sticky left-0 z-10 border-r border-slate-200/80 min-w-[110px] font-sans tabular-nums text-xs font-bold text-slate-700 transition-colors group-hover:bg-blue-50/80"
-                    [ngClass]="warningFor(student._id) ? 'bg-rose-50/90' : 'bg-white'"
+                    *ngFor="let session of visibleSessions"
+                    class="at-cell"
+                    [class.is-today]="isTodaySession(session)"
                   >
-                    {{ student.studentCode }}
-                  </td>
-
-                  <!-- Sticky Left Column 2: Họ và Tên -->
-                  <td
-                    class="p-2.5 px-3 sticky left-[110px] z-10 border-r border-slate-200/80 min-w-[190px] shadow-[4px_0_10px_-2px_rgba(0,0,0,0.06)] transition-colors group-hover:bg-blue-50/80"
-                    [ngClass]="warningFor(student._id) ? 'bg-rose-50/90' : 'bg-white'"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2 truncate">
-                        <span
-                          class="w-5 h-5 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        >
-                          {{ i + 1 }}
-                        </span>
-                        <span
-                          class="font-bold text-slate-900 text-xs truncate group-hover:text-blue-900"
-                        >
-                          {{ student.fullName }}
-                        </span>
-                      </div>
-                      <span
-                        *ngIf="warningFor(student._id)"
-                        class="text-[10px] font-bold text-white px-1.5 py-0.5 rounded flex-shrink-0"
-                        [style.backgroundColor]="warningFor(student._id)?.color"
-                        [title]="warningFor(student._id)?.name"
-                      >
-                        {{ warningFor(student._id)?.name }}
-                      </span>
-                    </div>
-                  </td>
-
-                  <!-- Ô tích chọn điểm danh (3-State Cell Chips: Lock / ✓ / ✕ / P) -->
-                  <td
-                    *ngFor="let session of allSessions"
-                    class="p-2 text-center border-r border-slate-200/60 select-none transition-colors"
-                    [ngClass]="{
-                      'bg-slate-100/60 opacity-60': isSessionLocked(session),
-                      'bg-blue-50/40':
-                        !isSessionLocked(session) &&
-                        isTodaySession(session) &&
-                        getStudentStatusInMatrix(student._id, session) === 'present',
-                      'bg-rose-50/60':
-                        !isSessionLocked(session) &&
-                        getStudentStatusInMatrix(student._id, session) === 'absent',
-                      'bg-amber-50/70':
-                        !isSessionLocked(session) &&
-                        getStudentStatusInMatrix(student._id, session) === 'excused',
-                      'bg-blue-50/20':
-                        activeSession &&
-                        getSessionKey(activeSession) === getSessionKey(session) &&
-                        !isTodaySession(session) &&
-                        getStudentStatusInMatrix(student._id, session) === 'present',
-                    }"
-                  >
-                    <!-- Cell Chip Button -->
-                    <button
-                      type="button"
-                      (click)="toggleStudentInMatrix(student._id, session, student.fullName)"
-                      (contextmenu)="
-                        $event.preventDefault();
-                        !isSessionLocked(session) &&
-                        getStudentStatusInMatrix(student._id, session) === 'excused'
-                          ? openExcusedModal(student._id, student.fullName, session)
-                          : null
-                      "
-                      class="w-8 h-8 mx-auto rounded-md font-bold text-xs flex items-center justify-center transition-all duration-150 active:scale-95 hover:scale-105 cursor-pointer relative"
-                      [ngClass]="{
-                        'bg-slate-100 text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed':
-                          isSessionLocked(session),
-                        'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300':
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'present',
-                        'text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 font-bold':
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'absent',
-                        'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold':
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'excused',
-                      }"
-                      [title]="
-                        isSessionLocked(session)
-                          ? '🔒 Buổi học đã chốt sổ / chưa tới ngày'
-                          : getStudentStatusInMatrix(student._id, session) === 'present'
-                            ? 'Có mặt (Click để đổi sang Vắng không phép)'
-                            : getStudentStatusInMatrix(student._id, session) === 'absent'
-                              ? 'Vắng không phép (Click để đổi sang Vắng có phép)'
-                              : 'Vắng có phép: ' +
-                                (getStudentExcusedReason(student._id, session) ||
-                                  'Có đơn xin phép') +
-                                ' (Click để đổi)'
-                      "
+                    <span
+                      *ngIf="cellStatus(student._id, session) === 'future'; else statusCell"
+                      class="at-chip"
+                      data-status="future"
+                      title="Buổi học chưa diễn ra"
+                      >·</span
                     >
-                      <span *ngIf="isSessionLocked(session)" class="text-xs">🔒</span>
-                      <span
-                        *ngIf="
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'present'
-                        "
-                        class="text-sm font-bold text-emerald-700"
-                        >✓</span
+                    <ng-template #statusCell>
+                      <button
+                        type="button"
+                        class="at-chip"
+                        [attr.data-status]="cellStatus(student._id, session)"
+                        [class.is-locked]="isSessionLocked(session)"
+                        [attr.aria-disabled]="isSessionLocked(session)"
+                        [title]="cellTitle(student._id, session)"
+                        (click)="toggleStudentInMatrix(student._id, session, student.fullName)"
+                        (contextmenu)="onCellContextMenu($event, student._id, student.fullName, session)"
                       >
-                      <span
-                        *ngIf="
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'absent'
-                        "
-                        class="text-sm font-bold text-red-700"
-                        >V</span
-                      >
-                      <span
-                        *ngIf="
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'excused'
-                        "
-                        class="text-xs font-bold text-amber-800"
-                        >P</span
-                      >
-                      <span
-                        *ngIf="
-                          !isSessionLocked(session) &&
-                          getStudentStatusInMatrix(student._id, session) === 'excused'
-                        "
-                        class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full"
-                      ></span>
-                    </button>
+                        {{ cellMark[cellStatus(student._id, session)] }}
+                      </button>
+                    </ng-template>
                   </td>
-
-                  <!-- Sticky Right Column: Total Absent -->
-                  <td
-                    class="p-2.5 text-center sticky right-0 z-10 border-l border-slate-200/80 min-w-[100px] shadow-[-4px_0_10px_-2px_rgba(0,0,0,0.06)] transition-colors group-hover:bg-blue-50/80"
-                    [ngClass]="warningFor(student._id) ? 'bg-rose-50/90' : 'bg-white'"
-                  >
-                    <div class="flex flex-col items-center justify-center gap-0.5">
-                      <span
-                        class="px-2.5 py-0.5 rounded-full text-xs font-bold"
-                        [ngClass]="
-                          getTotalAbsentForStudent(student._id) === 0
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : warningFor(student._id)
-                              ? 'text-white shadow-sm'
-                              : 'bg-amber-50 text-amber-900 border border-amber-200'
-                        "
-                        title="Vắng không phép"
-                        [style.backgroundColor]="warningFor(student._id)?.color"
-                      >
-                        {{ getTotalAbsentForStudent(student._id) }} ✕
-                      </span>
-                      <span class="text-[10px] text-slate-500 font-semibold">
-                        {{ getTotalAbsentForStudent(student._id) * periodsPerSession }} tiết
-                      </span>
-                      <span
+                  <td class="at-sticky-right at-col-total">
+                    <span
+                      class="at-total"
+                      [class.is-zero]="getTotalAbsentForStudent(student._id) === 0"
+                      [class.is-warn]="warningFor(student._id)"
+                      [style.backgroundColor]="warningFor(student._id)?.color"
+                      title="Vắng không phép"
+                      >{{ getTotalAbsentForStudent(student._id) }} V</span
+                    >
+                    <small
+                      >{{ getTotalAbsentForStudent(student._id) * periodsPerSession }} tiết<ng-container
                         *ngIf="getTotalExcusedForStudent(student._id) > 0"
-                        class="px-2 py-0.2 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300"
-                        title="Vắng có phép"
                       >
-                        {{ getTotalExcusedForStudent(student._id) }} P
-                      </span>
-                    </div>
+                        · {{ getTotalExcusedForStudent(student._id) }} P</ng-container
+                      ></small
+                    >
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Empty state -->
           <div
-            *ngIf="allSessions.length === 0"
-            class="p-12 text-center text-slate-400 text-xs font-medium"
+            *ngIf="selectedGroup && allSessions.length && !matrixStudents.length"
+            class="at-empty"
           >
-            <div
-              class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner"
-            >
-              📭
-            </div>
-            <div class="font-bold text-slate-600 text-sm">
-              {{
-                selectedGroup
-                  ? 'Chưa có buổi điểm danh nào được ghi nhận cho học phần này.'
-                  : 'Hãy chọn học phần ở trên để xem sổ điểm danh.'
-              }}
-            </div>
+            Không có sinh viên nào khớp bộ lọc.
+            <button type="button" class="at-btn-soft" (click)="resetMatrixFilters()">
+              Xóa lọc
+            </button>
           </div>
-          <div
-            *ngIf="historyList.length > 0 && !selectedGroup?.students?.length"
-            class="p-6 text-center text-slate-400 text-xs font-medium"
-          >
-            Không có sinh viên trong học phần này.
+          <div *ngIf="allSessions.length === 0" class="at-empty">
+            <div class="text-2xl">📭</div>
+            {{
+              selectedGroup
+                ? 'Chưa có buổi điểm danh nào được ghi nhận cho học phần này.'
+                : 'Hãy chọn học phần ở trên để xem sổ điểm danh.'
+            }}
           </div>
-        </div>
+        </section>
 
         <!-- BOTTOM FLOATING ACTION BAR -->
         <div
-          *ngIf="selectedGroup && activeSession"
+          *ngIf="selectedGroup && activeSession && !isSessionLocked(activeSession)"
           class="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-auto md:min-w-[860px] lg:min-w-[940px]"
         >
           <div

@@ -55,6 +55,16 @@ const { getConfig } = require('../utils/moiTruong');
 const { dateKey } = require('../utils/kiemTra');
 const { CARE_STATUS, TASK_STATUS } = require('../utils/hangSo');
 const { escapeHtml } = require('../services/dichVuEmail');
+const { saveAttendance, deleteAttendance } = require('../services/dichVuDiemDanh');
+// Past sessions can no longer be written through the API (they are final once the class ends),
+// so fixtures record them through the service, as the lecturer.
+const recordPast = (courseGroup, absentStudentIds, date) =>
+  saveAttendance({
+    group: courseGroup,
+    user: { id: String(users.teacher._id) },
+    absentStudentIds: absentStudentIds.map(String),
+    date: new Date(date),
+  });
 let database, server, base, users, tokens, students, group, otherGroup;
 
 async function request(path, token, method = 'GET', body) {
@@ -190,34 +200,24 @@ test('attendance rejects nonmembers, duplicates, overlap and invalid dates', asy
         .status,
       400,
     );
-  // Only attendance.override may choose a date, and it must be valid.
-  assert.equal(
-    (await request('/attendance/submit', tokens.manager, 'POST', { ...valid, date: 'invalid' }))
-      .status,
-    400,
-  );
+  // Trưởng phòng / PHT only look: they cannot write attendance, even for today.
+  assert.equal((await request('/attendance/submit', tokens.manager, 'POST', valid)).status, 403);
   assert.equal(await DiemDanh.countDocuments(), 0);
 });
 test('past attendance preserves date and recorder; a warning opens one care case for the class staff', async () => {
   await useQuickWarningLevel();
-  const payload = {
-    courseGroupId: String(group._id),
-    absentStudentIds: [String(students[0]._id)],
-    date: '2026-01-12T12:00:00',
-    teacherId: String(users.admin._id),
-  };
-  // Back-dated attendance needs attendance.override (Trưởng phòng); the teacher's date is ignored.
-  const result = await request('/attendance/submit', tokens.manager, 'POST', payload);
-  assert.equal(result.status, 201);
-  assert.equal(result.body.attendance.recordedBy, String(users.manager._id));
+  const date = '2026-01-12T12:00:00';
+  const result = await recordPast(group, [students[0]._id], date);
+  assert.equal(result.isUpdate, false);
+  assert.equal(String(result.attendance.recordedBy), String(users.teacher._id));
   // The absent students come back so the lecturer can choose to call them.
-  assert.equal(result.body.absentStudents[0].studentCode, 'TEST001');
-  assert.equal(result.body.openedCases.length, 1);
-  for (const response of await Promise.all([
-    request('/attendance/submit', tokens.manager, 'POST', payload),
-    request('/attendance/submit', tokens.manager, 'POST', payload),
+  assert.equal(result.absentStudents[0].studentCode, 'TEST001');
+  assert.equal(result.openedCases.length, 1);
+  for (const again of await Promise.all([
+    recordPast(group, [students[0]._id], date),
+    recordPast(group, [students[0]._id], date),
   ]))
-    assert.equal(response.status, 200);
+    assert.equal(again.isUpdate, true);
   assert.equal(await DiemDanh.countDocuments(), 1);
   assert.equal(await HoSoChamSoc.countDocuments(), 1);
   const careCase = await HoSoChamSoc.findOne();
@@ -293,24 +293,21 @@ test('attendance history edits enforce ownership; the care case outlives a corre
     ).status,
     403,
   );
+  // Nor can the Trưởng phòng / PHT: a finished session is final for everyone.
   assert.equal(
     (
       await request(`/attendance/history/${record._id}`, tokens.manager, 'PUT', {
         absentStudentIds: [],
       })
     ).status,
-    200,
+    403,
   );
+  await recordPast(group, [], record.date);
   // Care is a human process: correcting attendance does not delete the case.
   assert.equal(await HoSoChamSoc.countDocuments(), 1);
 });
 test('a warning in a class without staff waits for a directive; the manager directs someone', async () => {
-  const result = await request('/attendance/submit', tokens.manager, 'POST', {
-    courseGroupId: String(otherGroup._id),
-    absentStudentIds: [String(students[1]._id)],
-    date: '2026-01-13T12:00:00',
-  });
-  assert.equal(result.status, 201);
+  const result = await recordPast(otherGroup, [students[1]._id], '2026-01-13T12:00:00');
   const careCase = await HoSoChamSoc.findOne({ studentId: students[1]._id });
   assert.equal(careCase.status, CARE_STATUS.AWAITING);
   assert.equal(careCase.assignedStaffId, null);
@@ -347,10 +344,11 @@ test('a warning in a class without staff waits for a directive; the manager dire
   assert.ok(directed.body.notes.some((n) => n.kind === 'chi_dao'));
   assert.equal((await request(`/students/${students[1]._id}/profile`, carerToken)).status, 200);
   assert.equal(
-    (await request(`/attendance/history/${result.body.attendance._id}`, tokens.manager, 'DELETE'))
+    (await request(`/attendance/history/${result.attendance._id}`, tokens.manager, 'DELETE'))
       .status,
-    200,
+    403,
   );
+  await deleteAttendance(result.attendance);
 });
 test('care case work: steps, findings, exchange, AI steps, then close request and approval', async () => {
   const careCase = await HoSoChamSoc.findOne({ studentId: students[1]._id });
@@ -529,7 +527,10 @@ test('attendance window: only on class days, from class time, editable until end
   assert.equal(attendanceWindow(g, { now: at(1, 6, 50) }).open, true); // 10 minutes early
   assert.equal(attendanceWindow(g, { now: at(1, 9, 0) }).open, true);
   assert.equal(attendanceWindow(g, { now: at(1, 13, 0) }).open, false); // class over, never taken
-  assert.equal(attendanceWindow(g, { now: at(1, 22, 0), hasRecordToday: true }).open, true);
+  // Once the class ends the session is final, even if it was taken.
+  const over = attendanceWindow(g, { now: at(1, 22, 0), hasRecordToday: true });
+  assert.equal(over.open, false);
+  assert.equal(over.locked, true);
   assert.equal(
     attendanceWindow({ ...g, endDate: new Date(2026, 4, 1) }, { now: at(1, 9, 0) }).open,
     false,
@@ -569,8 +570,11 @@ test('teachers cannot take attendance outside the timetable', async () => {
   });
   assert.equal(denied.status, 403);
   assert.match(denied.body.message, /lịch học/);
-  // The manager's override is not bound to the timetable.
-  assert.equal((await request(`/attendance/window/${closed._id}`, tokens.manager)).body.open, true);
+  // The Trưởng phòng / PHT can look at the book but never write it.
+  const managerView = await request(`/attendance/window/${closed._id}`, tokens.manager);
+  assert.equal(managerView.status, 200);
+  assert.equal(managerView.body.open, false);
+  assert.equal(managerView.body.canWrite, false);
   await NhomHocPhan.deleteOne({ _id: closed._id });
 });
 
@@ -871,13 +875,21 @@ test('attendance read endpoints preserve schedules, off-schedule records and sum
     ).status,
     403,
   );
-  const updated = await request(`/attendance/history/${records[0]._id}`, tokens.manager, 'PUT', {
-    absentStudentIds: [],
-  });
-  assert.equal(updated.status, 200);
-  assert.equal(updated.body.attendance.recordedBy.email, users.manager.email);
-  assert.equal(updated.body.attendance.recordedBy.password, undefined);
-  assert.equal(updated.body.attendance.recordedBy.tokenVersion, undefined);
+  assert.equal(
+    (
+      await request(`/attendance/history/${records[0]._id}`, tokens.manager, 'PUT', {
+        absentStudentIds: [],
+      })
+    ).status,
+    403,
+  );
+  // History shows who recorded each session, never their secrets.
+  const managerHistory = await request(`/attendance/history/${course._id}`, tokens.manager);
+  assert.equal(managerHistory.status, 200);
+  const recorder = managerHistory.body.find((r) => r.recordedBy).recordedBy;
+  assert.ok(recorder.fullName);
+  assert.equal(recorder.password, undefined);
+  assert.equal(recorder.tokenVersion, undefined);
   const fallback = await request(`/attendance/schedule/${group._id}`, tokens.teacher);
   assert.equal(fallback.status, 200);
   assert.equal(fallback.body.hasDates, false);
@@ -963,13 +975,8 @@ test('care cases follow the administrative class; transfers move open cases and 
   assert.equal(assigned.status, 200);
 
   for (const [i, student] of ccStudents.entries()) {
-    const res = await request('/attendance/submit', tokens.manager, 'POST', {
-      courseGroupId: String(ccGroup._id),
-      absentStudentIds: [String(student._id)],
-      date: new Date(2025, 5, 2 + i, 12).toISOString(),
-    });
-    assert.equal(res.status, 201);
-    assert.equal(res.body.openedCases.length, 1);
+    const res = await recordPast(ccGroup, [student._id], new Date(2025, 5, 2 + i, 12));
+    assert.equal(res.openedCases.length, 1);
   }
   assert.equal(
     await HoSoChamSoc.countDocuments({

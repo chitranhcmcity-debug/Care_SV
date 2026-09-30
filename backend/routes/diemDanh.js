@@ -7,22 +7,21 @@ const { requireCourseRead, requireCourseWrite } = require('../middleware/phanQuy
 const { assert, dateKey } = require('../utils/kiemTra');
 
 const router = express.Router();
-// Teachers take attendance; overseers (Trưởng phòng, admin read-only, report viewers) can look.
+// Teachers take attendance; overseers (Trưởng phòng / PHT, admin, report viewers) only look.
 router.use(
   verifyToken,
-  requirePermission('attendance.take', 'attendance.override', 'reports.view', 'students.view'),
+  requirePermission('attendance.take', 'attendance.view', 'reports.view', 'students.view'),
 );
 
 /**
- * Teachers may only write today's attendance, inside the class-time window of the timetable
- * (see dichVuCanhBao.attendanceWindow). attendance.override skips the check.
+ * Attendance is written only by the lecturer, for today, inside the class-time window of the
+ * timetable (see dichVuCanhBao.attendanceWindow). Once the class ends the record is final.
  */
 async function assertTeacherWindow(req, recordDate) {
-  if (req.canOverrideAttendance) return;
   const now = new Date();
   assert(
     !recordDate || dateKey(recordDate) === dateKey(now),
-    'Giảng viên chỉ được điểm danh / sửa điểm danh trong ngày học. Liên hệ Trưởng phòng để điều chỉnh ngày khác.',
+    'Điểm danh của buổi học trước đã được chốt, không sửa được nữa.',
     403,
   );
   const hasRecordToday = Boolean(await attendanceQueries.getToday(req.courseGroup._id));
@@ -41,9 +40,9 @@ router.get('/window/:courseGroupId', requireCourseRead, async (req, res) => {
   const isTeacher = String(req.courseGroup.teacherId) === req.user.id;
   res.json({
     ...window,
-    canOverride: Boolean(req.canOverrideAttendance),
-    // Overseers without override (e.g. admin) can look but never write.
-    open: req.canOverrideAttendance || (isTeacher && window.open),
+    // Only the lecturer writes; overseers always see a read-only book.
+    canWrite: isTeacher,
+    open: isTeacher && window.open,
   });
 });
 
@@ -82,8 +81,8 @@ router.delete('/history/:attendanceId', requireCourseWrite, async (req, res) => 
 });
 
 router.post('/submit', requireCourseWrite, async (req, res) => {
-  // A teacher's record is always for right now; only overrides may pick another date.
-  const date = req.canOverrideAttendance && req.body?.date ? req.body.date : new Date();
+  // A record is always for right now; past sessions are final.
+  const date = new Date();
   await assertTeacherWindow(req, date);
   const result = await saveAttendance({
     ...req.body,

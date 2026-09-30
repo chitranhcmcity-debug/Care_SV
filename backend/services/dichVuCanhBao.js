@@ -88,7 +88,7 @@ function hasClassOn(group, date) {
  * When a teacher may take attendance for `group` right now:
  * - only on a scheduled class day;
  * - the first record from ATTENDANCE_EARLY_MINUTES before class until the class ends;
- * - an existing record of today may be corrected until the end of that day.
+ * - after the class ends the session is final (locked), whether or not it was taken.
  */
 function attendanceWindow(group, { hasRecordToday = false, now = new Date() } = {}) {
   const { startTime, endTime } = classHours(group);
@@ -99,16 +99,21 @@ function attendanceWindow(group, { hasRecordToday = false, now = new Date() } = 
   const opensAt = toMinutes(startTime) - ATTENDANCE_EARLY_MINUTES;
   if (minutes < opensAt)
     return { ...base, open: false, reason: `Chưa đến giờ học (mở điểm danh lúc ${startTime}).` };
-  if (minutes > toMinutes(endTime) && !hasRecordToday)
+  if (minutes > toMinutes(endTime))
     return {
       ...base,
       open: false,
-      reason: `Đã hết giờ học (${startTime}–${endTime}) mà chưa điểm danh. Liên hệ Trưởng phòng để mở lại.`,
+      locked: true,
+      reason: hasRecordToday
+        ? `Buổi học đã kết thúc lúc ${endTime}, điểm danh đã được chốt.`
+        : `Đã hết giờ học (${startTime}–${endTime}) mà chưa điểm danh; buổi này đã được chốt.`,
     };
   return {
     ...base,
     open: true,
-    reason: hasRecordToday ? 'Được sửa điểm danh đến hết ngày hôm nay.' : 'Đang trong giờ học.',
+    reason: hasRecordToday
+      ? `Được sửa điểm danh đến khi hết giờ học (${endTime}).`
+      : 'Đang trong giờ học.',
   };
 }
 

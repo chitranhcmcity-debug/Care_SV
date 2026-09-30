@@ -161,16 +161,17 @@ const PERMISSIONS = Object.freeze([
     group: 'Điểm danh',
     label: 'Điểm danh lớp học',
     description:
-      'Điểm danh học phần mình dạy, chỉ trong giờ học theo thời khóa biểu; được sửa đến hết ngày.',
+      'Điểm danh học phần mình dạy, chỉ trong giờ học theo thời khóa biểu; hết giờ học thì điểm danh được chốt, không sửa được nữa.',
     defaultRoles: ['teacher'],
     // Only a teacher can be the lecturer of a course group, so the right means nothing elsewhere.
     onlyRoles: ['teacher'],
   },
   {
-    key: 'attendance.override',
+    key: 'attendance.view',
     group: 'Điểm danh',
-    label: 'Điểm danh / sửa điểm danh ngoài giờ',
-    description: 'Ghi, sửa, xóa điểm danh của mọi học phần vào bất kỳ ngày nào (xử lý ngoại lệ).',
+    label: 'Xem sổ điểm danh mọi học phần',
+    description:
+      'Xem (không ghi, không sửa) điểm danh và tổng hợp vắng của mọi học phần. Chỉ giảng viên điểm danh, trong giờ học.',
     defaultRoles: ['manager'],
   },
   {
@@ -260,6 +261,8 @@ const LEGACY_PERMISSIONS = Object.freeze({
   'recordings.viewAll': ['callTasks.viewAll'],
   'care.propose': ['callTasks.update', 'attendance.take'],
 });
+// Keys renamed in stored matrices: old key -> its replacement.
+const RENAMED_PERMISSIONS = Object.freeze({ 'attendance.override': 'attendance.view' });
 const PERMISSION_KEYS = Object.freeze(PERMISSIONS.map((p) => p.key));
 /** Whether a permission can be granted to a role (onlyRoles limits it to roles where it works). */
 const permissionAppliesTo = (key, role) => {
@@ -371,6 +374,7 @@ module.exports = {
   DEFAULT_CARE_STEPS,
   CARE_NOTE_KINDS,
   LEGACY_PERMISSIONS,
+  RENAMED_PERMISSIONS,
   TASK_STATUS,
   TASK_STATUS_LABEL,
   TASK_STATUSES,

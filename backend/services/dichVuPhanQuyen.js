@@ -6,6 +6,7 @@ const {
   DEFAULT_ROLE_PERMISSIONS,
   ADMIN_PERMISSIONS,
   LEGACY_PERMISSIONS,
+  RENAMED_PERMISSIONS,
 } = require('../utils/hangSo');
 
 // Every authenticated request reads the matrix, so keep it in memory briefly. Saving through
@@ -40,7 +41,9 @@ function normalize(rawStored) {
   const stored = upgrade(rawStored);
   return Object.fromEntries(
     CONFIGURABLE_ROLES.map((role) => {
-      const list = Array.isArray(stored?.[role]) ? stored[role] : DEFAULT_ROLE_PERMISSIONS[role];
+      const list = (
+        Array.isArray(stored?.[role]) ? stored[role] : DEFAULT_ROLE_PERMISSIONS[role]
+      ).map((key) => RENAMED_PERMISSIONS[key] ?? key);
       return [
         role,
         PERMISSION_KEYS.filter((key) => list.includes(key) && permissionAppliesTo(key, role)),

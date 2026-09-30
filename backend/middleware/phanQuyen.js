@@ -33,11 +33,11 @@ async function canAccessStudent(user, student) {
 
 /** Whether the user oversees attendance of every course group (read side). */
 const seesAllCourses = (user) =>
-  can(user, 'attendance.override') || can(user, 'reports.view') || can(user, 'students.view');
+  can(user, 'attendance.view') || can(user, 'reports.view') || can(user, 'students.view');
 /**
  * Loads the course group (from :courseGroupId, body.courseGroupId or :attendanceId) and checks access.
  * mode 'read': the teacher of the group, or anyone who oversees attendance.
- * mode 'write': the teacher of the group (with attendance.take), or attendance.override.
+ * mode 'write': only the teacher of the group (with attendance.take); overseers only look.
  * The teacher's time window is enforced by the attendance routes.
  */
 const courseAccess = (mode) => async (req, res, next) => {
@@ -57,10 +57,9 @@ const courseAccess = (mode) => async (req, res, next) => {
     const allowed =
       mode === 'read'
         ? isTeacher || seesAllCourses(req.user)
-        : isTeacher || can(req.user, 'attendance.override');
+        : isTeacher;
     assert(allowed, 'Bạn không được phân công học phần này', 403);
     req.courseGroup = group;
-    req.canOverrideAttendance = can(req.user, 'attendance.override');
     next();
   } catch (error) {
     next(error);

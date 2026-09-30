@@ -32,6 +32,7 @@ import { ViLabelPipe, viLabel } from '../../utils/label.pipe';
   standalone: true,
   imports: [CommonModule, FormsModule, ViLabelPipe, RouterLink],
   templateUrl: './attendance.component.html',
+  styleUrl: './attendance.component.css',
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
   activeTab: 'home' | 'attendance' | 'calls' | 'profile' = 'attendance';
@@ -177,12 +178,107 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** Class picker search (code, course name, teacher). */
+  courseSearch = '';
+
   get displayCourseGroups(): CourseGroup[] {
-    let list = this.filteredCourseGroups;
-    if (!this.showAllCourses && this.currentUser?.role === 'staff') {
-      list = list.filter((g) => this.isAssignedTeacher(g));
-    }
-    return list;
+    const term = this.courseSearch.trim().toLowerCase();
+    if (!term) return this.filteredCourseGroups;
+    return this.filteredCourseGroups.filter((g) =>
+      [g.groupCode, g.courseName, g.teacherName]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(term)),
+    );
+  }
+
+  /** Read-only book: only the group's lecturer writes, and only during class hours. */
+  get readOnly(): boolean {
+    return !this.attendanceWindow?.canWrite;
+  }
+
+  // ---- Attendance book filters ----
+  matrixSearch = '';
+  matrixStatus: 'all' | 'absent' | 'warning' | 'full' = 'all';
+  matrixSessions: 'all' | 'past' | 'recent' = 'past';
+
+  /** Students shown in the book after the search and status filters. */
+  get matrixStudents(): Student[] {
+    const term = this.matrixSearch.trim().toLowerCase();
+    return (this.selectedGroup?.students ?? []).filter((s) => {
+      if (term && !`${s.studentCode} ${s.fullName}`.toLowerCase().includes(term)) return false;
+      const absent = this.getTotalAbsentForStudent(s._id);
+      if (this.matrixStatus === 'absent') return absent + this.getTotalExcusedForStudent(s._id) > 0;
+      if (this.matrixStatus === 'warning') return Boolean(this.warningFor(s._id));
+      if (this.matrixStatus === 'full')
+        return absent === 0 && this.getTotalExcusedForStudent(s._id) === 0;
+      return true;
+    });
+  }
+
+  /** Session columns: every session, only held ones, or the last 5 held. */
+  get visibleSessions(): ScheduleSession[] {
+    const all = this.allSessions;
+    if (this.matrixSessions === 'all') return all;
+    const held = all.filter((s) => s.status !== 'future');
+    const list = this.matrixSessions === 'recent' ? held.slice(-5) : held;
+    // Nothing held yet: still show the upcoming sessions rather than an empty book.
+    return list.length ? list : all;
+  }
+
+  resetMatrixFilters() {
+    this.matrixSearch = '';
+    this.matrixStatus = 'all';
+    this.matrixSessions = 'past';
+  }
+
+  readonly matrixStatusOptions: { id: AttendanceComponent['matrixStatus']; label: string }[] = [
+    { id: 'all', label: 'Tất cả' },
+    { id: 'absent', label: 'Có vắng' },
+    { id: 'warning', label: 'Chạm cảnh báo' },
+    { id: 'full', label: 'Đủ buổi' },
+  ];
+
+  readonly sessionStateLabel = {
+    dirty: 'Chưa lưu',
+    saved: 'Đã lưu',
+    final: 'Đã chốt',
+    missing: 'Không ghi',
+    future: 'Sắp tới',
+  } as const;
+
+  sessionState(session: ScheduleSession): keyof AttendanceComponent['sessionStateLabel'] {
+    if (this.isSessionDirty(session)) return 'dirty';
+    if (session.status === 'future') return 'future';
+    if (session.status === 'recorded') return this.isSessionLocked(session) ? 'final' : 'saved';
+    return 'missing';
+  }
+
+  readonly cellMark = { present: '✓', absent: 'V', excused: 'P', missing: '–', future: '·' };
+
+  /** What one cell shows; a past session nobody recorded shows "–" rather than "present". */
+  cellStatus(studentId: string, session: ScheduleSession): keyof AttendanceComponent['cellMark'] {
+    if (session.status === 'future') return 'future';
+    if (session.status === 'missing' && this.isSessionLocked(session) && !this.isSessionDirty(session))
+      return 'missing';
+    return this.getStudentStatusInMatrix(studentId, session);
+  }
+
+  cellTitle(studentId: string, session: ScheduleSession): string {
+    const status = this.cellStatus(studentId, session);
+    if (status === 'missing') return 'Buổi này không được điểm danh';
+    if (status === 'present') return 'Có mặt';
+    if (status === 'absent') return 'Vắng không phép';
+    return 'Vắng có phép: ' + (this.getStudentExcusedReason(studentId, session) || 'Có đơn xin phép');
+  }
+
+  /** Right-click on an excused cell edits its reason (editable sessions only). */
+  onCellContextMenu(event: Event, studentId: string, name: string, session: ScheduleSession) {
+    event.preventDefault();
+    if (
+      !this.isSessionLocked(session) &&
+      this.getStudentStatusInMatrix(studentId, session) === 'excused'
+    )
+      this.openExcusedModal(studentId, name, session);
   }
 
   loadCourseGroups() {
@@ -699,30 +795,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.matrixDraft[key] = { absent: absentSet, excused: excusedMap };
   }
 
-  /** Kiểm tra xem buổi học có bị khóa hay không (ngày chưa tới hoặc ngày đã chốt sổ) */
+  /**
+   * Whether a session is closed for editing. Only the lecturer writes, only today's session and
+   * only during class hours (the server decides the window); once the class ends it is final.
+   */
   isSessionLocked(session: ScheduleSession): boolean {
     if (!session) return false;
-
-    // Buổi học chưa tới ngày (status === 'future') -> Bị khóa 🔒
-    if (session.status === 'future') return true;
-
-    // Giảng viên: chỉ buổi hôm nay, trong khung giờ của thời khóa biểu (server quyết định).
-    // Trưởng phòng (quyền điều chỉnh) được sửa mọi buổi đã qua.
-    const key = this.getSessionKey(session);
-    if (!this.attendanceWindow?.canOverride) {
-      const today = this.getSessionKey({
-        scheduledDate: new Date().toISOString(),
-      } as ScheduleSession);
-      if (key !== today || !this.attendanceWindow?.open) return true;
-      return false;
-    }
-
-    // Buổi học đã chốt sổ / đã lưu (status === 'recorded') và KHÔNG có thay đổi chưa lưu -> Bị khóa 🔒
-    if (session.status === 'recorded' && !this.dirtySessions.has(key)) {
-      return true;
-    }
-
-    return false;
+    if (session.status === 'future' || this.readOnly || !this.attendanceWindow?.open) return true;
+    const today = this.getSessionKey({ scheduledDate: new Date().toISOString() } as ScheduleSession);
+    return this.getSessionKey(session) !== today;
   }
 
   /** Lấy trạng thái của sinh viên trong ma trận: 'present' | 'absent' | 'excused' */
@@ -768,8 +849,12 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   toggleStudentInMatrix(studentId: string, session: ScheduleSession, studentName = ''): void {
     if (this.isSessionLocked(session)) {
       this.notify.warning(
-        `Buổi ngày ${new Date(session.scheduledDate).toLocaleDateString('vi-VN')} đã chốt sổ hoặc chưa tới ngày. Bấm "🔓 Bật Điểm Danh Linh Hoạt" ở thẻ môn học nếu cần chỉnh sửa.`,
-        '🔒 Buổi học đã bị khóa',
+        this.readOnly
+          ? 'Bạn đang ở chế độ xem. Chỉ giảng viên của lớp điểm danh, trong giờ học.'
+          : session.status === 'future'
+            ? 'Buổi học này chưa diễn ra.'
+            : `Buổi ngày ${new Date(session.scheduledDate).toLocaleDateString('vi-VN')} đã được chốt, không sửa được nữa.`,
+        '🔒 Không thể điểm danh',
       );
       return;
     }
