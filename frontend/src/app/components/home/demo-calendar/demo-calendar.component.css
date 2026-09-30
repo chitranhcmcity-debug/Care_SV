@@ -83,48 +83,70 @@
 .dc-page.is-turning .dc-corner {
   opacity: 0;
 }
-/* The folded flap: a square anchored at the corner whose top-left half is painted, so its
-   shadow follows the triangle. Shading darkens toward the crease like curled paper. */
+/* The curl: a narrow roll of paper riding along the fold line. The wrapper casts the shadow,
+   its layers are cut to the roll so they never spill past the fold. */
 .dc-back {
   display: none;
 }
 .dc-page.is-turning .dc-back {
   display: block;
-  inset: auto 0 0 auto;
+  inset: 0;
   z-index: 4;
-  width: 64px;
-  height: 64px;
   transform: none;
   border-radius: 0;
   box-shadow: none;
-  border-top-left-radius: 38%;
-  background: linear-gradient(
-    315deg,
-    transparent 50%,
-    #cbbdf2 50%,
-    #e4dafc 56%,
-    #f6f2ff 74%,
-    #ffffff 100%
-  );
-  filter: drop-shadow(-10px -8px 14px rgb(76 29 149 / 0.28));
-  animation:
-    dc-peel-flap 1.9s cubic-bezier(0.5, 0.05, 0.3, 1) forwards,
-    dc-flap-fade 1.9s linear forwards;
+  background: none;
+  opacity: 1;
+  filter: drop-shadow(-6px -6px 10px rgb(76 29 149 / 0.25));
+  animation: dc-flap-fade 1.9s linear forwards;
 }
-@keyframes dc-peel-flap {
+.dc-page.is-turning .dc-back::before,
+.dc-page.is-turning .dc-back::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  animation-duration: 1.9s;
+  animation-timing-function: cubic-bezier(0.5, 0.05, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+/* The roll itself: back of the paper, lighter toward its outer edge. */
+.dc-page.is-turning .dc-back::before {
+  background: linear-gradient(315deg, #d9cdf8, #f3eeff 45%, #ffffff);
+  animation-name: dc-roll;
+}
+/* A thin crease right at the fold. */
+.dc-page.is-turning .dc-back::after {
+  background: #c6b6f0;
+  animation-name: dc-crease;
+}
+@keyframes dc-roll {
+  from {
+    clip-path: polygon(100% calc(100% - 64px), 100% calc(100% - 100px), calc(100% - 100px) 100%, calc(100% - 64px) 100%);
+  }
   to {
-    width: 1900px;
-    height: 1900px;
+    clip-path: polygon(100% calc(100% - 1900px), 100% calc(100% - 1990px), calc(100% - 1990px) 100%, calc(100% - 1900px) 100%);
+  }
+}
+@keyframes dc-crease {
+  from {
+    clip-path: polygon(100% calc(100% - 64px), 100% calc(100% - 67px), calc(100% - 67px) 100%, calc(100% - 64px) 100%);
+  }
+  to {
+    clip-path: polygon(100% calc(100% - 1900px), 100% calc(100% - 1904px), calc(100% - 1904px) 100%, calc(100% - 1900px) 100%);
   }
 }
 @keyframes dc-flap-fade {
   0%,
-  78% {
+  80% {
     opacity: 1;
   }
   100% {
     opacity: 0;
   }
+}
+/* Keep the whole turn inside the calendar frame. */
+.dc-page.is-turning {
+  clip-path: inset(0 round 24px);
 }
 /* The sheet underneath starts in the shadow of the one being lifted and brightens slowly. */
 .dc-page.is-next .dc-front::after {
@@ -144,6 +166,8 @@
 @media (prefers-reduced-motion: reduce) {
   .dc-page.is-turning .dc-front,
   .dc-page.is-turning .dc-back,
+  .dc-page.is-turning .dc-back::before,
+  .dc-page.is-turning .dc-back::after,
   .dc-page.is-next .dc-front::after {
     animation: none;
   }
