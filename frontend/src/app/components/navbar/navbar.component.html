@@ -110,7 +110,7 @@
         type="button"
         (click)="toggleNotifications()"
         [attr.aria-expanded]="notificationsOpen"
-        class="relative w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white flex items-center justify-center transition-colors"
+        class="hdr-bell relative w-11 h-11 rounded-2xl flex items-center justify-center transition-colors"
         title="Thông báo"
         aria-label="Thông báo"
       >
@@ -129,7 +129,7 @@
         </svg>
         <span
           *ngIf="unseenCount > 0"
-          class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-xs font-semibold flex items-center justify-center ring-2 ring-white"
+          class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-gradient-to-br from-rose-500 to-red-600 text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white shadow-[0_4px_10px_-3px_rgb(225_29_72/0.7)]"
         >
           {{ unseenCount > 99 ? '99+' : unseenCount }}
         </span>
@@ -197,23 +197,30 @@
         (click)="profileMenuOpen = !profileMenuOpen; notificationsOpen = false"
         [attr.aria-expanded]="profileMenuOpen"
         aria-label="Tài khoản"
-        class="group flex items-center gap-2 h-12 pl-1.5 pr-3 rounded-full bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white transition-colors"
+        class="hdr-profile group flex items-center gap-3 h-12 pl-1.5 pr-3 rounded-2xl transition-colors"
       >
         <span
-          class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 text-white flex items-center justify-center text-sm font-bold"
+          class="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white flex items-center justify-center text-sm font-bold ring-2 ring-white shadow-[0_6px_14px_-6px_rgb(124_58_237/0.8)]"
           >{{ userInitial }}</span
         >
+        <span class="hidden sm:block text-left leading-tight min-w-0">
+          <span class="block max-w-[180px] truncate text-sm font-bold text-slate-900">{{
+            user?.fullName
+          }}</span>
+          <span class="block max-w-[180px] truncate text-xs text-slate-500">{{ roleLabel }}</span>
+        </span>
         <svg
-          class="w-5 h-5"
+          class="w-4 h-4 text-slate-500 transition-transform"
+          [class.rotate-180]="profileMenuOpen"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.8"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="3" />
-          <path
-            d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
-          />
+          <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
 

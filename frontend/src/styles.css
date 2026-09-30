@@ -668,3 +668,26 @@ a:focus-visible {
     font-size: 16px !important;
   }
 }
+
+/* Header: bell and profile chip */
+.hdr-bell {
+  border: 1.5px solid #ece7fb;
+  background: #fff;
+  color: #6d28d9;
+  box-shadow: 0 6px 16px -12px rgb(76 29 149 / 0.45);
+}
+.hdr-bell:hover,
+.hdr-bell[aria-expanded='true'] {
+  border-color: #ddd6fe;
+  background: #faf5ff;
+}
+.hdr-profile {
+  border: 1.5px solid transparent;
+  background: transparent;
+}
+.hdr-profile:hover,
+.hdr-profile[aria-expanded='true'] {
+  border-color: #ece7fb;
+  background: #fff;
+  box-shadow: 0 6px 16px -12px rgb(76 29 149 / 0.45);
+}
