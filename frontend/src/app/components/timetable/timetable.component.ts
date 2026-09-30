@@ -56,25 +56,83 @@ export class TimetableComponent implements OnInit {
     this.selected.set(null);
   }
 
-  /** Dates of the current Monday–Sunday week, shown under each weekday. */
-  readonly weekDates = (() => {
-    const monday = new Date();
-    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
-    return WEEK.map((_, i) => new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i));
-  })();
+  /** Monday of the week being viewed. */
+  readonly weekStart = signal(this.mondayOf(new Date()));
+  readonly groupFilter = signal('');
+  readonly view = signal<'week' | 'list'>('week');
 
-  private readonly visible = computed(() =>
-    this.onlyMine() ? this.entries().filter((e) => e.isMine) : this.entries(),
+  readonly weekDates = computed(() => {
+    const m = this.weekStart();
+    return WEEK.map((_, i) => new Date(m.getFullYear(), m.getMonth(), m.getDate() + i));
+  });
+  readonly isThisWeek = computed(
+    () => this.weekStart().getTime() === this.mondayOf(new Date()).getTime(),
   );
+
+  /** Group codes for the class filter. */
+  readonly groupCodes = computed(() =>
+    [...new Set(this.entries().map((e) => e.groupCode))].sort((a, b) => a.localeCompare(b)),
+  );
+
+  shiftWeek(delta: number) {
+    const m = this.weekStart();
+    this.weekStart.set(new Date(m.getFullYear(), m.getMonth(), m.getDate() + delta * 7));
+  }
+
+  thisWeek() {
+    this.weekStart.set(this.mondayOf(new Date()));
+  }
+
+  private mondayOf(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  }
+
+  private dayKey(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  /** Every class meeting in the viewed week (respecting course start/end dates and filters). */
+  readonly occurrences = computed(() => {
+    const code = this.groupFilter();
+    const list = this.entries().filter(
+      (e) => (!this.onlyMine() || e.isMine) && (!code || e.groupCode === code),
+    );
+    const dates = this.weekDates();
+    const out: { entry: TimetableEntry; day: string; date: Date }[] = [];
+    for (const e of list) {
+      const from = e.startDate ? this.dayKey(new Date(e.startDate)) : '';
+      const to = e.endDate ? this.dayKey(new Date(e.endDate)) : '';
+      for (const day of e.scheduleDays ?? []) {
+        const i = WEEK.indexOf(day);
+        if (i < 0) continue;
+        const key = this.dayKey(dates[i]);
+        if ((from && key < from) || (to && key > to)) continue;
+        out.push({ entry: e, day, date: dates[i] });
+      }
+    }
+    return out.sort(
+      (a, b) =>
+        a.date.getTime() - b.date.getTime() ||
+        this.slotOrder(a.entry).localeCompare(this.slotOrder(b.entry)),
+    );
+  });
+
+  private slotOrder(e: TimetableEntry): string {
+    return e.startTime || `~${SHIFT_ORDER[e.shift ?? ''] ?? 9}`;
+  }
 
   /** Distinct time slots (rows of the grid), ordered by start time then shift. */
   readonly slots = computed<Slot[]>(() => {
     const map = new Map<string, Slot & { order: string }>();
-    for (const e of this.visible()) {
+    for (const { entry: e } of this.occurrences()) {
       const key = this.slotKey(e);
-      if (map.has(key)) continue;
-      const order = e.startTime || `~${SHIFT_ORDER[e.shift ?? ''] ?? 9}`;
-      map.set(key, { key, start: e.startTime || '', end: e.endTime || '', order });
+      if (!map.has(key))
+        map.set(key, {
+          key,
+          start: e.startTime || '',
+          end: e.endTime || '',
+          order: this.slotOrder(e),
+        });
     }
     return [...map.values()].sort((a, b) => a.order.localeCompare(b.order));
   });
@@ -85,12 +143,10 @@ export class TimetableComponent implements OnInit {
       WEEK.map((d) => [d, {}]),
     );
     const counts: Record<string, number> = Object.fromEntries(WEEK.map((d) => [d, 0]));
-    for (const e of this.visible())
-      for (const day of e.scheduleDays ?? []) {
-        if (!days[day]) continue;
-        (days[day][this.slotKey(e)] ??= []).push(e);
-        counts[day]++;
-      }
+    for (const { entry, day } of this.occurrences()) {
+      (days[day][this.slotKey(entry)] ??= []).push(entry);
+      counts[day]++;
+    }
     return { days, counts };
   });
 
