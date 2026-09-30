@@ -1,7 +1,12 @@
 <div class="care-page">
-  <div class="care-layout" [class.has-detail]="selected()">
+  <div
+    class="care-layout"
+    [class.has-detail]="selected()"
+    [class.list-collapsed]="selected() && listCollapsed()"
+  >
     <app-care-list
       [class.care-list-hidden]="selected()"
+      [class.care-list-collapsed]="selected() && listCollapsed()"
       [items]="visible()"
       [tabs]="listTabs()"
       [activeTab]="tab()"
@@ -15,6 +20,17 @@
       (selectCase)="select($event)"
       (createCase)="openNew()"
     />
+    <button
+      *ngIf="selected()"
+      type="button"
+      class="care-list-toggle"
+      (click)="listCollapsed.set(!listCollapsed())"
+      [attr.aria-expanded]="!listCollapsed()"
+      [attr.aria-label]="listCollapsed() ? 'Hiện danh sách hồ sơ' : 'Thu gọn danh sách hồ sơ'"
+      [title]="listCollapsed() ? 'Hiện danh sách hồ sơ' : 'Thu gọn danh sách hồ sơ'"
+    >
+      <app-care-icon name="arrow" />
+    </button>
     <div *ngIf="detailLoading() && !selected()" class="care-empty" role="status">
       Đang mở hồ sơ...
     </div>

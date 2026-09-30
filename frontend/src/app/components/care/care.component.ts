@@ -95,6 +95,7 @@ export class CareComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
 
   readonly selected = signal<CareCase | null>(null);
+  readonly listCollapsed = signal(false);
   readonly detailLoading = signal(false);
   readonly busy = signal(false);
 

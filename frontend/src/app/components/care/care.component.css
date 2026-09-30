@@ -459,6 +459,57 @@
     grid-template-columns: 330px minmax(0, 1fr);
   }
 }
+/* Edge handle that folds the case list so the detail spans the full width. */
+.care-layout {
+  position: relative;
+  --care-list-w: 300px;
+}
+.care-list-toggle {
+  display: none;
+}
+@media (min-width: 1200px) {
+  .care-list-toggle {
+    position: absolute;
+    z-index: 3;
+    top: 104px;
+    left: calc(var(--care-list-w) - 5px);
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid #e4d9fa;
+    border-radius: 12px;
+    background: #fff;
+    color: #7c3aed;
+    box-shadow: 0 4px 12px -6px #7c3aed55;
+  }
+  .care-list-toggle:hover {
+    background: #f5efff;
+  }
+  .care-list-toggle app-care-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.2s ease;
+  }
+  .care-layout.has-detail.list-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .care-layout.list-collapsed .care-list-toggle {
+    left: -14px;
+  }
+  .care-layout.list-collapsed .care-list-toggle app-care-icon {
+    transform: rotate(180deg);
+  }
+  .care-list-collapsed {
+    display: none;
+  }
+}
+@media (min-width: 1700px) {
+  .care-layout {
+    --care-list-w: 330px;
+  }
+}
 @container (max-width: 760px) {
   .care-process-grid {
     grid-template-columns: minmax(0, 1fr);
