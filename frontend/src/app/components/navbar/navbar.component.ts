@@ -100,6 +100,14 @@ const NAV_ITEMS: NavItem[] = [
 /** Sidebar entries that host the dashboard sections. */
 const DASHBOARD_PATHS = ['/admin', '/management'];
 
+/** Non-admin sidebar groups (pages by path, dashboard sections by tab id). */
+const OVERVIEW_TABS: AdminTab[] = ['analytics'];
+const WORK_PATHS = ['/care', '/tasks', '/students', '/attendance', '/calls', '/timetable'];
+const TEAM_TABS: AdminTab[] = ['tasks', 'classes'];
+const TEAM_PATHS = ['/account-approvals'];
+const SETUP_TABS: AdminTab[] = ['courses', 'warnings', 'excel'];
+const SETUP_PATHS = ['/billing'];
+
 /** Lowercase and strip Vietnamese diacritics so "diem danh" matches "Điểm danh". */
 const normalize = (text: string) =>
   text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase().trim();
@@ -293,17 +301,48 @@ export class NavbarComponent implements OnInit, OnDestroy {
               queryParams: { tab: tab.id },
             }))
         : [];
-    const sections: NavSection[] = auth.isAdmin()
-      ? [
-          { title: 'Quản trị hệ thống', links: tabLinks('/admin', ADMIN_SYSTEM_TABS) },
-          { title: 'Nghiệp vụ', links: work },
-          { title: 'Cấu hình', links: [...tabLinks('/admin', ADMIN_CONFIG_TABS), ...billing] },
-        ]
-      : [
-          { title: 'Công việc', links: [...work, ...billing] },
-          { title: 'Quản lý & báo cáo', links: tabLinks('/management') },
-        ];
-    return sections.filter((section) => section.links.length);
+    if (auth.isAdmin()) {
+      return [
+        { title: 'Quản trị hệ thống', links: tabLinks('/admin', ADMIN_SYSTEM_TABS) },
+        { title: 'Nghiệp vụ', links: work },
+        { title: 'Cấu hình', links: [...tabLinks('/admin', ADMIN_CONFIG_TABS), ...billing] },
+      ].filter((section) => section.links.length);
+    }
+
+    // Other roles: overview first, then daily work, then running the team, then setup.
+    const byPath = (paths: string[]) =>
+      paths.flatMap((p) => pages.filter((item) => item.path === p));
+    const home = auth.homePath();
+    const daily = [
+      ...byPath(WORK_PATHS),
+      ...pages.filter(
+        (item) => ![...WORK_PATHS, ...TEAM_PATHS, ...SETUP_PATHS].includes(item.path),
+      ),
+    ];
+    // The role's landing page leads its group, so it is also the first mobile tab.
+    daily.sort((a, b) => Number(b.path === home) - Number(a.path === home));
+    const listedTabs: AdminTab[] = [...OVERVIEW_TABS, ...TEAM_TABS, ...SETUP_TABS];
+    const overview: NavSection = {
+      title: 'Tổng quan',
+      links: tabLinks('/management', OVERVIEW_TABS),
+    };
+    const workSection: NavSection = { title: 'Công việc', links: daily };
+    // Whichever group holds the landing page comes first (it also leads the mobile tab bar).
+    return [
+      ...(home === '/management' ? [overview, workSection] : [workSection, overview]),
+      {
+        title: 'Điều hành',
+        links: [...tabLinks('/management', TEAM_TABS), ...byPath(TEAM_PATHS)],
+      },
+      {
+        title: 'Cấu hình',
+        links: [
+          ...tabLinks('/management', SETUP_TABS),
+          ...tabLinks('/management').filter((l) => !listedTabs.includes(l.queryParams!.tab)),
+          ...byPath(SETUP_PATHS),
+        ],
+      },
+    ].filter((section) => section.links.length);
   }
 
   /** Mobile bottom tab bar: the role's first link (its home), then pages, then dashboard
