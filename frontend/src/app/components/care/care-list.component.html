@@ -36,6 +36,7 @@
   </div>
   <div *ngIf="loading()" class="care-empty" role="status">Đang tải hồ sơ...</div>
   <div *ngIf="!loading() && !items().length" class="care-empty">Không có hồ sơ nào ở mục này.</div>
+  <div *ngIf="!loading() && items().length" class="care-items">
   <button
     *ngFor="let c of items()"
     type="button"
@@ -82,4 +83,5 @@
       ></span>
     </span>
   </button>
+  </div>
 </aside>
