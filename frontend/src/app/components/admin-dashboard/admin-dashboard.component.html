@@ -559,132 +559,186 @@
 
   <!-- COMPONENT 3B: TASK ASSIGNMENT (GIAO VIỆC) -->
   <div *ngIf="activeTab === 'tasks'" class="space-y-6">
-    <!-- Create Task Form -->
-    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
-      <h3 class="text-base font-bold text-slate-900 uppercase tracking-tight">
-        ➕ Giao Nhiệm Vụ Mới
-      </h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tiêu Đề</label>
-          <input
-            type="text"
-            [(ngModel)]="taskForm.title"
-            placeholder="VD: Soạn công văn triển khai kế hoạch tuyển sinh"
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-          />
-        </div>
-        <div class="md:col-span-2">
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-            Mô Tả Nhiệm Vụ Cụ Thể
-          </label>
-          <textarea
-            [(ngModel)]="taskForm.description"
-            rows="3"
-            placeholder="Mô tả chi tiết công việc cần thực hiện..."
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-          ></textarea>
-        </div>
+    <!-- Task toolbar: new tasks are assigned in a popup -->
+    <div class="tk-bar">
+      <div class="tk-bar-copy">
+        <span class="tk-bar-icon" aria-hidden="true">📋</span>
         <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-            Giao Cho Nhân Viên
-          </label>
-          <select
-            [(ngModel)]="taskForm.assignedTo"
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+          <h3>Giao việc & tiến độ nhân viên</h3>
+          <p>Theo dõi tiến độ, đánh giá kết quả và giao việc mới cho nhân viên.</p>
+        </div>
+      </div>
+      <button type="button" class="tk-btn-primary" (click)="openTaskModal()">
+        <span aria-hidden="true">＋</span> Giao việc mới
+      </button>
+    </div>
+
+    <!-- Progress & evaluation of every staff member -->
+    <app-staff-progress></app-staff-progress>
+
+    <h3 class="tk-list-title">Danh sách nhiệm vụ</h3>
+
+    <!-- New task popup -->
+    <div *ngIf="showTaskModal" class="tk-overlay" (click)="closeTaskModal()">
+      <div
+        class="tk-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tk-modal-title"
+        (click)="$event.stopPropagation()"
+        (keydown.escape)="closeTaskModal()"
+      >
+        <header class="tk-modal-head">
+          <span class="tk-modal-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2zM9 14l2 2 4-4" /></svg>
+          </span>
+          <div>
+            <h3 id="tk-modal-title">Giao nhiệm vụ mới</h3>
+            <p>Tạo và giao nhiệm vụ cho nhân viên chăm sóc sinh viên.</p>
+          </div>
+          <div class="tk-modal-art" aria-hidden="true">
+            <span class="tk-art-sheet"><i></i><i></i><i></i></span>
+            <span class="tk-art-check">✓</span>
+            <span class="tk-art-spark s1">✦</span>
+            <span class="tk-art-spark s2">✦</span>
+          </div>
+          <button
+            type="button"
+            class="tk-close"
+            (click)="closeTaskModal()"
+            aria-label="Đóng"
+            [disabled]="isCreatingTask"
           >
-            <option value="">-- Chọn nhân viên CSKH --</option>
-            <option *ngFor="let s of staffOnlyList" [value]="s._id || s.id">
-              {{ s.fullName }} ({{ s.email }})
-            </option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-            Hạn Chót (không bắt buộc)
+            ✕
+          </button>
+        </header>
+
+        <div class="tk-form">
+          <label class="tk-field">
+            <span>Tiêu đề nhiệm vụ <b>*</b></span>
+            <span class="tk-control">
+              <span class="tk-adorn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M9 13h6M9 17h4" /></svg></span>
+              <input
+                type="text"
+                [(ngModel)]="taskForm.title"
+                placeholder="Nhập tiêu đề nhiệm vụ..."
+              />
+            </span>
           </label>
-          <input
-            type="date"
-            [(ngModel)]="taskForm.dueDate"
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-          />
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-            Loại Công Việc
+          <label class="tk-field">
+            <span>Loại công việc <b>*</b></span>
+            <span class="tk-control">
+              <span class="tk-adorn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 13h16" /></svg></span>
+              <select [(ngModel)]="taskForm.category">
+                <option *ngFor="let c of taskCategories" [value]="c">{{ c | viLabel }}</option>
+              </select>
+            </span>
           </label>
-          <select
-            [(ngModel)]="taskForm.category"
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+          <label class="tk-field tk-full">
+            <span>Mô tả cụ thể <b>*</b></span>
+            <span class="tk-control is-area">
+              <span class="tk-adorn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-5 4v-4H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM9 10h.01M12 10h.01M15 10h.01" /></svg></span>
+              <textarea
+                [(ngModel)]="taskForm.description"
+                rows="3"
+                placeholder="Mô tả chi tiết công việc cần thực hiện, yêu cầu, nội dung, lưu ý..."
+              ></textarea>
+            </span>
+          </label>
+          <label class="tk-field">
+            <span>Giao cho nhân viên <b>*</b></span>
+            <span class="tk-control">
+              <span class="tk-adorn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20a7 7 0 0 1 14 0" /></svg></span>
+              <select [(ngModel)]="taskForm.assignedTo">
+                <option value="">-- Chọn nhân viên chăm sóc --</option>
+                <option *ngFor="let s of staffOnlyList" [value]="s._id || s.id">
+                  {{ s.fullName }} ({{ s.email }})
+                </option>
+              </select>
+            </span>
+          </label>
+          <label class="tk-field">
+            <span>Hạn chót <small>(không bắt buộc)</small></span>
+            <span class="tk-control">
+              <span class="tk-adorn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM16 3v4M8 3v4M4 10h16" /></svg></span>
+              <input type="date" [(ngModel)]="taskForm.dueDate" />
+            </span>
+          </label>
+          <label class="tk-field">
+            <span>Mức độ ưu tiên</span>
+            <span class="tk-control">
+              <span class="tk-adorn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M10 20V9M15 20v-9M20 20V4" /></svg></span>
+              <select [(ngModel)]="taskForm.priority">
+                <option *ngFor="let p of taskPriorities" [value]="p">{{ p | viLabel }}</option>
+              </select>
+            </span>
+          </label>
+          <!-- "Chăm sóc sinh viên" for one student becomes that student's care case -->
+          <div
+            *ngIf="taskForm.category === 'cham_soc_sv' && canDirectCare"
+            class="tk-full tk-care"
           >
-            <option *ngFor="let c of taskCategories" [value]="c">{{ c | viLabel }}</option>
-          </select>
-        </div>
-        <!-- "Chăm sóc sinh viên" for one student becomes that student's care case -->
-        <div
-          *ngIf="taskForm.category === 'cham_soc_sv' && canDirectCare"
-          class="md:col-span-2 p-4 rounded-xl bg-violet-50 border border-violet-200 space-y-2"
-        >
-          <label class="block text-xs font-bold text-violet-800 uppercase">
-            Chăm sóc một sinh viên cụ thể (không bắt buộc)
-          </label>
-          <div class="relative">
-            <input
-              type="text"
-              [(ngModel)]="careStudentQuery"
-              (input)="findCareStudents()"
-              placeholder="Tìm theo MSSV hoặc tên để mở hồ sơ chăm sóc cho sinh viên đó..."
-              class="w-full px-4 py-2.5 rounded-xl border border-violet-200 text-sm bg-white"
-            />
-            <div
-              *ngIf="careStudentResults.length"
-              class="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
-            >
-              <button
-                *ngFor="let st of careStudentResults"
-                type="button"
-                (click)="pickCareStudent(st)"
-                class="w-full text-left px-3 py-2 text-sm hover:bg-violet-50"
+            <label class="block text-xs font-bold text-violet-800 uppercase">
+              Chăm sóc một sinh viên cụ thể (không bắt buộc)
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="careStudentQuery"
+                (input)="findCareStudents()"
+                placeholder="Tìm theo MSSV hoặc tên để mở hồ sơ chăm sóc cho sinh viên đó..."
+                class="w-full px-4 py-2.5 rounded-xl border border-violet-200 text-sm bg-white"
+              />
+              <div
+                *ngIf="careStudentResults.length"
+                class="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
               >
-                <b>{{ st.studentCode }}</b> · {{ st.fullName }} · {{ st.classCode }}
+                <button
+                  *ngFor="let st of careStudentResults"
+                  type="button"
+                  (click)="pickCareStudent(st)"
+                  class="w-full text-left px-3 py-2 text-sm hover:bg-violet-50"
+                >
+                  <b>{{ st.studentCode }}</b> · {{ st.fullName }} · {{ st.classCode }}
+                </button>
+              </div>
+            </div>
+            <div *ngIf="careStudent" class="flex items-center justify-between gap-2 text-sm">
+              <span
+                >Sẽ mở <b>hồ sơ chăm sóc</b> cho <b>{{ careStudent.fullName }}</b> ({{
+                  careStudent.studentCode
+                }}) và chỉ đạo nhân viên được chọn — mô tả trở thành nội dung chỉ đạo.</span
+              >
+              <button
+                type="button"
+                (click)="careStudent = null; careStudentQuery = ''"
+                class="text-xs font-bold text-rose-600 shrink-0"
+              >
+                Bỏ chọn
               </button>
             </div>
           </div>
-          <div *ngIf="careStudent" class="flex items-center justify-between gap-2 text-sm">
-            <span
-              >Sẽ mở <b>hồ sơ chăm sóc</b> cho <b>{{ careStudent.fullName }}</b> ({{
-                careStudent.studentCode
-              }}) và chỉ đạo nhân viên được chọn — mô tả trở thành nội dung chỉ đạo.</span
-            >
-            <button
-              type="button"
-              (click)="careStudent = null; careStudentQuery = ''"
-              class="text-xs font-bold text-rose-600 shrink-0"
-            >
-              Bỏ chọn
-            </button>
-          </div>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
-            Mức Độ Ưu Tiên
-          </label>
-          <select
-            [(ngModel)]="taskForm.priority"
-            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+
+        <footer class="tk-modal-foot">
+          <button
+            type="button"
+            class="tk-btn-ghost"
+            (click)="closeTaskModal()"
+            [disabled]="isCreatingTask"
           >
-            <option *ngFor="let p of taskPriorities" [value]="p">{{ p | viLabel }}</option>
-          </select>
-        </div>
-      </div>
-      <div class="flex justify-end">
-        <button
-          (click)="createTask()"
-          [disabled]="isCreatingTask"
-          class="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-sm transition-all shadow-sm"
-        >
-          {{ isCreatingTask ? 'Đang giao việc...' : '📤 GIAO NHIỆM VỤ' }}
-        </button>
+            Hủy bỏ
+          </button>
+          <button
+            type="button"
+            class="tk-btn-primary"
+            (click)="createTask()"
+            [disabled]="isCreatingTask"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z" /></svg>
+            {{ isCreatingTask ? 'Đang giao việc...' : 'Giao nhiệm vụ' }}
+          </button>
+        </footer>
       </div>
     </div>
 
@@ -2233,7 +2287,6 @@
   <app-warning-config *ngIf="activeTab === 'warnings'"></app-warning-config>
 
   <!-- MANAGER: STAFF PROGRESS & KPI -->
-  <app-staff-progress *ngIf="activeTab === 'progress'"></app-staff-progress>
 
   <!-- MODAL: AI STAFF PERFORMANCE ASSESSMENT -->
   <app-staff-ai-modal

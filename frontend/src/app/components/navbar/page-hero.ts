@@ -105,7 +105,7 @@ const HEROES: Record<string, PageHero> = {
     tipText: 'khi nhân sự nghỉ việc.',
   },
   tasks: {
-    subtitle: 'Giao việc cho nhân viên và theo dõi kết quả thực hiện.',
+    subtitle: 'Theo dõi tiến độ, đánh giá nhân viên và giao việc mới.',
     tone: 'sunset',
     mascot: 'right',
     tipTitle: 'Đặt hạn rõ ràng',

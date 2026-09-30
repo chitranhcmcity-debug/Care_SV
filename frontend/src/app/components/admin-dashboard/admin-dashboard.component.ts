@@ -175,6 +175,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly taskPriorities = TASK_PRIORITIES;
   isCreatingTask = false;
   showTaskReviewModal = false;
+  /** "Giao việc mới" popup. */
+  showTaskModal = false;
   reviewingTask: WorkTask | null = null;
   reviewNoteInput = '';
   /** Quality score (1–5) given when approving; null = not scored. */
@@ -235,7 +237,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (this.hasTab('courses') || this.hasTab('excel')) this.loadCourseGroups();
     // The sidebar selects the tab through ?tab=; a missing or unknown tab falls back to the first.
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const requested = params.get('tab') as AdminTab | null;
+      const tab = params.get('tab');
+      // Staff progress was merged into the tasks tab; old links still land there.
+      const requested = (tab === 'progress' ? 'tasks' : tab) as AdminTab | null;
       if (requested && this.hasTab(requested)) {
         if (requested !== this.activeTab || !this.tabOpened) this.switchTab(requested);
         this.tabOpened = true;
@@ -337,6 +341,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.careStudentQuery = `${student.studentCode} · ${student.fullName}`;
   }
 
+  openTaskModal() {
+    this.showTaskModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeTaskModal() {
+    if (this.isCreatingTask) return;
+    this.showTaskModal = false;
+    this.careStudentResults = [];
+    this.cdr.detectChanges();
+  }
+
   private createCareFromTask() {
     const student = this.careStudent!;
     this.isCreatingTask = true;
@@ -363,6 +379,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             `Đã chỉ đạo chăm sóc ${student.fullName}.`,
           );
           this.taskForm = emptyTaskForm();
+          this.showTaskModal = false;
           this.careStudent = null;
           this.careStudentQuery = '';
           this.router.navigate(['/care'], { queryParams: { case: c._id } });
@@ -414,6 +431,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.triggerToast('success', 'Đã Giao Việc!', res.message);
           this.taskForm = emptyTaskForm();
+          this.showTaskModal = false;
           this.loadTasks();
         },
         error: (err) =>
