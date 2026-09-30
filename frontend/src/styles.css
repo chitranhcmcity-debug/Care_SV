@@ -463,12 +463,36 @@ a:focus-visible {
 
 /* Page hero (navbar): the page title on a gradient cover, like the student profile. */
 .page-hero {
+  --hero-bg: linear-gradient(105deg, rgb(var(--brand-600)) 0%, #9333ea 35%, #c026d3 65%, #ec4899 92%);
+  --hero-accent: #7c3aed;
   position: relative;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 24px;
   color: #fff;
-  background: var(--hero-gradient);
-  box-shadow: 0 18px 36px -22px rgb(192 38 211 / 0.8);
+  background: var(--hero-bg);
+  box-shadow: 0 24px 48px -28px color-mix(in srgb, var(--hero-accent) 85%, transparent);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.page-hero--blue {
+  --hero-bg: linear-gradient(105deg, #1d4ed8 0%, #4f46e5 40%, #7c3aed 75%, #c026d3 105%);
+  --hero-accent: #4f46e5;
+}
+.page-hero--indigo {
+  --hero-bg: linear-gradient(105deg, #4338ca 0%, #6d28d9 40%, #a21caf 75%, #db2777 105%);
+  --hero-accent: #6d28d9;
+}
+.page-hero--teal {
+  --hero-bg: linear-gradient(105deg, #0f766e 0%, #0891b2 38%, #6366f1 75%, #a855f7 105%);
+  --hero-accent: #0891b2;
+}
+.page-hero--sunset {
+  --hero-bg: linear-gradient(105deg, #7c3aed 0%, #c026d3 38%, #ec4899 70%, #f59e0b 105%);
+  --hero-accent: #db2777;
+}
+.page-hero--rose {
+  --hero-bg: linear-gradient(105deg, #9333ea 0%, #db2777 45%, #f43f5e 80%, #fb923c 110%);
+  --hero-accent: #e11d48;
 }
 .page-hero svg.page-hero-art {
   position: absolute;
@@ -476,6 +500,71 @@ a:focus-visible {
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+.page-hero-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 0.2);
+  border: 1px solid rgb(255 255 255 / 0.35);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4);
+}
+.page-hero-tile {
+  position: absolute;
+  left: 0;
+  top: 18px;
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--hero-accent);
+  background: linear-gradient(160deg, #fff, #ede9fe);
+  box-shadow: 0 16px 28px -14px rgb(30 27 75 / 0.6);
+  transform: rotate(-8deg);
+}
+.page-hero-mascot {
+  position: absolute;
+  right: 0;
+  top: -12px;
+  width: 150px;
+  height: auto;
+  filter: drop-shadow(0 14px 18px rgb(30 23 102 / 0.4));
+  animation: page-hero-float 6s ease-in-out infinite;
+}
+.page-hero-deco--flip .page-hero-tile {
+  left: auto;
+  right: 0;
+  transform: rotate(8deg);
+}
+.page-hero-deco--flip .page-hero-mascot {
+  right: auto;
+  left: 0;
+}
+@keyframes page-hero-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-hero-mascot {
+    animation: none;
+  }
+}
+.page-hero-tip {
+  min-width: 190px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 0.95);
+  color: color-mix(in srgb, var(--hero-accent) 85%, #1e1b4b);
+  box-shadow: 0 14px 28px -16px rgb(30 27 75 / 0.6);
+  letter-spacing: 0;
 }
 
 /* ===================== Pop-ups (every page) =====================

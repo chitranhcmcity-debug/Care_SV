@@ -14,6 +14,7 @@ import {
   AdminTab,
   visibleDashboardTabs,
 } from '../admin-dashboard/dashboard-tabs';
+import { pageHero } from './page-hero';
 
 interface NavItem {
   path: string;
@@ -125,6 +126,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
   profileMenuOpen = false;
   notificationsOpen = false;
   searchTerm = '';
+  get heroDate(): string {
+    const text = new Date().toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
   get todayLabel(): string {
     return new Date().toLocaleDateString('vi-VN');
   }
@@ -340,6 +350,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.router.parseUrl(this.router.url).queryParams['tab'] ??
       visibleDashboardTabs(this.authService)[0]?.id;
     return tab !== 'overview';
+  }
+
+  /** Icon, texts and theme of the page banner for the current page. */
+  get heroInfo() {
+    const path = this.router.url.split(/[?#]/)[0];
+    const tabId = DASHBOARD_PATHS.includes(path)
+      ? (this.router.parseUrl(this.router.url).queryParams['tab'] ??
+        visibleDashboardTabs(this.authService)[0]?.id)
+      : null;
+    const tab = tabId ? visibleDashboardTabs(this.authService).find((t) => t.id === tabId) : null;
+    const icon = tab?.icon ?? NAV_ITEMS.find((item) => item.path === path)?.icon ?? NAV_ITEMS[0].icon;
+    return { icon, ...pageHero(tab?.id ?? path) };
   }
 
   get pageTitle() {
