@@ -331,9 +331,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  /** The admin overview draws its own welcome banner, so the generic page header is skipped. */
+  /** The admin overview and the timetable draw their own banner, so the generic page header is skipped. */
   get showPageHero(): boolean {
     const path = this.router.url.split(/[?#]/)[0];
+    if (path === '/timetable') return false;
     if (path !== '/admin') return true;
     const tab =
       this.router.parseUrl(this.router.url).queryParams['tab'] ??

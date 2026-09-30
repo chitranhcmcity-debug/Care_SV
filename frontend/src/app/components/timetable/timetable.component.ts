@@ -6,6 +6,7 @@ import { ViLabelPipe } from '../../utils/label.pipe';
 
 const WEEK = ['thu_2', 'thu_3', 'thu_4', 'thu_5', 'thu_6', 'thu_7', 'chu_nhat'];
 const SHIFT_ORDER: Record<string, number> = { sang: 0, chieu: 1, toi: 2 };
+const SHIFT_HOURS: Record<string, [number, number]> = { sang: [7, 11], chieu: [13, 17], toi: [18, 21] };
 const SHIFTS = [
   { key: 'sang', label: 'Ca sáng' },
   { key: 'chieu', label: 'Ca chiều' },
@@ -20,12 +21,6 @@ const COURSE_ICONS = [
   'M5 3h14v18H5zM8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01M8 18h8',
   'M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16',
 ];
-
-interface Slot {
-  key: string;
-  start: string;
-  end: string;
-}
 
 /** Weekly timetable of every course group (read-only, no student data). */
 @Component({
@@ -121,41 +116,93 @@ export class TimetableComponent implements OnInit {
     return e.startTime || `~${SHIFT_ORDER[e.shift ?? ''] ?? 9}`;
   }
 
-  /** Distinct time slots (rows of the grid), ordered by start time then shift. */
-  readonly slots = computed<Slot[]>(() => {
-    const map = new Map<string, Slot & { order: string }>();
-    for (const { entry: e } of this.occurrences()) {
-      const key = this.slotKey(e);
-      if (!map.has(key))
-        map.set(key, {
-          key,
-          start: e.startTime || '',
-          end: e.endTime || '',
-          order: this.slotOrder(e),
+  /** Hour range used when a course group has no explicit start/end time. */
+  private hoursOf(e: TimetableEntry): [number, number] {
+    const toH = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h + (m || 0) / 60;
+    };
+    if (e.startTime) {
+      const s = toH(e.startTime);
+      const end = e.endTime ? toH(e.endTime) : s + 1;
+      return [s, Math.max(end, s + 1)];
+    }
+    return SHIFT_HOURS[e.shift ?? ''] ?? [7, 11];
+  }
+
+  /**
+   * Hour-by-hour week grid: one row per hour, each class block spans the hours it covers,
+   * and every free hour of a day gets an empty placeholder cell.
+   */
+  readonly layout = computed(() => {
+    const occ = this.occurrences();
+    let minH = 7;
+    let maxH = 17;
+    if (occ.length) {
+      minH = 24;
+      maxH = 0;
+      for (const { entry } of occ) {
+        const [s, e] = this.hoursOf(entry);
+        minH = Math.min(minH, Math.floor(s));
+        maxH = Math.max(maxH, Math.ceil(e));
+      }
+    }
+    const hours = Array.from({ length: maxH - minH }, (_, i) => minH + i);
+
+    const blocks = new Map<
+      string,
+      { col: number; rowStart: number; rowEnd: number; day: string; entries: TimetableEntry[] }
+    >();
+    const counts: Record<string, number> = Object.fromEntries(WEEK.map((d) => [d, 0]));
+    const busy: Record<string, Set<number>> = Object.fromEntries(WEEK.map((d) => [d, new Set()]));
+    for (const { entry, day } of occ) {
+      counts[day]++;
+      const key = `${day}|${this.slotKey(entry)}`;
+      const [s, e] = this.hoursOf(entry);
+      const from = Math.floor(s);
+      const to = Math.ceil(e);
+      for (let h = from; h < to; h++) busy[day].add(h);
+      const block = blocks.get(key);
+      if (block) block.entries.push(entry);
+      else
+        blocks.set(key, {
+          col: WEEK.indexOf(day) + 2,
+          rowStart: from - minH + 2,
+          rowEnd: to - minH + 2,
+          day,
+          entries: [entry],
         });
     }
-    return [...map.values()].sort((a, b) => a.order.localeCompare(b.order));
+
+    const empties: { col: number; row: number }[] = [];
+    WEEK.forEach((day, i) => {
+      if (!counts[day]) return;
+      for (const h of hours) if (!busy[day].has(h)) empties.push({ col: i + 2, row: h - minH + 2 });
+    });
+
+    return { hours, blocks: [...blocks.values()], empties, counts };
   });
 
-  /** Course groups per weekday, then per slot. */
-  readonly grid = computed(() => {
-    const days: Record<string, Record<string, TimetableEntry[]>> = Object.fromEntries(
-      WEEK.map((d) => [d, {}]),
-    );
-    const counts: Record<string, number> = Object.fromEntries(WEEK.map((d) => [d, 0]));
-    for (const { entry, day } of this.occurrences()) {
-      (days[day][this.slotKey(entry)] ??= []).push(entry);
-      counts[day]++;
-    }
-    return { days, counts };
+  /** Sessions today, for the banner (ignores the week being browsed and the class filter). */
+  readonly todayCount = computed(() => {
+    const now = new Date();
+    const day = WEEK[(now.getDay() + 6) % 7];
+    const key = this.dayKey(now);
+    return this.entries().filter((e) => {
+      if (this.onlyMine() && !e.isMine) return false;
+      if (!(e.scheduleDays ?? []).includes(day)) return false;
+      if (e.startDate && key < this.dayKey(new Date(e.startDate))) return false;
+      if (e.endDate && key > this.dayKey(new Date(e.endDate))) return false;
+      return true;
+    }).length;
   });
+
+  hourLabel(h: number): string {
+    return `${String(h).padStart(2, '0')}:00`;
+  }
 
   slotKey(e: TimetableEntry): string {
     return e.startTime ? `${e.startTime}-${e.endTime ?? ''}` : `shift:${e.shift ?? ''}`;
-  }
-
-  slotLabel(s: Slot): string {
-    return s.start ? '' : s.key.replace('shift:', '');
   }
 
   /** Stable colour tone per course so the same course looks the same every day. */

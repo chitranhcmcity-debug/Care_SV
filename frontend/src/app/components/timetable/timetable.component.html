@@ -1,13 +1,74 @@
 <div class="mx-4 md:mx-6 my-5 space-y-4">
+  <!-- Page banner (replaces the generic page header on this route) -->
+  <section class="tt-hero relative overflow-hidden text-white hidden md:block">
+    <svg class="tt-hero-art" viewBox="0 0 900 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <circle cx="880" cy="-20" r="110" fill="#fff" fill-opacity="0.1" />
+      <circle cx="30" cy="170" r="80" fill="#fff" fill-opacity="0.08" />
+      <path d="M0 120 C 170 80, 320 150, 480 110 S 760 70, 900 100" stroke="#fff" stroke-opacity="0.2" stroke-width="2" fill="none" />
+      <g fill="#fff" fill-opacity="0.75">
+        <path d="M600 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
+        <path d="M770 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
+        <circle cx="520" cy="40" r="2" />
+        <circle cx="690" cy="20" r="1.6" />
+      </g>
+    </svg>
+
+    <div class="relative flex items-center gap-5 px-6 md:px-7 py-5">
+      <span class="tt-hero-icon shrink-0" aria-hidden="true">
+        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="3" />
+          <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+        </svg>
+      </span>
+      <div class="min-w-0 flex-1">
+        <h1 class="text-2xl md:text-[34px] font-extrabold tracking-tight leading-tight">Thời khóa biểu</h1>
+        <p class="mt-1 text-sm md:text-base text-white/85">
+          Quản lý lịch học theo ngày, theo tuần và lớp học phần.
+        </p>
+      </div>
+
+      <div class="relative hidden lg:block w-[250px] h-[110px] shrink-0" aria-hidden="true">
+        <span class="tt-hero-cal">
+          <svg class="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="3" />
+            <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+          </svg>
+        </span>
+        <img src="robot-ai-right.webp" alt="" width="170" height="140" class="tt-hero-mascot" />
+      </div>
+
+      <div class="tt-today hidden sm:block shrink-0">
+        <p class="text-xs font-medium text-slate-500">Lịch học hôm nay</p>
+        <p class="text-2xl font-extrabold text-violet-700 leading-tight">
+          {{ todayCount() }} buổi học
+        </p>
+        <p class="text-xs text-slate-500">
+          {{ todayCount() ? 'Hãy chuẩn bị thật tốt nhé!' : 'Hôm nay không có lớp.' }}
+        </p>
+      </div>
+    </div>
+  </section>
+
   <section class="tt-bar flex flex-wrap items-center gap-x-3 gap-y-2.5 px-3.5 py-2.5">
     <div class="flex flex-wrap items-center gap-1.5">
       <p class="text-[13px] font-bold text-slate-800 mr-1">Khung giờ học</p>
       <span *ngFor="let s of shifts" class="tt-chip" [ngClass]="'tt-' + s.key">
-        <span class="tt-dot" aria-hidden="true"></span> {{ s.label }}
+        <svg class="tt-chip-ico" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="s.key">
+          <g *ngSwitchCase="'sang'">
+            <circle cx="12" cy="12" r="6" fill="#f59e0b" />
+            <circle cx="12" cy="12" r="4" fill="#fbbf24" />
+          </g>
+          <g *ngSwitchCase="'chieu'">
+            <circle cx="9" cy="9" r="5" fill="#f59e0b" />
+            <path d="M7 19a4 4 0 0 1 0-8 5 5 0 0 1 9.6 1.5A3.3 3.3 0 0 1 17 19z" fill="#bae6fd" />
+          </g>
+          <path *ngSwitchDefault d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5" fill="#facc15" />
+        </svg>
+        {{ s.label }}
       </span>
     </div>
 
-    <div class="flex items-center gap-2 xl:mx-auto">
+    <div class="flex items-center gap-2 xl:ml-6">
       <div class="tt-week">
         <button type="button" class="tt-week-btn" aria-label="Tuần trước" (click)="shiftWeek(-1)">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
@@ -27,7 +88,7 @@
       </button>
     </div>
 
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 xl:ml-auto">
       <label *ngIf="auth.isTeacher()" class="tt-pill tt-pill--check">
         <input
           type="checkbox"
@@ -147,15 +208,15 @@
   <div *ngIf="!loading() && view() === 'week'" class="tt-scroll">
     <section
       class="tt-grid"
-      [style.grid-template-rows]="'auto repeat(' + (slots().length || 1) + ', minmax(96px, auto))'"
+      [style.grid-template-rows]="'auto repeat(' + layout().hours.length + ', minmax(58px, auto))'"
     >
-      <!-- Column backgrounds -->
-      <div class="tt-col tt-col--time" [style.grid-row]="'1 / span ' + ((slots().length || 1) + 1)"></div>
+      <!-- Column cards -->
+      <div class="tt-col tt-col--time" [style.grid-row]="'1 / span ' + (layout().hours.length + 1)"></div>
       <div
         *ngFor="let day of week; let i = index"
         class="tt-col"
         [style.grid-column]="i + 2"
-        [style.grid-row]="'1 / span ' + ((slots().length || 1) + 1)"
+        [style.grid-row]="'1 / span ' + (layout().hours.length + 1)"
       ></div>
 
       <!-- Header row -->
@@ -170,78 +231,95 @@
           <div class="font-extrabold text-slate-900 text-[15px]">{{ day | viLabel }}</div>
           <div class="text-xs font-medium text-slate-500">{{ weekDates()[i] | date: 'dd/MM' }}</div>
         </div>
-        <span class="tt-count" [attr.aria-label]="grid().counts[day] + ' lớp'">
-          {{ grid().counts[day] }}
+        <span class="tt-count" [attr.aria-label]="layout().counts[day] + ' lớp'">
+          {{ layout().counts[day] }}
         </span>
       </div>
 
-      <!-- Time labels -->
+      <!-- Hour labels -->
       <div
-        *ngFor="let s of slots(); let r = index"
+        *ngFor="let h of layout().hours; let r = index"
         class="tt-time"
         style="grid-column: 1"
         [style.grid-row]="r + 2"
       >
-        <ng-container *ngIf="s.start; else shiftOnly">
-          <b>{{ s.start }}</b>
-          <span *ngIf="s.end">{{ s.end }}</span>
-        </ng-container>
-        <ng-template #shiftOnly>
-          <b>Ca {{ slotLabel(s) | viLabel }}</b>
-        </ng-template>
+        <b>{{ hourLabel(h) }}</b>
+        <span>{{ hourLabel(h + 1) }}</span>
       </div>
 
+      <!-- Whole-day empty state -->
       <ng-container *ngFor="let day of week; let i = index">
-        <!-- Whole-day empty state -->
         <div
-          *ngIf="!grid().counts[day]"
+          *ngIf="!layout().counts[day]"
           class="tt-cell"
           [style.grid-column]="i + 2"
-          [style.grid-row]="'2 / span ' + (slots().length || 1)"
+          [style.grid-row]="'2 / span ' + layout().hours.length"
         >
           <div class="tt-empty h-full flex flex-col items-center justify-center text-center px-3 py-6">
             <span class="tt-empty-icon" aria-hidden="true">
-              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="3" />
                 <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
               </svg>
             </span>
-            <p class="mt-3 text-xs font-semibold text-slate-500">
+            <p class="mt-3 text-[13px] font-semibold text-slate-500">
               Không có lớp học<br />trong ngày này
             </p>
           </div>
         </div>
-
-        <ng-container *ngIf="grid().counts[day]">
-          <div
-            *ngFor="let s of slots(); let r = index"
-            class="tt-cell space-y-2"
-            [style.grid-column]="i + 2"
-            [style.grid-row]="r + 2"
-          >
-            <div *ngIf="!grid().days[day][s.key]?.length" class="tt-slot" aria-hidden="true"></div>
-
-            <button
-              *ngFor="let g of grid().days[day][s.key]"
-              type="button"
-              class="tt-card"
-              [attr.data-tone]="tone(g)"
-              [class.is-mine]="g.isMine && !onlyMine()"
-              (click)="open(g, day)"
-            >
-              <span class="tt-icon" aria-hidden="true">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <path [attr.d]="icons[tone(g)]" />
-                </svg>
-              </span>
-              <span class="min-w-0 flex-1">
-                <span class="tt-code">{{ g.groupCode }}</span>
-                <span *ngIf="g.courseName" class="tt-name">{{ g.courseName }}</span>
-              </span>
-            </button>
-          </div>
-        </ng-container>
       </ng-container>
+
+      <!-- Free hours -->
+      <div
+        *ngFor="let e of layout().empties"
+        class="tt-cell"
+        [style.grid-column]="e.col"
+        [style.grid-row]="e.row"
+      >
+        <div class="tt-slot" aria-hidden="true"></div>
+      </div>
+
+      <!-- Class blocks -->
+      <div
+        *ngFor="let b of layout().blocks"
+        class="tt-cell flex flex-col gap-2"
+        [style.grid-column]="b.col"
+        [style.grid-row]="b.rowStart + ' / ' + b.rowEnd"
+      >
+        <button
+          *ngFor="let g of b.entries"
+          type="button"
+          class="tt-card"
+          [attr.data-tone]="tone(g)"
+          [class.is-mine]="g.isMine && !onlyMine()"
+          (click)="open(g, b.day)"
+        >
+          <span class="flex items-start gap-2">
+            <span class="tt-icon" aria-hidden="true">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <path [attr.d]="icons[tone(g)]" />
+              </svg>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="tt-code">{{ g.groupCode }}</span>
+              <span *ngIf="g.courseName" class="tt-name">{{ g.courseName }}</span>
+            </span>
+          </span>
+          <span class="tt-meta">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5" />
+            </svg>
+            <span class="truncate flex-1">{{ g.room || 'Chưa có phòng' }}</span>
+            <span class="tt-more" aria-hidden="true">•••</span>
+          </span>
+          <span class="tt-meta">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5" />
+            </svg>
+            <span class="truncate">{{ g.teacherName || 'Chưa phân công GV' }}</span>
+          </span>
+        </button>
+      </div>
     </section>
   </div>
 
