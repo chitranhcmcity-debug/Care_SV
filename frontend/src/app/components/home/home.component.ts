@@ -70,24 +70,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       text: 'Tự động mở hồ sơ chăm sóc và giao nhân viên phụ trách lớp, theo dõi tiến độ.',
       icon: ICONS.bolt,
       tone: 'from-violet-500 to-fuchsia-500 shadow-fuchsia-500/30',
+      theme: 'hl-violet',
+      target: 'quy-trinh',
     },
     {
       title: 'AI Care',
       text: 'Trợ lý AI tra cứu, đề xuất hành động và soạn sẵn thao tác cho bạn.',
       icon: ICONS.cpu,
       tone: 'from-sky-500 to-indigo-500 shadow-indigo-500/30',
+      theme: 'hl-sky',
+      target: 'ai-care',
     },
     {
       title: 'Theo dõi',
       text: 'Cảnh báo vắng & cấm thi theo tiết, báo cáo trực quan, quản lý dễ dàng.',
       icon: ICONS.shieldCheck,
       tone: 'from-amber-400 to-orange-500 shadow-orange-500/30',
+      theme: 'hl-amber',
+      target: 'tinh-nang',
     },
     {
       title: 'Dành cho mọi vai trò',
       text: 'Từ Ban Giám Hiệu, Phòng CTSV, CSKH đến giảng viên.',
       icon: ICONS.users,
       tone: 'from-emerald-400 to-green-500 shadow-emerald-500/30',
+      theme: 'hl-emerald',
+      target: 'danh-cho-ai',
     },
   ];
 
@@ -143,18 +151,26 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     {
       title: 'Giảng viên điểm danh',
       text: 'Ghi nhận sinh viên vắng ngay trong giờ học của học phần.',
+      icon: ICONS.calendarCheck,
+      theme: 'st-violet',
     },
     {
       title: 'Cảnh báo & chỉ đạo',
       text: 'Sinh viên chạm mức cảnh báo được mở hồ sơ chăm sóc, Trưởng phòng / PHT chỉ đạo người chăm sóc.',
+      icon: ICONS.alert,
+      theme: 'st-pink',
     },
     {
       title: 'CSKH chăm sóc',
       text: 'Gọi điện, tìm nguyên nhân, đưa hướng giải quyết theo các bước — AI gợi ý, báo khó khăn.',
+      icon: ICONS.headset,
+      theme: 'st-orange',
     },
     {
       title: 'Đánh giá & chốt hồ sơ',
       text: 'Nhân viên báo cáo kết quả, lãnh đạo duyệt, hồ sơ vào lịch sử.',
+      icon: ICONS.shieldCheck,
+      theme: 'st-green',
     },
   ];
 
@@ -164,25 +180,65 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       text: 'Tài khoản, phân quyền, cấu hình hệ thống, API và giao diện.',
       icon: ICONS.shield,
       tone: 'from-violet-500 to-fuchsia-500',
+      theme: 'rl-violet',
+      art: [ICONS.grid, ICONS.shieldLock, ICONS.cpu],
+      points: [
+        'Quản lý tài khoản & phân quyền',
+        'Cấu hình hệ thống linh hoạt',
+        'Quản lý API và tích hợp dịch vụ',
+        'Tùy chỉnh logo, màu sắc giao diện',
+      ],
     },
     {
       title: 'Trưởng phòng / PHT',
       text: 'Phân lớp CSKH, giao việc, cấu hình mức cảnh báo, xem báo cáo.',
       icon: ICONS.chart,
       tone: 'from-pink-500 to-orange-400',
+      theme: 'rl-pink',
+      art: [ICONS.clipboard, ICONS.chart, ICONS.users],
+      points: [
+        'Phân lớp và quản lý CSKH',
+        'Giao việc và theo dõi tiến độ',
+        'Cài đặt mức cảnh báo',
+        'Xem báo cáo tổng quan, chi tiết',
+      ],
     },
     {
       title: 'Nhân viên CSKH',
       text: 'Gọi điện chăm sóc sinh viên các lớp được phân công, thực hiện việc được giao.',
       icon: ICONS.headset,
       tone: 'from-emerald-400 to-teal-500',
+      theme: 'rl-green',
+      art: [ICONS.message, ICONS.headset, ICONS.phone],
+      points: [
+        'Danh sách lớp phụ trách',
+        'Gọi điện và ghi nhận kết quả',
+        'Cập nhật trạng thái chăm sóc',
+        'Thực hiện việc được giao',
+      ],
     },
     {
       title: 'Giảng viên',
       text: 'Điểm danh học phần mình dạy, xem thời khóa biểu và tình hình vắng của lớp.',
       icon: ICONS.book,
       tone: 'from-sky-500 to-indigo-500',
+      theme: 'rl-blue',
+      art: [ICONS.calendarCheck, ICONS.cap, ICONS.chart],
+      points: [
+        'Xem thời khóa biểu cá nhân',
+        'Điểm danh lớp học phần',
+        'Theo dõi tình hình vắng',
+        'Xem tỷ lệ chuyên cần của lớp',
+      ],
     },
+  ];
+
+  /** AI Care strengths listed next to the chat preview. */
+  readonly aiPoints = [
+    { text: 'Trả lời nhanh bằng tiếng Việt, đúng dữ liệu', icon: ICONS.message, tone: 'from-violet-500 to-fuchsia-500' },
+    { text: 'Soạn sẵn thao tác: giao việc, ghi kết quả, phân lớp', icon: ICONS.clipboard, tone: 'from-pink-500 to-rose-500' },
+    { text: 'Kiểm tra thông tin và đề xuất hành động', icon: ICONS.shieldCheck, tone: 'from-amber-400 to-orange-500' },
+    { text: 'Tiết kiệm thời gian, tăng hiệu quả công việc', icon: ICONS.bolt, tone: 'from-emerald-400 to-green-500' },
   ];
 
   /** Id of the section currently in view — drives the nav highlight. */
