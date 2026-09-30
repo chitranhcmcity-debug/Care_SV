@@ -1,13 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
 import {
   AttendanceService,
   AttendanceHistoryItem,
   AttendanceSummary,
-  StudentSummary,
   SubmitAttendanceResult,
   ScheduleSession,
   ScheduleData,
@@ -20,7 +18,6 @@ import { CallService, CallTarget } from '../../services/call.service';
 import {
   CourseGroup,
   Student,
-  SHIFT,
   WEEKDAYS_BY_JS_DAY,
   AttendanceWindow,
   WarningLevel,
@@ -47,10 +44,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   courseGroups: CourseGroup[] = [];
   filterShift = '';
-  showAllCourses = false;
   selectedGroupId = '';
   selectedGroup: CourseGroup | null = null;
-  searchTerm = '';
 
   /** Open care cases the user proposed or is working on (home card and tab badge). */
   myOpenCases = 0;
@@ -65,7 +60,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   activeSession: ScheduleSession | null = null;
 
   // Absent student map: { [studentId]: boolean }
-  absentMap: { [studentId: string]: boolean } = {};
   historyList: AttendanceHistoryItem[] = [];
   scheduleData: ScheduleData | null = null; // tất cả buổi theo lịch
   attendanceSummary: AttendanceSummary | null = null;
@@ -73,12 +67,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   submitResult: SubmitAttendanceResult | null = null;
 
   // ─── Lock state: kiểm tra buổi hôm nay đã điểm danh chưa ───
-  todayRecord: AttendanceHistoryItem | null = null; // bản ghi hôm nay (nếu có)
-  isCheckingToday = false; // đang check
-  isAttendanceLocked = false; // true = đã lưu, khóa form
 
-  isSubmitting = false;
-  successMsg = '';
   /** Whether attendance can be written now (timetable window, or the manager's override). */
   attendanceWindow: AttendanceWindow | null = null;
 
@@ -282,7 +271,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   loadCourseGroups() {
-    this.attendanceService.getCourseGroups(this.showAllCourses).subscribe({
+    this.attendanceService.getCourseGroups().subscribe({
       next: (groups) => {
         this.courseGroups = groups;
         if (groups.length > 0) {
@@ -313,17 +302,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  toggleShowAllCourses(showAll: boolean) {
-    this.showAllCourses = showAll;
-    this.loadCourseGroups();
-  }
 
   onGroupChange() {
     this.selectedGroup = this.courseGroups.find((g) => g._id === this.selectedGroupId) || null;
-    this.absentMap = {};
     this.attendanceSummary = null;
-    this.todayRecord = null;
-    this.isAttendanceLocked = false;
     this.activeSession = null;
 
     this.attendanceWindow = null;
@@ -371,41 +353,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Kiểm tra buổi hôm nay đã điểm danh chưa, nếu rồi đưa vào trạng thái khóa */
-  checkTodayAttendance() {
-    if (!this.selectedGroupId) return;
-    this.isCheckingToday = true;
-    this.cdr.detectChanges();
-    this.attendanceService.getTodayAttendance(this.selectedGroupId).subscribe({
-      next: (record) => {
-        this.todayRecord = record;
-        if (record) {
-          // Đã điểm danh hôm nay → khóa form, điền lại danh sách vắng cũ
-          this.isAttendanceLocked = true;
-          this.absentMap = {};
-          for (const st of record.absentStudents || []) {
-            this.absentMap[st._id] = true;
-          }
-        } else {
-          // Chưa điểm danh → mở form mới
-          this.isAttendanceLocked = false;
-          this.absentMap = {};
-        }
-        this.isCheckingToday = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isCheckingToday = false;
-        this.cdr.detectChanges();
-      },
-    });
-  }
 
-  /** Mở khóa để giảng viên sửa lại danh sách vắng của buổi hôm nay */
-  unlockAttendance() {
-    this.isAttendanceLocked = false;
-    this.cdr.detectChanges();
-  }
 
   loadHistory() {
     if (!this.selectedGroupId) return;
@@ -580,171 +528,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  getScheduleCheck(group: CourseGroup | null) {
-    if (!group) {
-      return { isValid: true, reason: '', badgeText: '', badgeClass: '' };
-    }
 
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
 
-    // 1. Check Start & End Date
-    if (group.startDate) {
-      const startDtStr = new Date(group.startDate).toISOString().split('T')[0];
-      if (todayStr < startDtStr) {
-        const formattedStart = new Date(group.startDate).toLocaleDateString('vi-VN');
-        return {
-          isValid: false,
-          reason: `⚠️ Chưa đến ngày bắt đầu học phần (Lớp bắt đầu từ ngày ${formattedStart})`,
-          badgeText: `🔒 Bắt đầu từ ${formattedStart}`,
-          badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
-        };
-      }
-    }
 
-    if (group.endDate) {
-      const endDtStr = new Date(group.endDate).toISOString().split('T')[0];
-      if (todayStr > endDtStr) {
-        const formattedEnd = new Date(group.endDate).toLocaleDateString('vi-VN');
-        return {
-          isValid: false,
-          reason: `⚠️ Học phần đã kết thúc khóa học (Đã kết thúc vào ngày ${formattedEnd})`,
-          badgeText: `🔒 Đã kết thúc ngày ${formattedEnd}`,
-          badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
-        };
-      }
-    }
 
-    // 2. Check Day of Week
-    const today = WEEKDAYS_BY_JS_DAY[now.getDay()];
-    const todayName = viLabel(today);
 
-    if (group.scheduleDays && group.scheduleDays.length > 0) {
-      if (!group.scheduleDays.includes(today)) {
-        return {
-          isValid: false,
-          reason: `⚠️ Hôm nay (${todayName}) không có lịch học môn này (${group.scheduleDays.map(viLabel).join(', ')})`,
-          badgeText: `🔒 Ngoài lịch học (${todayName})`,
-          badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
-        };
-      }
-    }
 
-    // 3. Check Shift Time
-    const hour = now.getHours();
-    const shift = group.shift || SHIFT.MORNING;
 
-    if (shift === SHIFT.MORNING && (hour < 6 || hour >= 12)) {
-      return {
-        isValid: false,
-        reason: `⚠️ Chưa đúng ca học (${viLabel(shift)}). Giờ hiện tại ngoài ca Sáng (06:00 - 12:00)`,
-        badgeText: `🔒 Ngoài Ca Sáng`,
-        badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
-      };
-    } else if (shift === SHIFT.AFTERNOON && (hour < 12 || hour >= 18)) {
-      return {
-        isValid: false,
-        reason: `⚠️ Chưa đúng ca học (${viLabel(shift)}). Giờ hiện tại ngoài ca Chiều (12:00 - 18:00)`,
-        badgeText: `🔒 Ngoài Ca Chiều`,
-        badgeClass: 'bg-blue-100 text-blue-900 border-blue-300',
-      };
-    } else if (shift === SHIFT.EVENING && (hour < 17 || hour >= 22)) {
-      return {
-        isValid: false,
-        reason: `⚠️ Chưa đúng ca học (${viLabel(shift)}). Giờ hiện tại ngoài ca Tối (17:30 - 22:00)`,
-        badgeText: `🔒 Ngoài Ca Tối`,
-        badgeClass: 'bg-purple-100 text-purple-900 border-purple-300',
-      };
-    }
 
-    return {
-      isValid: true,
-      reason: '🟢 Đang trong ca học & ngày học chuẩn!',
-      badgeText: '🟢 Đúng ca & lịch học',
-      badgeClass: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-    };
-  }
-
-  get students(): Student[] {
-    return this.selectedGroup?.students || [];
-  }
-
-  get filteredStudents(): Student[] {
-    if (!this.searchTerm.trim()) return this.students;
-    const term = this.searchTerm.toLowerCase().trim();
-    return this.students.filter(
-      (s) => s.fullName.toLowerCase().includes(term) || s.studentCode.toLowerCase().includes(term),
-    );
-  }
-
-  get absentCount(): number {
-    return Object.values(this.absentMap).filter(Boolean).length;
-  }
-
-  get presentCount(): number {
-    return this.students.length - this.absentCount;
-  }
-
-  toggleAttendance(studentId: string) {
-    this.absentMap[studentId] = !this.absentMap[studentId];
-  }
-
-  markAllPresent() {
-    this.absentMap = {};
-  }
-
-  markAllAbsent() {
-    for (const st of this.filteredStudents) {
-      this.absentMap[st._id] = true;
-    }
-  }
-
-  submitAttendance() {
-    if (!this.selectedGroupId) return;
-
-    const absentStudentIds = Object.keys(this.absentMap).filter((id) => this.absentMap[id]);
-
-    this.isSubmitting = true;
-    this.submitResult = null;
-    this.cdr.detectChanges();
-
-    this.attendanceService
-      .submitAttendance({
-        courseGroupId: this.selectedGroupId,
-        absentStudentIds,
-      })
-      .pipe(
-        finalize(() => {
-          this.isSubmitting = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: (res) => {
-          this.submitResult = res;
-          this.loadMyCases();
-
-          // ✅ Re-check today's record → tự động khóa form sau khi lưu
-          this.checkTodayAttendance();
-
-          // Chuyển sang tab Lịch Sử để xác nhận
-          this.attendanceMode = 'history';
-          this.loadHistory();
-
-          // Auto-hide after 10 s, unless the lecturer still has to decide whether to call.
-          if (!res.absentStudents?.length)
-            setTimeout(() => {
-              this.submitResult = null;
-              this.cdr.detectChanges();
-            }, 10000);
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.notify.error(err.error?.message || 'Không thể lưu điểm danh');
-          this.cdr.detectChanges();
-        },
-      });
-  }
 
   // ─── Helpers cho bảng ma trận điểm danh ───
 
@@ -1050,16 +841,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return this.allSessions.filter((s) => s.status === 'recorded').length;
   }
 
-  /** Kiểm tra sinh viên có vắng không phép trong buổi cụ thể không */
-  isStudentAbsentInSession(studentId: string, session: ScheduleSession): boolean {
-    if (session.status !== 'recorded' || !session.attendance) return false;
-    const absentList = session.attendance.absentStudents || [];
-    if (!absentList.length) return false;
-    return absentList.some((st) => {
-      const id = typeof st === 'object' ? st._id : st;
-      return id === studentId;
-    });
-  }
 
   /** Tổng số buổi vắng KHÔNG PHÉP của SV */
   getTotalAbsentForStudent(studentId: string): number {

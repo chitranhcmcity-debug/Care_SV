@@ -30,9 +30,9 @@ export class AttendanceService {
 
   private readonly http = inject(HttpClient);
 
-  getCourseGroups(showAll = false): Observable<CourseGroup[]> {
-    const url = showAll ? `${this.apiUrl}/course-groups?all=true` : `${this.apiUrl}/course-groups`;
-    return this.http.get<CourseGroup[]>(url);
+  /** A lecturer's own groups, or every group for overseers (the server decides). */
+  getCourseGroups(): Observable<CourseGroup[]> {
+    return this.http.get<CourseGroup[]>(`${this.apiUrl}/course-groups`);
   }
 
   submitAttendance(payload: SubmitAttendancePayload): Observable<SubmitAttendanceResult> {

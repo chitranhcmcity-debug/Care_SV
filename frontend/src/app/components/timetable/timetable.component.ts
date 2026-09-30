@@ -222,10 +222,6 @@ export class TimetableComponent implements OnInit {
     return `${String(h).padStart(2, '0')}:00`;
   }
 
-  slotKey(e: TimetableEntry): string {
-    return e.startTime ? `${e.startTime}-${e.endTime ?? ''}` : `shift:${e.shift ?? ''}`;
-  }
-
   /** Stable colour tone per course so the same course looks the same every day. */
   tone(e: TimetableEntry): number {
     const code = e.courseCode || e.groupCode;

@@ -17,7 +17,6 @@ const {
   TASK_STATUS,
   TASK_CATEGORY_LABEL,
   TASK_PRIORITY_LABEL,
-  toLabel,
 } = require('../utils/hangSo');
 
 const PENDING_TTL_MS = 15 * 60 * 1000;

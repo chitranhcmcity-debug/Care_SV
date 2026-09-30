@@ -10,6 +10,7 @@
 require('dotenv').config({ path: require('node:path').join(__dirname, '../.env'), quiet: true });
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('node:crypto');
 const NguoiDung = require('../models/NguoiDung');
 const SinhVien = require('../models/SinhVien');
 const NhomHocPhan = require('../models/NhomHocPhan');
@@ -186,8 +187,14 @@ const EXTRA_USERS = [
   { email: 'staff2', fullName: 'Trần Thị Mai', role: 'staff', status: 'active' },
   { email: 'teacher2', fullName: 'ThS. Lê Hoàng Phúc', role: 'teacher', status: 'active' },
   { email: 'staff3', fullName: 'Phạm Quốc Bảo', role: 'staff', status: 'inactive' },
+  // Self sign-ups: one waiting for a manager, one approved and waiting for its key.
   { email: 'gv.moi@itc.edu.vn', fullName: 'Võ Thanh Hà', role: 'teacher', status: 'pending' },
+  { email: 'nv.moi@itc.edu.vn', fullName: 'Đặng Minh Khoa', role: 'staff', status: 'awaiting_key' },
 ];
+// Activation key of the approved demo sign-up (the real one is emailed; see routes/xacThuc.js).
+const DEMO_ACTIVATION_KEY = 'DEMO-KEYS-2026';
+const keyHash = (key) =>
+  crypto.createHash('sha256').update(key.toUpperCase().replace(/[^A-Z0-9]/g, '')).digest('hex');
 
 const NOTES_BY_REASON = {
   'Bệnh/Sức khỏe': [
@@ -226,8 +233,18 @@ const atTime = (day, hhmm, jitterMin = 0) => {
 
 async function ensureUsers() {
   const password = await bcrypt.hash(DEMO_PASSWORD, 10);
+  const manager = await NguoiDung.findOne({ email: 'manager' });
   for (const u of EXTRA_USERS) {
-    if (!(await NguoiDung.exists({ email: u.email }))) await NguoiDung.create({ ...u, password });
+    if (await NguoiDung.exists({ email: u.email })) continue;
+    const key =
+      u.status === 'awaiting_key'
+        ? {
+            activationKeyHash: keyHash(DEMO_ACTIVATION_KEY),
+            activationKeyExpires: new Date(Date.now() + 7 * DAY),
+            approvedBy: manager?._id ?? null,
+          }
+        : {};
+    await NguoiDung.create({ ...u, ...key, password });
   }
   const byEmail = async (email) => {
     const user = await NguoiDung.findOne({ email });
@@ -235,7 +252,6 @@ async function ensureUsers() {
     return user;
   };
   return {
-    admin: await NguoiDung.findOne({ role: 'admin' }),
     manager: await byEmail('manager'),
     staff: await byEmail('staff'),
     staff2: await byEmail('staff2'),
@@ -536,11 +552,12 @@ async function main() {
   }
 
   // Two cases proposed by lecturers for students showing signs of dropping out.
+  // Groups share students, so remember who already has a case (one open case per student).
+  const withCase = new Set(cases.map((c) => String(c.studentId._id)));
   for (const { group, teacher, members } of groups.filter((g) => g.teacher).slice(0, 2)) {
-    const student = members.find(
-      (m) => !cases.some((c) => String(c.studentId._id) === String(m._id)),
-    );
+    const student = members.find((m) => !withCase.has(String(m._id)));
     if (!student) continue;
+    withCase.add(String(student._id));
     const at = new Date(now.getTime() - between(1, 3) * DAY);
     const careCase = await HoSoChamSoc.create({
       studentId: student._id,
@@ -604,6 +621,8 @@ async function main() {
       created: daysAgo(1),
       due: 5,
       status: TASK_STATUS.PENDING,
+      category: 'dao_tao',
+      priority: 'cao',
     },
     {
       to: users.staff2,
@@ -614,6 +633,12 @@ async function main() {
       due: 4,
       status: TASK_STATUS.ACKNOWLEDGED,
       acknowledged: daysAgo(2, 14),
+      category: 'cong_tac_sv',
+      priority: 'trung_binh',
+      progressLog: [
+        { percent: 30, note: 'Đã rà soát 12/40 hồ sơ.', at: daysAgo(2, 16) },
+        { percent: 60, note: 'Đã cập nhật xong nửa lớp.', at: daysAgo(1, 11) },
+      ],
     },
     {
       to: users.staff,
@@ -627,6 +652,9 @@ async function main() {
       submitted: daysAgo(1, 16),
       evidenceNote: 'Đã tổng hợp 4 sinh viên, đính kèm bảng tính trên Drive.',
       evidenceLink: 'https://drive.google.com/demo-bao-cao-net101',
+      category: 'bao_cao',
+      priority: 'khan_cap',
+      progressLog: [{ percent: 50, note: 'Đã lọc danh sách vắng.', at: daysAgo(3, 15) }],
     },
     {
       to: users.staff2,
@@ -641,6 +669,9 @@ async function main() {
       completed: daysAgo(8, 10),
       evidenceNote: 'Đã tư vấn 3 sinh viên, 2 em đã nộp đơn.',
       reviewNote: 'Tốt, tiếp tục theo dõi hồ sơ.',
+      reviewScore: 5,
+      category: 'cham_soc_sv',
+      priority: 'cao',
     },
     {
       to: users.staff,
@@ -653,6 +684,9 @@ async function main() {
       submitted: daysAgo(3, 17),
       evidenceNote: 'Đã gọi 5 sinh viên.',
       reviewNote: 'Chưa đủ: cần khảo sát toàn bộ lớp và ghi rõ lý do từng em.',
+      reworkCount: 1,
+      category: 'cong_tac_sv',
+      priority: 'thap',
     },
   ];
   for (const t of internal) {
@@ -663,6 +697,13 @@ async function main() {
       assignedTo: t.to._id,
       dueDate: new Date(now.getTime() + t.due * DAY),
       status: t.status,
+      category: t.category ?? 'khac',
+      priority: t.priority ?? 'trung_binh',
+      // Handed-in work counts as done; in-progress work shows its latest report.
+      progress: t.submitted ? 100 : (t.progressLog?.at(-1)?.percent ?? 0),
+      progressLog: t.progressLog ?? [],
+      reviewScore: t.reviewScore ?? null,
+      reworkCount: t.reworkCount ?? 0,
       evidenceNote: t.evidenceNote ?? '',
       evidenceLink: t.evidenceLink ?? '',
       reviewNote: t.reviewNote ?? '',
@@ -676,22 +717,32 @@ async function main() {
     });
   }
 
-  // --- Billing history: past orders that did not change the subscription
-  if (users.admin) {
-    const plan = SUBSCRIPTION_PLANS[1];
+  // --- Billing history (a Trưởng phòng / PHT buys): history only, the subscription is untouched
+  {
+    const [monthly, halfYear] = SUBSCRIPTION_PLANS;
     const orders = [
-      { status: ORDER_STATUS.CANCELLED, at: daysAgo(20, 10) },
-      { status: ORDER_STATUS.EXPIRED, at: daysAgo(12, 15) },
+      {
+        plan: monthly,
+        status: ORDER_STATUS.PAID,
+        at: daysAgo(40, 9),
+        paid: daysAgo(40, 9),
+        reference: 'FT26DEMO0001',
+      },
+      { plan: halfYear, status: ORDER_STATUS.CANCELLED, at: daysAgo(20, 10) },
+      { plan: halfYear, status: ORDER_STATUS.EXPIRED, at: daysAgo(12, 15) },
     ];
     for (const [i, o] of orders.entries()) {
       const order = await DonThanhToan.create({
         orderCode: 900000 + i,
-        planCode: plan.code,
-        planName: plan.name,
-        months: plan.months,
-        amount: plan.amount,
+        planCode: o.plan.code,
+        planName: o.plan.name,
+        months: o.plan.months,
+        amount: o.plan.amount,
         status: o.status,
-        createdBy: users.admin._id,
+        createdBy: users.manager._id,
+        paidAt: o.paid ?? null,
+        reference: o.reference ?? '',
+        extendedTo: o.paid ? new Date(o.paid.getTime() + 30 * DAY) : null,
       });
       await backdate(DonThanhToan, order._id, o.at);
     }
@@ -714,6 +765,9 @@ async function main() {
   });
   console.log(
     `Tài khoản mới (mật khẩu "${DEMO_PASSWORD}"): ${EXTRA_USERS.map((u) => u.email).join(', ')}`,
+  );
+  console.log(
+    `nv.moi@itc.edu.vn đã được duyệt: đăng nhập rồi nhập key kích hoạt ${DEMO_ACTIVATION_KEY}.`,
   );
 }
 
