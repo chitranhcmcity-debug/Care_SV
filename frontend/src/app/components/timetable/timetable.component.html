@@ -1,7 +1,7 @@
-<div class="mx-4 md:mx-6 my-5 space-y-5">
-  <section class="tt-bar flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-3.5">
-    <div class="flex flex-wrap items-center gap-3">
-      <p class="text-sm font-bold text-slate-900">Khung giờ học</p>
+<div class="mx-4 md:mx-6 my-5 space-y-4">
+  <section class="tt-bar flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3">
+    <div class="flex flex-wrap items-center gap-2.5">
+      <p class="text-sm font-bold text-slate-900 mr-1">Khung giờ học</p>
       <span *ngFor="let s of shifts" class="tt-chip" [ngClass]="'tt-' + s.key">
         <span class="tt-dot" aria-hidden="true"></span> {{ s.label }}
       </span>
@@ -25,86 +25,129 @@
     <p class="mt-3 text-sm font-medium text-slate-500">Đang tải thời khóa biểu...</p>
   </div>
 
-  <section
-    *ngIf="!loading()"
-    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 items-stretch"
-  >
-    <article *ngFor="let day of week" class="tt-day p-3 min-h-[220px] flex flex-col">
-      <header class="flex items-center justify-between gap-2 px-1 pb-3 mb-3 border-b border-violet-50">
-        <h3 class="font-extrabold text-slate-900 text-[15px]">{{ day | viLabel }}</h3>
-        <span class="tt-count" [attr.aria-label]="byDay()[day].length + ' lớp'">
-          {{ byDay()[day].length }}
-        </span>
-      </header>
-
+  <div *ngIf="!loading()" class="tt-scroll">
+    <section
+      class="tt-grid"
+      [style.grid-template-rows]="'auto repeat(' + (slots().length || 1) + ', minmax(96px, auto))'"
+    >
+      <!-- Column backgrounds -->
+      <div class="tt-col tt-col--time" [style.grid-row]="'1 / span ' + ((slots().length || 1) + 1)"></div>
       <div
-        *ngIf="!byDay()[day].length"
-        class="tt-empty flex-1 flex flex-col items-center justify-center text-center px-3 py-6"
+        *ngFor="let day of week; let i = index"
+        class="tt-col"
+        [style.grid-column]="i + 2"
+        [style.grid-row]="'1 / span ' + ((slots().length || 1) + 1)"
+      ></div>
+
+      <!-- Header row -->
+      <div class="tt-head tt-head--time" style="grid-column: 1; grid-row: 1">Thời gian</div>
+      <div
+        *ngFor="let day of week; let i = index"
+        class="tt-head"
+        [style.grid-column]="i + 2"
+        style="grid-row: 1"
       >
-        <span class="tt-empty-icon" aria-hidden="true">
-          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="4" width="18" height="18" rx="3" />
-            <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
-          </svg>
+        <div>
+          <div class="font-extrabold text-slate-900 text-[15px]">{{ day | viLabel }}</div>
+          <div class="text-xs font-medium text-slate-500">{{ weekDates[i] | date: 'dd/MM' }}</div>
+        </div>
+        <span class="tt-count" [attr.aria-label]="grid().counts[day] + ' lớp'">
+          {{ grid().counts[day] }}
         </span>
-        <p class="mt-3 text-xs font-semibold text-slate-500">Không có lớp học<br />trong ngày này</p>
       </div>
 
-      <div class="space-y-2.5">
-        <article
-          *ngFor="let g of byDay()[day]"
-          class="tt-card p-3 text-xs"
-          [ngClass]="'tt-' + (g.shift || 'none')"
-          [class.is-mine]="g.isMine && !onlyMine()"
+      <!-- Time labels -->
+      <div
+        *ngFor="let s of slots(); let r = index"
+        class="tt-time"
+        style="grid-column: 1"
+        [style.grid-row]="r + 2"
+      >
+        <ng-container *ngIf="s.start; else shiftOnly">
+          <b>{{ s.start }}</b>
+          <span *ngIf="s.end">{{ s.end }}</span>
+        </ng-container>
+        <ng-template #shiftOnly>
+          <b>Ca {{ slotLabel(s) | viLabel }}</b>
+        </ng-template>
+      </div>
+
+      <ng-container *ngFor="let day of week; let i = index">
+        <!-- Whole-day empty state -->
+        <div
+          *ngIf="!grid().counts[day]"
+          class="tt-cell"
+          [style.grid-column]="i + 2"
+          [style.grid-row]="'2 / span ' + (slots().length || 1)"
         >
-          <div class="flex items-start gap-2.5">
-            <span class="tt-icon" aria-hidden="true">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+          <div class="tt-empty h-full flex flex-col items-center justify-center text-center px-3 py-6">
+            <span class="tt-empty-icon" aria-hidden="true">
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="3" />
+                <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
               </svg>
             </span>
-            <div class="min-w-0 flex-1">
-              <div class="tt-code break-words">{{ g.groupCode }}</div>
-              <div *ngIf="g.courseName" class="mt-0.5 text-slate-500 font-medium leading-snug">
-                {{ g.courseName }}
+            <p class="mt-3 text-xs font-semibold text-slate-500">
+              Không có lớp học<br />trong ngày này
+            </p>
+          </div>
+        </div>
+
+        <ng-container *ngIf="grid().counts[day]">
+          <div
+            *ngFor="let s of slots(); let r = index"
+            class="tt-cell space-y-2"
+            [style.grid-column]="i + 2"
+            [style.grid-row]="r + 2"
+          >
+            <div *ngIf="!grid().days[day][s.key]?.length" class="tt-slot" aria-hidden="true"></div>
+
+            <article
+              *ngFor="let g of grid().days[day][s.key]"
+              class="tt-card"
+              [attr.data-tone]="tone(g)"
+              [class.is-mine]="g.isMine && !onlyMine()"
+              [title]="
+                'Ca ' +
+                (g.shift | viLabel) +
+                (g.startDate
+                  ? ' · ' + (g.startDate | date: 'dd/MM') + '–' + (g.endDate | date: 'dd/MM/yyyy')
+                  : '')
+              "
+            >
+              <div class="flex items-start gap-2">
+                <span class="tt-icon" aria-hidden="true">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path [attr.d]="icons[tone(g)]" />
+                  </svg>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="tt-code">{{ g.groupCode }}</div>
+                  <div *ngIf="g.courseName" class="tt-name">{{ g.courseName }}</div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <span *ngIf="g.isMine && !onlyMine()" class="tt-mine">★ Lớp của tôi</span>
+              <div class="mt-2 space-y-1 text-[11.5px] text-slate-600 leading-snug">
+                <div *ngIf="g.room" class="tt-meta">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5" />
+                  </svg>
+                  <span class="truncate">{{ g.room }}</span>
+                </div>
+                <div class="tt-meta">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5" />
+                  </svg>
+                  <span class="truncate flex-1">{{ g.teacherName || 'Chưa phân công GV' }}</span>
+                  <span class="tt-sv">{{ g.studentCount }} SV</span>
+                </div>
+              </div>
 
-          <div class="mt-2.5 space-y-1.5 text-slate-600 leading-snug">
-            <div class="tt-meta">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
-              </svg>
-              <span>
-                Ca {{ g.shift | viLabel }}
-                <span *ngIf="g.startTime && g.endTime">· {{ g.startTime }}–{{ g.endTime }}</span>
-              </span>
-            </div>
-            <div *ngIf="g.room" class="tt-meta">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5" />
-              </svg>
-              <span>{{ g.room }}</span>
-            </div>
-            <div class="tt-meta">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5" />
-              </svg>
-              <span>{{ g.teacherName || 'Chưa phân công giảng viên' }}</span>
-            </div>
+              <span *ngIf="g.isMine && !onlyMine()" class="tt-mine">★ Lớp của tôi</span>
+            </article>
           </div>
-
-          <div class="tt-foot mt-2.5 pt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span>{{ g.studentCount }} SV</span>
-            <span *ngIf="g.startDate">
-              {{ g.startDate | date: 'dd/MM' }}–{{ g.endDate | date: 'dd/MM/yyyy' }}
-            </span>
-          </div>
-        </article>
-      </div>
-    </article>
-  </section>
+        </ng-container>
+      </ng-container>
+    </section>
+  </div>
 </div>
