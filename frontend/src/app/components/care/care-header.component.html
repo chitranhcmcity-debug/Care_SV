@@ -1,0 +1,107 @@
+<header class="care-card care-head" [attr.data-status]="c().status">
+  <div class="care-hero-top">
+    <div class="care-identity">
+      <div class="care-avatar" aria-hidden="true">
+        {{ c().studentId.fullName.trim().charAt(0) }}
+      </div>
+      <div class="care-identity-copy">
+        <div class="care-name-row">
+          <h1>{{ c().studentId.fullName }}</h1>
+          <span class="care-status" [attr.data-status]="c().status">{{
+            statusLabels[c().status]
+          }}</span>
+        </div>
+        <p class="care-student-meta">
+          {{ c().studentId.studentCode }} · Lớp {{ c().studentId.classCode
+          }}<span *ngIf="c().studentId.major"> · {{ c().studentId.major }}</span>
+        </p>
+        <div class="care-badges">
+          <span class="care-chip care-source"
+            ><app-care-icon name="archive" />{{ sourceLabels[c().source] }}</span
+          ><span *ngIf="c().proposedBy" class="care-chip care-proposer"
+            ><app-care-icon name="person" />Đề xuất bởi {{ c().proposedBy?.fullName }}</span
+          ><span
+            *ngIf="c().warning?.level"
+            class="care-chip"
+            [style.--c]="c().warning?.color || '#8b5cf6'"
+            >{{ c().warning?.level }} · {{ c().warning?.absentPeriods }} tiết ({{
+              c().warning?.groupCode
+            }})</span
+          >
+        </div>
+      </div>
+    </div>
+    <div class="care-header-actions">
+      <button
+        *ngIf="c().permissions.work && c().status !== STATUS.CLOSED"
+        type="button"
+        class="care-btn"
+        (click)="edit.emit()"
+        title="Chỉnh sửa nguyên nhân và hướng giải quyết"
+      >
+        <app-care-icon name="edit" />Sửa
+      </button>
+      <button type="button" class="care-btn" (click)="history.emit()">
+        <app-care-icon name="history" />Lịch sử
+      </button>
+      <button
+        *ngIf="c().status === STATUS.IN_PROGRESS && c().permissions.work"
+        type="button"
+        class="care-btn-danger"
+        (click)="closeCase.emit()"
+      >
+        <app-care-icon name="archive" />{{
+          c().permissions.manage ? 'Đóng hồ sơ' : 'Đề nghị kết thúc'
+        }}
+      </button>
+      <button
+        type="button"
+        class="care-icon-button"
+        (click)="dismiss.emit()"
+        aria-label="Đóng panel, quay lại danh sách"
+      >
+        <app-care-icon name="close" />
+      </button>
+    </div>
+  </div>
+  <div class="care-hero-art" aria-hidden="true">
+    <div class="care-art-folder"></div>
+    <div class="care-art-sheet"><app-care-icon name="person" /><i></i><i></i><i></i></div>
+    <span class="care-art-cap">◆</span>
+  </div>
+  <div class="care-reason">
+    <app-care-icon name="flag" />
+    <p><b>Lý do:</b> {{ c().reason }}</p>
+  </div>
+  <div class="care-facts">
+    <div class="care-fact">
+      <span class="care-fact-icon is-blue"><app-care-icon name="person" /></span>
+      <div>
+        <span>Nhân viên chăm sóc</span
+        ><b>{{ c().assignedStaffId?.fullName || 'Chưa phân công' }}</b>
+      </div>
+    </div>
+    <div class="care-fact">
+      <span class="care-fact-icon is-purple"><app-care-icon name="calendar" /></span>
+      <div>
+        <span>Hạn xử lý</span
+        ><b [class.care-overdue]="overdue()">{{
+          c().dueDate ? (c().dueDate | date: 'dd/MM/yyyy') : 'Không đặt hạn'
+        }}</b>
+      </div>
+    </div>
+    <div class="care-fact">
+      <span class="care-fact-icon is-cyan"><app-care-icon name="calendar" /></span>
+      <div>
+        <span>Mở hồ sơ</span><b>{{ c().createdAt | date: 'dd/MM/yyyy' }}</b>
+      </div>
+    </div>
+    <div class="care-fact care-directive">
+      <span class="care-fact-icon is-orange"><app-care-icon name="phone" /></span>
+      <div>
+        <span>Chỉ đạo{{ c().directedBy ? ' của ' + c().directedBy?.fullName : '' }}</span
+        ><b>{{ c().directive || 'Chưa có chỉ đạo' }}</b>
+      </div>
+    </div>
+  </div>
+</header>

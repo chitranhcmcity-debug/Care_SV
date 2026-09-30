@@ -1,250 +1,74 @@
-<div class="care-page mx-3 md:mx-4 my-3 space-y-3">
-  <!-- Toolbar: status tabs, search, new case -->
-  <div class="care-toolbar flex flex-col lg:flex-row lg:items-center gap-2 p-2">
-    <div class="flex gap-1.5 overflow-x-auto no-scrollbar" role="tablist">
-      <button
-        *ngFor="let t of tabs()"
-        type="button"
-        role="tab"
-        [attr.aria-selected]="tab() === t.id"
-        (click)="setTab(t.id)"
-        class="care-tab"
-        [class.is-active]="tab() === t.id"
-      >
-        {{ t.label }}
-        <span *ngIf="countFor(t.id) as n" class="care-tab-count">{{ n }}</span>
-      </button>
+<div class="care-page">
+  <div class="care-layout" [class.has-detail]="selected()">
+    <app-care-list
+      [class.care-list-hidden]="selected()"
+      [items]="visible()"
+      [tabs]="listTabs()"
+      [activeTab]="tab()"
+      [search]="search()"
+      [selectedId]="selected()?._id"
+      [overdueIds]="overdueCaseIds()"
+      [loading]="loading()"
+      [canCreate]="canAct() && canViewStudents()"
+      (searchChange)="search.set($event)"
+      (tabChange)="setTab($event)"
+      (selectCase)="select($event)"
+      (createCase)="openNew()"
+    />
+    <div *ngIf="detailLoading() && !selected()" class="care-empty" role="status">
+      Đang mở hồ sơ...
     </div>
-    <div class="flex items-center gap-2 lg:ml-auto">
-      <input
-        type="search"
-        [ngModel]="search()"
-        (ngModelChange)="search.set($event)"
-        placeholder="Tìm tên, MSSV, lớp..."
-        aria-label="Tìm hồ sơ"
-        class="h-10 w-full lg:w-64 px-3 rounded-xl border border-slate-200 text-sm"
+    <section *ngIf="selected() as c" class="care-detail" aria-label="Chi tiết hồ sơ chăm sóc">
+      <app-care-header
+        [c]="c"
+        [overdue]="isOverdue(c)"
+        (edit)="editFindings()"
+        (history)="changeDetailTab('notes')"
+        (closeCase)="changeDetailTab('details')"
+        (dismiss)="closeDetail()"
       />
-      <button
-        *ngIf="canAct() && canViewStudents()"
-        type="button"
-        (click)="openNew()"
-        class="care-btn-primary h-10 px-4 whitespace-nowrap"
-      >
-        + Mở hồ sơ
-      </button>
-    </div>
-  </div>
-
-  <div class="care-layout grid gap-3" [class.has-detail]="selected()">
-    <!-- ===== List ===== -->
-    <div class="space-y-3" [ngClass]="selected() ? 'hidden lg:block' : ''">
-      <div *ngIf="loading()" class="care-empty">Đang tải...</div>
-      <div *ngIf="!loading() && !visible().length" class="care-empty">
-        <div class="text-3xl mb-1" aria-hidden="true">🗂️</div>
-        Không có hồ sơ nào ở mục này.
-      </div>
-      <button
-        *ngFor="let c of visible()"
-        type="button"
-        (click)="select(c)"
-        class="care-item w-full text-left p-3 space-y-2"
-        [attr.data-status]="c.status"
-        [class.is-selected]="selected()?._id === c._id"
-      >
-        <div class="flex flex-wrap items-start justify-between gap-2">
-          <div class="min-w-0">
-            <div class="font-bold text-slate-900 truncate">{{ c.studentId?.fullName }}</div>
-            <div class="text-xs text-slate-500">
-              {{ c.studentId?.studentCode }} · Lớp {{ c.studentId?.classCode }}
-            </div>
-          </div>
-          <span class="care-status shrink-0" [attr.data-status]="c.status">{{
-            statusLabels[c.status]
-          }}</span>
-        </div>
-        <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span
-            *ngIf="c.warning?.level"
-            class="care-chip"
-            [style.--c]="c.warning?.color || '#8b5cf6'"
-            >⚠ {{ c.warning?.level }}</span
-          >
-          <span class="care-chip care-chip--muted">{{ sourceLabels[c.source] }}</span>
-          <span *ngIf="isOverdue(c)" class="care-chip" style="--c: #e11d48">Quá hạn</span>
-        </div>
-        <p class="text-xs text-slate-600 line-clamp-2">{{ c.reason }}</p>
-        <div class="flex items-center gap-3 text-xs text-slate-500">
-          <span class="truncate flex-1">
-            👤 {{ c.assignedStaffId?.fullName || 'Chưa có người chăm sóc' }}
-          </span>
-          <span class="shrink-0 tabular-nums">{{ c.stepsDone }}/{{ c.stepsTotal }} bước</span>
-        </div>
-        <div class="care-progress" aria-hidden="true">
-          <span [style.width.%]="progress(c.stepsDone, c.stepsTotal)"></span>
-        </div>
-      </button>
-    </div>
-
-    <!-- ===== Detail ===== -->
-    <div *ngIf="detailLoading() && !selected()" class="care-empty">Đang mở hồ sơ...</div>
-    <section *ngIf="selected() as c" class="space-y-3 min-w-0">
-      <!-- Header -->
-      <div class="care-card care-head p-3.5 space-y-2.5" [attr.data-status]="c.status">
-        <div class="flex items-start gap-3">
-          <button
-            type="button"
-            (click)="closeDetail()"
-            class="lg:hidden w-9 h-9 rounded-lg bg-white/70 text-slate-600 shrink-0"
-            aria-label="Quay lại danh sách"
-          >
-            ←
-          </button>
-          <div class="care-avatar shrink-0" aria-hidden="true">
-            {{ c.studentId.fullName.trim().charAt(0) }}
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-lg font-extrabold text-slate-900">{{ c.studentId.fullName }}</h2>
-              <span class="care-status" [attr.data-status]="c.status">{{
-                statusLabels[c.status]
-              }}</span>
-            </div>
-            <div class="text-sm text-slate-600">
-              {{ c.studentId.studentCode }} · Lớp {{ c.studentId.classCode }}
-              <span *ngIf="c.studentId.major"> · {{ c.studentId.major }}</span>
-            </div>
-            <div class="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-              <span
-                *ngIf="c.warning?.level"
-                class="care-chip"
-                [style.--c]="c.warning?.color || '#8b5cf6'"
-                >⚠ {{ c.warning?.level }} · {{ c.warning?.absentPeriods }} tiết ({{
-                  c.warning?.groupCode
-                }})</span
-              >
-              <span class="care-chip care-chip--muted">{{ sourceLabels[c.source] }}</span>
-              <span *ngIf="c.proposedBy" class="care-chip care-chip--muted"
-                >Đề xuất bởi {{ c.proposedBy.fullName }}</span
-              >
-            </div>
-          </div>
-          <button
-            type="button"
-            (click)="closeDetail()"
-            class="hidden lg:grid w-9 h-9 rounded-lg hover:bg-white/70 text-slate-500 place-items-center shrink-0"
-            aria-label="Đóng hồ sơ"
-          >
-            ✕
-          </button>
-        </div>
-        <p class="care-reason text-sm rounded-xl px-3 py-2"><b>Lý do:</b> {{ c.reason }}</p>
-        <div class="care-facts grid sm:grid-cols-3 gap-2 text-sm">
-          <div class="care-fact">
-            <span>Nhân viên chăm sóc</span><b>{{ c.assignedStaffId?.fullName || '—' }}</b>
-          </div>
-          <div class="care-fact">
-            <span>Hạn</span
-            ><b [class.text-rose-600]="isOverdue(c)">{{
-              c.dueDate ? (c.dueDate | date: 'dd/MM/yyyy') : 'Không đặt hạn'
-            }}</b>
-          </div>
-          <div class="care-fact">
-            <span>Mở hồ sơ</span><b>{{ c.createdAt | date: 'dd/MM/yyyy' }}</b>
-          </div>
-        </div>
-        <div *ngIf="c.directive" class="care-directive">
-          <div class="text-[11px] font-bold uppercase tracking-wide">
-            Chỉ đạo{{ c.directedBy ? ' của ' + c.directedBy.fullName : '' }}
-          </div>
-          <div class="text-sm">{{ c.directive }}</div>
-        </div>
-        <!-- Call buttons -->
-        <div *ngIf="c.permissions.work && c.status !== STATUS.CLOSED" class="flex flex-wrap gap-2">
-          <button
-            type="button"
-            (click)="call(c, 'sinh_vien')"
-            [disabled]="!c.studentId.phone"
-            class="care-btn-primary h-10 px-4"
-          >
-            📞 Gọi sinh viên
-          </button>
-          <button
-            type="button"
-            (click)="call(c, 'phu_huynh')"
-            [disabled]="!c.studentId.parentPhone"
-            class="care-btn h-10 px-4"
-          >
-            📞 Gọi phụ huynh
-          </button>
-          <button type="button" (click)="getAdvice(c)" class="care-btn h-10 px-4">
-            ✨ AI gợi ý cuộc gọi
-          </button>
-        </div>
-        <div *ngIf="advice() as a" class="care-ai text-sm whitespace-pre-line">
-          <span *ngIf="a.loading">AI Care đang soạn gợi ý...</span>
-          <span *ngIf="a.text">{{ a.text }}</span>
-          <span *ngIf="a.error" class="text-rose-700">{{ a.error }}</span>
-        </div>
-      </div>
-
-      <!-- Directive (managers) -->
-      <div
-        *ngIf="canAct() && c.status !== STATUS.CLOSED"
-        class="care-card p-3.5 space-y-2.5"
-        [class.care-card--attention]="c.status === STATUS.AWAITING"
-      >
-        <h3 class="care-title">
-          🧭
-          {{ c.status === STATUS.AWAITING ? 'Chỉ đạo chăm sóc' : 'Chỉ đạo / đổi người chăm sóc' }}
-        </h3>
-        <div class="grid sm:grid-cols-[1fr_170px] gap-2">
-          <select
-            [(ngModel)]="directStaffId"
-            aria-label="Nhân viên chăm sóc"
-            class="h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
-          >
-            <option value="">— Chọn nhân viên CSKH —</option>
-            <option *ngFor="let s of staffOptions()" [value]="s._id">
-              {{ s.fullName }} · {{ s.openCases }} hồ sơ đang mở{{
-                suggestedStaff(c)?._id === s._id ? ' · phụ trách lớp' : ''
-              }}
-            </option>
-          </select>
-          <input
-            type="date"
-            [(ngModel)]="dueDate"
-            aria-label="Hạn hoàn thành"
-            class="h-10 px-3 rounded-xl border border-slate-200 text-sm"
-          />
-        </div>
-        <textarea
-          [(ngModel)]="directive"
-          rows="2"
-          maxlength="4000"
-          placeholder="Nội dung chỉ đạo (không bắt buộc)..."
-          class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
-        ></textarea>
+      <nav class="care-detail-tabs" role="tablist" aria-label="Nội dung hồ sơ">
         <button
+          *ngFor="let t of detailTabs; let i = index"
           type="button"
-          (click)="direct(c)"
-          [disabled]="busy()"
-          class="care-btn-primary h-10 px-5"
+          role="tab"
+          [id]="'care-tab-' + t.id"
+          [attr.aria-controls]="'care-panel-' + t.id"
+          [attr.aria-selected]="detailTab() === t.id"
+          [attr.tabindex]="detailTab() === t.id ? 0 : -1"
+          [class.is-active]="detailTab() === t.id"
+          (click)="changeDetailTab(t.id)"
+          (keydown)="onDetailTabKey($event, i)"
         >
-          Gửi chỉ đạo
+          <app-care-icon [name]="t.icon" />{{ t.label
+          }}<span *ngIf="t.id === 'calls'">({{ c.calls.length }})</span>
         </button>
-      </div>
-
-      <div class="grid xl:grid-cols-2 gap-3">
+      </nav>
+      <div
+        id="care-panel-process"
+        role="tabpanel"
+        aria-labelledby="care-tab-process"
+        [hidden]="detailTab() !== 'process'"
+        class="care-process-grid"
+      >
         <!-- Steps -->
-        <div class="care-card p-3.5 space-y-2.5">
+        <div class="care-card care-steps-panel">
           <div class="flex items-center justify-between gap-2">
-            <h3 class="care-title">✅ Các bước chăm sóc</h3>
+            <h3 class="care-title">
+              <span class="care-section-icon is-green"><app-care-icon name="check" /></span> Các
+              bước chăm sóc
+            </h3>
             <span class="text-xs font-bold text-violet-700 tabular-nums"
               >{{ doneCount(c) }}/{{ c.steps.length }}</span
             >
           </div>
-          <ul class="space-y-2">
-            <li *ngFor="let step of c.steps" class="care-step" [class.is-done]="step.done">
+          <ul class="care-stepper">
+            <li
+              *ngFor="let step of c.steps; let i = index"
+              class="care-step"
+              [class.is-done]="step.done"
+            >
+              <span class="care-step-number" aria-hidden="true">{{ step.done ? '✓' : i + 1 }}</span>
               <button
                 type="button"
                 class="care-check"
@@ -255,12 +79,13 @@
               >
                 <span *ngIf="step.done">✓</span>
               </button>
-              <div class="min-w-0 flex-1">
+              <div class="care-step-content">
                 <div class="text-sm font-semibold text-slate-800">
                   {{ step.title }}
                   <span *ngIf="step.source === 'ai'" class="care-tag">AI</span>
                   <span *ngIf="step.source === 'quan_ly'" class="care-tag">Quản lý</span>
                 </div>
+                <p *ngIf="stepDescription(step)" class="care-muted">{{ stepDescription(step) }}</p>
                 <div *ngIf="step.doneAt" class="text-[11px] text-slate-400">
                   Xong {{ step.doneAt | date: 'dd/MM HH:mm' }}
                 </div>
@@ -281,7 +106,7 @@
                 *ngIf="c.permissions.work && c.status !== STATUS.CLOSED"
                 type="button"
                 (click)="removeStep(c, step)"
-                class="w-7 h-7 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 shrink-0"
+                class="care-step-remove"
                 [attr.aria-label]="'Xóa bước ' + step.title"
               >
                 ✕
@@ -299,286 +124,504 @@
               />
               <button type="button" (click)="addStep(c)" class="care-btn h-10 px-4">Thêm</button>
             </div>
-            <button
-              type="button"
-              (click)="suggestSteps(c)"
-              [disabled]="aiLoading()"
-              class="text-sm font-semibold text-violet-700 hover:text-fuchsia-600"
-            >
-              ✨ {{ aiLoading() ? 'AI Care đang gợi ý...' : 'AI gợi ý các bước tiếp theo' }}
-            </button>
-            <div *ngIf="aiSuggestions()?.length" class="care-ai space-y-1.5">
-              <div class="text-xs font-bold text-violet-700">Gợi ý của AI Care — bấm để thêm</div>
-              <button
-                *ngFor="let s of aiSuggestions()"
-                type="button"
-                (click)="addStep(c, s, 'ai')"
-                class="w-full text-left text-sm px-3 py-2 rounded-lg bg-white hover:bg-violet-50 border border-violet-100"
-              >
-                + {{ s }}
-              </button>
-            </div>
           </ng-container>
         </div>
 
-        <!-- Findings -->
-        <div class="care-card p-3.5 space-y-2.5">
-          <h3 class="care-title">🔎 Nguyên nhân & hướng giải quyết</h3>
-          <ng-container *ngIf="c.permissions.work && c.status !== STATUS.CLOSED; else findingsRead">
-            <label class="block text-xs font-bold text-slate-500" for="care-cause"
-              >Nguyên nhân</label
-            >
-            <textarea
-              id="care-cause"
-              [(ngModel)]="cause"
-              rows="2"
-              maxlength="2000"
-              placeholder="Vì sao sinh viên nghỉ học / có nguy cơ bỏ học..."
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
-            ></textarea>
-            <label class="block text-xs font-bold text-slate-500" for="care-solution"
-              >Hướng giải quyết</label
-            >
-            <textarea
-              id="care-solution"
-              [(ngModel)]="solution"
-              rows="2"
-              maxlength="2000"
-              placeholder="Đã thống nhất với sinh viên / phụ huynh..."
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
-            ></textarea>
+        <div class="care-card care-findings-panel">
+          <h2 class="care-title">
+            <span class="care-section-icon is-orange"><app-care-icon name="bulb" /></span>Nguyên
+            nhân & hướng giải quyết
+          </h2>
+          <div class="care-findings-grid">
+            <section class="care-finding care-cause">
+              <div class="care-finding-heading">
+                <app-care-icon name="bulb" />
+                <h3>Nguyên nhân</h3>
+                <button
+                  *ngIf="c.permissions.work && c.status !== STATUS.CLOSED"
+                  type="button"
+                  class="care-icon-button"
+                  (click)="editFindings(causeInput)"
+                  aria-label="Chỉnh sửa nguyên nhân"
+                >
+                  <app-care-icon name="edit" />
+                </button>
+              </div>
+              <p
+                [hidden]="editingFindings() && c.permissions.work && c.status !== STATUS.CLOSED"
+                class="care-finding-text"
+              >
+                {{ cause || 'Chưa ghi nhận nguyên nhân' }}
+              </p>
+              <textarea
+                #causeInput
+                id="care-cause"
+                aria-label="Nguyên nhân"
+                [hidden]="!editingFindings() || !c.permissions.work || c.status === STATUS.CLOSED"
+                [(ngModel)]="cause"
+                rows="5"
+                maxlength="2000"
+                placeholder="Ghi nhận lý do, hoàn cảnh của sinh viên..."
+              ></textarea>
+            </section>
+            <section class="care-finding care-solution">
+              <div class="care-finding-heading">
+                <app-care-icon name="note" />
+                <h3>Hướng giải quyết</h3>
+                <button
+                  *ngIf="c.permissions.work && c.status !== STATUS.CLOSED"
+                  type="button"
+                  class="care-icon-button"
+                  (click)="editFindings(solutionInput)"
+                  aria-label="Chỉnh sửa hướng giải quyết"
+                >
+                  <app-care-icon name="edit" />
+                </button>
+              </div>
+              <p
+                [hidden]="editingFindings() && c.permissions.work && c.status !== STATUS.CLOSED"
+                class="care-finding-text"
+              >
+                {{ solution || 'Chưa ghi nhận hướng giải quyết' }}
+              </p>
+              <textarea
+                #solutionInput
+                id="care-solution"
+                aria-label="Hướng giải quyết"
+                [hidden]="!editingFindings() || !c.permissions.work || c.status === STATUS.CLOSED"
+                [(ngModel)]="solution"
+                rows="5"
+                maxlength="2000"
+                placeholder="Biện pháp đã thống nhất với sinh viên / phụ huynh..."
+              ></textarea>
+            </section>
+          </div>
+          <div
+            *ngIf="editingFindings() && c.permissions.work && c.status !== STATUS.CLOSED"
+            class="care-form-actions"
+          >
             <button
               type="button"
+              class="care-btn"
+              (click)="cause = c.cause; solution = c.solution; editingFindings.set(false)"
+            >
+              Hủy chỉnh sửa</button
+            ><button
+              type="button"
+              class="care-btn-primary"
               (click)="saveFindings(c)"
               [disabled]="busy() || (cause === c.cause && solution === c.solution)"
-              class="care-btn-primary h-10 px-5"
             >
-              Lưu
+              Lưu thay đổi
             </button>
-          </ng-container>
-          <ng-template #findingsRead>
-            <div class="text-sm space-y-2">
-              <p class="care-cause"><b>Nguyên nhân:</b> {{ c.cause || 'Chưa ghi nhận' }}</p>
-              <p class="care-solution"><b>Hướng giải quyết:</b> {{ c.solution || 'Chưa có' }}</p>
+          </div>
+          <section class="care-ai">
+            <img class="care-ai-mascot" src="/robot-ai-right.webp" alt="" />
+            <div class="care-ai-content">
+              <h3>AI Care đề xuất hành động</h3>
+              <p class="care-muted">Gợi ý dựa trên hồ sơ và tiến trình chăm sóc của sinh viên.</p>
+              <ng-container
+                *ngIf="c.permissions.work && c.status !== STATUS.CLOSED; else aiReadOnly"
+              >
+                <button
+                  type="button"
+                  (click)="suggestSteps(c)"
+                  [disabled]="aiLoading() || busy()"
+                  class="care-btn care-ai-generate"
+                >
+                  <app-care-icon name="sparkles" />{{
+                    aiLoading()
+                      ? 'Đang tạo gợi ý...'
+                      : aiSuggestions()?.length
+                        ? 'Lấy gợi ý khác'
+                        : 'Tạo đề xuất'
+                  }}
+                </button>
+                <ul *ngIf="aiSuggestions()?.length" class="care-ai-suggestions">
+                  <li *ngFor="let s of aiSuggestions()">
+                    <app-care-icon name="check" /><span>{{ s }}</span
+                    ><button
+                      type="button"
+                      class="care-apply"
+                      [disabled]="busy()"
+                      (click)="pendingSuggestion.set(s)"
+                    >
+                      Áp dụng đề xuất
+                    </button>
+                  </li>
+                </ul>
+                <p class="care-ai-hint">
+                  Bạn chọn và xác nhận từng đề xuất trước khi thêm vào quy trình.
+                </p>
+                <div
+                  *ngIf="pendingSuggestion() as suggestion"
+                  class="care-ai-confirm"
+                  role="group"
+                  aria-label="Xác nhận áp dụng đề xuất"
+                >
+                  <p>
+                    Thêm bước chăm sóc: <b>{{ suggestion }}</b
+                    >?
+                  </p>
+                  <div class="care-form-actions">
+                    <button type="button" class="care-btn" (click)="pendingSuggestion.set(null)">
+                      Hủy</button
+                    ><button
+                      type="button"
+                      class="care-btn-primary"
+                      [disabled]="busy()"
+                      (click)="addStep(c, suggestion, 'ai'); pendingSuggestion.set(null)"
+                    >
+                      Xác nhận thêm bước
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #aiReadOnly
+                ><p class="care-ai-hint">
+                  Các bước đã áp dụng từ AI được đánh dấu trong quy trình chăm sóc.
+                </p></ng-template
+              >
             </div>
-          </ng-template>
+          </section>
+          <div class="care-quick-calls">
+            <ng-container *ngTemplateOutlet="callControls; context: { $implicit: c }" />
+          </div>
         </div>
       </div>
-
-      <!-- Calls -->
-      <div class="care-card p-3.5 space-y-2.5">
-        <h3 class="care-title">📞 Cuộc gọi trong hồ sơ ({{ c.calls.length }})</h3>
-        <p *ngIf="!c.calls.length" class="text-sm text-slate-400">Chưa có cuộc gọi nào.</p>
-        <div *ngFor="let call of c.calls" class="care-call">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="text-sm">
-              <b>{{ call.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }}</b>
-              · {{ $any(call.callerId)?.fullName }} ·
-              {{ call.createdAt | date: 'dd/MM/yyyy HH:mm' }}
-            </div>
-            <span
-              class="care-chip"
-              [style.--c]="call.outcome === 'nghe_may' ? '#10b981' : '#f59e0b'"
-              >{{ outcomeLabels[call.outcome] || 'Chưa ghi kết quả' }}</span
-            >
-          </div>
-          <p *ngIf="call.note" class="text-sm text-slate-600">{{ call.note }}</p>
-          <div class="flex items-center gap-2 text-xs text-slate-500">
-            <span *ngIf="call.durationSec">{{ call.durationSec / 60 | number: '1.0-1' }} phút</span>
-            <span>{{ call.record ? '🎙️ Có ghi âm' : 'Không ghi âm' }}</span>
-          </div>
-          <ng-container *ngIf="call.canPlay">
-            <audio
-              *ngIf="playing()[call._id] as src; else playBtn"
-              [src]="src"
-              controls
-              autoplay
-              class="w-full h-9"
-            ></audio>
-            <ng-template #playBtn>
-              <button type="button" (click)="play(call._id)" class="care-btn h-8 px-3 text-xs">
-                ▶ Nghe lại ghi âm
-              </button>
-            </ng-template>
-          </ng-container>
-        </div>
-      </div>
-
-      <!-- Exchange / timeline -->
-      <div class="care-card p-3.5 space-y-2.5">
-        <h3 class="care-title">💬 Trao đổi & tiến trình</h3>
-        <div *ngIf="c.permissions.work" class="space-y-2">
-          <div class="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              (click)="noteKind = 'trao_doi'"
-              class="care-kind"
-              [class.is-active]="noteKind === 'trao_doi'"
-            >
-              Trao đổi
-            </button>
-            <button
-              *ngIf="!c.permissions.manage"
-              type="button"
-              (click)="noteKind = 'kho_khan'"
-              class="care-kind"
-              data-kind="kho_khan"
-              [class.is-active]="noteKind === 'kho_khan'"
-            >
-              Báo khó khăn
-            </button>
-            <button
-              *ngIf="c.permissions.manage"
-              type="button"
-              (click)="noteKind = 'chi_dao'"
-              class="care-kind"
-              data-kind="chi_dao"
-              [class.is-active]="noteKind === 'chi_dao'"
-            >
-              Chỉ đạo
-            </button>
-          </div>
-          <div class="flex gap-2">
-            <textarea
-              [(ngModel)]="noteText"
-              rows="2"
-              maxlength="4000"
-              [placeholder]="
-                noteKind === 'kho_khan'
-                  ? 'Khó khăn cần cấp quản lý hỗ trợ...'
-                  : noteKind === 'chi_dao'
-                    ? 'Chỉ đạo cho nhân viên...'
-                    : 'Nội dung trao đổi...'
-              "
-              class="min-w-0 flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
-            ></textarea>
-            <button
-              type="button"
-              (click)="sendNote(c)"
-              [disabled]="busy() || !noteText.trim()"
-              class="care-btn-primary px-4 self-end h-10"
-            >
-              Gửi
-            </button>
-          </div>
-        </div>
-        <ol class="care-timeline">
-          <li *ngFor="let n of sortedNotes(c)" [attr.data-kind]="n.kind">
-            <div class="flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
-              <span class="care-kind-label" [attr.data-kind]="n.kind">{{
-                noteKindLabels[n.kind]
-              }}</span>
-              <b class="text-slate-700">{{ n.authorId?.fullName || 'Hệ thống' }}</b>
-              <span>{{ n.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
-            </div>
-            <div class="text-sm text-slate-800 whitespace-pre-line">{{ n.text }}</div>
-          </li>
-        </ol>
-      </div>
-
-      <!-- Closing -->
       <div
-        *ngIf="c.status === STATUS.CLOSED; else closingForms"
-        class="care-card care-card--done p-3.5 space-y-2"
+        id="care-panel-details"
+        role="tabpanel"
+        aria-labelledby="care-tab-details"
+        [hidden]="detailTab() !== 'details'"
+        class="care-tab-content"
       >
-        <h3 class="care-title">🏁 Kết quả chăm sóc</h3>
-        <div class="text-sm">
-          <b>{{ resultLabel(c.closing.result) }}</b>
-          <span *ngIf="c.closing.early" class="care-tag">Kết thúc sớm</span>
-        </div>
-        <p class="text-sm text-slate-700 whitespace-pre-line">{{ c.closing.summary }}</p>
-        <div class="text-xs text-slate-500">
-          Duyệt bởi {{ c.closing.approvedBy?.fullName || '—' }} ·
-          {{ c.closing.closedAt | date: 'dd/MM/yyyy' }}
-        </div>
-      </div>
-      <ng-template #closingForms>
-        <!-- Waiting for approval -->
+        <section class="care-card care-student-details">
+          <h2 class="care-title"><app-care-icon name="person" />Thông tin sinh viên</h2>
+          <dl>
+            <div>
+              <dt>Họ tên</dt>
+              <dd>{{ c.studentId.fullName }}</dd>
+            </div>
+            <div>
+              <dt>Mã số sinh viên</dt>
+              <dd>{{ c.studentId.studentCode }}</dd>
+            </div>
+            <div>
+              <dt>Lớp</dt>
+              <dd>{{ c.studentId.classCode }}</dd>
+            </div>
+            <div>
+              <dt>Ngành</dt>
+              <dd>{{ c.studentId.major || 'Chưa cập nhật' }}</dd>
+            </div>
+            <div>
+              <dt>Điện thoại sinh viên</dt>
+              <dd>{{ c.studentId.phone || 'Chưa cập nhật' }}</dd>
+            </div>
+            <div>
+              <dt>Điện thoại phụ huynh</dt>
+              <dd>{{ c.studentId.parentPhone || 'Chưa cập nhật' }}</dd>
+            </div>
+          </dl>
+        </section>
+        <!-- Directive (managers) -->
         <div
-          *ngIf="c.status === STATUS.CLOSING"
-          class="care-card care-card--attention p-3.5 space-y-2.5"
+          *ngIf="canAct() && c.status !== STATUS.CLOSED"
+          class="care-card p-3.5 space-y-2.5"
+          [class.care-card--attention]="c.status === STATUS.AWAITING"
         >
-          <h3 class="care-title">📋 Đề nghị kết thúc hồ sơ</h3>
+          <h3 class="care-title">
+            🧭
+            {{ c.status === STATUS.AWAITING ? 'Chỉ đạo chăm sóc' : 'Chỉ đạo / đổi người chăm sóc' }}
+          </h3>
+          <div class="grid sm:grid-cols-[1fr_170px] gap-2">
+            <select
+              [(ngModel)]="directStaffId"
+              aria-label="Nhân viên chăm sóc"
+              class="h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
+            >
+              <option value="">— Chọn nhân viên CSKH —</option>
+              <option *ngFor="let s of staffOptions()" [value]="s._id">
+                {{ s.fullName }} · {{ s.openCases }} hồ sơ đang mở{{
+                  suggestedStaff(c)?._id === s._id ? ' · phụ trách lớp' : ''
+                }}
+              </option>
+            </select>
+            <input
+              type="date"
+              [(ngModel)]="dueDate"
+              aria-label="Hạn hoàn thành"
+              class="h-10 px-3 rounded-xl border border-slate-200 text-sm"
+            />
+          </div>
+          <textarea
+            [(ngModel)]="directive"
+            rows="2"
+            maxlength="4000"
+            placeholder="Nội dung chỉ đạo (không bắt buộc)..."
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+          ></textarea>
+          <button
+            type="button"
+            (click)="direct(c)"
+            [disabled]="busy()"
+            class="care-btn-primary h-10 px-5"
+          >
+            Gửi chỉ đạo
+          </button>
+        </div>
+
+        <!-- Closing -->
+        <div
+          *ngIf="c.status === STATUS.CLOSED; else closingForms"
+          class="care-card care-card--done p-3.5 space-y-2"
+        >
+          <h3 class="care-title">🏁 Kết quả chăm sóc</h3>
           <div class="text-sm">
             <b>{{ resultLabel(c.closing.result) }}</b>
             <span *ngIf="c.closing.early" class="care-tag">Kết thúc sớm</span>
           </div>
           <p class="text-sm text-slate-700 whitespace-pre-line">{{ c.closing.summary }}</p>
           <div class="text-xs text-slate-500">
-            {{ c.closing.proposedBy?.fullName }} ·
-            {{ c.closing.proposedAt | date: 'dd/MM/yyyy HH:mm' }}
+            Duyệt bởi {{ c.closing.approvedBy?.fullName || '—' }} ·
+            {{ c.closing.closedAt | date: 'dd/MM/yyyy' }}
           </div>
-          <div *ngIf="canAct()" class="space-y-2 pt-2 border-t border-dashed border-amber-200">
+        </div>
+        <ng-template #closingForms>
+          <!-- Waiting for approval -->
+          <div
+            *ngIf="c.status === STATUS.CLOSING"
+            class="care-card care-card--attention p-3.5 space-y-2.5"
+          >
+            <h3 class="care-title">📋 Đề nghị kết thúc hồ sơ</h3>
+            <div class="text-sm">
+              <b>{{ resultLabel(c.closing.result) }}</b>
+              <span *ngIf="c.closing.early" class="care-tag">Kết thúc sớm</span>
+            </div>
+            <p class="text-sm text-slate-700 whitespace-pre-line">{{ c.closing.summary }}</p>
+            <div class="text-xs text-slate-500">
+              {{ c.closing.proposedBy?.fullName }} ·
+              {{ c.closing.proposedAt | date: 'dd/MM/yyyy HH:mm' }}
+            </div>
+            <div *ngIf="canAct()" class="space-y-2 pt-2 border-t border-dashed border-amber-200">
+              <button
+                type="button"
+                (click)="approveClose(c)"
+                [disabled]="busy()"
+                class="care-btn-primary h-10 px-5"
+              >
+                ✓ Duyệt kết thúc
+              </button>
+              <div class="flex gap-2">
+                <input
+                  [(ngModel)]="returnNote"
+                  placeholder="Lý do chưa duyệt, yêu cầu chăm sóc thêm..."
+                  class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
+                />
+                <button
+                  type="button"
+                  (click)="returnCase(c)"
+                  [disabled]="busy()"
+                  class="care-btn h-10 px-4"
+                >
+                  Trả lại
+                </button>
+              </div>
+            </div>
+            <p *ngIf="!canAct()" class="text-sm text-amber-800">
+              Đang chờ Trưởng phòng / Phó hiệu trưởng duyệt.
+            </p>
+          </div>
+
+          <!-- Report & close (staff asks; a manager may close directly) -->
+          <div
+            *ngIf="c.status === STATUS.IN_PROGRESS && c.permissions.work"
+            class="care-card p-3.5 space-y-2.5"
+          >
+            <h3 class="care-title">
+              🏁
+              {{
+                c.permissions.manage ? 'Đánh giá & kết thúc hồ sơ' : 'Báo cáo & đề nghị kết thúc'
+              }}
+            </h3>
+            <select
+              [(ngModel)]="closeResult"
+              aria-label="Kết quả chăm sóc"
+              class="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
+            >
+              <option value="">— Kết quả chăm sóc —</option>
+              <option *ngFor="let r of resultOptions" [value]="r[0]">{{ r[1] }}</option>
+            </select>
+            <textarea
+              [(ngModel)]="closeSummary"
+              rows="2"
+              maxlength="4000"
+              placeholder="Báo cáo: sinh viên đã được chăm sóc thế nào, chuyển biến ra sao..."
+              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+            ></textarea>
+            <label class="flex items-center gap-2 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="closeEarly" /> Kết thúc sớm (trước hết học kỳ)
+            </label>
             <button
               type="button"
-              (click)="approveClose(c)"
+              (click)="c.permissions.manage ? closeDirectly(c) : requestClose(c)"
               [disabled]="busy()"
               class="care-btn-primary h-10 px-5"
             >
-              ✓ Duyệt kết thúc
+              {{ c.permissions.manage ? 'Kết thúc hồ sơ' : 'Gửi đề nghị kết thúc' }}
             </button>
-            <div class="flex gap-2">
-              <input
-                [(ngModel)]="returnNote"
-                placeholder="Lý do chưa duyệt, yêu cầu chăm sóc thêm..."
-                class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
-              />
+          </div>
+        </ng-template>
+      </div>
+      <div
+        id="care-panel-calls"
+        role="tabpanel"
+        aria-labelledby="care-tab-calls"
+        [hidden]="detailTab() !== 'calls'"
+        class="care-tab-content"
+      >
+        <div class="care-card care-call-actions">
+          <h2 class="care-title"><app-care-icon name="phone" />Liên hệ sinh viên & phụ huynh</h2>
+          <ng-container *ngTemplateOutlet="callControls; context: { $implicit: c }" />
+        </div>
+        <!-- Calls -->
+        <div class="care-card p-3.5 space-y-2.5">
+          <h3 class="care-title">📞 Cuộc gọi trong hồ sơ ({{ c.calls.length }})</h3>
+          <p *ngIf="!c.calls.length" class="text-sm text-slate-400">Chưa có cuộc gọi nào.</p>
+          <div *ngFor="let call of c.calls" class="care-call">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="text-sm">
+                <b>{{ call.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }}</b>
+                · {{ $any(call.callerId)?.fullName }} ·
+                {{ call.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+              </div>
+              <span
+                class="care-chip"
+                [style.--c]="call.outcome === 'nghe_may' ? '#10b981' : '#f59e0b'"
+                >{{ outcomeLabels[call.outcome] || 'Chưa ghi kết quả' }}</span
+              >
+            </div>
+            <p *ngIf="call.note" class="text-sm text-slate-600">{{ call.note }}</p>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <span *ngIf="call.durationSec"
+                >{{ call.durationSec / 60 | number: '1.0-1' }} phút</span
+              >
+              <span>{{ call.record ? '🎙️ Có ghi âm' : 'Không ghi âm' }}</span>
+            </div>
+            <ng-container *ngIf="call.canPlay">
+              <audio
+                *ngIf="playing()[call._id] as src; else playBtn"
+                [src]="src"
+                controls
+                autoplay
+                class="w-full h-9"
+              ></audio>
+              <ng-template #playBtn>
+                <button type="button" (click)="play(call._id)" class="care-btn h-8 px-3 text-xs">
+                  ▶ Nghe lại ghi âm
+                </button>
+              </ng-template>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+      <div
+        id="care-panel-notes"
+        role="tabpanel"
+        aria-labelledby="care-tab-notes"
+        [hidden]="detailTab() !== 'notes'"
+        class="care-tab-content"
+      >
+        <!-- Exchange / timeline -->
+        <div class="care-card p-3.5 space-y-2.5">
+          <h3 class="care-title">💬 Trao đổi & tiến trình</h3>
+          <div *ngIf="c.permissions.work" class="space-y-2">
+            <div class="flex flex-wrap gap-1.5">
               <button
                 type="button"
-                (click)="returnCase(c)"
-                [disabled]="busy()"
-                class="care-btn h-10 px-4"
+                (click)="noteKind = 'trao_doi'"
+                class="care-kind"
+                [class.is-active]="noteKind === 'trao_doi'"
               >
-                Trả lại
+                Trao đổi
+              </button>
+              <button
+                *ngIf="!c.permissions.manage"
+                type="button"
+                (click)="noteKind = 'kho_khan'"
+                class="care-kind"
+                data-kind="kho_khan"
+                [class.is-active]="noteKind === 'kho_khan'"
+              >
+                Báo khó khăn
+              </button>
+              <button
+                *ngIf="c.permissions.manage"
+                type="button"
+                (click)="noteKind = 'chi_dao'"
+                class="care-kind"
+                data-kind="chi_dao"
+                [class.is-active]="noteKind === 'chi_dao'"
+              >
+                Chỉ đạo
+              </button>
+            </div>
+            <div class="flex gap-2">
+              <textarea
+                [(ngModel)]="noteText"
+                rows="2"
+                maxlength="4000"
+                [placeholder]="
+                  noteKind === 'kho_khan'
+                    ? 'Khó khăn cần cấp quản lý hỗ trợ...'
+                    : noteKind === 'chi_dao'
+                      ? 'Chỉ đạo cho nhân viên...'
+                      : 'Nội dung trao đổi...'
+                "
+                class="min-w-0 flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
+              ></textarea>
+              <button
+                type="button"
+                (click)="sendNote(c)"
+                [disabled]="busy() || !noteText.trim()"
+                class="care-btn-primary px-4 self-end h-10"
+              >
+                Gửi
               </button>
             </div>
           </div>
-          <p *ngIf="!canAct()" class="text-sm text-amber-800">
-            Đang chờ Trưởng phòng / Phó hiệu trưởng duyệt.
-          </p>
+          <ol class="care-timeline">
+            <li *ngFor="let n of sortedNotes(c)" [attr.data-kind]="n.kind">
+              <div class="flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                <span class="care-kind-label" [attr.data-kind]="n.kind">{{
+                  noteKindLabels[n.kind]
+                }}</span>
+                <b class="text-slate-700">{{ n.authorId?.fullName || 'Hệ thống' }}</b>
+                <span>{{ n.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="text-sm text-slate-800 whitespace-pre-line">{{ n.text }}</div>
+            </li>
+          </ol>
         </div>
-
-        <!-- Report & close (staff asks; a manager may close directly) -->
-        <div
-          *ngIf="c.status === STATUS.IN_PROGRESS && c.permissions.work"
-          class="care-card p-3.5 space-y-2.5"
-        >
-          <h3 class="care-title">
-            🏁
-            {{ c.permissions.manage ? 'Đánh giá & kết thúc hồ sơ' : 'Báo cáo & đề nghị kết thúc' }}
-          </h3>
-          <select
-            [(ngModel)]="closeResult"
-            aria-label="Kết quả chăm sóc"
-            class="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
-          >
-            <option value="">— Kết quả chăm sóc —</option>
-            <option *ngFor="let r of resultOptions" [value]="r[0]">{{ r[1] }}</option>
-          </select>
-          <textarea
-            [(ngModel)]="closeSummary"
-            rows="2"
-            maxlength="4000"
-            placeholder="Báo cáo: sinh viên đã được chăm sóc thế nào, chuyển biến ra sao..."
-            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
-          ></textarea>
-          <label class="flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" [(ngModel)]="closeEarly" /> Kết thúc sớm (trước hết học kỳ)
-          </label>
-          <button
-            type="button"
-            (click)="c.permissions.manage ? closeDirectly(c) : requestClose(c)"
-            [disabled]="busy()"
-            class="care-btn-primary h-10 px-5"
-          >
-            {{ c.permissions.manage ? 'Kết thúc hồ sơ' : 'Gửi đề nghị kết thúc' }}
-          </button>
-        </div>
-      </ng-template>
+      </div>
+      <div
+        id="care-panel-documents"
+        role="tabpanel"
+        aria-labelledby="care-tab-documents"
+        [hidden]="detailTab() !== 'documents'"
+        class="care-card care-documents"
+      >
+        <span class="care-document-icon"><app-care-icon name="file" /></span>
+        <h2 class="care-title">Tài liệu hồ sơ</h2>
+        <p class="care-muted">Hồ sơ hiện chưa hỗ trợ tài liệu đính kèm.</p>
+        <button type="button" class="care-btn" (click)="changeDetailTab('notes')">
+          Xem ghi chú & tiến trình
+        </button>
+      </div>
     </section>
   </div>
 </div>
-
 <!-- New case (manager) -->
 <div
   *ngIf="showNew()"
@@ -655,3 +698,33 @@
     </button>
   </div>
 </div>
+
+<ng-template #callControls let-c>
+  <!-- Call buttons -->
+  <div *ngIf="c.permissions.work && c.status !== STATUS.CLOSED" class="flex flex-wrap gap-2">
+    <button
+      type="button"
+      (click)="call(c, 'sinh_vien')"
+      [disabled]="!c.studentId.phone"
+      class="care-btn-primary h-10 px-4"
+    >
+      📞 Gọi sinh viên
+    </button>
+    <button
+      type="button"
+      (click)="call(c, 'phu_huynh')"
+      [disabled]="!c.studentId.parentPhone"
+      class="care-btn h-10 px-4"
+    >
+      📞 Gọi phụ huynh
+    </button>
+    <button type="button" (click)="getAdvice(c)" class="care-btn h-10 px-4">
+      ✨ AI gợi ý cuộc gọi
+    </button>
+  </div>
+  <div *ngIf="advice() as a" class="care-ai text-sm whitespace-pre-line">
+    <span *ngIf="a.loading">AI Care đang soạn gợi ý...</span>
+    <span *ngIf="a.text">{{ a.text }}</span>
+    <span *ngIf="a.error" class="text-rose-700">{{ a.error }}</span>
+  </div>
+</ng-template>

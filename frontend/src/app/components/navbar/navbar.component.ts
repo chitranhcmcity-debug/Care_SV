@@ -341,10 +341,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  /** The admin overview and the timetable draw their own banner, so the generic page header is skipped. */
+  /** Pages with their own detail header do not repeat the generic page banner. */
   get showPageHero(): boolean {
     const path = this.router.url.split(/[?#]/)[0];
     if (path === '/timetable') return false;
+    if (path === '/care' && this.router.parseUrl(this.router.url).queryParams['case']) return false;
     if (path !== '/admin') return true;
     const tab =
       this.router.parseUrl(this.router.url).queryParams['tab'] ??
@@ -360,7 +361,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
         visibleDashboardTabs(this.authService)[0]?.id)
       : null;
     const tab = tabId ? visibleDashboardTabs(this.authService).find((t) => t.id === tabId) : null;
-    const icon = tab?.icon ?? NAV_ITEMS.find((item) => item.path === path)?.icon ?? NAV_ITEMS[0].icon;
+    const icon =
+      tab?.icon ?? NAV_ITEMS.find((item) => item.path === path)?.icon ?? NAV_ITEMS[0].icon;
     return { icon, ...pageHero(tab?.id ?? path) };
   }
 

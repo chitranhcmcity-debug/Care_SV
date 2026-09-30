@@ -16,6 +16,9 @@ import { AiService } from '../../services/ai.service';
 import { CallService, CallTarget, CALL_OUTCOME_LABELS } from '../../services/call.service';
 import { NotificationService } from '../../services/notification.service';
 import { StudentService } from '../../services/student.service';
+import { CareIconComponent, CareIcon } from './care-icon.component';
+import { CareHeaderComponent } from './care-header.component';
+import { CareListComponent } from './care-list.component';
 import {
   CARE_RESULT_LABELS,
   CARE_SOURCE_LABELS,
@@ -27,6 +30,7 @@ import {
 } from '../../models/types';
 
 type Tab = 'open' | CareStatus;
+type DetailTab = 'process' | 'details' | 'calls' | 'notes' | 'documents';
 
 const NOTE_KIND_LABELS: Record<CareNote['kind'], string> = {
   trao_doi: 'Trao đổi',
@@ -43,7 +47,7 @@ const NOTE_KIND_LABELS: Record<CareNote['kind'], string> = {
 @Component({
   selector: 'app-care',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CareIconComponent, CareHeaderComponent, CareListComponent],
   templateUrl: './care.component.html',
   styleUrl: './care.component.css',
 })
@@ -94,6 +98,55 @@ export class CareComponent implements OnInit, OnDestroy {
   readonly detailLoading = signal(false);
   readonly busy = signal(false);
 
+  // Presentation state only; all mutations still use the existing case actions.
+  readonly detailTab = signal<DetailTab>('process');
+  readonly editingFindings = signal(false);
+  readonly pendingSuggestion = signal<string | null>(null);
+  readonly detailTabs: { id: DetailTab; label: string; icon: CareIcon }[] = [
+    { id: 'process', label: 'Quy trình chăm sóc', icon: 'steps' },
+    { id: 'details', label: 'Thông tin chi tiết', icon: 'person' },
+    { id: 'calls', label: 'Cuộc gọi', icon: 'phone' },
+    { id: 'notes', label: 'Ghi chú', icon: 'note' },
+    { id: 'documents', label: 'Tài liệu', icon: 'file' },
+  ];
+
+  changeDetailTab(tab: DetailTab) {
+    this.detailTab.set(tab);
+  }
+
+  onDetailTabKey(event: KeyboardEvent, index: number) {
+    let next = index;
+    if (event.key === 'ArrowRight') next = (index + 1) % this.detailTabs.length;
+    else if (event.key === 'ArrowLeft')
+      next = (index + this.detailTabs.length - 1) % this.detailTabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = this.detailTabs.length - 1;
+    else return;
+    event.preventDefault();
+    this.changeDetailTab(this.detailTabs[next].id);
+    const buttons = (
+      event.currentTarget as HTMLElement
+    ).parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    buttons?.[next]?.focus();
+  }
+
+  editFindings(field?: HTMLTextAreaElement) {
+    this.detailTab.set('process');
+    this.editingFindings.set(true);
+    if (field) requestAnimationFrame(() => field.focus());
+  }
+
+  stepDescription(step: CareStep): string {
+    if (step.source !== 'mac_dinh') return '';
+    const descriptions: Record<string, string> = {
+      'Liên hệ sinh viên / phụ huynh': 'Gọi điện, nhắn tin, xác nhận tình trạng.',
+      'Tìm hiểu nguyên nhân': 'Khai thác lý do, hoàn cảnh, thu thập thông tin.',
+      'Đưa ra hướng giải quyết': 'Đề xuất biện pháp, phối hợp phòng ban.',
+      'Theo dõi chuyển biến sau chăm sóc': 'Cập nhật kết quả, đánh giá hiệu quả.',
+    };
+    return descriptions[step.title] || '';
+  }
+
   // Direct form
   readonly staffOptions = signal<CareStaffOption[]>([]);
   directStaffId = '';
@@ -134,6 +187,18 @@ export class CareComponent implements OnInit, OnDestroy {
         )
       : this.items();
   });
+
+  readonly listTabs = computed(() =>
+    this.tabs().map((t) => ({ ...t, count: this.countFor(t.id) })),
+  );
+  readonly overdueCaseIds = computed(
+    () =>
+      new Set(
+        this.visible()
+          .filter((c) => this.isOverdue(c))
+          .map((c) => c._id),
+      ),
+  );
 
   private sub?: Subscription;
   private savedVersion = 0;
@@ -238,6 +303,9 @@ export class CareComponent implements OnInit, OnDestroy {
     this.cause = c.cause;
     this.solution = c.solution;
     if (switched) {
+      this.detailTab.set('process');
+      this.editingFindings.set(false);
+      this.pendingSuggestion.set(null);
       this.directStaffId = c.assignedStaffId?._id ?? this.suggestedStaff(c)?._id ?? '';
       this.directive = '';
       this.dueDate = c.dueDate ? c.dueDate.slice(0, 10) : '';
