@@ -6,7 +6,13 @@ const API_BASE = 'https://api-merchant.payos.vn';
 const REQUEST_TIMEOUT_MS = 15000;
 
 function credentials() {
-  const { PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY } = process.env;
+  // Trim: keys pasted into a hosting dashboard often carry a stray space or newline,
+  // which PayOS reports as an invalid signature.
+  const [PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY] = [
+    process.env.PAYOS_CLIENT_ID,
+    process.env.PAYOS_API_KEY,
+    process.env.PAYOS_CHECKSUM_KEY,
+  ].map((v) => (v || '').trim());
   if (!PAYOS_CLIENT_ID || !PAYOS_API_KEY || !PAYOS_CHECKSUM_KEY) return null;
   return { clientId: PAYOS_CLIENT_ID, apiKey: PAYOS_API_KEY, checksumKey: PAYOS_CHECKSUM_KEY };
 }
