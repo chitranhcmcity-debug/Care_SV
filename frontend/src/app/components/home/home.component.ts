@@ -101,12 +101,57 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   /** Hero mock-up content — illustrative only, not real data. */
   readonly mockMenu = [
     { label: 'Tổng quan', icon: ICONS.home },
-    { label: 'Sinh viên', icon: ICONS.user },
     { label: 'Điểm danh', icon: ICONS.clock },
-    { label: 'Cảnh báo', icon: ICONS.alert },
-    { label: 'Công việc', icon: ICONS.clipboard },
+    { label: 'Lịch học', icon: ICONS.calendarCheck },
+    { label: 'Chăm sóc', icon: ICONS.phone },
     { label: 'Báo cáo', icon: ICONS.chart },
+    { label: 'Sinh viên', icon: ICONS.user },
     { label: 'Tin nhắn', icon: ICONS.message },
+  ];
+
+  /** Desk-calendar pages in the hero; `menu` is the highlighted sidebar item. */
+  readonly calPages = [
+    { id: 'overview', label: 'Tổng quan', menu: 0 },
+    { id: 'attendance', label: 'Điểm danh', menu: 1 },
+    { id: 'timetable', label: 'Thời khóa biểu', menu: 2 },
+    { id: 'care', label: 'Hồ sơ chăm sóc', menu: 3 },
+    { id: 'analytics', label: 'Thống kê', menu: 4 },
+  ];
+  readonly calRings = Array.from({ length: 14 });
+  readonly calPage = signal(0);
+  /** Page shown underneath while the current one flips away. */
+  readonly calNext = signal(1);
+  /** Index of the page mid-flip, or -1. */
+  readonly calFlipping = signal(-1);
+  calPaused = false;
+  private calTimer?: ReturnType<typeof setInterval>;
+  private calFlipTimer?: ReturnType<typeof setTimeout>;
+
+  readonly mockRoster = [
+    { name: 'Nguyễn Văn An', code: 'SV180123', status: 'Có mặt', tone: 'bg-emerald-100 text-emerald-700', avatar: 'from-amber-400 to-orange-500' },
+    { name: 'Trần Thị Mai', code: 'SV180456', status: 'Vắng', tone: 'bg-rose-100 text-rose-700', avatar: 'from-pink-400 to-rose-500' },
+    { name: 'Lê Minh Quân', code: 'SV180789', status: 'Có mặt', tone: 'bg-emerald-100 text-emerald-700', avatar: 'from-sky-400 to-indigo-500' },
+    { name: 'Phạm Gia Huy', code: 'SV180812', status: 'Đi muộn', tone: 'bg-amber-100 text-amber-700', avatar: 'from-emerald-400 to-teal-500' },
+  ];
+  readonly mockWeek = [
+    { day: 'T2', date: '28/09', classes: [{ code: 'MKT110', time: '07:00', tone: 'bg-orange-50 border-orange-100 text-orange-700' }, { code: 'NET101', time: '13:00', tone: 'bg-rose-50 border-rose-100 text-rose-700' }] },
+    { day: 'T3', date: '29/09', classes: [{ code: 'DES130', time: '07:00', tone: 'bg-violet-50 border-violet-100 text-violet-700' }, { code: 'DB203', time: '13:00', tone: 'bg-sky-50 border-sky-100 text-sky-700' }] },
+    { day: 'T4', date: '30/09', classes: [{ code: 'NET101', time: '07:00', tone: 'bg-rose-50 border-rose-100 text-rose-700' }] },
+    { day: 'T5', date: '01/10', classes: [{ code: 'MKT110', time: '07:00', tone: 'bg-orange-50 border-orange-100 text-orange-700' }, { code: 'WEB202', time: '18:00', tone: 'bg-emerald-50 border-emerald-100 text-emerald-700' }] },
+    { day: 'T6', date: '02/10', classes: [{ code: 'ACC120', time: '13:00', tone: 'bg-teal-50 border-teal-100 text-teal-700' }, { code: 'DB203', time: '13:00', tone: 'bg-sky-50 border-sky-100 text-sky-700' }] },
+    { day: 'T7', date: '03/10', classes: [] as { code: string; time: string; tone: string }[] },
+  ];
+  readonly mockCases = [
+    { name: 'Nguyễn Văn An', note: 'Vắng 3 buổi · NET101', status: 'Đang chăm sóc', tone: 'bg-violet-100 text-violet-700', avatar: 'from-amber-400 to-orange-500' },
+    { name: 'Trần Thị Mai', note: 'Nguy cơ cấm thi · DB203', status: 'Chờ chỉ đạo', tone: 'bg-amber-100 text-amber-700', avatar: 'from-pink-400 to-rose-500' },
+    { name: 'Lê Minh Quân', note: 'Đã đi học lại', status: 'Đã kết thúc', tone: 'bg-emerald-100 text-emerald-700', avatar: 'from-sky-400 to-indigo-500' },
+  ];
+  readonly mockAbsence = [
+    { code: 'NET101', pct: 85, dot: 'bg-violet-500' },
+    { code: 'WEB202', pct: 70, dot: 'bg-pink-500' },
+    { code: 'ACC120', pct: 65, dot: 'bg-emerald-500' },
+    { code: 'MKT110', pct: 40, dot: 'bg-amber-500' },
+    { code: 'DB203', pct: 30, dot: 'bg-sky-500' },
   ];
   readonly mockStats = [
     {
@@ -264,7 +309,26 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     private router: Router,
   ) {}
 
+  /** Flip the calendar to page `target` (instantly when the user prefers reduced motion). */
+  calGo(target: number) {
+    if (target === this.calPage() || this.calFlipping() >= 0) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.calPage.set(target);
+      return;
+    }
+    this.calNext.set(target);
+    this.calFlipping.set(this.calPage());
+    this.calFlipTimer = setTimeout(() => {
+      this.calPage.set(target);
+      this.calFlipping.set(-1);
+    }, 900);
+  }
+
   ngAfterViewInit() {
+    this.calTimer = setInterval(() => {
+      if (!this.calPaused && !document.hidden)
+        this.calGo((this.calPage() + 1) % this.calPages.length);
+    }, 4500);
     // A section counts as active while it crosses a band just below the sticky header.
     this.sectionObserver = new IntersectionObserver(
       (entries) => {
@@ -281,6 +345,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.sectionObserver?.disconnect();
+    clearInterval(this.calTimer);
+    clearTimeout(this.calFlipTimer);
   }
 
   scrollTop(event: Event) {
