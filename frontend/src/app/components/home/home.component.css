@@ -115,33 +115,9 @@
     radial-gradient(90% 80% at 90% 100%, rgb(251 207 232 / 0.55), transparent 60%);
 }
 
-/* Hero mock-up: a tilted dashboard window with a dark sidebar. */
+/* Hero mock-up: the desk calendar (see demo-calendar). */
 .mock-stage {
   perspective: 1800px;
-}
-.mock-window {
-  transform: rotateY(-9deg) rotateX(4deg) rotateZ(-1deg);
-  transform-origin: left center;
-  border: 6px solid rgb(255 255 255 / 0.85);
-  box-shadow:
-    0 50px 90px -40px rgb(76 29 149 / 0.55),
-    0 20px 40px -24px rgb(219 39 119 / 0.35),
-    0 0 0 1px rgb(var(--brand-200));
-}
-.mock-side {
-  background: linear-gradient(180deg, #2b2382 0%, #1e1766 60%, #16114f 100%);
-}
-.mock-banner {
-  background: linear-gradient(
-    115deg,
-    rgb(var(--brand-600)) 0%,
-    #7c3aed 35%,
-    #c026d3 75%,
-    #ec4899 110%
-  );
-}
-.mock-banner .mascot {
-  filter: drop-shadow(0 10px 16px rgb(30 23 102 / 0.45));
 }
 .cube {
   position: absolute;
@@ -344,152 +320,12 @@
   }
 }
 
-/* ---------- Hero desk calendar ---------- */
-.cal {
-  transform: rotateY(-9deg) rotateX(4deg) rotateZ(-1deg);
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  padding-top: 14px;
-}
-.cal-pages {
-  position: relative;
-  height: 500px;
-  perspective: 1400px;
-}
-.cal-page.mock-window {
-  position: absolute;
-  inset: 0;
-  transform: none;
-  visibility: hidden;
-  transform-origin: top center;
-  backface-visibility: hidden;
-}
-.cal-page.is-next {
-  visibility: visible;
-  z-index: 1;
-}
-.cal-page.is-current {
-  visibility: visible;
-  z-index: 2;
-}
-.cal-page.is-flipping {
-  z-index: 3;
-  animation: cal-flip 0.9s cubic-bezier(0.45, 0.05, 0.3, 1) forwards;
-}
-/* A shadow sweeps over the page as it lifts away. */
-.cal-page.is-flipping::after {
-  position: absolute;
-  inset: 0;
-  content: '';
-  pointer-events: none;
-  background: linear-gradient(180deg, rgb(30 27 75 / 0), rgb(30 27 75 / 0.35));
-  animation: cal-shade 0.9s ease forwards;
-}
-@keyframes cal-flip {
-  0% {
-    transform: rotateX(0deg);
-  }
-  60% {
-    opacity: 1;
-  }
-  100% {
-    transform: rotateX(105deg) translateY(-12px);
-    opacity: 0;
-  }
-}
-@keyframes cal-shade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.cal-body {
-  height: 100%;
-  overflow: hidden;
-}
-/* Pages stacked underneath give the pad some thickness. */
-.cal-under {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: -8px;
-  height: 60px;
-  border-radius: 0 0 24px 24px;
-  background: #fff;
-  border: 1px solid rgb(var(--brand-200));
-  box-shadow: 0 10px 20px -12px rgb(76 29 149 / 0.4);
-}
-.cal-under--2 {
-  left: 28px;
-  right: 28px;
-  bottom: -16px;
-  background: #f5f0ff;
-}
-/* Spiral binding along the top edge. */
-.cal-rings {
-  position: absolute;
-  z-index: 5;
-  top: 0;
-  left: 8%;
-  right: 8%;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-.cal-ring {
-  width: 10px;
-  height: 30px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #6d28d9, #c4b5fd 45%, #7c3aed 60%, #4c1d95);
-  box-shadow:
-    0 3px 6px -2px rgb(30 27 75 / 0.6),
-    inset 0 1px 0 rgb(255 255 255 / 0.6);
-}
-.cal-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  border: 1.5px solid rgb(var(--brand-200));
-  background: rgb(255 255 255 / 0.85);
-  color: #475569;
-  font-size: 12.5px;
-  font-weight: 700;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-.cal-tab:hover {
-  color: rgb(var(--brand-600));
-}
-.cal-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgb(var(--brand-200));
-}
-.cal-tab.is-on {
-  border-color: transparent;
-  color: #fff;
-  background: linear-gradient(90deg, rgb(var(--brand-600)), #c026d3);
-  box-shadow: 0 10px 20px -10px #9333ea;
-}
-.cal-tab.is-on .cal-dot {
-  background: #fff;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .blob,
   .float,
   .float-slow,
   .mascot,
-  .stars,
-  .cal-page.is-flipping,
-  .cal-page.is-flipping::after {
+  .stars {
     animation: none;
   }
   .btn-grad,
