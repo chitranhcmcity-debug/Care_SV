@@ -1,0 +1,160 @@
+.tt-bar {
+  border: 1.5px solid #ede9fe;
+  border-radius: 22px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 10px 30px -20px rgb(76 29 149 / 0.4);
+}
+
+/* Shift tones: sáng = amber, chiều = sky, tối = violet */
+.tt-sang {
+  --tone: #d97706;
+  --tone-2: #fbbf24;
+  --tint: #fff8eb;
+}
+.tt-chieu {
+  --tone: #0284c7;
+  --tone-2: #38bdf8;
+  --tint: #eff8ff;
+}
+.tt-toi {
+  --tone: #7c3aed;
+  --tone-2: #c084fc;
+  --tint: #f6f0ff;
+}
+.tt-none {
+  --tone: #475569;
+  --tone-2: #94a3b8;
+  --tint: #f8fafc;
+}
+
+.tt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--tone) 25%, white);
+  background: var(--tint);
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tt-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--tone-2), var(--tone));
+}
+.tt-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #ddd6fe;
+  background: #faf5ff;
+  color: #4c1d95;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tt-day {
+  border: 1.5px solid #f1ecff;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 12px 28px -22px rgb(76 29 149 / 0.45);
+}
+.tt-count {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3e8ff;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 800;
+}
+.tt-empty {
+  border: 1.5px dashed #e9e3fb;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff, #faf7ff);
+}
+.tt-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, #c4b5fd, #8b5cf6);
+  box-shadow: 0 14px 24px -12px #7c3aed;
+}
+
+.tt-card {
+  position: relative;
+  border: 1.5px solid color-mix(in srgb, var(--tone) 16%, white);
+  border-radius: 16px;
+  background: linear-gradient(160deg, #fff 20%, var(--tint));
+  box-shadow: 0 8px 18px -14px color-mix(in srgb, var(--tone) 70%, transparent);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.tt-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 26px -16px color-mix(in srgb, var(--tone) 80%, transparent);
+}
+.tt-card.is-mine {
+  box-shadow:
+    0 0 0 2px #a78bfa,
+    0 8px 18px -14px color-mix(in srgb, var(--tone) 70%, transparent);
+}
+.tt-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, var(--tone-2), var(--tone));
+  box-shadow: 0 8px 14px -8px var(--tone);
+}
+.tt-code {
+  color: var(--tone);
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.tt-mine {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.tt-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.tt-meta svg {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  margin-top: 1px;
+  color: color-mix(in srgb, var(--tone) 70%, #64748b);
+}
+.tt-foot {
+  border-top: 1px dashed color-mix(in srgb, var(--tone) 20%, white);
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}

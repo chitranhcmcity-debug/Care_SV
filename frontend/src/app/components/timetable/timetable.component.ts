@@ -6,11 +6,11 @@ import { ViLabelPipe } from '../../utils/label.pipe';
 
 const WEEK = ['thu_2', 'thu_3', 'thu_4', 'thu_5', 'thu_6', 'thu_7', 'chu_nhat'];
 const SHIFT_ORDER: Record<string, number> = { sang: 0, chieu: 1, toi: 2 };
-const SHIFT_TONE: Record<string, string> = {
-  sang: 'bg-amber-50/90 border-amber-200 text-amber-900 hover:border-amber-300',
-  chieu: 'bg-sky-50/90 border-sky-200 text-sky-900 hover:border-sky-300',
-  toi: 'bg-violet-50/90 border-violet-200 text-violet-900 hover:border-violet-300',
-};
+const SHIFTS = [
+  { key: 'sang', label: 'Ca sáng' },
+  { key: 'chieu', label: 'Ca chiều' },
+  { key: 'toi', label: 'Ca tối' },
+];
 
 /** Weekly timetable of every course group (read-only, no student data). */
 @Component({
@@ -18,6 +18,7 @@ const SHIFT_TONE: Record<string, string> = {
   standalone: true,
   imports: [CommonModule, ViLabelPipe],
   templateUrl: './timetable.component.html',
+  styleUrl: './timetable.component.css',
 })
 export class TimetableComponent implements OnInit {
   private readonly students = inject(StudentService);
@@ -27,7 +28,7 @@ export class TimetableComponent implements OnInit {
   readonly loading = signal(true);
   readonly onlyMine = signal(false);
   readonly week = WEEK;
-  readonly shiftTone = SHIFT_TONE;
+  readonly shifts = SHIFTS;
 
   /** Course groups per weekday, ordered by shift. */
   readonly byDay = computed(() => {
