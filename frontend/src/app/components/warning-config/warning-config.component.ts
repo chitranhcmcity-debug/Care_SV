@@ -16,6 +16,7 @@ const PALETTE = ['#eab308', '#f97316', '#ef4444', '#dc2626', '#9333ea', '#2563eb
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './warning-config.component.html',
+  styleUrl: './warning-config.component.css',
 })
 export class WarningConfigComponent implements OnInit {
   private readonly settings = inject(SettingsService);

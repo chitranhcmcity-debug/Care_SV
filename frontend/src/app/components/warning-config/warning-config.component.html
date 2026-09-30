@@ -1,184 +1,160 @@
-<div class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
-  <div class="border-b border-slate-200 pb-4 flex items-start justify-between flex-wrap gap-4">
-    <div>
-      <h3 class="text-lg md:text-xl font-bold text-slate-900">
-        ⚠️ Mức cảnh báo vắng & danh mục chăm sóc
-      </h3>
-      <p class="text-xs text-slate-500 font-medium mt-0.5 max-w-2xl">
-        Hệ thống tự tính số tiết nghỉ không phép của mỗi sinh viên trong từng học phần và xếp vào
-        mức cao nhất đã chạm. Sắp xếp các mức từ nhẹ đến nặng; màu sắc được dùng ở báo cáo, điểm
-        danh và chăm sóc. AI Care cũng dùng đúng các mức này khi trả lời.
-      </p>
+<div class="wc">
+  <header class="wc-hero">
+    <div class="wc-hero-copy">
+      <span class="wc-hero-icon" aria-hidden="true">⚠️</span>
+      <div>
+        <h3>Mức cảnh báo vắng &amp; danh mục chăm sóc</h3>
+        <p>
+          Hệ thống tự tính số tiết nghỉ không phép của mỗi sinh viên trong từng học phần và xếp vào
+          mức cao nhất đã chạm. Sắp xếp các mức từ nhẹ đến nặng; màu sắc được dùng ở báo cáo, điểm
+          danh và chăm sóc. AI Care cũng dùng đúng các mức này khi trả lời.
+        </p>
+      </div>
     </div>
-    <button
-      type="button"
-      (click)="save()"
-      [disabled]="saving()"
-      class="px-6 py-3 bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-violet-500/25 hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 disabled:translate-y-0"
-    >
+    <button type="button" class="wc-btn-primary" (click)="save()" [disabled]="saving()">
       {{ saving() ? 'Đang lưu...' : '💾 Lưu cấu hình' }}
     </button>
-  </div>
+  </header>
 
   <!-- Warning levels -->
-  <section class="space-y-3">
-    <div class="flex items-center justify-between">
-      <h4 class="font-bold text-slate-900 text-sm uppercase">Các mức cảnh báo (nhẹ → nặng)</h4>
+  <section class="wc-section">
+    <div class="wc-section-head">
+      <h4>
+        <span class="wc-tile is-amber" aria-hidden="true">📊</span>
+        Các mức cảnh báo <small>nhẹ → nặng</small>
+        <span class="wc-count">{{ levels.length }}</span>
+      </h4>
       <button
         type="button"
+        class="wc-btn-outline"
         (click)="addLevel()"
         [disabled]="levels.length >= 10"
-        class="px-4 py-2 rounded-xl border border-violet-300 bg-violet-50/70 text-violet-700 text-xs font-bold hover:bg-violet-100 hover:border-violet-400 hover:-translate-y-0.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:translate-y-0"
       >
-        ➕ Thêm mức
+        ＋ Thêm mức
       </button>
     </div>
 
-    <div
-      *ngFor="let level of levels; let i = index"
-      class="p-4 rounded-xl border bg-white grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
-      [style.borderLeft]="'6px solid ' + level.color"
-    >
-      <div class="md:col-span-1 flex md:flex-col gap-1">
-        <button
-          type="button"
-          (click)="move(i, -1)"
-          [disabled]="i === 0"
-          class="text-slate-400 hover:text-slate-700 disabled:opacity-30 text-xs"
-          title="Lên"
-        >
-          ▲
-        </button>
-        <button
-          type="button"
-          (click)="move(i, 1)"
-          [disabled]="i === levels.length - 1"
-          class="text-slate-400 hover:text-slate-700 disabled:opacity-30 text-xs"
-          title="Xuống"
-        >
-          ▼
-        </button>
-      </div>
-      <label class="md:col-span-3 block">
-        <span class="block text-[11px] font-bold text-slate-500 uppercase">Tên mức</span>
-        <input
-          [(ngModel)]="level.name"
-          maxlength="50"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
-        />
-      </label>
-      <label class="md:col-span-2 block">
-        <span class="block text-[11px] font-bold text-slate-500 uppercase">Ngưỡng</span>
-        <input
-          type="number"
-          min="0.1"
-          [max]="level.unit === 'percent' ? 100 : 1000"
-          step="0.5"
-          [(ngModel)]="level.threshold"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
-        />
-      </label>
-      <label class="md:col-span-2 block">
-        <span class="block text-[11px] font-bold text-slate-500 uppercase">Tính theo</span>
-        <select
-          [(ngModel)]="level.unit"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
-        >
-          <option value="percent">% tổng số tiết</option>
-          <option value="periods">Số tiết nghỉ</option>
-        </select>
-      </label>
-      <label class="md:col-span-1 block">
-        <span class="block text-[11px] font-bold text-slate-500 uppercase">Màu</span>
-        <input
-          type="color"
-          [(ngModel)]="level.color"
-          class="w-full h-9 rounded-lg border border-slate-300 bg-white cursor-pointer"
-        />
-      </label>
-      <label class="md:col-span-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
-        <input type="checkbox" [(ngModel)]="level.examBan" class="w-4 h-4" />
-        Mức cấm thi
-      </label>
-      <div class="md:col-span-1 text-right">
-        <button
-          type="button"
-          (click)="removeLevel(i)"
-          [disabled]="levels.length === 1"
-          class="px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50 disabled:opacity-40"
-        >
-          Xóa
-        </button>
-      </div>
-      <div class="md:col-span-12 text-xs text-slate-600 flex items-center gap-2">
-        <span
-          class="px-2 py-0.5 rounded-full text-white font-bold"
-          [style.backgroundColor]="level.color"
-          >{{ level.name || '…' }}</span
-        >
-        <span>{{ describe(level) }}</span>
-      </div>
+    <div class="wc-levels">
+      <article *ngFor="let level of levels; let i = index" class="wc-level" [style.--lv]="level.color">
+        <div class="wc-level-order">
+          <button
+            type="button"
+            (click)="move(i, -1)"
+            [disabled]="i === 0"
+            title="Lên"
+            aria-label="Đưa mức lên"
+          >
+            ▲
+          </button>
+          <span class="wc-level-no">{{ i + 1 }}</span>
+          <button
+            type="button"
+            (click)="move(i, 1)"
+            [disabled]="i === levels.length - 1"
+            title="Xuống"
+            aria-label="Đưa mức xuống"
+          >
+            ▼
+          </button>
+        </div>
+
+        <div class="wc-level-fields">
+          <label class="wc-field wc-field-name">
+            <span>Tên mức</span>
+            <input [(ngModel)]="level.name" maxlength="50" />
+          </label>
+          <label class="wc-field">
+            <span>Ngưỡng</span>
+            <input
+              type="number"
+              min="0.1"
+              [max]="level.unit === 'percent' ? 100 : 1000"
+              step="0.5"
+              [(ngModel)]="level.threshold"
+            />
+          </label>
+          <label class="wc-field">
+            <span>Tính theo</span>
+            <select [(ngModel)]="level.unit">
+              <option value="percent">% tổng số tiết</option>
+              <option value="periods">Số tiết nghỉ</option>
+            </select>
+          </label>
+          <label class="wc-field wc-field-color">
+            <span>Màu</span>
+            <input type="color" [(ngModel)]="level.color" />
+          </label>
+          <label class="wc-switch" [class.is-on]="level.examBan">
+            <input type="checkbox" [(ngModel)]="level.examBan" />
+            <i aria-hidden="true"></i>
+            Mức cấm thi
+          </label>
+          <button
+            type="button"
+            class="wc-remove"
+            (click)="removeLevel(i)"
+            [disabled]="levels.length === 1"
+            title="Xóa mức"
+            aria-label="Xóa mức"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="wc-level-preview">
+          <span class="wc-level-chip">{{ level.name || '…' }}</span>
+          <span>{{ describe(level) }}</span>
+        </div>
+      </article>
     </div>
   </section>
 
-  <!-- Absence reasons -->
-  <section class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-    <h4 class="font-bold text-slate-900 text-sm uppercase">📋 Danh mục lý do vắng</h4>
-    <p class="text-xs text-slate-500">Nhân viên CSKH chọn các lý do này khi ghi nhận cuộc gọi.</p>
-    <div class="flex flex-wrap gap-2">
-      <span
-        *ngFor="let r of absenceReasons"
-        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold"
-      >
-        {{ r }}
-        <button type="button" (click)="removeItem('absenceReasons', r)" class="text-rose-500">
-          ✖
-        </button>
-      </span>
-    </div>
-    <div class="flex gap-2">
-      <input
-        [(ngModel)]="newReason"
-        (keyup.enter)="addItem('absenceReasons', newReason)"
-        placeholder="Lý do mới…"
-        class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
-      />
-      <button
-        type="button"
-        (click)="addItem('absenceReasons', newReason)"
-        class="px-4 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold"
-      >
-        Thêm
-      </button>
-    </div>
-  </section>
+  <div class="wc-lists">
+    <!-- Absence reasons -->
+    <section class="wc-section wc-list">
+      <h4><span class="wc-tile is-blue" aria-hidden="true">📋</span>Danh mục lý do vắng</h4>
+      <p class="wc-hint">Nhân viên CSKH chọn các lý do này khi ghi nhận cuộc gọi.</p>
+      <div class="wc-chips">
+        <span *ngFor="let r of absenceReasons" class="wc-chip">
+          {{ r }}
+          <button
+            type="button"
+            (click)="removeItem('absenceReasons', r)"
+            [attr.aria-label]="'Xóa ' + r"
+          >
+            ✕
+          </button>
+        </span>
+      </div>
+      <div class="wc-add">
+        <input
+          [(ngModel)]="newReason"
+          (keyup.enter)="addItem('absenceReasons', newReason)"
+          placeholder="Lý do mới…"
+        />
+        <button type="button" (click)="addItem('absenceReasons', newReason)">Thêm</button>
+      </div>
+    </section>
 
-  <!-- Student tags -->
-  <section class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-    <h4 class="font-bold text-slate-900 text-sm uppercase">🏷️ Nhãn phân loại sinh viên</h4>
-    <div class="flex flex-wrap gap-2">
-      <span
-        *ngFor="let t of tags"
-        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-50 border border-violet-200 text-violet-900 text-xs font-bold"
-      >
-        {{ t }}
-        <button type="button" (click)="removeItem('tags', t)" class="text-rose-500">✖</button>
-      </span>
-    </div>
-    <div class="flex gap-2">
-      <input
-        [(ngModel)]="newTag"
-        (keyup.enter)="addItem('tags', newTag)"
-        placeholder="#NhãnMới"
-        class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
-      />
-      <button
-        type="button"
-        (click)="addItem('tags', newTag)"
-        class="px-4 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold"
-      >
-        Thêm
-      </button>
-    </div>
-  </section>
+    <!-- Student tags -->
+    <section class="wc-section wc-list">
+      <h4><span class="wc-tile is-pink" aria-hidden="true">🏷️</span>Nhãn phân loại sinh viên</h4>
+      <div class="wc-chips">
+        <span *ngFor="let t of tags" class="wc-chip is-tag">
+          {{ t }}
+          <button type="button" (click)="removeItem('tags', t)" [attr.aria-label]="'Xóa ' + t">
+            ✕
+          </button>
+        </span>
+      </div>
+      <div class="wc-add">
+        <input
+          [(ngModel)]="newTag"
+          (keyup.enter)="addItem('tags', newTag)"
+          placeholder="#NhãnMới"
+        />
+        <button type="button" (click)="addItem('tags', newTag)">Thêm</button>
+      </div>
+    </section>
+  </div>
 </div>
