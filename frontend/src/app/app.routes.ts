@@ -19,7 +19,6 @@ export const routes: Routes = [
       ['register', 'register'],
       ['forgot-password', 'forgot'],
       ['reset-password', 'reset'],
-      ['verify-email', 'verify'],
     ] as const
   ).map(([path, mode]) => ({
     path,
@@ -66,6 +65,14 @@ export const routes: Routes = [
     path: 'billing',
     loadComponent: () =>
       import('./components/billing/billing.component').then((m) => m.BillingComponent),
+    canActivate: [pageGuard],
+  },
+  {
+    path: 'account-approvals',
+    loadComponent: () =>
+      import('./components/account-approvals/account-approvals.component').then(
+        (m) => m.AccountApprovalsComponent,
+      ),
     canActivate: [pageGuard],
   },
   {

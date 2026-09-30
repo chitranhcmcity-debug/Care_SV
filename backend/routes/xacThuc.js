@@ -8,21 +8,34 @@ const jwt = require('jsonwebtoken');
 const NguoiDung = require('../models/NguoiDung');
 const NhomHocPhan = require('../models/NhomHocPhan');
 const { ROLE_LABEL } = require('../utils/hangSo');
-const { verifyToken, requireAdmin, requireSignedIn } = require('../middleware/xacThuc');
+const {
+  verifyToken,
+  requireAdmin,
+  requireSignedIn,
+  requireRoles,
+} = require('../middleware/xacThuc');
 const { permissionsForRole } = require('../services/dichVuPhanQuyen');
 const { releaseStaffClasses } = require('../services/dichVuPhanCongLop');
 const {
   sendAccountEmail,
-  sendVerificationEmail,
+  sendApprovalRequestEmail,
+  sendActivationKeyEmail,
+  sendRegistrationRejectedEmail,
   sendPasswordResetEmail,
 } = require('../services/dichVuEmail');
 
-// How long the email-confirmation link stays valid; VERIFY_EMAIL_HOURS in .env overrides it.
-const DEFAULT_VERIFY_HOURS = 72;
-const verifyHours = () => {
-  const hours = Number(process.env.VERIFY_EMAIL_HOURS);
-  return Number.isFinite(hours) && hours > 0 ? hours : DEFAULT_VERIFY_HOURS;
-};
+// Self sign-up: Trưởng phòng / PHT approve new accounts, then the applicant enters the key.
+const requireApprover = requireRoles('manager');
+const WAITING_APPROVAL = ['pending', 'unverified'];
+const REGISTRATION_STATUSES = [...WAITING_APPROVAL, 'awaiting_key'];
+const ACTIVATION_KEY_DAYS = 7;
+// Unambiguous characters (no 0/O, 1/I/L) so a key copied by hand still works.
+const KEY_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function newActivationKey() {
+  const chars = Array.from({ length: 12 }, () => KEY_ALPHABET[crypto.randomInt(KEY_ALPHABET.length)]);
+  return [0, 4, 8].map((i) => chars.slice(i, i + 4).join('')).join('-');
+}
+const normalizeKey = (value) => String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 const RESET_MINUTES = 30;
 // Minimum gap between two emails to the same address, so the forms cannot be used to spam.
 const EMAIL_COOLDOWN_MS = 60 * 1000;
@@ -68,8 +81,8 @@ function chosenOrRandomPassword(value) {
   assertPassword(value.trim());
   return value.trim();
 }
-// Never sent to the browser: password hash and one-time email token hashes.
-const PRIVATE_FIELDS = '-password -verifyTokenHash -resetTokenHash';
+// Never sent to the browser: password hash and one-time token / key hashes.
+const PRIVATE_FIELDS = '-password -verifyTokenHash -resetTokenHash -activationKeyHash';
 
 // Optional allow-list, e.g. SIGNUP_EMAIL_DOMAINS=itc.edu.vn — empty means any domain.
 const signupDomains = () =>
@@ -81,7 +94,7 @@ const signupDomains = () =>
 // POST /api/auth/login
 router.post('/login', async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, activationKey } = req.body;
     if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
       return res.status(400).json({ message: 'Vui lòng nhập email và mật khẩu' });
     }
@@ -96,11 +109,35 @@ router.post('/login', async (req, res, next) => {
       return res.status(400).json({ message: 'Tài khoản hoặc mật khẩu không chính xác' });
     }
 
-    if (user.status === 'unverified') {
+    if (WAITING_APPROVAL.includes(user.status)) {
       return res.status(403).json({
+        code: 'PENDING_APPROVAL',
         message:
-          'Tài khoản chưa xác thực email. Vui lòng mở email xác thực đã được gửi tới hộp thư.',
+          'Tài khoản đang chờ Trưởng phòng / Phó hiệu trưởng xác nhận. Bạn sẽ nhận key kích hoạt qua email khi được duyệt.',
       });
+    }
+    if (user.status === 'awaiting_key') {
+      if (!activationKey) {
+        return res.status(403).json({
+          code: 'ACTIVATION_KEY_REQUIRED',
+          message: 'Tài khoản đã được duyệt. Hãy nhập key kích hoạt đã gửi vào email của bạn.',
+        });
+      }
+      const valid =
+        typeof activationKey === 'string' &&
+        user.activationKeyHash === hashToken(normalizeKey(activationKey)) &&
+        user.activationKeyExpires > new Date();
+      if (!valid) {
+        return res.status(403).json({
+          code: 'ACTIVATION_KEY_INVALID',
+          message:
+            'Key kích hoạt không đúng hoặc đã hết hạn. Hãy kiểm tra lại email, hoặc nhờ Trưởng phòng / PHT gửi lại key.',
+        });
+      }
+      user.status = 'active';
+      user.activationKeyHash = null;
+      user.activationKeyExpires = null;
+      await user.save();
     }
     if (user.status !== 'active') {
       return res.status(403).json({ message: 'Tài khoản của bạn đã bị vô hiệu hóa' });
@@ -142,7 +179,8 @@ router.get('/me', verifyToken, requireSignedIn, (req, res) => {
 });
 
 // POST /api/auth/register (Public) — self sign-up for teachers and staff only.
-// The account stays 'unverified' (cannot log in or receive work) until the email link is opened.
+// The account stays 'pending' until a Trưởng phòng / PHT approves it; every active manager is
+// emailed. Approval emails the applicant an activation key that must be entered at login.
 router.post('/register', async (req, res, next) => {
   try {
     const { fullName, email, password, role } = req.body ?? {};
@@ -163,75 +201,134 @@ router.post('/register', async (req, res, next) => {
     );
 
     let user = await NguoiDung.findOne({ email: normalizedEmail });
-    if (user && user.status !== 'unverified') {
+    if (user && !REGISTRATION_STATUSES.includes(user.status)) {
       return res.status(409).json({
         message: 'Email này đã được đăng ký. Hãy đăng nhập hoặc dùng chức năng Quên mật khẩu.',
       });
     }
-    const hours = verifyHours();
-    const verifyLifetime = hours * 60 * 60 * 1000;
-    if (user && issuedRecently(user.verifyTokenExpires, verifyLifetime)) {
+    if (user && Date.now() - user.updatedAt.getTime() < EMAIL_COOLDOWN_MS) {
       return res
         .status(429)
-        .json({ message: 'Email xác thực vừa được gửi. Vui lòng chờ 1 phút rồi thử lại.' });
+        .json({ message: 'Yêu cầu vừa được gửi. Vui lòng chờ 1 phút rồi thử lại.' });
+    }
+    const managers = await NguoiDung.find({ role: 'manager', status: 'active' }).select(
+      'fullName email',
+    );
+    if (!managers.length) {
+      return res.status(503).json({
+        message:
+          'Hệ thống chưa có tài khoản Trưởng phòng / Phó hiệu trưởng để duyệt. Vui lòng liên hệ quản trị viên.',
+      });
     }
 
-    // Registering again before verifying simply replaces the pending details and link.
-    const { token, hash } = newToken();
+    // Registering again while waiting simply replaces the details and asks again.
     const isNew = !user;
     const fields = {
       fullName: fullName.trim(),
       password: await bcrypt.hash(password, 10),
       role,
-      status: 'unverified',
-      verifyTokenHash: hash,
-      verifyTokenExpires: new Date(Date.now() + verifyLifetime),
+      status: 'pending',
+      verifyTokenHash: null,
+      verifyTokenExpires: null,
+      activationKeyHash: null,
+      activationKeyExpires: null,
+      approvedBy: null,
     };
     if (user) user.set(fields);
     else user = new NguoiDung({ email: normalizedEmail, ...fields });
     await user.save();
 
-    const sent = await sendVerificationEmail({
-      to: normalizedEmail,
+    const applicant = {
+      id: String(user._id),
       fullName: user.fullName,
+      email: normalizedEmail,
       role,
-      token,
-      hours,
-    });
-    if (!sent) {
+    };
+    const results = await Promise.all(
+      managers.map((m) =>
+        sendApprovalRequestEmail({ to: m.email, managerName: m.fullName, applicant }),
+      ),
+    );
+    if (!results.some(Boolean)) {
       if (isNew) await user.deleteOne();
-      return res
-        .status(503)
-        .json({ message: 'Không gửi được email xác thực. Vui lòng thử lại sau ít phút.' });
+      return res.status(503).json({
+        message: 'Không gửi được email tới Trưởng phòng / PHT. Vui lòng thử lại sau ít phút.',
+      });
     }
 
     res.status(201).json({
-      message: `Đăng ký thành công! Đã gửi email xác thực tới ${normalizedEmail}. Vui lòng mở email để kích hoạt tài khoản.`,
+      message: `Đăng ký thành công! Yêu cầu đã được gửi tới Trưởng phòng / Phó hiệu trưởng. Khi được xác nhận, key kích hoạt sẽ được gửi tới ${normalizedEmail}.`,
     });
   } catch (error) {
     next(error);
   }
 });
 
-// POST /api/auth/verify-email (Public)
-router.post('/verify-email', async (req, res, next) => {
+// GET /api/auth/registrations (Trưởng phòng / PHT) — sign-ups waiting for approval or a key.
+router.get('/registrations', verifyToken, requireApprover, async (req, res, next) => {
   try {
-    const { token } = req.body ?? {};
-    assert(typeof token === 'string' && token, 'Liên kết xác thực không hợp lệ');
-    const user = await NguoiDung.findOne({
-      verifyTokenHash: hashToken(token),
-      verifyTokenExpires: { $gt: new Date() },
-      status: 'unverified',
-    });
-    assert(
-      user,
-      'Liên kết xác thực không hợp lệ hoặc đã hết hạn. Hãy đăng ký lại để nhận liên kết mới.',
+    const users = await NguoiDung.find({ status: { $in: REGISTRATION_STATUSES } })
+      .select(`${PRIVATE_FIELDS} -resetTokenExpires`)
+      .populate('approvedBy', 'fullName')
+      .sort({ createdAt: -1 });
+    res.json(
+      users.map((u) => ({
+        ...u.toJSON(),
+        status: WAITING_APPROVAL.includes(u.status) ? 'pending' : u.status,
+        keyExpiresAt: u.status === 'awaiting_key' ? u.activationKeyExpires : null,
+      })),
     );
-    user.status = 'active';
-    user.verifyTokenHash = null;
-    user.verifyTokenExpires = null;
+  } catch (error) {
+    next(error);
+  }
+});
+
+const findRegistration = async (id) => {
+  assert(/^[a-f\d]{24}$/i.test(String(id)), 'Mã tài khoản không hợp lệ');
+  const user = await NguoiDung.findOne({ _id: id, status: { $in: REGISTRATION_STATUSES } });
+  assert(user, 'Không tìm thấy yêu cầu đăng ký này (có thể đã được xử lý).', 404);
+  return user;
+};
+
+// POST /api/auth/registrations/:id/approve (Trưởng phòng / PHT)
+// Issues a fresh activation key and emails it; approving again re-sends a new key.
+router.post('/registrations/:id/approve', verifyToken, requireApprover, async (req, res, next) => {
+  try {
+    const user = await findRegistration(req.params.id);
+    const key = newActivationKey();
+    user.status = 'awaiting_key';
+    user.activationKeyHash = hashToken(normalizeKey(key));
+    user.activationKeyExpires = new Date(Date.now() + ACTIVATION_KEY_DAYS * 24 * 60 * 60 * 1000);
+    user.approvedBy = req.user.id;
     await user.save();
-    res.json({ message: 'Xác thực email thành công! Bạn có thể đăng nhập ngay bây giờ.' });
+    const emailSent = await sendActivationKeyEmail({
+      to: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      key,
+      approvedBy: req.user.fullName,
+      days: ACTIVATION_KEY_DAYS,
+    });
+    res.json({
+      message: emailSent
+        ? `Đã xác nhận và gửi key kích hoạt tới ${user.email}.`
+        : 'Đã xác nhận nhưng không gửi được email. Hãy gửi key bên dưới cho người đăng ký.',
+      emailSent,
+      // Shown only when the email failed, so the manager can hand the key over another way.
+      activationKey: emailSent ? undefined : key,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/auth/registrations/:id/reject (Trưởng phòng / PHT) — removes the sign-up.
+router.post('/registrations/:id/reject', verifyToken, requireApprover, async (req, res, next) => {
+  try {
+    const user = await findRegistration(req.params.id);
+    await user.deleteOne();
+    await sendRegistrationRejectedEmail({ to: user.email, fullName: user.fullName });
+    res.json({ message: `Đã từ chối yêu cầu đăng ký của ${user.fullName}.` });
   } catch (error) {
     next(error);
   }

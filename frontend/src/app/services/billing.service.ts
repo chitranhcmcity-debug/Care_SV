@@ -54,6 +54,11 @@ export class BillingService {
     return this.http.get<SubscriptionPlan[]>(`${this.apiUrl}/plans`);
   }
 
+  /** Admin: replaces the price list; plan codes follow the number of months. */
+  savePlans(plans: Omit<SubscriptionPlan, 'code'>[]): Observable<SubscriptionPlan[]> {
+    return this.http.put<SubscriptionPlan[]>(`${this.apiUrl}/plans`, { plans });
+  }
+
   getOrders(): Observable<BillingOrder[]> {
     return this.http.get<BillingOrder[]>(`${this.apiUrl}/orders`);
   }

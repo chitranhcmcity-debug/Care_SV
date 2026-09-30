@@ -481,17 +481,19 @@
                 [ngClass]="
                   staff.status === 'active'
                     ? 'is-active'
-                    : staff.status === 'unverified'
-                      ? 'is-pending'
-                      : 'is-locked'
+                    : staff.status === 'inactive'
+                      ? 'is-locked'
+                      : 'is-pending'
                 "
               >
                 {{
                   staff.status === 'active'
                     ? 'Đang hoạt động'
-                    : staff.status === 'unverified'
-                      ? 'Chờ xác thực email'
-                      : 'Tạm khóa'
+                    : staff.status === 'inactive'
+                      ? 'Tạm khóa'
+                      : staff.status === 'awaiting_key'
+                        ? 'Chờ nhập key'
+                        : 'Chờ duyệt'
                 }}
               </span>
             </td>

@@ -3,9 +3,18 @@ const router = express.Router();
 const DonThanhToan = require('../models/DonThanhToan');
 const payos = require('../services/dichVuPayOS');
 const subscription = require('../services/dichVuGoiDichVu');
-const { SUBSCRIPTION_PLANS, ORDER_STATUS } = require('../utils/hangSo');
+const { ORDER_STATUS } = require('../utils/hangSo');
 const { assert } = require('../utils/kiemTra');
-const { verifyToken, requireAdmin, requireSignedIn } = require('../middleware/xacThuc');
+const {
+  verifyToken,
+  requireAdmin,
+  requireSignedIn,
+  requireRoles,
+} = require('../middleware/xacThuc');
+
+// The admin sets the prices; a Trưởng phòng / PHT buys the plan for the whole system.
+const requireBuyer = requireRoles('manager');
+const requireBillingViewer = requireRoles('admin', 'manager');
 
 const findOrder = async (orderCode) => {
   const code = Number(orderCode);
@@ -24,13 +33,26 @@ router.get('/status', verifyToken, requireSignedIn, async (req, res, next) => {
   }
 });
 
-// GET /api/billing/plans (Admin)
-router.get('/plans', verifyToken, requireAdmin, (req, res) => {
-  res.json(SUBSCRIPTION_PLANS);
+// GET /api/billing/plans (Admin, Trưởng phòng / PHT)
+router.get('/plans', verifyToken, requireBillingViewer, async (req, res, next) => {
+  try {
+    res.json(await subscription.getPlans());
+  } catch (error) {
+    next(error);
+  }
 });
 
-// GET /api/billing/orders (Admin) — payment history, newest first.
-router.get('/orders', verifyToken, requireAdmin, async (req, res, next) => {
+// PUT /api/billing/plans (Admin) — body: { plans: [{ name, months, amount }] }
+router.put('/plans', verifyToken, requireAdmin, async (req, res, next) => {
+  try {
+    res.json(await subscription.savePlans(req.body?.plans));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/billing/orders (Admin, Trưởng phòng / PHT) — payment history, newest first.
+router.get('/orders', verifyToken, requireBillingViewer, async (req, res, next) => {
   try {
     const orders = await DonThanhToan.find()
       .populate('createdBy', 'fullName email')
@@ -42,8 +64,8 @@ router.get('/orders', verifyToken, requireAdmin, async (req, res, next) => {
   }
 });
 
-// POST /api/billing/orders (Admin) — creates a PayOS payment link for a plan.
-router.post('/orders', verifyToken, requireAdmin, async (req, res, next) => {
+// POST /api/billing/orders (Trưởng phòng / PHT) — creates a PayOS payment link for a plan.
+router.post('/orders', verifyToken, requireBuyer, async (req, res, next) => {
   try {
     const order = await subscription.createOrder(req.body?.planCode, req.user);
     res.status(201).json({ orderCode: order.orderCode, checkoutUrl: order.checkoutUrl });
@@ -52,10 +74,10 @@ router.post('/orders', verifyToken, requireAdmin, async (req, res, next) => {
   }
 });
 
-// POST /api/billing/orders/:orderCode/sync (Admin)
+// POST /api/billing/orders/:orderCode/sync (Admin, Trưởng phòng / PHT)
 // Called when PayOS redirects back, and by the "Kiểm tra lại" button. Asks PayOS directly,
 // so it works even where PayOS cannot reach our webhook (e.g. localhost).
-router.post('/orders/:orderCode/sync', verifyToken, requireAdmin, async (req, res, next) => {
+router.post('/orders/:orderCode/sync', verifyToken, requireBillingViewer, async (req, res, next) => {
   try {
     const order = await subscription.syncOrder(await findOrder(req.params.orderCode));
     res.json({ order, subscription: await subscription.getSubscription() });

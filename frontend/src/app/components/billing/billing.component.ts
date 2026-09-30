@@ -1,5 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BillingOrder, BillingService, SubscriptionPlan } from '../../services/billing.service';
 import { NotificationService } from '../../services/notification.service';
@@ -18,11 +20,17 @@ const ORDER_STATUS_TONE: Record<BillingOrder['status'], string> = {
   het_han: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
-/** Admin page: current subscription, plan purchase through PayOS and payment history. */
+type PlanDraft = { name: string; months: number | null; amount: number | null };
+const MAX_PLANS = 6;
+
+/**
+ * Subscription page. The admin sets the price list; a Trưởng phòng / PHT buys a plan through
+ * PayOS, which extends the subscription for the whole system. Both see the payment history.
+ */
 @Component({
   selector: 'app-billing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './billing.component.html',
 })
 export class BillingComponent implements OnInit {
@@ -30,6 +38,14 @@ export class BillingComponent implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
+
+  readonly isAdmin = this.auth.isAdmin();
+  readonly canBuy = this.auth.isManager();
+  readonly maxPlans = MAX_PLANS;
+  /** Admin's editable copy of the price list. */
+  readonly drafts = signal<PlanDraft[]>([]);
+  readonly savingPlans = signal(false);
 
   readonly status = this.billing.status;
   readonly plans = signal<SubscriptionPlan[]>([]);
@@ -52,7 +68,7 @@ export class BillingComponent implements OnInit {
 
   ngOnInit() {
     this.billing.refreshStatus().subscribe();
-    this.billing.getPlans().subscribe((plans) => this.plans.set(plans));
+    this.loadPlans();
 
     // PayOS sends the buyer back here with ?orderCode=…; never trust its status param —
     // ask our backend, which asks PayOS directly.
@@ -63,6 +79,63 @@ export class BillingComponent implements OnInit {
     } else {
       this.loadOrders();
     }
+  }
+
+  loadPlans() {
+    this.billing.getPlans().subscribe((plans) => {
+      this.plans.set(plans);
+      this.drafts.set(plans.map(({ name, months, amount }) => ({ name, months, amount })));
+    });
+  }
+
+  addDraft() {
+    if (this.drafts().length >= MAX_PLANS) return;
+    const used = new Set(this.drafts().map((d) => d.months));
+    const months = [1, 3, 6, 12, 24, 36].find((m) => !used.has(m)) ?? null;
+    this.drafts.update((list) => [
+      ...list,
+      { name: months ? `Gói ${months} tháng` : '', months, amount: null },
+    ]);
+  }
+
+  removeDraft(index: number) {
+    this.drafts.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  resetDrafts() {
+    this.drafts.set(this.plans().map(({ name, months, amount }) => ({ name, months, amount })));
+  }
+
+  savePlans() {
+    const drafts = this.drafts();
+    const invalid = drafts.find(
+      (d) => !d.name.trim() || !d.months || d.months < 1 || !d.amount || d.amount < 2000,
+    );
+    if (!drafts.length || invalid) {
+      this.notify.error('Mỗi gói cần tên, số tháng (≥ 1) và giá (≥ 2.000 đ).');
+      return;
+    }
+    this.savingPlans.set(true);
+    this.billing
+      .savePlans(
+        drafts.map((d) => ({
+          name: d.name.trim(),
+          months: Math.round(Number(d.months)),
+          amount: Math.round(Number(d.amount)),
+        })),
+      )
+      .subscribe({
+        next: (plans) => {
+          this.savingPlans.set(false);
+          this.plans.set(plans);
+          this.resetDrafts();
+          this.notify.success('Đã lưu bảng giá gói dịch vụ.');
+        },
+        error: (err) => {
+          this.savingPlans.set(false);
+          this.notify.error(err.error?.message || 'Không lưu được bảng giá');
+        },
+      });
   }
 
   loadOrders() {

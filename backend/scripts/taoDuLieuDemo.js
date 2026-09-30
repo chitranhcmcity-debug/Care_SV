@@ -186,7 +186,7 @@ const EXTRA_USERS = [
   { email: 'staff2', fullName: 'Trần Thị Mai', role: 'staff', status: 'active' },
   { email: 'teacher2', fullName: 'ThS. Lê Hoàng Phúc', role: 'teacher', status: 'active' },
   { email: 'staff3', fullName: 'Phạm Quốc Bảo', role: 'staff', status: 'inactive' },
-  { email: 'gv.moi@itc.edu.vn', fullName: 'Võ Thanh Hà', role: 'teacher', status: 'unverified' },
+  { email: 'gv.moi@itc.edu.vn', fullName: 'Võ Thanh Hà', role: 'teacher', status: 'pending' },
 ];
 
 const NOTES_BY_REASON = {

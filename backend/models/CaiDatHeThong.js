@@ -40,6 +40,19 @@ const CaiDatHeThongSchema = new mongoose.Schema(
     // Gói sử dụng hệ thống: hệ thống dùng được tới thời điểm này (null = chưa khởi tạo dùng thử).
     subscriptionExpiresAt: { type: Date, default: null },
     subscriptionPlan: { type: String, default: 'dung_thu' },
+    // Bảng giá gói (Admin cấu hình). null = SUBSCRIPTION_PLANS mặc định.
+    subscriptionPlans: {
+      type: [
+        {
+          _id: false,
+          code: { type: String, required: true },
+          name: { type: String, required: true, trim: true, maxlength: 50 },
+          months: { type: Number, required: true, min: 1, max: 60 },
+          amount: { type: Number, required: true, min: 2000 },
+        },
+      ],
+      default: undefined,
+    },
 
     // Bảng phân quyền { manager: [key], staff: [key], teacher: [key] }; vai trò chưa lưu
     // dùng DEFAULT_ROLE_PERMISSIONS (xem services/dichVuPhanQuyen.js).

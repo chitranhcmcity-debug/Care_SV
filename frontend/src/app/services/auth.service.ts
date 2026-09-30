@@ -4,6 +4,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { Permission, Role, User } from '../models/types';
 
+export interface Registration {
+  _id: string;
+  fullName: string;
+  email: string;
+  role: 'staff' | 'teacher';
+  status: 'pending' | 'awaiting_key';
+  approvedBy?: { fullName: string } | null;
+  keyExpiresAt?: string | null;
+  createdAt: string;
+}
+
 /** Dashboard tabs a non-admin can be granted; holding any of them opens /management. */
 export const DASHBOARD_PERMISSIONS: Permission[] = [
   'tasks.manage',
@@ -24,7 +35,8 @@ const PAGE_ACCESS: Record<string, (auth: AuthService) => boolean> = {
   '/tasks': (a) => a.isStaff(),
   '/timetable': () => true,
   '/calls': () => true,
-  '/billing': (a) => a.isAdmin(),
+  '/billing': (a) => a.isAdmin() || a.isManager(),
+  '/account-approvals': (a) => a.isManager(),
 };
 /** Preferred landing page per role; if it is not accessible, the first page that is. */
 const ROLE_HOME: Record<Role, string> = {
@@ -64,9 +76,11 @@ export class AuthService {
     this.permissions.set(permissions);
   }
 
+  /** activationKey: required once, on the first sign-in after a manager approved the sign-up. */
   login(credentials: {
     email: string;
     password: string;
+    activationKey?: string;
   }): Observable<{ token: string; user: User; permissions: Permission[] }> {
     return this.http
       .post<{ token: string; user: User; permissions: Permission[] }>(
@@ -93,7 +107,7 @@ export class AuthService {
     );
   }
 
-  /** Self sign-up (teachers and staff only); the account must be verified by email. */
+  /** Self sign-up (teachers and staff only); a Trưởng phòng / PHT must approve it. */
   register(payload: {
     fullName: string;
     email: string;
@@ -103,8 +117,22 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/register`, payload);
   }
 
-  verifyEmail(token: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/verify-email`, { token });
+  /** Trưởng phòng / PHT: sign-ups waiting for approval or for their activation key. */
+  getRegistrations(): Observable<Registration[]> {
+    return this.http.get<Registration[]>(`${this.apiUrl}/registrations`);
+  }
+
+  approveRegistration(
+    id: string,
+  ): Observable<{ message: string; emailSent: boolean; activationKey?: string }> {
+    return this.http.post<{ message: string; emailSent: boolean; activationKey?: string }>(
+      `${this.apiUrl}/registrations/${id}/approve`,
+      {},
+    );
+  }
+
+  rejectRegistration(id: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/registrations/${id}/reject`, {});
   }
 
   forgotPassword(email: string): Observable<{ message: string }> {

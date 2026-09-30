@@ -655,10 +655,11 @@ test('account emails escape user-provided HTML', () => {
 });
 
 test(
-  'self-registration: teacher/staff only, blocked until the email link is opened',
+  'self-registration: manager approves, the emailed activation key unlocks the account',
   withFakeSmtp(async () => {
     const email = 'new-teacher@itc.edu.vn';
     const payload = { fullName: 'GV Mới', email, password: 'secret-pass-1', role: 'teacher' };
+    const credentials = { email, password: payload.password };
 
     assert.equal(
       (await request('/auth/register', null, 'POST', { ...payload, role: 'admin' })).status,
@@ -672,25 +673,49 @@ test(
     const registered = await request('/auth/register', null, 'POST', payload);
     assert.equal(registered.status, 201);
     const pending = await NguoiDung.findOne({ email });
-    assert.equal(pending.status, 'unverified');
+    assert.equal(pending.status, 'pending');
     assert.equal(pending.role, 'teacher');
-    assert.notEqual(pending.verifyTokenHash, tokenFromMail(email)); // only the hash is stored
+    // Every active manager is asked; the applicant gets nothing until approval.
+    assert.ok(sentMails.findLast((m) => m.to === users.manager.email).text.includes(email));
+    assert.ok(!sentMails.some((m) => m.to === email));
 
-    // Cannot log in before verifying, and a repeat request inside the cooldown is refused.
-    const early = await request('/auth/login', null, 'POST', { email, password: payload.password });
+    // Cannot log in while waiting, and a repeat request inside the cooldown is refused.
+    const early = await request('/auth/login', null, 'POST', credentials);
     assert.equal(early.status, 403);
+    assert.equal(early.body.code, 'PENDING_APPROVAL');
     assert.equal((await request('/auth/register', null, 'POST', payload)).status, 429);
 
-    assert.equal(
-      (await request('/auth/verify-email', null, 'POST', { token: 'wrong' })).status,
-      400,
-    );
-    const token = tokenFromMail(email);
-    assert.equal((await request('/auth/verify-email', null, 'POST', { token })).status, 200);
-    assert.equal((await request('/auth/verify-email', null, 'POST', { token })).status, 400);
+    // Only a Trưởng phòng / PHT sees and approves sign-ups.
+    const path = `/auth/registrations/${pending._id}/approve`;
+    assert.equal((await request('/auth/registrations', tokens.admin)).status, 403);
+    assert.equal((await request(path, tokens.staff, 'POST')).status, 403);
+    const listed = await request('/auth/registrations', tokens.manager);
+    assert.equal(listed.status, 200);
+    assert.ok(listed.body.some((u) => u.email === email && u.status === 'pending'));
+    assert.ok(!('activationKeyHash' in listed.body[0]));
 
-    const login = await request('/auth/login', null, 'POST', { email, password: payload.password });
+    const approved = await request(path, tokens.manager, 'POST');
+    assert.equal(approved.status, 200);
+    assert.equal(approved.body.emailSent, true);
+    assert.equal(approved.body.activationKey, undefined);
+    const key = /Key kích hoạt: (\S+)/.exec(sentMails.findLast((m) => m.to === email).text)[1];
+    assert.match(key, /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+
+    // Password alone is not enough; a wrong key is refused; the right key (any case) works once.
+    const needsKey = await request('/auth/login', null, 'POST', credentials);
+    assert.equal(needsKey.body.code, 'ACTIVATION_KEY_REQUIRED');
+    const wrongKey = await request('/auth/login', null, 'POST', {
+      ...credentials,
+      activationKey: 'AAAA-BBBB-CCCC',
+    });
+    assert.equal(wrongKey.body.code, 'ACTIVATION_KEY_INVALID');
+    const login = await request('/auth/login', null, 'POST', {
+      ...credentials,
+      activationKey: ` ${key.toLowerCase()} `,
+    });
     assert.equal(login.status, 200);
+    assert.equal((await NguoiDung.findOne({ email })).activationKeyHash, null);
+    assert.equal((await request('/auth/login', null, 'POST', credentials)).status, 200);
     assert.equal(login.body.user.role, 'teacher');
     // A fresh teacher is assigned no classes, so sees none.
     const groups = await request('/attendance/course-groups', login.body.token);
@@ -699,6 +724,25 @@ test(
 
     assert.equal((await request('/auth/register', null, 'POST', payload)).status, 409);
     await NguoiDung.deleteOne({ email });
+  }),
+);
+
+test(
+  'self-registration: a manager can reject a sign-up',
+  withFakeSmtp(async () => {
+    const email = 'unknown-staff@itc.edu.vn';
+    const payload = { fullName: 'Người Lạ', email, password: 'secret-pass-1', role: 'staff' };
+    assert.equal((await request('/auth/register', null, 'POST', payload)).status, 201);
+    const { _id } = await NguoiDung.findOne({ email });
+    const rejected = await request(`/auth/registrations/${_id}/reject`, tokens.manager, 'POST');
+    assert.equal(rejected.status, 200);
+    assert.equal(await NguoiDung.findOne({ email }), null);
+    assert.match(sentMails.findLast((m) => m.to === email).subject, /không được chấp nhận/);
+    // Already handled: a second decision finds nothing.
+    assert.equal(
+      (await request(`/auth/registrations/${_id}/approve`, tokens.manager, 'POST')).status,
+      404,
+    );
   }),
 );
 
@@ -1627,7 +1671,7 @@ const signedWebhook = (data, key = 'checksum-key') => ({
   signature: payosService.hmac(key, payosService.canonicalize(data)),
 });
 
-test('PayOS: admin buys a plan, signed webhook extends the subscription exactly once', async () => {
+test('PayOS: a manager buys a plan, signed webhook extends the subscription exactly once', async () => {
   const status = { value: 'PENDING', amount: 0 };
   await withFakePayOS(status, async (payosCalls) => {
     assert.equal(
@@ -1635,13 +1679,19 @@ test('PayOS: admin buys a plan, signed webhook extends the subscription exactly 
         .status,
       403,
     );
+    // The admin only sets prices; buying is for Trưởng phòng / PHT.
     assert.equal(
-      (await request('/billing/orders', tokens.admin, 'POST', { planCode: 'khong-co' })).status,
+      (await request('/billing/orders', tokens.admin, 'POST', { planCode: 'goi_1_thang' }))
+        .status,
+      403,
+    );
+    assert.equal(
+      (await request('/billing/orders', tokens.manager, 'POST', { planCode: 'khong-co' })).status,
       400,
     );
 
     const before = (await request('/billing/status', tokens.admin)).body;
-    const created = await request('/billing/orders', tokens.admin, 'POST', {
+    const created = await request('/billing/orders', tokens.manager, 'POST', {
       planCode: 'goi_1_thang',
     });
     assert.equal(created.status, 201);
@@ -1701,7 +1751,7 @@ test('PayOS: admin buys a plan, signed webhook extends the subscription exactly 
 test('PayOS: return-page sync marks a paid order even without a webhook', async () => {
   const status = { value: 'PENDING', amount: 2690000 };
   await withFakePayOS(status, async () => {
-    const created = await request('/billing/orders', tokens.admin, 'POST', {
+    const created = await request('/billing/orders', tokens.manager, 'POST', {
       planCode: 'goi_6_thang',
     });
     const path = `/billing/orders/${created.body.orderCode}/sync`;
@@ -1711,6 +1761,40 @@ test('PayOS: return-page sync marks a paid order even without a webhook', async 
     assert.equal(synced.body.order.status, 'da_thanh_toan');
     assert.equal(synced.body.subscription.plan, 'goi_6_thang');
   });
+});
+
+test('PayOS: the admin sets plan prices, orders use the new price', async () => {
+  const plans = [
+    { name: 'Gói 3 tháng', months: 3, amount: 1200000 },
+    { name: 'Gói 1 tháng', months: 1, amount: 450000 },
+  ];
+  assert.equal((await request('/billing/plans', tokens.manager, 'PUT', { plans })).status, 403);
+  assert.equal(
+    (
+      await request('/billing/plans', tokens.admin, 'PUT', {
+        plans: [...plans, { name: 'Trùng', months: 3, amount: 5000 }],
+      })
+    ).status,
+    400,
+  );
+  const saved = await request('/billing/plans', tokens.admin, 'PUT', { plans });
+  assert.equal(saved.status, 200);
+  assert.deepEqual(
+    saved.body.map((p) => [p.code, p.amount]),
+    [
+      ['goi_1_thang', 450000],
+      ['goi_3_thang', 1200000],
+    ],
+  );
+  assert.deepEqual((await request('/billing/plans', tokens.manager)).body, saved.body);
+  await withFakePayOS({ value: 'PENDING', amount: 0 }, async (payosCalls) => {
+    const created = await request('/billing/orders', tokens.manager, 'POST', {
+      planCode: 'goi_3_thang',
+    });
+    assert.equal(created.status, 201);
+    assert.equal(payosCalls.find((c) => c.method === 'POST').body.amount, 1200000);
+  });
+  await Settings.updateOne({}, { $unset: { subscriptionPlans: 1 } });
 });
 
 test('expired subscription locks business APIs but keeps login and billing open', async () => {
@@ -1777,7 +1861,7 @@ test('manager (Trưởng phòng/PHT): student records, call overview and task as
   assert.equal((await request('/class-assignments', token)).status, 200);
   // System administration stays with the admin.
   for (const [path, method] of [
-    ['/billing/orders', 'GET'],
+    ['/billing/plans', 'PUT'],
     ['/permissions', 'GET'],
     ['/settings/integrations', 'GET'],
     ['/settings', 'PUT'],

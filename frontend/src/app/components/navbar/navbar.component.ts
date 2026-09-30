@@ -84,6 +84,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2M15 3h6v6M21 3l-6 6',
   },
   {
+    path: '/account-approvals',
+    label: 'Duyệt tài khoản',
+    short: 'Duyệt TK',
+    icon: 'M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3zM9 12l2 2 4-4',
+  },
+  {
     path: '/billing',
     label: 'Gói dịch vụ',
     short: 'Gói DV',

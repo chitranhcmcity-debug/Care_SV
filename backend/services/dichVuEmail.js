@@ -132,24 +132,59 @@ function sendAccountEmail({ to, fullName, password, role, isReset = false }) {
   });
 }
 
-/** Confirmation link for a self-registered account. */
-// "72" -> "3 ngày", "36" -> "36 giờ".
-const formatHours = (hours) => (hours % 24 === 0 ? `${hours / 24} ngày` : `${hours} giờ`);
-
-function sendVerificationEmail({ to, fullName, role, token, hours }) {
-  const validFor = formatHours(hours);
-  const link = `${getAppUrl()}/verify-email?token=${encodeURIComponent(token)}`;
+/** Tells a Trưởng phòng / PHT that a new account is waiting for their approval. */
+function sendApprovalRequestEmail({ to, managerName, applicant }) {
+  const link = `${getAppUrl()}/account-approvals?id=${encodeURIComponent(applicant.id)}`;
+  const roleLabel = ROLE_LABEL[applicant.role] || '';
   return deliver({
     to,
-    subject: '[ITC Care] Xác thực email đăng ký tài khoản',
+    subject: `[ITC Care] Yêu cầu duyệt tài khoản mới: ${applicant.fullName}`,
+    html: `
+      <h3>Xin chào ${escapeHtml(managerName)},</h3>
+      <p>Có tài khoản mới đăng ký trên <b>${SYSTEM_NAME}</b> đang chờ bạn xác nhận:</p>
+      <ul>
+        <li><b>Họ tên:</b> ${escapeHtml(applicant.fullName)}</li>
+        <li><b>Email:</b> ${escapeHtml(applicant.email)}</li>
+        <li><b>Vai trò:</b> ${roleLabel}</li>
+      </ul>
+      <p>Khi bạn xác nhận, hệ thống sẽ gửi key kích hoạt vào email của người đăng ký.</p>
+      ${linkButton(link, 'Xem và xác nhận')}
+      <p>Nếu bạn không biết người này, hãy bấm Từ chối trong trang duyệt tài khoản.</p>
+    `,
+    text: `Xin chào ${managerName},\nTài khoản mới đang chờ bạn xác nhận:\nHọ tên: ${applicant.fullName}\nEmail: ${applicant.email}\nVai trò: ${roleLabel}\nMở trang sau để xác nhận hoặc từ chối:\n${link}`,
+  });
+}
+
+/** Activation key for a self-registered account a manager has approved. */
+function sendActivationKeyEmail({ to, fullName, role, key, approvedBy, days }) {
+  const link = `${getAppUrl()}/login`;
+  return deliver({
+    to,
+    subject: '[ITC Care] Key kích hoạt tài khoản',
     html: `
       <h3>Xin chào ${escapeHtml(fullName)},</h3>
-      <p>Bạn vừa đăng ký tài khoản <b>${ROLE_LABEL[role] || ''}</b> trên <b>${SYSTEM_NAME}</b>.
-      Bấm nút dưới đây để xác thực email và kích hoạt tài khoản (liên kết có hiệu lực ${validFor}):</p>
-      ${linkButton(link, 'Xác thực email')}
-      <p>Nếu bạn không đăng ký, hãy bỏ qua email này.</p>
+      <p>Tài khoản <b>${ROLE_LABEL[role] || ''}</b> của bạn trên <b>${SYSTEM_NAME}</b> đã được
+      <b>${escapeHtml(approvedBy)}</b> xác nhận. Key kích hoạt của bạn:</p>
+      <p style="font-size:22px;font-weight:700;letter-spacing:2px;font-family:monospace;background:#f3e8ff;color:#5b21b6;padding:12px 18px;border-radius:10px;display:inline-block">${escapeHtml(key)}</p>
+      <p>Đăng nhập bằng email và mật khẩu đã đăng ký, rồi dán key này khi được hỏi
+      (key có hiệu lực ${days} ngày và chỉ dùng một lần).</p>
+      ${linkButton(link, 'Đăng nhập')}
     `,
-    text: `Xin chào ${fullName},\nMở liên kết sau để xác thực email và kích hoạt tài khoản ITC Care (hiệu lực ${validFor}):\n${link}\nNếu bạn không đăng ký, hãy bỏ qua email này.`,
+    text: `Xin chào ${fullName},\nTài khoản ITC Care của bạn đã được ${approvedBy} xác nhận.\nKey kích hoạt: ${key}\nĐăng nhập tại ${link} rồi dán key khi được hỏi (hiệu lực ${days} ngày, dùng một lần).`,
+  });
+}
+
+/** Tells an applicant their sign-up was declined. */
+function sendRegistrationRejectedEmail({ to, fullName }) {
+  return deliver({
+    to,
+    subject: '[ITC Care] Đăng ký tài khoản không được chấp nhận',
+    html: `
+      <h3>Xin chào ${escapeHtml(fullName)},</h3>
+      <p>Yêu cầu đăng ký tài khoản của bạn trên <b>${SYSTEM_NAME}</b> không được Trưởng phòng /
+      Phó hiệu trưởng chấp nhận. Nếu có nhầm lẫn, vui lòng liên hệ quản lý của bạn.</p>
+    `,
+    text: `Xin chào ${fullName},\nYêu cầu đăng ký tài khoản ITC Care của bạn không được chấp nhận. Nếu có nhầm lẫn, vui lòng liên hệ quản lý của bạn.`,
   });
 }
 
@@ -172,7 +207,9 @@ function sendPasswordResetEmail({ to, fullName, token, minutes }) {
 
 module.exports = {
   sendAccountEmail,
-  sendVerificationEmail,
+  sendApprovalRequestEmail,
+  sendActivationKeyEmail,
+  sendRegistrationRejectedEmail,
   sendPasswordResetEmail,
   escapeHtml,
 };

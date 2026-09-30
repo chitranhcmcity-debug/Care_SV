@@ -35,7 +35,7 @@ const DEMO_ACCOUNTS = [
 ];
 
 /** Which auth screen this route shows; set through the route's `data.mode`. */
-export type AuthMode = 'login' | 'register' | 'forgot' | 'reset' | 'verify';
+export type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -58,12 +58,15 @@ export class LoginComponent implements OnInit {
   fullName = '';
   role: 'staff' | 'teacher' = 'teacher';
   showPassword = false;
+  /** Set once the server says this approved account still needs its emailed activation key. */
+  needsKey = false;
+  activationKey = '';
   loading = false;
   errorMessage = '';
   successMessage = '';
-  /** Reset / verify screen opened without a token in the URL. */
+  /** Reset screen opened without a token in the URL. */
   linkMissing = false;
-  /** One-time token from the email link (reset / verify screens). */
+  /** One-time token from the email link (reset screen). */
   private token = '';
   readonly quickAccounts = isDevMode() ? DEMO_ACCOUNTS : [];
 
@@ -82,16 +85,10 @@ export class LoginComponent implements OnInit {
       this.redirectByUserRole();
       return;
     }
-    if ((this.mode === 'reset' || this.mode === 'verify') && !this.token) {
+    if (this.mode === 'reset' && !this.token) {
       this.linkMissing = true;
       this.errorMessage =
         'Liên kết không hợp lệ hoặc thiếu mã xác thực. Hãy mở lại liên kết trong email.';
-      return;
-    }
-    if (this.mode === 'verify') {
-      this.run(this.authService.verifyEmail(this.token), (message) => {
-        this.successMessage = message;
-      });
     }
   }
 
@@ -107,8 +104,27 @@ export class LoginComponent implements OnInit {
       this.errorMessage = 'Vui lòng điền đầy đủ tài khoản và mật khẩu!';
       return;
     }
-    this.run(this.authService.login({ email: this.email, password: this.password }), () =>
-      this.redirectByUserRole(),
+    if (this.needsKey && !this.activationKey.trim()) {
+      this.errorMessage = 'Vui lòng nhập key kích hoạt đã gửi vào email của bạn.';
+      return;
+    }
+    const credentials = { email: this.email, password: this.password };
+    this.run(
+      this.authService.login(
+        this.needsKey ? { ...credentials, activationKey: this.activationKey.trim() } : credentials,
+      ),
+      () => this.redirectByUserRole(),
+      (err) => {
+        const code = err.error?.code;
+        if (code !== 'ACTIVATION_KEY_REQUIRED' && code !== 'ACTIVATION_KEY_INVALID') return;
+        this.needsKey = true;
+        // First ask is guidance, not an error.
+        if (code === 'ACTIVATION_KEY_REQUIRED') {
+          this.errorMessage = '';
+          this.successMessage = err.error?.message ?? '';
+        }
+        setTimeout(() => document.getElementById('login-key')?.focus());
+      },
     );
   }
 
@@ -163,7 +179,11 @@ export class LoginComponent implements OnInit {
   }
 
   /** Runs a request with the shared loading / error / success handling. */
-  private run<T>(request: Observable<T>, onSuccess: (message: string, result: T) => void) {
+  private run<T>(
+    request: Observable<T>,
+    onSuccess: (message: string, result: T) => void,
+    onError?: (err: { status: number; error?: { code?: string; message?: string } }) => void,
+  ) {
     this.loading = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -184,6 +204,7 @@ export class LoginComponent implements OnInit {
               : err.status === 404
                 ? 'Máy chủ chưa có chức năng này. Hãy khởi động lại backend rồi thử lại.'
                 : err.error?.message || 'Có lỗi xảy ra. Vui lòng thử lại!';
+          onError?.(err);
         },
       });
   }

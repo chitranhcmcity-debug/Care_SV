@@ -292,7 +292,10 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
   }
 
   get pendingUsers(): number {
-    return this.data()?.users.byStatus.unverified ?? 0;
+    const byStatus = this.data()?.users.byStatus ?? {};
+    return (
+      (byStatus['pending'] ?? 0) + (byStatus['unverified'] ?? 0) + (byStatus['awaiting_key'] ?? 0)
+    );
   }
 
   get missingIntegrations(): string[] {

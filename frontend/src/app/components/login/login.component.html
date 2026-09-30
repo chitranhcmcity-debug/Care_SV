@@ -24,8 +24,8 @@
           <ng-container *ngSwitchCase="'register'">
             <h1 class="text-[32px] font-extrabold leading-tight tracking-tight"><span class="lg-grad">Tạo tài khoản</span></h1>
             <p class="text-sm text-slate-500">
-              Dành cho Giảng viên và Nhân viên. Sau khi đăng ký, hãy mở email xác thực để kích hoạt
-              tài khoản.
+              Dành cho Giảng viên và Nhân viên. Sau khi Trưởng phòng / Phó hiệu trưởng xác nhận, bạn
+              sẽ nhận key kích hoạt qua email.
             </p>
           </ng-container>
           <ng-container *ngSwitchCase="'forgot'">
@@ -40,10 +40,6 @@
               Mật khẩu mới có ít nhất {{ minPasswordLength }} ký tự. Sau khi đổi, mọi phiên đăng
               nhập cũ sẽ bị đăng xuất.
             </p>
-          </ng-container>
-          <ng-container *ngSwitchCase="'verify'">
-            <h1 class="text-[32px] font-extrabold leading-tight tracking-tight"><span class="lg-grad">Xác thực email</span></h1>
-            <p class="text-sm text-slate-500">Đang kích hoạt tài khoản của bạn.</p>
           </ng-container>
           <ng-container *ngSwitchDefault>
             <span class="lg-kicker">Chào mừng trở lại 👋</span>
@@ -250,6 +246,7 @@
                   type="text"
                   autocomplete="username"
                   [(ngModel)]="email"
+                  (ngModelChange)="needsKey = false"
                   name="email"
                   required
                   placeholder="Nhập tài khoản hoặc email"
@@ -281,6 +278,27 @@
                 }
               "
             ></ng-container>
+
+            <!-- Shown once the server asks for the key emailed after a manager's approval. -->
+            <div *ngIf="needsKey" class="space-y-1.5">
+              <label for="login-key" class="block text-sm font-medium text-slate-700"
+                >Key kích hoạt</label
+              >
+              <input
+                id="login-key"
+                type="text"
+                autocomplete="one-time-code"
+                spellcheck="false"
+                [(ngModel)]="activationKey"
+                name="activationKey"
+                placeholder="VD: ABCD-EFGH-JKMN"
+                class="w-full h-12 px-4 lg-input font-mono tracking-widest uppercase"
+              />
+              <p class="text-xs text-slate-500">
+                Key được gửi vào email của bạn sau khi Trưởng phòng / Phó hiệu trưởng xác nhận. Chỉ
+                cần nhập một lần.
+              </p>
+            </div>
 
             <div class="flex justify-end -mt-2">
               <a
@@ -527,41 +545,6 @@
               routerLink="/forgot-password"
               class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
               >Yêu cầu liên kết mới</a
-            >
-          </p>
-        </ng-container>
-
-        <!-- ============ VERIFY EMAIL ============ -->
-        <ng-container *ngIf="mode === 'verify'">
-          <p *ngIf="loading" class="text-sm text-slate-500 flex items-center gap-2">
-            <svg class="animate-spin h-4 w-4 text-violet-600" viewBox="0 0 24 24" fill="none">
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
-              />
-            </svg>
-            Đang xác thực...
-          </p>
-          <a
-            *ngIf="successMessage"
-            routerLink="/login"
-            class="w-full h-12 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-lg text-sm transition-all shadow-[0_8px_20px_-8px_rgba(103,58,183,0.7)] flex items-center justify-center"
-            >Đăng nhập ngay</a
-          >
-          <p *ngIf="errorMessage" class="text-sm text-slate-500 text-center">
-            <a
-              routerLink="/register"
-              class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
-              >Đăng ký lại để nhận liên kết mới</a
             >
           </p>
         </ng-container>

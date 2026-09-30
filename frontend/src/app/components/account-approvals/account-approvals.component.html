@@ -1,0 +1,114 @@
+<div class="aa">
+  <header class="aa-hero">
+    <span class="aa-hero-icon" aria-hidden="true">🛡️</span>
+    <div>
+      <h2>Duyệt tài khoản đăng ký</h2>
+      <p>
+        Giảng viên và nhân viên tự đăng ký cần bạn xác nhận. Khi xác nhận, hệ thống gửi key kích
+        hoạt vào email của họ; họ dán key khi đăng nhập lần đầu là dùng được.
+      </p>
+    </div>
+    <button type="button" class="aa-btn-outline" (click)="load()" [disabled]="loading()">
+      ↻ Tải lại
+    </button>
+  </header>
+
+  <div *ngIf="loading() && !items().length" class="aa-empty" role="status">Đang tải...</div>
+
+  <!-- Waiting for a decision -->
+  <section class="aa-section">
+    <h3>
+      <span class="aa-tile is-amber" aria-hidden="true">⏳</span>
+      Chờ xác nhận
+      <span class="aa-count">{{ pending().length }}</span>
+    </h3>
+    <div *ngIf="!loading() && !pending().length" class="aa-empty">
+      Không có yêu cầu nào đang chờ.
+    </div>
+    <div class="aa-list">
+      <article
+        *ngFor="let r of pending()"
+        class="aa-item"
+        [class.is-focus]="focusId() === r._id"
+      >
+        <span class="aa-avatar" aria-hidden="true">{{ initial(r.fullName) }}</span>
+        <div class="aa-info">
+          <strong>{{ r.fullName }}</strong>
+          <span class="aa-email">{{ r.email }}</span>
+          <span class="aa-meta">
+            <span class="aa-role" [attr.data-role]="r.role">{{ roleLabel[r.role] }}</span>
+            Đăng ký {{ r.createdAt | date: 'HH:mm dd/MM/yyyy' }}
+          </span>
+        </div>
+        <div class="aa-actions">
+          <button
+            type="button"
+            class="aa-btn-reject"
+            (click)="reject(r)"
+            [disabled]="busyId() === r._id"
+          >
+            Từ chối
+          </button>
+          <button
+            type="button"
+            class="aa-btn-primary"
+            (click)="approve(r)"
+            [disabled]="busyId() === r._id"
+          >
+            {{ busyId() === r._id ? 'Đang xử lý...' : '✓ Xác nhận & gửi key' }}
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Approved, key not used yet -->
+  <section *ngIf="awaitingKey().length" class="aa-section">
+    <h3>
+      <span class="aa-tile is-violet" aria-hidden="true">🔑</span>
+      Đã gửi key, chờ kích hoạt
+      <span class="aa-count">{{ awaitingKey().length }}</span>
+    </h3>
+    <div class="aa-list">
+      <article
+        *ngFor="let r of awaitingKey()"
+        class="aa-item is-sent"
+        [class.is-focus]="focusId() === r._id"
+      >
+        <span class="aa-avatar" aria-hidden="true">{{ initial(r.fullName) }}</span>
+        <div class="aa-info">
+          <strong>{{ r.fullName }}</strong>
+          <span class="aa-email">{{ r.email }}</span>
+          <span class="aa-meta">
+            <span class="aa-role" [attr.data-role]="r.role">{{ roleLabel[r.role] }}</span>
+            <ng-container *ngIf="r.approvedBy">Duyệt bởi {{ r.approvedBy.fullName }} · </ng-container>
+            Key hết hạn {{ r.keyExpiresAt | date: 'dd/MM/yyyy' }}
+          </span>
+          <span *ngIf="shownKeys()[r._id] as key" class="aa-key">
+            Không gửi được email — hãy gửi key này cho người đăng ký:
+            <code>{{ key }}</code>
+          </span>
+        </div>
+        <div class="aa-actions">
+          <button
+            type="button"
+            class="aa-btn-reject"
+            (click)="reject(r)"
+            [disabled]="busyId() === r._id"
+          >
+            Hủy
+          </button>
+          <button
+            type="button"
+            class="aa-btn-outline"
+            (click)="approve(r)"
+            [disabled]="busyId() === r._id"
+            title="Tạo key mới và gửi lại email"
+          >
+            {{ busyId() === r._id ? 'Đang gửi...' : 'Gửi lại key' }}
+          </button>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>

@@ -124,9 +124,48 @@ async function applyPaidOrder(orderCode, { amount, reference, paidAt } = {}) {
 // Order codes are positive integers PayOS keeps unique per channel.
 const newOrderCode = () => Number(`${Date.now() % 1e10}${crypto.randomInt(100, 1000)}`);
 
+const MAX_PLANS = 6;
+const MAX_AMOUNT = 1e9;
+
+/** Price list set by the admin, or the built-in defaults. */
+async function getPlans() {
+  const settings = await loadSettings();
+  const saved = settings.subscriptionPlans;
+  return saved?.length
+    ? saved.map(({ code, name, months, amount }) => ({ code, name, months, amount }))
+    : SUBSCRIPTION_PLANS.map((p) => ({ ...p }));
+}
+
+/** Admin: replaces the price list. Codes derive from the duration, so it must be unique. */
+async function savePlans(input) {
+  assert(Array.isArray(input) && input.length >= 1, 'Cần ít nhất một gói');
+  assert(input.length <= MAX_PLANS, `Tối đa ${MAX_PLANS} gói`);
+  const plans = input.map((p) => {
+    const name = typeof p?.name === 'string' ? p.name.trim() : '';
+    const months = Number(p?.months);
+    const amount = Number(p?.amount);
+    assert(name && name.length <= 50, 'Tên gói phải có từ 1 đến 50 ký tự');
+    assert(Number.isInteger(months) && months >= 1 && months <= 60, 'Số tháng phải từ 1 đến 60');
+    assert(
+      Number.isInteger(amount) && amount >= 2000 && amount <= MAX_AMOUNT,
+      'Giá gói phải là số nguyên từ 2.000 đ',
+    );
+    return { code: `goi_${months}_thang`, name, months, amount };
+  });
+  assert(
+    new Set(plans.map((p) => p.months)).size === plans.length,
+    'Mỗi gói phải có số tháng khác nhau',
+  );
+  plans.sort((a, b) => a.months - b.months);
+  const settings = await loadSettings();
+  settings.subscriptionPlans = plans;
+  await settings.save();
+  return plans;
+}
+
 /** Creates a pending order plus its PayOS payment link. */
 async function createOrder(planCode, user) {
-  const plan = SUBSCRIPTION_PLANS.find((p) => p.code === planCode);
+  const plan = (await getPlans()).find((p) => p.code === planCode);
   assert(plan, 'Gói không hợp lệ');
   assert(payos.isConfigured(), 'Chưa cấu hình PayOS trên máy chủ', 503);
 
@@ -184,6 +223,8 @@ module.exports = {
   getSubscription,
   isSubscriptionActive,
   applyPaidOrder,
+  getPlans,
+  savePlans,
   createOrder,
   syncOrder,
 };

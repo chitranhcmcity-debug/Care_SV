@@ -55,6 +55,13 @@ const HEROES: Record<string, PageHero> = {
     tipTitle: 'Nghe lại ghi âm',
     tipText: 'để nắm rõ nội dung trao đổi.',
   },
+  '/account-approvals': {
+    subtitle: 'Xác nhận tài khoản giảng viên, nhân viên tự đăng ký và gửi key kích hoạt.',
+    tone: 'indigo',
+    mascot: 'right',
+    tipTitle: 'Kiểm tra email',
+    tipText: 'trước khi xác nhận người lạ.',
+  },
   '/billing': {
     subtitle: 'Gói dịch vụ đang dùng, hạn sử dụng và lịch sử thanh toán.',
     tone: 'indigo',

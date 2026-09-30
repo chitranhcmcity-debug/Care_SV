@@ -46,7 +46,7 @@ export interface User {
   fullName: string;
   email: string;
   role: Role;
-  status: 'active' | 'inactive' | 'unverified';
+  status: 'active' | 'inactive' | 'pending' | 'awaiting_key' | 'unverified';
   managedClasses?: string[];
 }
 

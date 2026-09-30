@@ -20,10 +20,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(authReq).pipe(
       catchError((error) => {
         if (error.status === 401) auth.logout();
-        // Subscription expired: refresh the banner, and send an admin to the renewal page.
+        // Subscription expired: refresh the banner, and send whoever can renew to the billing page.
         if (error.status === 402) {
           billing.refreshStatus().subscribe({ error: () => {} });
-          if (auth.isAdmin() && !router.url.startsWith('/billing')) router.navigate(['/billing']);
+          if (auth.isManager() && !router.url.startsWith('/billing')) router.navigate(['/billing']);
         }
         return throwError(() => error);
       }),
