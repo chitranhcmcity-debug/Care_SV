@@ -1,6 +1,6 @@
-<div class="mx-4 md:mx-6 my-5 space-y-4">
+<div class="care-page mx-3 md:mx-4 my-3 space-y-3">
   <!-- Toolbar: status tabs, search, new case -->
-  <div class="care-toolbar flex flex-col lg:flex-row lg:items-center gap-3 p-3">
+  <div class="care-toolbar flex flex-col lg:flex-row lg:items-center gap-2 p-2">
     <div class="flex gap-1.5 overflow-x-auto no-scrollbar" role="tablist">
       <button
         *ngFor="let t of tabs()"
@@ -35,7 +35,7 @@
     </div>
   </div>
 
-  <div class="grid gap-4" [ngClass]="selected() ? 'lg:grid-cols-[380px_1fr]' : ''">
+  <div class="care-layout grid gap-3" [class.has-detail]="selected()">
     <!-- ===== List ===== -->
     <div class="space-y-3" [ngClass]="selected() ? 'hidden lg:block' : ''">
       <div *ngIf="loading()" class="care-empty">Đang tải...</div>
@@ -47,11 +47,11 @@
         *ngFor="let c of visible()"
         type="button"
         (click)="select(c)"
-        class="care-item w-full text-left p-4 space-y-2.5"
+        class="care-item w-full text-left p-3 space-y-2"
         [attr.data-status]="c.status"
         [class.is-selected]="selected()?._id === c._id"
       >
-        <div class="flex items-start justify-between gap-2">
+        <div class="flex flex-wrap items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="font-bold text-slate-900 truncate">{{ c.studentId?.fullName }}</div>
             <div class="text-xs text-slate-500">
@@ -87,9 +87,9 @@
 
     <!-- ===== Detail ===== -->
     <div *ngIf="detailLoading() && !selected()" class="care-empty">Đang mở hồ sơ...</div>
-    <section *ngIf="selected() as c" class="space-y-4 min-w-0">
+    <section *ngIf="selected() as c" class="space-y-3 min-w-0">
       <!-- Header -->
-      <div class="care-card care-head p-5 space-y-4" [attr.data-status]="c.status">
+      <div class="care-card care-head p-3.5 space-y-2.5" [attr.data-status]="c.status">
         <div class="flex items-start gap-3">
           <button
             type="button"
@@ -104,7 +104,7 @@
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <h2 class="text-xl font-extrabold text-slate-900">{{ c.studentId.fullName }}</h2>
+              <h2 class="text-lg font-extrabold text-slate-900">{{ c.studentId.fullName }}</h2>
               <span class="care-status" [attr.data-status]="c.status">{{
                 statusLabels[c.status]
               }}</span>
@@ -113,7 +113,7 @@
               {{ c.studentId.studentCode }} · Lớp {{ c.studentId.classCode }}
               <span *ngIf="c.studentId.major"> · {{ c.studentId.major }}</span>
             </div>
-            <div class="mt-2 flex flex-wrap gap-1.5 text-[11px]">
+            <div class="mt-1 flex flex-wrap gap-1.5 text-[11px]">
               <span
                 *ngIf="c.warning?.level"
                 class="care-chip"
@@ -140,7 +140,7 @@
         <p class="text-sm text-slate-700 bg-white/70 rounded-xl px-3 py-2">
           <b>Lý do:</b> {{ c.reason }}
         </p>
-        <div class="grid sm:grid-cols-3 gap-2 text-sm">
+        <div class="care-facts grid sm:grid-cols-3 gap-2 text-sm">
           <div class="care-fact">
             <span>Nhân viên chăm sóc</span><b>{{ c.assignedStaffId?.fullName || '—' }}</b>
           </div>
@@ -192,7 +192,7 @@
       <!-- Directive (managers) -->
       <div
         *ngIf="canAct() && c.status !== STATUS.CLOSED"
-        class="care-card p-5 space-y-3"
+        class="care-card p-3.5 space-y-2.5"
         [class.care-card--attention]="c.status === STATUS.AWAITING"
       >
         <h3 class="care-title">
@@ -236,9 +236,9 @@
         </button>
       </div>
 
-      <div class="grid xl:grid-cols-2 gap-4">
+      <div class="grid xl:grid-cols-2 gap-3">
         <!-- Steps -->
-        <div class="care-card p-5 space-y-3">
+        <div class="care-card p-3.5 space-y-2.5">
           <div class="flex items-center justify-between gap-2">
             <h3 class="care-title">✅ Các bước chăm sóc</h3>
             <span class="text-xs font-bold text-violet-700 tabular-nums"
@@ -297,7 +297,7 @@
                 (keydown.enter)="addStep(c)"
                 maxlength="300"
                 placeholder="Thêm bước chăm sóc..."
-                class="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
+                class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
               />
               <button type="button" (click)="addStep(c)" class="care-btn h-10 px-4">Thêm</button>
             </div>
@@ -324,7 +324,7 @@
         </div>
 
         <!-- Findings -->
-        <div class="care-card p-5 space-y-3">
+        <div class="care-card p-3.5 space-y-2.5">
           <h3 class="care-title">🔎 Nguyên nhân & hướng giải quyết</h3>
           <ng-container *ngIf="c.permissions.work && c.status !== STATUS.CLOSED; else findingsRead">
             <label class="block text-xs font-bold text-slate-500" for="care-cause"
@@ -333,7 +333,7 @@
             <textarea
               id="care-cause"
               [(ngModel)]="cause"
-              rows="3"
+              rows="2"
               maxlength="2000"
               placeholder="Vì sao sinh viên nghỉ học / có nguy cơ bỏ học..."
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
@@ -344,7 +344,7 @@
             <textarea
               id="care-solution"
               [(ngModel)]="solution"
-              rows="3"
+              rows="2"
               maxlength="2000"
               placeholder="Đã thống nhất với sinh viên / phụ huynh..."
               class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
@@ -368,7 +368,7 @@
       </div>
 
       <!-- Calls -->
-      <div class="care-card p-5 space-y-3">
+      <div class="care-card p-3.5 space-y-2.5">
         <h3 class="care-title">📞 Cuộc gọi trong hồ sơ ({{ c.calls.length }})</h3>
         <p *ngIf="!c.calls.length" class="text-sm text-slate-400">Chưa có cuộc gọi nào.</p>
         <div *ngFor="let call of c.calls" class="care-call">
@@ -407,7 +407,7 @@
       </div>
 
       <!-- Exchange / timeline -->
-      <div class="care-card p-5 space-y-3">
+      <div class="care-card p-3.5 space-y-2.5">
         <h3 class="care-title">💬 Trao đổi & tiến trình</h3>
         <div *ngIf="c.permissions.work" class="space-y-2">
           <div class="flex flex-wrap gap-1.5">
@@ -452,7 +452,7 @@
                     ? 'Chỉ đạo cho nhân viên...'
                     : 'Nội dung trao đổi...'
               "
-              class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
+              class="min-w-0 flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
             ></textarea>
             <button
               type="button"
@@ -481,7 +481,7 @@
       <!-- Closing -->
       <div
         *ngIf="c.status === STATUS.CLOSED; else closingForms"
-        class="care-card care-card--done p-5 space-y-2"
+        class="care-card care-card--done p-3.5 space-y-2"
       >
         <h3 class="care-title">🏁 Kết quả chăm sóc</h3>
         <div class="text-sm">
@@ -498,7 +498,7 @@
         <!-- Waiting for approval -->
         <div
           *ngIf="c.status === STATUS.CLOSING"
-          class="care-card care-card--attention p-5 space-y-3"
+          class="care-card care-card--attention p-3.5 space-y-2.5"
         >
           <h3 class="care-title">📋 Đề nghị kết thúc hồ sơ</h3>
           <div class="text-sm">
@@ -523,7 +523,7 @@
               <input
                 [(ngModel)]="returnNote"
                 placeholder="Lý do chưa duyệt, yêu cầu chăm sóc thêm..."
-                class="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
+                class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
               />
               <button
                 type="button"
@@ -543,7 +543,7 @@
         <!-- Report & close (staff asks; a manager may close directly) -->
         <div
           *ngIf="c.status === STATUS.IN_PROGRESS && c.permissions.work"
-          class="care-card p-5 space-y-3"
+          class="care-card p-3.5 space-y-2.5"
         >
           <h3 class="care-title">
             🏁
@@ -559,7 +559,7 @@
           </select>
           <textarea
             [(ngModel)]="closeSummary"
-            rows="3"
+            rows="2"
             maxlength="4000"
             placeholder="Báo cáo: sinh viên đã được chăm sóc thế nào, chuyển biến ra sao..."
             class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
