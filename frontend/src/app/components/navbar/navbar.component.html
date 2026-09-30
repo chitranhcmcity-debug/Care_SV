@@ -324,20 +324,8 @@
       </div>
     </nav>
 
-    <!-- Signed-in user -->
-    <div
-      class="mx-4 mb-4 mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-3"
-    >
-      <span
-        class="w-9 h-9 rounded-lg bg-violet-100 text-violet-700 font-semibold flex items-center justify-center shrink-0"
-        aria-hidden="true"
-        >{{ userInitial }}</span
-      >
-      <div class="min-w-0">
-        <div class="text-sm font-medium text-slate-900 truncate">{{ user?.fullName }}</div>
-        <div class="text-xs text-slate-500 truncate">{{ roleLabel }}</div>
-      </div>
-    </div>
+    <!-- Resting spot for the AI Care robot (see AiCareComponent.homePosition). -->
+    <div class="h-24 shrink-0" aria-hidden="true"></div>
   </aside>
 
   <!-- ===== Content area ===== -->

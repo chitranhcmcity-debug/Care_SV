@@ -47,12 +47,14 @@ export class AiCareComponent {
   // --- Robot wandering: flies to a random spot, hovers a moment, repeats. It parks in the
   // bottom-right corner while the chat is open, pauses under the pointer, and stays parked
   // for users who prefer reduced motion.
-  readonly pos = signal(this.dockPosition());
+  readonly pos = signal(this.homePosition());
   readonly travelMs = signal(0);
   readonly tilt = signal(0);
   readonly flying = signal(false);
-  /** Which way the robot faces; it starts docked at the right edge, looking into the page. */
-  readonly facing = signal<'left' | 'right'>('left');
+  /** Which way the robot faces; it starts at its home spot, looking into the page. */
+  readonly facing = signal<'left' | 'right'>(
+    typeof window !== 'undefined' && window.innerWidth >= 768 ? 'right' : 'left',
+  );
   private wanderTimer?: ReturnType<typeof setTimeout>;
   private paused = false;
   // Drag to move: the robot rests where it is dropped, then goes back to wandering.
@@ -85,7 +87,7 @@ export class AiCareComponent {
       this.profile.set(null);
       this.error.set('');
     });
-    this.scheduleWander(1500);
+    this.scheduleWander(8000); // rest at the home spot first
     inject(DestroyRef).onDestroy(() => clearTimeout(this.wanderTimer));
   }
 
@@ -186,6 +188,13 @@ export class AiCareComponent {
     };
   }
 
+  /** Default resting spot: bottom of the left sidebar on desktop, the dock on phones. */
+  private homePosition() {
+    if (typeof window === 'undefined') return { x: 0, y: 0 };
+    if (window.innerWidth < 768) return this.dockPosition();
+    return { x: 24, y: Math.max(72, window.innerHeight - ROBOT_H - 24) };
+  }
+
   private dockPosition() {
     if (typeof window === 'undefined') return { x: 0, y: 0 };
     return {
@@ -237,7 +246,13 @@ export class AiCareComponent {
         this.tilt.set(0);
       }, ms);
     } else {
-      this.scheduleWander(1500);
+      // Go back to the resting spot, stay a while, then start wandering again.
+      const ms = this.flyTo(this.homePosition(), 900);
+      this.wanderTimer = setTimeout(() => {
+        this.flying.set(false);
+        this.tilt.set(0);
+        this.scheduleWander(8000);
+      }, ms);
     }
     if (this.open() && !this.profile()) {
       this.ai.getCareProfile().subscribe({
