@@ -137,9 +137,7 @@
             ✕
           </button>
         </div>
-        <p class="text-sm text-slate-700 bg-white/70 rounded-xl px-3 py-2">
-          <b>Lý do:</b> {{ c.reason }}
-        </p>
+        <p class="care-reason text-sm rounded-xl px-3 py-2"><b>Lý do:</b> {{ c.reason }}</p>
         <div class="care-facts grid sm:grid-cols-3 gap-2 text-sm">
           <div class="care-fact">
             <span>Nhân viên chăm sóc</span><b>{{ c.assignedStaffId?.fullName || '—' }}</b>
@@ -360,8 +358,8 @@
           </ng-container>
           <ng-template #findingsRead>
             <div class="text-sm space-y-2">
-              <p><b class="text-slate-500">Nguyên nhân:</b> {{ c.cause || 'Chưa ghi nhận' }}</p>
-              <p><b class="text-slate-500">Hướng giải quyết:</b> {{ c.solution || 'Chưa có' }}</p>
+              <p class="care-cause"><b>Nguyên nhân:</b> {{ c.cause || 'Chưa ghi nhận' }}</p>
+              <p class="care-solution"><b>Hướng giải quyết:</b> {{ c.solution || 'Chưa có' }}</p>
             </div>
           </ng-template>
         </div>
