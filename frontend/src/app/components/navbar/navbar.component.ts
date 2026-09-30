@@ -46,7 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     path: '/students',
-    label: 'Hồ sơ sinh viên',
+    label: 'Sinh viên',
     short: 'Sinh viên',
     icon: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
   },
