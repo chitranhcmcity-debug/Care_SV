@@ -99,13 +99,41 @@ async function deliverViaCloudflare({ to, subject, html, text }) {
   }
 }
 
+// Resend HTTP API (over 443). MAIL_FROM must be on a domain verified in Resend.
+async function deliverViaResend({ to, subject, html, text }) {
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `${SENDER_NAME} <${process.env.MAIL_FROM}>`,
+        to: [to],
+        subject,
+        html,
+        text,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    console.log(`[Email] Đã gửi "${subject}" tới ${to} (Resend).`);
+    return true;
+  } catch (error) {
+    console.warn(`[Email] Gửi email tới ${to} qua Resend thất bại:`, error.message);
+    return false;
+  }
+}
+
 /**
  * Sends one email. Never throws: returns true when the provider accepted it,
  * false when email is not configured or delivery failed.
- * Provider order: Cloudflare Email Service, then Brevo, then SMTP (nodemailer).
+ * Provider order: Resend, Cloudflare Email Service, Brevo, then SMTP (nodemailer).
  */
 async function deliver({ to, subject, html, text }) {
-  const { CF_ACCOUNT_ID, CF_EMAIL_API_TOKEN, MAIL_FROM } = process.env;
+  const { RESEND_API_KEY, CF_ACCOUNT_ID, CF_EMAIL_API_TOKEN, MAIL_FROM } = process.env;
+  if (RESEND_API_KEY && MAIL_FROM) return deliverViaResend({ to, subject, html, text });
   if (CF_ACCOUNT_ID && CF_EMAIL_API_TOKEN && MAIL_FROM)
     return deliverViaCloudflare({ to, subject, html, text });
   if (process.env.BREVO_API_KEY) return deliverViaBrevo({ to, subject, html, text });
