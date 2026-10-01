@@ -68,11 +68,46 @@ async function deliverViaBrevo({ to, subject, html, text }) {
   }
 }
 
+// Cloudflare Email Service REST API (also over 443). Sending to arbitrary recipients needs the
+// Workers Paid plan, and MAIL_FROM must be on a domain onboarded to Email Service.
+async function deliverViaCloudflare({ to, subject, html, text }) {
+  const { CF_ACCOUNT_ID, CF_EMAIL_API_TOKEN, MAIL_FROM } = process.env;
+  try {
+    const response = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(CF_ACCOUNT_ID)}/email/sending/send`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${CF_EMAIL_API_TOKEN}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ to, from: MAIL_FROM, subject, html, text }),
+        signal: AbortSignal.timeout(15000),
+      },
+    );
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.success || payload.result?.permanent_bounces?.length) {
+      throw new Error(
+        `HTTP ${response.status}: ${JSON.stringify(payload.errors || payload.result)}`,
+      );
+    }
+    console.log(`[Email] Đã gửi "${subject}" tới ${to} (Cloudflare).`);
+    return true;
+  } catch (error) {
+    console.warn(`[Email] Gửi email tới ${to} qua Cloudflare thất bại:`, error.message);
+    return false;
+  }
+}
+
 /**
  * Sends one email. Never throws: returns true when the provider accepted it,
  * false when email is not configured or delivery failed.
+ * Provider order: Cloudflare Email Service, then Brevo, then SMTP (nodemailer).
  */
 async function deliver({ to, subject, html, text }) {
+  const { CF_ACCOUNT_ID, CF_EMAIL_API_TOKEN, MAIL_FROM } = process.env;
+  if (CF_ACCOUNT_ID && CF_EMAIL_API_TOKEN && MAIL_FROM)
+    return deliverViaCloudflare({ to, subject, html, text });
   if (process.env.BREVO_API_KEY) return deliverViaBrevo({ to, subject, html, text });
   const transporter = getTransporter();
   if (!transporter) {
