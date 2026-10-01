@@ -320,8 +320,9 @@ router.post('/registrations/:id/approve', verifyToken, requireApprover, async (r
         ? `Đã xác nhận và gửi key kích hoạt tới ${user.email}.`
         : 'Đã xác nhận nhưng không gửi được email. Hãy gửi key bên dưới cho người đăng ký.',
       emailSent,
-      // Shown only when the email failed, so the manager can hand the key over another way.
-      activationKey: emailSent ? undefined : key,
+      // Always returned: a provider can accept the email yet never deliver it, so the manager
+      // can hand the key over another way.
+      activationKey: key,
     });
   } catch (error) {
     next(error);

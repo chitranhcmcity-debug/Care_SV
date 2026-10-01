@@ -82,9 +82,16 @@
             </ng-container>
             Key hết hạn {{ r.keyExpiresAt | date: 'dd/MM/yyyy' }}
           </span>
-          <span *ngIf="shownKeys()[r._id] as key" class="aa-key">
-            Không gửi được email — hãy gửi key này cho người đăng ký:
-            <code>{{ key }}</code>
+          <span *ngIf="shownKeys()[r._id] as shown" class="aa-key">
+            {{
+              shown.emailSent
+                ? 'Đã gửi email. Nếu người đăng ký không nhận được, hãy gửi key này cho họ:'
+                : 'Không gửi được email — hãy gửi key này cho người đăng ký:'
+            }}
+            <code>{{ shown.key }}</code>
+            <button type="button" class="aa-key-copy" (click)="copyKey(shown.key)">
+              Sao chép
+            </button>
           </span>
         </div>
         <div class="aa-actions">

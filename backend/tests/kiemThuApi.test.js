@@ -701,8 +701,8 @@ test(
     const approved = await request(path, tokens.manager, 'POST');
     assert.equal(approved.status, 200);
     assert.equal(approved.body.emailSent, true);
-    assert.equal(approved.body.activationKey, undefined);
     const key = /Key kích hoạt: (\S+)/.exec(sentMails.findLast((m) => m.to === email).text)[1];
+    assert.equal(approved.body.activationKey, key);
     assert.match(key, /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
 
     // Password alone is not enough; a wrong key is refused; the right key (any case) works once.

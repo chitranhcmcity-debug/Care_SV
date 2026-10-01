@@ -11,7 +11,7 @@ const ROLE_LABEL: Record<Registration['role'], string> = {
 
 /**
  * Trưởng phòng / PHT: self sign-ups waiting for approval. Approving emails the applicant an
- * activation key; if that email fails, the key is shown here once so it can be handed over.
+ * activation key; the key is also shown here once in case that email never arrives.
  */
 @Component({
   selector: 'app-account-approvals',
@@ -28,8 +28,8 @@ export class AccountApprovalsComponent implements OnInit {
   readonly items = signal<Registration[]>([]);
   readonly loading = signal(true);
   readonly busyId = signal('');
-  /** Keys the server returned because the email could not be sent, by account id. */
-  readonly shownKeys = signal<Record<string, string>>({});
+  /** Keys issued in this session, by account id, with whether the email went out. */
+  readonly shownKeys = signal<Record<string, { key: string; emailSent: boolean }>>({});
   /** Account opened from the approval email link. */
   readonly focusId = signal('');
   readonly roleLabel = ROLE_LABEL;
@@ -62,11 +62,11 @@ export class AccountApprovalsComponent implements OnInit {
       next: (res) => {
         this.busyId.set('');
         if (res.activationKey) {
-          this.shownKeys.update((keys) => ({ ...keys, [r._id]: res.activationKey! }));
-          this.notify.info(res.message);
-        } else {
-          this.notify.success(res.message);
+          const shown = { key: res.activationKey, emailSent: res.emailSent };
+          this.shownKeys.update((keys) => ({ ...keys, [r._id]: shown }));
         }
+        if (res.emailSent) this.notify.success(res.message);
+        else this.notify.info(res.message);
         this.load();
       },
       error: (err) => {
@@ -92,6 +92,13 @@ export class AccountApprovalsComponent implements OnInit {
         this.load();
       },
     });
+  }
+
+  copyKey(key: string) {
+    navigator.clipboard
+      ?.writeText(key)
+      .then(() => this.notify.success('Đã sao chép key'))
+      .catch(() => this.notify.error('Không sao chép được, hãy bôi đen key để copy'));
   }
 
   initial(name: string) {
