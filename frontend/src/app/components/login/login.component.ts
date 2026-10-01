@@ -210,6 +210,12 @@ export class LoginComponent implements OnInit {
   }
 
   private redirectByUserRole() {
+    // Only same-app paths, so the query parameter cannot send the user to another site.
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '';
+    if (/^\/(?![/\\])/.test(returnUrl)) {
+      this.router.navigateByUrl(returnUrl);
+      return;
+    }
     this.router.navigate([this.authService.homePath()]);
   }
 }
