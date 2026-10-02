@@ -3,240 +3,249 @@
   class="fixed inset-0 z-[60] bg-slate-900/50 flex items-center justify-center p-4"
   role="dialog"
   aria-modal="true"
-  aria-labelledby="call-dialog-title"
+  aria-labelledby="call-dialog-title call-dialog-student"
 >
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-5">
-    <div class="flex items-start justify-between gap-3">
-      <div>
-        <h2 id="call-dialog-title" class="text-lg font-semibold text-slate-900">
-          Gọi điện · {{ req.student.fullName }}
-        </h2>
-        <p *ngIf="req.student.studentCode" class="text-sm text-slate-500">
-          MSSV {{ req.student.studentCode }}
-        </p>
-      </div>
-      <button
-        type="button"
-        (click)="close()"
-        aria-label="Đóng"
-        class="w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center"
-      >
-        ✕
+  <div class="call-panel">
+    <!-- Gradient header -->
+    <header class="call-head">
+      <span class="call-head-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M8 3 4 4C1 12 12 23 20 20l1-4-5-3-2 3-6-6 3-2Z" /></svg>
+      </span>
+      <h2 id="call-dialog-title" class="call-head-title">Gọi điện</h2>
+      <span class="call-spark call-spark--a" aria-hidden="true">✦</span>
+      <span class="call-spark call-spark--b" aria-hidden="true">✦</span>
+      <button type="button" (click)="close()" aria-label="Đóng" class="call-close">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12 M6 18 18 6" /></svg>
       </button>
-    </div>
+    </header>
 
-    <!-- ===== Step 1: who & how ===== -->
-    <ng-container *ngIf="step() === 'setup'">
-      <fieldset class="space-y-2">
-        <legend class="text-sm font-medium text-slate-700 mb-1">Gọi cho</legend>
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            *ngFor="
-              let option of [
-                { value: 'sinh_vien', label: 'Sinh viên', phone: req.student.phone },
-                { value: 'phu_huynh', label: 'Phụ huynh', phone: req.student.parentPhone },
-              ]
-            "
-            type="button"
-            (click)="target.set($any(option.value))"
-            [disabled]="!option.phone"
-            class="p-3 rounded-lg border text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            [ngClass]="
-              target() === option.value
-                ? 'border-violet-500 bg-violet-50'
-                : 'border-slate-200 hover:border-violet-300'
-            "
-          >
-            <div class="text-sm font-semibold text-slate-800">{{ option.label }}</div>
-            <div class="text-xs text-slate-500">{{ option.phone || 'Chưa có SĐT' }}</div>
-          </button>
+    <div class="call-body">
+      <!-- Student -->
+      <div class="call-student">
+        <span class="call-avatar" aria-hidden="true">{{ initials() }}</span>
+        <div class="min-w-0">
+          <p id="call-dialog-student" class="call-student-name">{{ req.student.fullName }}</p>
+          <p *ngIf="req.student.studentCode" class="call-student-code">
+            MSSV {{ req.student.studentCode }}
+          </p>
         </div>
-      </fieldset>
+      </div>
 
-      <fieldset class="space-y-2">
-        <legend class="text-sm font-medium text-slate-700 mb-1">Cách gọi</legend>
-        <label
-          class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer"
-          [ngClass]="
-            method() === 'dien_thoai' ? 'border-violet-500 bg-violet-50' : 'border-slate-200'
-          "
-        >
-          <input
-            type="radio"
-            name="method"
-            class="mt-1"
-            [checked]="method() === 'dien_thoai'"
-            (change)="method.set('dien_thoai')"
-          />
-          <span>
-            <span class="block text-sm font-semibold text-slate-800">Gọi bằng điện thoại</span>
-            <span class="block text-xs text-slate-500"
-              >Mở trình gọi của máy. Sau cuộc gọi, bạn có thể tải file ghi âm từ điện thoại
-              lên.</span
+      <!-- ===== Step 1: who & how ===== -->
+      <ng-container *ngIf="step() === 'setup'">
+        <fieldset class="call-group">
+          <legend class="call-legend">Gọi cho</legend>
+          <div class="call-grid">
+            <button
+              *ngFor="
+                let option of [
+                  { value: 'sinh_vien', label: 'Sinh viên', phone: req.student.phone },
+                  { value: 'phu_huynh', label: 'Phụ huynh', phone: req.student.parentPhone },
+                ]
+              "
+              type="button"
+              (click)="target.set($any(option.value))"
+              [disabled]="!option.phone"
+              [attr.aria-pressed]="target() === option.value"
+              class="call-option"
+              [class.is-selected]="target() === option.value"
             >
-          </span>
-        </label>
-        <label
-          class="flex items-start gap-3 p-3 rounded-lg border"
-          [ngClass]="[
-            method() === 'stringee' ? 'border-violet-500 bg-violet-50' : 'border-slate-200',
-            stringeeAvailable() ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed',
-          ]"
-        >
-          <input
-            type="radio"
-            name="method"
-            class="mt-1"
-            [disabled]="!stringeeAvailable()"
-            [checked]="method() === 'stringee'"
-            (change)="method.set('stringee')"
-          />
-          <span>
-            <span class="block text-sm font-semibold text-slate-800">Gọi qua tổng đài</span>
-            <span class="block text-xs text-slate-500">
-              {{
-                stringeeAvailable()
-                  ? 'Gọi ngay trên trình duyệt bằng tai nghe/micro; nếu chọn ghi âm, tổng đài tự ghi.'
-                  : 'Chưa cấu hình tổng đài Stringee trên máy chủ.'
-              }}
+              <span class="call-icon" aria-hidden="true">
+                <svg *ngIf="option.value === 'sinh_vien'" viewBox="0 0 24 24">
+                  <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 8 0 0 1 16 0v2Z" />
+                </svg>
+                <svg *ngIf="option.value === 'phu_huynh'" viewBox="0 0 24 24">
+                  <path
+                    d="M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M1 21v-1a8 8 0 0 1 16 0v1 M16 3.5a4 4 0 0 1 0 7 M20 14a7 7 0 0 1 3 6v1"
+                  />
+                </svg>
+              </span>
+              <span class="call-text">
+                <span class="call-option-title">{{ option.label }}</span>
+                <span class="call-option-sub">{{ option.phone || 'Chưa có SĐT' }}</span>
+              </span>
+              <span class="call-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+              </span>
+            </button>
+          </div>
+        </fieldset>
+
+        <fieldset class="call-group">
+          <legend class="call-legend">Cách gọi</legend>
+          <label class="call-option" [class.is-selected]="method() === 'dien_thoai'">
+            <span class="call-icon call-icon--sky" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M8 3 4 4C1 12 12 23 20 20l1-4-5-3-2 3-6-6 3-2Z" />
+              </svg>
             </span>
-          </span>
-        </label>
-      </fieldset>
-
-      <fieldset class="space-y-2">
-        <legend class="text-sm font-medium text-slate-700 mb-1">Ghi âm cuộc gọi này?</legend>
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            *ngFor="
-              let option of [
-                { value: true, label: '🎙️ Có ghi âm' },
-                { value: false, label: 'Không ghi âm' },
-              ]
-            "
-            type="button"
-            (click)="record.set(option.value)"
-            [attr.aria-pressed]="record() === option.value"
-            class="h-10 rounded-lg border text-sm font-semibold transition-colors"
-            [ngClass]="
-              record() === option.value
-                ? 'border-violet-500 bg-violet-50 text-violet-700'
-                : 'border-slate-200 text-slate-600 hover:border-violet-300'
-            "
+            <span class="call-text">
+              <span class="call-option-title">Gọi bằng điện thoại</span>
+              <span class="call-option-sub"
+                >Mở trình gọi của máy. Sau cuộc gọi, bạn có thể tải file ghi âm từ điện thoại
+                lên.</span
+              >
+            </span>
+            <input
+              type="radio"
+              name="method"
+              class="call-radio"
+              [checked]="method() === 'dien_thoai'"
+              (change)="method.set('dien_thoai')"
+            />
+          </label>
+          <label
+            class="call-option"
+            [class.is-selected]="method() === 'stringee'"
+            [class.is-disabled]="!stringeeAvailable()"
           >
-            {{ option.label }}
-          </button>
-        </div>
-        <p
-          *ngIf="record()"
-          class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5"
-        >
-          Hãy thông báo cho người nghe rằng cuộc gọi đang được ghi âm. Bạn nghe lại được bản ghi của
-          mình; Trưởng phòng / Phó hiệu trưởng nghe được mọi bản ghi.
+            <span class="call-icon call-icon--solid" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 15v-3a8 8 0 0 1 16 0v3 M4 15h3v5H4Z M17 15h3v5h-3Z" />
+              </svg>
+            </span>
+            <span class="call-text">
+              <span class="call-option-title">Gọi qua tổng đài</span>
+              <span class="call-option-sub">
+                {{
+                  stringeeAvailable()
+                    ? 'Gọi ngay trên trình duyệt bằng tai nghe/micro; nếu chọn ghi âm, tổng đài tự ghi.'
+                    : 'Chưa cấu hình tổng đài Stringee trên máy chủ.'
+                }}
+              </span>
+            </span>
+            <input
+              type="radio"
+              name="method"
+              class="call-radio"
+              [disabled]="!stringeeAvailable()"
+              [checked]="method() === 'stringee'"
+              (change)="method.set('stringee')"
+            />
+          </label>
+        </fieldset>
+
+        <fieldset class="call-group">
+          <legend class="call-legend">Ghi âm cuộc gọi này?</legend>
+          <div class="call-grid">
+            <button
+              *ngFor="
+                let option of [
+                  { value: true, label: 'Có ghi âm' },
+                  { value: false, label: 'Không ghi âm' },
+                ]
+              "
+              type="button"
+              (click)="record.set(option.value)"
+              [attr.aria-pressed]="record() === option.value"
+              class="call-option call-option--compact"
+              [class.is-selected]="record() === option.value"
+            >
+              <span class="call-icon" [class.call-icon--muted]="!option.value" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z M5 11a7 7 0 0 0 14 0 M12 18v3"
+                  />
+                  <path *ngIf="!option.value" d="m4 4 16 16" />
+                </svg>
+              </span>
+              <span class="call-option-title call-text">{{ option.label }}</span>
+              <span class="call-dot" aria-hidden="true"></span>
+            </button>
+          </div>
+          <p *ngIf="record()" class="call-note">
+            Hãy thông báo cho người nghe rằng cuộc gọi đang được ghi âm. Bạn nghe lại được bản ghi
+            của mình; Trưởng phòng / Phó hiệu trưởng nghe được mọi bản ghi.
+          </p>
+        </fieldset>
+
+        <p *ngIf="!canStartCall()" class="call-warning" role="status">
+          Tài khoản này không có quyền gọi điện. Quản trị viên chỉ được xem dữ liệu nghiệp vụ. Hãy
+          dùng tài khoản Trưởng phòng, Nhân viên CSKH hoặc Giảng viên để gọi điện.
         </p>
-      </fieldset>
 
-      <p
-        *ngIf="!canStartCall()"
-        class="text-sm text-rose-800 bg-rose-50 rounded-lg p-3"
-        role="status"
-      >
-        Tài khoản này không có quyền gọi điện. Quản trị viên chỉ được xem dữ liệu nghiệp vụ. Hãy
-        dùng tài khoản Trưởng phòng, Nhân viên CSKH hoặc Giảng viên để gọi điện.
-      </p>
+        <button
+          type="button"
+          (click)="start()"
+          [disabled]="busy() || !selectedPhone() || !canStartCall() || record() === null"
+          class="call-primary"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 3 4 4C1 12 12 23 20 20l1-4-5-3-2 3-6-6 3-2Z" />
+          </svg>
+          {{
+            busy()
+              ? 'Đang bắt đầu...'
+              : record() === null
+                ? 'Chọn có ghi âm hay không'
+                : 'Gọi ' + (selectedPhone() || '')
+          }}
+        </button>
+      </ng-container>
 
-      <button
-        type="button"
-        (click)="start()"
-        [disabled]="busy() || !selectedPhone() || !canStartCall() || record() === null"
-        class="w-full h-11 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-semibold"
-      >
-        {{
-          busy()
-            ? 'Đang bắt đầu...'
-            : record() === null
-              ? 'Chọn có ghi âm hay không'
-              : 'Gọi ' + (selectedPhone() || '')
-        }}
-      </button>
-    </ng-container>
-
-    <!-- ===== Step 2: in the call ===== -->
-    <ng-container *ngIf="step() === 'calling'">
-      <div class="text-center space-y-2 py-4">
-        <div class="text-sm text-slate-500">
-          Đang gọi {{ target() === 'phu_huynh' ? 'phụ huynh' : 'sinh viên' }}
+      <!-- ===== Step 2: in the call ===== -->
+      <ng-container *ngIf="step() === 'calling'">
+        <div class="call-live">
+          <div class="call-live-label">
+            Đang gọi {{ target() === 'phu_huynh' ? 'phụ huynh' : 'sinh viên' }}
+          </div>
+          <div class="call-live-phone">{{ phoneNumber() }}</div>
+          <div class="call-live-timer">{{ formatElapsed() }}</div>
+          <div *ngIf="method() === 'stringee'" class="call-live-state">
+            {{ stringeeState() }}
+          </div>
+          <p *ngIf="method() === 'dien_thoai'" class="call-option-sub">
+            Nếu trình gọi không tự mở (VD trên máy tính), hãy bấm số trên điện thoại của bạn.
+          </p>
         </div>
-        <div class="text-2xl font-semibold text-slate-900">{{ phoneNumber() }}</div>
-        <div class="text-3xl font-mono text-violet-600">{{ formatElapsed() }}</div>
-        <div *ngIf="method() === 'stringee'" class="text-sm text-slate-600">
-          {{ stringeeState() }}
+        <audio id="stringee-remote-audio" autoplay></audio>
+        <button type="button" (click)="finishCalling()" class="call-primary call-primary--end">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 3 4 4C1 12 12 23 20 20l1-4-5-3-2 3-6-6 3-2Z" />
+          </svg>
+          {{ method() === 'stringee' ? 'Gác máy' : 'Đã gọi xong' }}
+        </button>
+      </ng-container>
+
+      <!-- ===== Step 3: outcome ===== -->
+      <form *ngIf="step() === 'result'" (ngSubmit)="save()" class="call-form">
+        <div class="call-field">
+          <label for="call-outcome" class="call-legend">Kết quả cuộc gọi</label>
+          <select id="call-outcome" name="outcome" [(ngModel)]="outcome" class="call-input">
+            <option value="">— Chọn kết quả —</option>
+            <option *ngFor="let o of outcomes" [value]="o[0]">{{ o[1] }}</option>
+          </select>
         </div>
-        <p *ngIf="method() === 'dien_thoai'" class="text-xs text-slate-500">
-          Nếu trình gọi không tự mở (VD trên máy tính), hãy bấm số trên điện thoại của bạn.
+        <div class="call-field">
+          <label for="call-note" class="call-legend">Ghi chú</label>
+          <textarea
+            id="call-note"
+            name="note"
+            rows="3"
+            maxlength="2000"
+            [(ngModel)]="note"
+            placeholder="Nội dung trao đổi, lý do vắng..."
+            class="call-input"
+          ></textarea>
+        </div>
+        <div *ngIf="method() === 'dien_thoai' && record()" class="call-field">
+          <label for="call-recording" class="call-legend">File ghi âm (không bắt buộc)</label>
+          <input
+            id="call-recording"
+            type="file"
+            accept="audio/*"
+            (change)="onFile($event)"
+            class="block w-full text-sm text-slate-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-700"
+          />
+          <p class="call-option-sub">mp3, m4a, wav, aac, ogg, amr — tối đa 50MB.</p>
+        </div>
+        <p *ngIf="method() === 'stringee' && record()" class="call-option-sub">
+          Bản ghi âm của tổng đài sẽ có trong Lịch sử cuộc gọi sau ít phút.
         </p>
-      </div>
-      <audio id="stringee-remote-audio" autoplay></audio>
-      <button
-        type="button"
-        (click)="finishCalling()"
-        class="w-full h-11 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold"
-      >
-        {{ method() === 'stringee' ? 'Gác máy' : 'Đã gọi xong' }}
-      </button>
-    </ng-container>
-
-    <!-- ===== Step 3: outcome ===== -->
-    <form *ngIf="step() === 'result'" (ngSubmit)="save()" class="space-y-4">
-      <div class="space-y-1.5">
-        <label for="call-outcome" class="block text-sm font-medium text-slate-700"
-          >Kết quả cuộc gọi</label
-        >
-        <select
-          id="call-outcome"
-          name="outcome"
-          [(ngModel)]="outcome"
-          class="w-full h-11 px-3 rounded-lg border border-slate-300 bg-white text-sm"
-        >
-          <option value="">— Chọn kết quả —</option>
-          <option *ngFor="let o of outcomes" [value]="o[0]">{{ o[1] }}</option>
-        </select>
-      </div>
-      <div class="space-y-1.5">
-        <label for="call-note" class="block text-sm font-medium text-slate-700">Ghi chú</label>
-        <textarea
-          id="call-note"
-          name="note"
-          rows="3"
-          maxlength="2000"
-          [(ngModel)]="note"
-          placeholder="Nội dung trao đổi, lý do vắng..."
-          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-        ></textarea>
-      </div>
-      <div *ngIf="method() === 'dien_thoai' && record()" class="space-y-1.5">
-        <label for="call-recording" class="block text-sm font-medium text-slate-700"
-          >File ghi âm (không bắt buộc)</label
-        >
-        <input
-          id="call-recording"
-          type="file"
-          accept="audio/*"
-          (change)="onFile($event)"
-          class="block w-full text-sm text-slate-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-700"
-        />
-        <p class="text-xs text-slate-500">mp3, m4a, wav, aac, ogg, amr — tối đa 50MB.</p>
-      </div>
-      <p *ngIf="method() === 'stringee' && record()" class="text-xs text-slate-500">
-        Bản ghi âm của tổng đài sẽ có trong Lịch sử cuộc gọi sau ít phút.
-      </p>
-      <button
-        type="submit"
-        [disabled]="busy()"
-        class="w-full h-11 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-sm font-semibold"
-      >
-        {{ busy() ? 'Đang lưu...' : 'Lưu cuộc gọi' }}
-      </button>
-    </form>
+        <button type="submit" [disabled]="busy()" class="call-primary">
+          {{ busy() ? 'Đang lưu...' : 'Lưu cuộc gọi' }}
+        </button>
+      </form>
+    </div>
   </div>
 </div>

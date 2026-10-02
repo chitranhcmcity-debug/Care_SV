@@ -59,6 +59,7 @@ function loadStringeeSdk(): Promise<void> {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './call-dialog.component.html',
+  styleUrl: './call-dialog.component.css',
 })
 export class CallDialogComponent implements OnDestroy {
   readonly calls = inject(CallService);
@@ -77,6 +78,13 @@ export class CallDialogComponent implements OnDestroy {
   /** Asked before every call; nothing is recorded unless the caller says yes. */
   readonly record = signal<boolean | null>(null);
   readonly stringeeAvailable = signal(false);
+  /** Avatar letters: first and last word of the student's name. */
+  readonly initials = computed(() => {
+    const words = (this.request()?.student.fullName ?? '').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    const first = words[0][0];
+    return (words.length > 1 ? first + words[words.length - 1][0] : first).toUpperCase();
+  });
   readonly busy = signal(false);
   readonly callLog = signal<CallLog | null>(null);
   readonly phoneNumber = signal('');
