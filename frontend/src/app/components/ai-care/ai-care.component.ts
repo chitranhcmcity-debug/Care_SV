@@ -81,8 +81,13 @@ export class AiCareComponent {
 
   constructor() {
     // A different account signing in on this tab must not see the previous conversation.
+    // Session refreshes re-set the same user, so only clear when the account actually changes.
+    const idOf = (u: { id?: string; _id?: string } | null) => u?.id ?? u?._id;
+    let userId = idOf(this.auth.currentUser());
     effect(() => {
-      this.auth.currentUser();
+      const id = idOf(this.auth.currentUser());
+      if (id === userId) return;
+      userId = id;
       this.messages.set([]);
       this.profile.set(null);
       this.error.set('');
