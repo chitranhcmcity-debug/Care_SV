@@ -289,7 +289,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
    * stays put; only after every card has landed does scrolling carry on to the next block.
    * Touch screens, other ways of scrolling (nav links, keyboard, scrollbar) fill the grid by themselves.
    */
-  private groups: { el: HTMLElement; items: HTMLElement[]; next: number; snapped: boolean }[] = [];
+  private groups: { el: HTMLElement; items: HTMLElement[]; next: number }[] = [];
   private lastWheel = 0;
   private lastDrop = 0;
 
@@ -304,6 +304,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private snapUntil = 0;
 
+  /** Eases the page to `y` frame by frame (a native smooth scroll can be cut short by wheel momentum). */
+  private glideTo(y: number, ms: number) {
+    const from = window.scrollY;
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / ms);
+      window.scrollTo(0, from + (y - from) * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
   private readonly onWheel = (e: WheelEvent) => {
     const now = Date.now();
     this.lastWheel = now;
@@ -317,13 +329,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (!g) return;
     e.preventDefault();
     if (now < this.snapUntil) return; // still gliding into place
+    // Keep the whole grid between the sticky header and the bottom edge before dropping a card.
+    const headerH = document.querySelector('header')?.getBoundingClientRect().bottom ?? 80;
     const r = g.el.getBoundingClientRect();
-    if (!g.snapped) {
-      // Park the page so the whole grid is on screen, then start dropping cards.
-      g.snapped = true;
-      const top = Math.max(100, (vh - r.height) / 2);
-      window.scrollTo({ top: window.scrollY + r.top - top, behavior: 'smooth' });
-      this.snapUntil = now + 700;
+    if (r.top < headerH || r.bottom > vh) {
+      const top = headerH + Math.max(16, (vh - headerH - r.height) / 2);
+      this.glideTo(window.scrollY + r.top - top, 520);
+      this.snapUntil = now + 560;
       this.lastDrop = now;
       this.drop(g.items[g.next++]);
       return;
@@ -375,7 +387,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       el,
       items: Array.from(el.querySelectorAll<HTMLElement>(':scope > .rv')),
       next: 0,
-      snapped: false,
     }));
     window.addEventListener('wheel', this.onWheel, { passive: false });
     window.addEventListener('scroll', this.onScroll, { passive: true });
