@@ -45,9 +45,9 @@
       linear-gradient(
         90deg,
         rgb(251 250 255 / 0.96) 0%,
-        rgb(251 250 255 / 0.9) 28%,
-        rgb(251 250 255 / 0.55) 46%,
-        rgb(251 250 255 / 0) 62%
+        rgb(251 250 255 / 0.9) 34%,
+        rgb(251 250 255 / 0.55) 54%,
+        rgb(251 250 255 / 0) 70%
       ),
       linear-gradient(180deg, rgb(251 250 255 / 0) 72%, #fbfaff 100%);
   }
@@ -55,11 +55,13 @@
     min-height: var(--hero-h);
   }
   .hero-copy {
-    max-width: 600px;
+    max-width: 680px;
+    /* Nudged in from the left edge, toward the middle of the banner. */
+    margin-left: clamp(0px, 4vw, 72px);
   }
 }
 @media (min-width: 1536px) {
   .hero-copy {
-    max-width: 660px;
+    max-width: 740px;
   }
 }
