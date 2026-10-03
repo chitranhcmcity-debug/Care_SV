@@ -27,10 +27,10 @@ async function startServer() {
     if (config.seedDemo) await require('./scripts/taoDuLieuMau')();
     const admin = await require('./scripts/taoTaiKhoanQuanTri').ensureInitialAdmin();
     if (admin.created) console.log('Created the first admin account:', admin.user.email);
-    // Every account and record belongs to a unit (each Trưởng phòng / PHT owns one).
-    await require('./scripts/ganDonVi').assignUnits();
     else if (admin.reason === 'not-configured')
       console.warn('No admin account yet: set ADMIN_EMAIL and ADMIN_PASSWORD, then restart.');
+    // Every account and record belongs to a unit (each Trưởng phòng / PHT owns one).
+    await require('./scripts/ganDonVi').assignUnits();
     server = await new Promise((resolve, reject) => {
       const listener = app.listen(config.port, '0.0.0.0', () => resolve(listener));
       listener.on('error', reject);
