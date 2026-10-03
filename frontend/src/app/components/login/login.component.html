@@ -5,7 +5,7 @@
     <!-- Left: form -->
     <div
       class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20 lg:overflow-y-auto"
-      [ngClass]="mode === 'login' ? 'py-6' : 'py-8'"
+      [ngClass]="mode === 'login' || mode === 'register' ? 'py-6' : 'py-8'"
     >
       <!-- Brand -->
       <a routerLink="/" class="relative flex items-center gap-3 w-fit">
@@ -18,9 +18,18 @@
 
       <div
         class="flex-1 flex items-center justify-center"
-        [ngClass]="mode === 'login' ? 'py-4' : 'py-10'"
+        [ngClass]="mode === 'login' || mode === 'register' ? 'py-4' : 'py-10'"
       >
-        <div class="w-full max-w-[420px]" [ngClass]="mode === 'login' ? 'space-y-4' : 'space-y-7'">
+        <div
+          class="w-full"
+          [ngClass]="
+            mode === 'register'
+              ? 'max-w-[500px] space-y-4 lg-register'
+              : mode === 'login'
+                ? 'max-w-[420px] space-y-4'
+                : 'max-w-[420px] space-y-7'
+          "
+        >
           <!-- Heading -->
           <div class="space-y-2" [ngSwitch]="mode">
             <ng-container *ngSwitchCase="'register'">
@@ -227,10 +236,10 @@
               >
                 Hệ thống chưa bật thanh toán trực tuyến. Vui lòng liên hệ quản trị viên.
               </p>
-              <div *ngIf="plans?.length" class="grid gap-2">
+              <div *ngIf="plans?.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <label
                   *ngFor="let plan of plans"
-                  class="flex items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                  class="lg-plan flex flex-col gap-0.5 p-2.5 rounded-xl border cursor-pointer transition-colors"
                   [ngClass]="
                     planCode === plan.code
                       ? 'border-violet-500 bg-violet-50'
@@ -459,37 +468,19 @@
 
           <!-- ============ REGISTER ============ -->
           <ng-container *ngIf="mode === 'register'">
-            <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-5" novalidate>
+            <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-4" novalidate>
               <fieldset class="space-y-1.5">
                 <legend class="block text-sm font-medium text-slate-700 mb-1.5">Bạn là</legend>
                 <div class="grid grid-cols-2 gap-2">
                   <label
                     *ngFor="
                       let option of [
-                        {
-                          value: 'teacher',
-                          label: 'Giảng viên',
-                          hint: 'Điểm danh lớp được phân công',
-                        },
-                        {
-                          value: 'staff',
-                          label: 'Nhân viên CSKH',
-                          hint: 'Gọi điện chăm sóc sinh viên',
-                        },
-                        {
-                          value: 'manager',
-                          label: 'Trưởng phòng / Phó hiệu trưởng',
-                          hint: 'Quản lý toàn bộ hệ thống · cần mua gói dịch vụ',
-                        },
+                        { value: 'teacher', label: 'Giảng viên', hint: 'Điểm danh lớp được giao' },
+                        { value: 'staff', label: 'Nhân viên CSKH', hint: 'Gọi điện chăm sóc SV' },
                       ]
                     "
-                    class="flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-colors"
-                    [class.col-span-2]="option.value === 'manager'"
-                    [ngClass]="
-                      role === option.value
-                        ? 'border-violet-500 bg-violet-50'
-                        : 'border-slate-200 hover:border-violet-300'
-                    "
+                    class="lg-role"
+                    [class.is-selected]="role === option.value"
                   >
                     <input
                       type="radio"
@@ -499,8 +490,46 @@
                       [ngModel]="role"
                       (ngModelChange)="selectRole($event)"
                     />
-                    <span class="text-sm font-semibold text-slate-800">{{ option.label }}</span>
-                    <span class="text-xs text-slate-500">{{ option.hint }}</span>
+                    <span class="lg-role-icon" aria-hidden="true">
+                      <svg *ngIf="option.value === 'teacher'" viewBox="0 0 24 24">
+                        <path d="M2 9l10-5 10 5-10 5Z M6 11v5c3 2.5 9 2.5 12 0v-5 M22 9v6" />
+                      </svg>
+                      <svg *ngIf="option.value === 'staff'" viewBox="0 0 24 24">
+                        <path d="M4 15v-3a8 8 0 0 1 16 0v3 M4 15h3v5H4Z M17 15h3v5h-3Z" />
+                      </svg>
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block text-sm font-semibold text-slate-800">{{
+                        option.label
+                      }}</span>
+                      <span class="block text-xs text-slate-500">{{ option.hint }}</span>
+                    </span>
+                  </label>
+
+                  <!-- Leadership: full width, gold accents and a star badge -->
+                  <label class="lg-role lg-role--lead col-span-2" [class.is-selected]="role === 'manager'">
+                    <input
+                      type="radio"
+                      name="role"
+                      class="sr-only"
+                      value="manager"
+                      [ngModel]="role"
+                      (ngModelChange)="selectRole($event)"
+                    />
+                    <span class="lg-role-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5Z M5 19h14" />
+                      </svg>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-sm font-semibold text-slate-800"
+                        >Trưởng phòng / Phó hiệu trưởng</span
+                      >
+                      <span class="block text-xs text-slate-500"
+                        >Quản lý toàn bộ hệ thống · cần mua gói dịch vụ</span
+                      >
+                    </span>
+                    <span class="lg-lead-badge">★ Cấp lãnh đạo</span>
                   </label>
                 </div>
               </fieldset>
@@ -510,50 +539,50 @@
                 <ng-container *ngTemplateOutlet="planPicker"></ng-container>
               </ng-container>
 
-              <div class="space-y-1.5">
-                <label for="register-name" class="block text-sm font-medium text-slate-700"
-                  >Họ và tên</label
-                >
-                <input
-                  id="register-name"
-                  type="text"
-                  autocomplete="name"
-                  [(ngModel)]="fullName"
-                  name="fullName"
-                  required
-                  maxlength="100"
-                  placeholder="VD: Nguyễn Văn A"
-                  class="w-full h-12 px-4 lg-input"
-                />
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                  <label for="register-name" class="block text-sm font-medium text-slate-700"
+                    >Họ và tên</label
+                  >
+                  <input
+                    id="register-name"
+                    type="text"
+                    autocomplete="name"
+                    [(ngModel)]="fullName"
+                    name="fullName"
+                    required
+                    maxlength="100"
+                    placeholder="VD: Nguyễn Văn A"
+                    class="w-full h-12 px-4 lg-input"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="register-email" class="block text-sm font-medium text-slate-700"
+                    >Email</label
+                  >
+                  <input
+                    id="register-email"
+                    type="email"
+                    autocomplete="email"
+                    [(ngModel)]="email"
+                    name="email"
+                    required
+                    placeholder="ten@itc.edu.vn"
+                    class="w-full h-12 px-4 lg-input"
+                  />
+                </div>
+                <ng-container
+                  *ngTemplateOutlet="
+                    passwordField;
+                    context: {
+                      id: 'register-password',
+                      label: 'Mật khẩu',
+                      autocomplete: 'new-password',
+                    }
+                  "
+                ></ng-container>
+                <ng-container *ngTemplateOutlet="confirmField"></ng-container>
               </div>
-
-              <div class="space-y-1.5">
-                <label for="register-email" class="block text-sm font-medium text-slate-700"
-                  >Email</label
-                >
-                <input
-                  id="register-email"
-                  type="email"
-                  autocomplete="email"
-                  [(ngModel)]="email"
-                  name="email"
-                  required
-                  placeholder="ten@itc.edu.vn"
-                  class="w-full h-12 px-4 lg-input"
-                />
-              </div>
-
-              <ng-container
-                *ngTemplateOutlet="
-                  passwordField;
-                  context: {
-                    id: 'register-password',
-                    label: 'Mật khẩu',
-                    autocomplete: 'new-password',
-                  }
-                "
-              ></ng-container>
-              <ng-container *ngTemplateOutlet="confirmField"></ng-container>
 
               <p *ngIf="role === 'teacher'" class="text-xs text-slate-500">
                 Giảng viên chỉ xem và điểm danh được các lớp do quản trị viên phân công cho mình.
