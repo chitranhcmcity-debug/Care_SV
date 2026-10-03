@@ -283,7 +283,7 @@
             *ngFor="let stat of highlights"
             [href]="'#' + stat.target"
             (click)="scrollTo(stat.target, $event)"
-            class="rv hl group relative overflow-hidden rounded-[26px] p-5 md:p-6 flex flex-col"
+            class="hl group relative overflow-hidden rounded-[26px] p-5 md:p-6 flex flex-col"
             [ngClass]="stat.theme"
           >
             <!-- corner illustration: a soft blob with a faded large icon -->
@@ -321,7 +321,7 @@
     >
       <div class="features-dots" aria-hidden="true"></div>
       <div class="relative max-w-[1440px] mx-auto xl:px-4 space-y-10 md:space-y-12">
-        <div class="rv text-center space-y-4 max-w-5xl mx-auto">
+        <div class="text-center space-y-4 max-w-5xl mx-auto">
           <span
             class="flex w-fit mx-auto items-center gap-2 px-4 py-1.5 rounded-full bg-white text-sm font-bold text-violet-600 shadow-md shadow-violet-500/10 ring-1 ring-violet-100"
           >
@@ -350,7 +350,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           <article
             *ngFor="let feature of features"
-            class="rv fcard group relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-start gap-5"
+            class="fcard group relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-start gap-5"
             [ngClass]="feature.theme"
           >
             <!-- faded watermark of the icon -->
@@ -424,7 +424,7 @@
 
     <!-- ============ AI CARE SPOTLIGHT ============ -->
     <section id="ai-care" class="px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20">
-      <div class="rv ai-panel relative overflow-hidden max-w-[1440px] mx-auto rounded-[36px]">
+      <div class="ai-panel relative overflow-hidden max-w-[1440px] mx-auto rounded-[36px]">
         <div class="ai-glow" aria-hidden="true"></div>
         <div class="relative grid lg:grid-cols-[1.05fr_0.8fr_1.25fr] gap-8 items-center p-6 sm:p-8 md:p-12">
           <!-- copy -->
@@ -530,7 +530,7 @@
     <!-- ============ PROCESS ============ -->
     <section id="quy-trinh" class="sec-soft relative px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20">
       <div class="relative max-w-[1440px] mx-auto space-y-10">
-        <div class="rv text-center space-y-3 max-w-3xl mx-auto">
+        <div class="text-center space-y-3 max-w-3xl mx-auto">
           <span class="sec-kicker">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icons.flow" /></svg>
             QUY TRÌNH
@@ -544,7 +544,7 @@
         </div>
         <div class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div class="step-line hidden lg:block" aria-hidden="true"></div>
-          <div *ngFor="let step of steps; let i = index; let last = last" class="rv step relative" [ngClass]="step.theme">
+          <div *ngFor="let step of steps; let i = index; let last = last" class="step relative" [ngClass]="step.theme">
             <div class="flex items-start justify-between">
               <span class="step-no">0{{ i + 1 }}</span>
               <span class="step-art" aria-hidden="true">
@@ -564,7 +564,7 @@
     <!-- ============ ROLES ============ -->
     <section id="danh-cho-ai" class="relative px-5 md:px-6 pb-12 md:pb-16 pt-4 scroll-mt-28 xl:scroll-mt-20">
       <div class="max-w-[1440px] mx-auto space-y-10">
-        <div class="rv text-center space-y-3 max-w-3xl mx-auto">
+        <div class="text-center space-y-3 max-w-3xl mx-auto">
           <span class="sec-kicker">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icons.users" /></svg>
             DÀNH CHO AI
@@ -578,7 +578,7 @@
           </p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <article *ngFor="let role of roles" class="rv role group relative overflow-hidden flex flex-col" [ngClass]="role.theme">
+          <article *ngFor="let role of roles" class="role group relative overflow-hidden flex flex-col" [ngClass]="role.theme">
             <!-- illustrated header -->
             <div class="role-head relative h-40" aria-hidden="true">
               <span class="role-glass role-glass--main">
@@ -617,7 +617,7 @@
 
     <!-- ============ CTA ============ -->
     <section id="lien-he" class="relative z-10 px-5 md:px-6 scroll-mt-28 xl:scroll-mt-20 -mb-20 md:-mb-24">
-      <div class="rv cta relative overflow-hidden max-w-[1440px] mx-auto rounded-[32px] text-white">
+      <div class="cta relative overflow-hidden max-w-[1440px] mx-auto rounded-[32px] text-white">
         <div class="cta-dots" aria-hidden="true"></div>
         <div class="relative grid lg:grid-cols-[1.25fr_0.9fr_auto] items-center gap-8 p-7 md:p-10 xl:px-14">
           <div class="space-y-4 text-center lg:text-left">
