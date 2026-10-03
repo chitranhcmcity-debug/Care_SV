@@ -1281,54 +1281,52 @@
     </div>
 
     <!-- WARNING LEVEL TABLE (levels and colours configured by the manager) -->
-    <div class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
-      <div class="flex items-start justify-between flex-wrap gap-4 border-b border-slate-200 pb-4">
-        <div>
-          <h3 class="text-lg md:text-xl font-bold text-slate-900">
-            ⚠️ Sinh viên chạm mức cảnh báo vắng
-          </h3>
-          <p class="text-xs text-slate-500 font-medium mt-0.5">
-            Tính theo số tiết nghỉ không phép so với tổng số tiết của học phần, theo các mức do
-            Trưởng phòng / PHT cấu hình.
-          </p>
+    <div class="warn-card bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
+      <div class="flex items-start justify-between flex-wrap gap-4 border-b border-slate-200 pb-5">
+        <div class="flex items-start gap-3.5">
+          <span class="warn-title-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 2 20h20L12 3Z M12 10v4 M12 17h.01" />
+            </svg>
+          </span>
+          <div>
+            <h3 class="text-lg md:text-xl font-bold text-slate-900">
+              Sinh viên chạm mức cảnh báo vắng
+            </h3>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+              Tính theo số tiết nghỉ không phép so với tổng số tiết của học phần, theo các mức do
+              Trưởng phòng / PHT cấu hình.
+            </p>
+          </div>
         </div>
         <div class="flex flex-wrap gap-2">
           <button
             type="button"
             (click)="warningFilter = ''"
-            class="px-3 py-1.5 rounded-full text-xs font-bold border"
-            [ngClass]="
-              warningFilter === ''
-                ? 'bg-violet-600 text-white border-violet-600'
-                : 'bg-white text-slate-700 border-slate-300'
-            "
+            class="warn-chip"
+            [class.is-active]="warningFilter === ''"
+            style="--level: #7c3aed"
           >
-            Tất cả ({{ analyticsData?.metrics?.warningCount || 0 }})
+            Tất cả <span class="warn-chip-count">{{ analyticsData?.metrics?.warningCount || 0 }}</span>
           </button>
           <button
             *ngFor="let level of analyticsData?.warningLevels"
             type="button"
             (click)="warningFilter = level.name"
-            class="px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-1.5"
-            [style.borderColor]="level.color"
-            [style.backgroundColor]="warningFilter === level.name ? level.color : '#ffffff'"
-            [style.color]="warningFilter === level.name ? '#ffffff' : level.color"
+            class="warn-chip"
+            [class.is-active]="warningFilter === level.name"
+            [style.--level]="level.color"
           >
-            <span
-              class="w-2.5 h-2.5 rounded-full"
-              [style.backgroundColor]="warningFilter === level.name ? '#ffffff' : level.color"
-            ></span>
-            {{ level.name }} ({{ level.count }})
+            <span class="warn-dot"></span>
+            {{ level.name }} <span class="warn-chip-count">{{ level.count }}</span>
           </button>
         </div>
       </div>
 
-      <div class="overflow-x-auto rounded-xl border border-slate-200">
-        <table class="w-full text-left border-collapse text-sm">
+      <div class="warn-table-wrap overflow-x-auto">
+        <table class="warn-table w-full text-left text-sm">
           <thead>
-            <tr
-              class="bg-slate-50 text-slate-700 uppercase text-xs font-bold border-b border-slate-200"
-            >
+            <tr class="uppercase text-xs font-bold">
               <th class="p-4">Sinh Viên</th>
               <th class="p-4">Lớp / Ngành</th>
               <th class="p-4">Học phần</th>
@@ -1338,12 +1336,17 @@
               <th class="p-4">Nguyên nhân</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 bg-white">
-            <tr *ngFor="let item of filteredWarningList" class="hover:bg-slate-50 transition-all">
-              <td class="p-4" [style.borderLeft]="'4px solid ' + item.warningLevel.color">
-                <div class="font-bold text-slate-900">{{ item.student?.fullName }}</div>
-                <div class="text-xs text-blue-900 font-sans tabular-nums font-bold">
-                  MSSV: {{ item.student?.studentCode }}
+          <tbody>
+            <tr *ngFor="let item of filteredWarningList" [style.--level]="item.warningLevel.color">
+              <td class="p-4 warn-student-cell">
+                <div class="flex items-center gap-3">
+                  <span class="warn-avatar" aria-hidden="true">{{
+                    initials(item.student?.fullName)
+                  }}</span>
+                  <div class="min-w-0">
+                    <div class="font-bold text-slate-900">{{ item.student?.fullName }}</div>
+                    <div class="warn-code tabular-nums">MSSV: {{ item.student?.studentCode }}</div>
+                  </div>
                 </div>
               </td>
               <td class="p-4">
@@ -1361,12 +1364,13 @@
                     · {{ item.absentPercent }}%</span
                   >
                 </div>
+                <div *ngIf="item.absentPercent !== null" class="warn-meter" aria-hidden="true">
+                  <span [style.width.%]="item.absentPercent > 100 ? 100 : item.absentPercent"></span>
+                </div>
               </td>
               <td class="p-4">
-                <span
-                  class="px-2.5 py-1 rounded-full text-xs font-bold text-white whitespace-nowrap"
-                  [style.backgroundColor]="item.warningLevel.color"
-                >
+                <span class="warn-badge">
+                  <span class="warn-dot"></span>
                   {{ item.warningLevel.name }}{{ item.isAtRisk ? ' · cấm thi' : '' }}
                 </span>
               </td>
@@ -1390,14 +1394,19 @@
                   {{ item.careStatus | viLabel }}
                 </a>
                 <ng-template #noCase>
-                  <span class="text-xs text-slate-400">Chưa có hồ sơ</span>
+                  <span class="warn-nocase">Chưa có hồ sơ</span>
                 </ng-template>
                 <div *ngIf="item.assignedStaff" class="text-xs text-slate-400 mt-0.5">
                   NV: {{ item.assignedStaff }}
                 </div>
               </td>
-              <td class="p-4 text-xs text-slate-700 max-w-xs font-medium">
-                {{ item.careCause || 'Chưa tìm hiểu được nguyên nhân' }}
+              <td class="p-4 text-xs max-w-xs font-medium">
+                <span *ngIf="item.careCause; else noCause" class="text-slate-700">{{
+                  item.careCause
+                }}</span>
+                <ng-template #noCause>
+                  <span class="warn-nocause">Chưa tìm hiểu được nguyên nhân</span>
+                </ng-template>
               </td>
             </tr>
             <tr *ngIf="!filteredWarningList.length">

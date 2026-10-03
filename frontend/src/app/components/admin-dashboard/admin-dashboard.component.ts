@@ -80,7 +80,7 @@ const emptyTaskForm = () => ({
     StaffAiModalComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.css',
+  styleUrls: ['./admin-dashboard.component.css', './admin-warning.css'],
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
   activeTab: AdminTab = 'courses';
@@ -963,6 +963,13 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  /** Avatar letters for a name: first and last word. */
+  initials(name?: string) {
+    const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
   }
 
   get filteredWarningList() {
