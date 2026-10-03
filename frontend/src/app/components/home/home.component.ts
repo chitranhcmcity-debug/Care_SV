@@ -253,6 +253,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly activeSection = signal('');
   readonly roleLabels = ROLE_LABELS;
   private sectionObserver?: IntersectionObserver;
+  private revealObserver?: IntersectionObserver;
 
   constructor(
     public authService: AuthService,
@@ -279,9 +280,35 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       const el = document.getElementById(id);
       if (el) this.sectionObserver.observe(el);
     }
+    this.setupReveal();
+  }
+
+  /** Drops each `.rv` block into place as it scrolls in; blocks entering together go one after another. */
+  private setupReveal() {
+    const items = Array.from(document.querySelectorAll<HTMLElement>('.rv'));
+    this.revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries
+          .filter((e) => e.isIntersecting)
+          .sort(
+            (a, b) =>
+              a.boundingClientRect.top - b.boundingClientRect.top ||
+              a.boundingClientRect.left - b.boundingClientRect.left,
+          )
+          .forEach((e, i) => {
+            const el = e.target as HTMLElement;
+            el.style.setProperty('--rv-delay', `${i * 140}ms`);
+            el.classList.add('rv-in');
+            this.revealObserver?.unobserve(el);
+          });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -8% 0px' },
+    );
+    items.forEach((el) => this.revealObserver!.observe(el));
   }
 
   ngOnDestroy() {
+    this.revealObserver?.disconnect();
     this.sectionObserver?.disconnect();
   }
 
