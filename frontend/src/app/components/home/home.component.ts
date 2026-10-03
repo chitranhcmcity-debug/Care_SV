@@ -289,7 +289,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
    * stays put; only after every card has landed does scrolling carry on to the next block.
    * Touch screens, other ways of scrolling (nav links, keyboard, scrollbar) fill the grid by themselves.
    */
-  private groups: { el: HTMLElement; items: HTMLElement[]; next: number }[] = [];
+  private groups: { el: HTMLElement; items: HTMLElement[]; next: number; snapped: boolean }[] = [];
   private lastWheel = 0;
   private lastDrop = 0;
 
@@ -302,24 +302,40 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     for (let i = 0; g.next < g.items.length; i++) this.drop(g.items[g.next++], i * step);
   }
 
+  private snapUntil = 0;
+
   private readonly onWheel = (e: WheelEvent) => {
-    this.lastWheel = Date.now();
+    const now = Date.now();
+    this.lastWheel = now;
     if (e.deltaY <= 0 || e.ctrlKey) return;
     const vh = window.innerHeight;
     const g = this.groups.find((x) => {
       if (x.next >= x.items.length) return false;
       const r = x.el.getBoundingClientRect();
-      return r.top < vh * 0.6 && r.bottom > 80 && x.items[x.next].getBoundingClientRect().top < vh - 40;
+      return r.top < vh * 0.85 && r.bottom > 80;
     });
     if (!g) return;
     e.preventDefault();
-    if (this.lastWheel - this.lastDrop < 380) return; // one card per notch, trackpad bursts count once
-    this.lastDrop = this.lastWheel;
+    if (now < this.snapUntil) return; // still gliding into place
+    const r = g.el.getBoundingClientRect();
+    if (!g.snapped) {
+      // Park the page so the whole grid is on screen, then start dropping cards.
+      g.snapped = true;
+      const top = Math.max(100, (vh - r.height) / 2);
+      window.scrollTo({ top: window.scrollY + r.top - top, behavior: 'smooth' });
+      this.snapUntil = now + 700;
+      this.lastDrop = now;
+      this.drop(g.items[g.next++]);
+      return;
+    }
+    if (now - this.lastDrop < 380) return; // one card per notch, trackpad bursts count once
+    this.lastDrop = now;
     this.drop(g.items[g.next++]);
   };
 
   private readonly onScroll = () => {
-    const wheeling = Date.now() - this.lastWheel < 250;
+    const now = Date.now();
+    const wheeling = now - this.lastWheel < 250 || now < this.snapUntil;
     const vh = window.innerHeight;
     for (const g of this.groups) {
       if (g.next >= g.items.length) continue;
@@ -359,6 +375,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       el,
       items: Array.from(el.querySelectorAll<HTMLElement>(':scope > .rv')),
       next: 0,
+      snapped: false,
     }));
     window.addEventListener('wheel', this.onWheel, { passive: false });
     window.addEventListener('scroll', this.onScroll, { passive: true });
