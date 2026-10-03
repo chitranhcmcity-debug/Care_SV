@@ -48,6 +48,9 @@ export interface User {
   role: Role;
   status: 'active' | 'inactive' | 'pending' | 'awaiting_key' | 'unverified' | 'awaiting_payment';
   managedClasses?: string[];
+  /** Unit the account works in (a manager's own id). The admin's staff list fills in the
+   *  owning manager. */
+  unitId?: string | { _id: string; fullName: string; email: string } | null;
   /** Own plan end of a self-registered Trưởng phòng / PHT; null = no own plan. */
   accessExpiresAt?: string | null;
 }

@@ -45,6 +45,7 @@ const NhomHocPhan = require('../models/NhomHocPhan');
 const DiemDanh = require('../models/DiemDanh');
 const HoSoChamSoc = require('../models/HoSoChamSoc');
 const Settings = require('../models/CaiDatHeThong');
+const UnitConfig = require('../models/CauHinhDonVi');
 const NhiemVu = require('../models/NhiemVu');
 const DonThanhToan = require('../models/DonThanhToan');
 const CuocGoi = require('../models/CuocGoi');
@@ -80,8 +81,9 @@ async function request(path, token, method = 'GET', body) {
 }
 // One absent session (4 periods) reaches this level, so tests can open care cases quickly.
 async function useQuickWarningLevel() {
-  await Settings.updateOne(
-    {},
+  // Care settings live per unit; the fixture accounts are not in a unit (unitId null).
+  await UnitConfig.updateOne(
+    { unitId: null },
     { warningLevels: [{ name: 'Nhắc nhở', unit: 'periods', threshold: 4, color: '#eab308' }] },
     { upsert: true },
   );
@@ -468,7 +470,7 @@ test('lecturers propose care; a manager can open a directed case; one open case 
   assert.equal(opened.body.status, CARE_STATUS.IN_PROGRESS);
   assert.equal(opened.body.proposedBy.fullName, 'manager');
   await HoSoChamSoc.deleteOne({ _id: opened.body._id });
-  await Settings.updateOne({}, { $unset: { warningLevels: 1 } });
+  await UnitConfig.updateOne({ unitId: null }, { $unset: { warningLevels: 1 } });
   require('../services/dichVuCanhBao').clearWarningCache();
 });
 test('warning levels are configured by the manager and validated', async () => {
@@ -506,7 +508,7 @@ test('warning levels are configured by the manager and validated', async () => {
     400,
   );
   // Restore defaults for the following tests.
-  await Settings.updateOne({}, { $unset: { warningLevels: 1 } });
+  await UnitConfig.updateOne({ unitId: null }, { $unset: { warningLevels: 1 } });
   require('../services/dichVuCanhBao').clearWarningCache();
 });
 test('attendance window: only on class days, from class time, editable until end of day', () => {
@@ -634,6 +636,7 @@ test('create-staff and reset-password report emailSent=false when SMTP is not co
   const created = await request('/auth/create-staff', tokens.admin, 'POST', {
     fullName: '<b>Mail Test</b>',
     email: 'mail-test@itc.edu.vn',
+    managerId: String(users.manager._id),
   });
   assert.equal(created.status, 201);
   assert.equal(created.body.emailSent, false);
@@ -662,7 +665,13 @@ test(
   'self-registration: manager approves, the emailed activation key unlocks the account',
   withFakeSmtp(async () => {
     const email = 'new-teacher@itc.edu.vn';
-    const payload = { fullName: 'GV Mới', email, password: 'secret-pass-1', role: 'teacher' };
+    const payload = {
+      fullName: 'GV Mới',
+      email,
+      password: 'secret-pass-1',
+      role: 'teacher',
+      managerEmail: users.manager.email,
+    };
     const credentials = { email, password: payload.password };
 
     assert.equal(
@@ -735,7 +744,13 @@ test(
   'self-registration: a manager can reject a sign-up',
   withFakeSmtp(async () => {
     const email = 'unknown-staff@itc.edu.vn';
-    const payload = { fullName: 'Người Lạ', email, password: 'secret-pass-1', role: 'staff' };
+    const payload = {
+      fullName: 'Người Lạ',
+      email,
+      password: 'secret-pass-1',
+      role: 'staff',
+      managerEmail: users.manager.email,
+    };
     assert.equal((await request('/auth/register', null, 'POST', payload)).status, 201);
     const { _id } = await NguoiDung.findOne({ email });
     const rejected = await request(`/auth/registrations/${_id}/reject`, tokens.manager, 'POST');
@@ -1002,7 +1017,7 @@ test('care cases follow the administrative class; transfers move open cases and 
     2,
   );
   assert.equal((await request(`/students/${ccStudents[0]._id}/profile`, secondToken)).status, 200);
-  await Settings.updateOne({}, { $unset: { warningLevels: 1 } });
+  await UnitConfig.updateOne({ unitId: null }, { $unset: { warningLevels: 1 } });
   require('../services/dichVuCanhBao').clearWarningCache();
 
   // History keeps both periods; exactly one assignment is active.
@@ -2392,3 +2407,166 @@ test(
     });
   }),
 );
+
+test(
+  'units: each Trưởng phòng / PHT sees only their own unit; staff join the unit of the manager they name',
+  withFakeSmtp(async () => {
+    const make = async (email, role, unitId) => {
+      const user = new NguoiDung({
+        fullName: email.split('@')[0],
+        email,
+        password: await bcrypt.hash('test-password', 4),
+        role,
+      });
+      user.unitId = unitId ?? user._id;
+      return user.save();
+    };
+    const leadA = await make('lead-a@unit.test', 'manager');
+    const leadB = await make('lead-b@unit.test', 'manager');
+    const tokenA = sign(leadA);
+    const tokenB = sign(leadB);
+
+    // Students are created inside the manager's unit; the same code may exist in another unit.
+    const student = { studentCode: 'UNIT001', fullName: 'SV Đơn Vị A', classCode: 'U1' };
+    const createdA = await request('/students', tokenA, 'POST', student);
+    assert.equal(createdA.status, 201);
+    assert.equal(String(createdA.body.unitId), String(leadA._id));
+    assert.equal((await request('/students', tokenB, 'POST', student)).status, 201);
+    assert.equal((await request('/students', tokenA, 'POST', student)).status, 409);
+
+    const listA = await request('/students?search=UNIT001', tokenA);
+    const listB = await request('/students?search=UNIT001', tokenB);
+    assert.equal(listA.body.total, 1);
+    assert.equal(listB.body.total, 1);
+    assert.notEqual(listA.body.items[0]._id, listB.body.items[0]._id);
+    // Another unit's student cannot be opened, edited or deleted by id.
+    assert.notEqual((await request(`/students/${createdA.body._id}`, tokenB, 'DELETE')).status, 200);
+    assert.ok(await SinhVien.exists({ _id: createdA.body._id }));
+    // The admin sees every unit.
+    assert.equal((await request('/students?search=UNIT001', tokens.admin)).body.total, 2);
+
+    // Care settings are per unit: A's warning levels do not change B's.
+    const levels = [{ name: 'Riêng A', unit: 'periods', threshold: 9, color: '#123456' }];
+    assert.equal(
+      (await request('/settings/care', tokenA, 'PUT', { warningLevels: levels })).status,
+      200,
+    );
+    assert.equal((await request('/settings', tokenA)).body.warningLevels[0].name, 'Riêng A');
+    assert.notEqual((await request('/settings', tokenB)).body.warningLevels[0].name, 'Riêng A');
+
+    // Sign-up names the manager; only that manager is asked and can approve.
+    const signup = {
+      fullName: 'NV Đơn Vị B',
+      email: 'staff-b@unit.test',
+      password: 'secret-pass-1',
+      role: 'staff',
+    };
+    assert.equal((await request('/auth/register', null, 'POST', signup)).status, 400);
+    assert.equal(
+      (
+        await request('/auth/register', null, 'POST', {
+          ...signup,
+          managerEmail: 'khong-co@unit.test',
+        })
+      ).status,
+      404,
+    );
+    const mailsBefore = sentMails.length;
+    const registered = await request('/auth/register', null, 'POST', {
+      ...signup,
+      managerEmail: leadB.email,
+    });
+    assert.equal(registered.status, 201);
+    const asked = sentMails.slice(mailsBefore).map((m) => m.to);
+    assert.deepEqual(asked, [leadB.email]);
+    const applicant = await NguoiDung.findOne({ email: signup.email });
+    assert.equal(String(applicant.unitId), String(leadB._id));
+    assert.ok(!(await request('/auth/registrations', tokenA)).body.some((r) => r.email === signup.email));
+    assert.equal(
+      (await request(`/auth/registrations/${applicant._id}/approve`, tokenA, 'POST')).status,
+      404,
+    );
+    assert.equal(
+      (await request(`/auth/registrations/${applicant._id}/approve`, tokenB, 'POST')).status,
+      200,
+    );
+
+    // Admin-created staff must name a manager and join that unit; a new manager gets a new unit.
+    assert.equal(
+      (
+        await request('/auth/create-staff', tokens.admin, 'POST', {
+          fullName: 'NV Admin Tạo',
+          email: 'admin-made@unit.test',
+          role: 'teacher',
+        })
+      ).status,
+      400,
+    );
+    const teacher = await request('/auth/create-staff', tokens.admin, 'POST', {
+      fullName: 'GV Admin Tạo',
+      email: 'admin-made@unit.test',
+      role: 'teacher',
+      managerId: String(leadA._id),
+    });
+    assert.equal(teacher.status, 201);
+    assert.equal(
+      String((await NguoiDung.findById(teacher.body.staff.id)).unitId),
+      String(leadA._id),
+    );
+    const lead = await request('/auth/create-staff', tokens.admin, 'POST', {
+      fullName: 'Lãnh đạo Mới',
+      email: 'lead-c@unit.test',
+      role: 'manager',
+    });
+    const leadC = await NguoiDung.findById(lead.body.staff.id);
+    assert.equal(String(leadC.unitId), String(leadC._id));
+    assert.equal((await request('/students?search=UNIT001', sign(leadC))).body.total, 0);
+    // A manager's staff list holds only their unit.
+    const staffA = (await request('/auth/staff-list', tokenA)).body.map((u) => u.email);
+    assert.ok(staffA.includes('admin-made@unit.test'));
+    assert.ok(!staffA.includes(signup.email));
+
+    await SinhVien.deleteMany({ studentCode: 'UNIT001' });
+    await UnitConfig.deleteMany({ unitId: { $ne: null } });
+    await NguoiDung.deleteMany({ email: /@unit\.test$/ });
+  }),
+);
+
+test('startup conversion puts existing data in the legacy unit and gives other managers their own', async () => {
+  const { assignUnits } = require('../scripts/ganDonVi');
+  const legacy = await NguoiDung.create({
+    fullName: 'Chi Tran',
+    email: 'legacy-owner@unit.test',
+    password: 'x',
+    role: 'manager',
+  });
+  const other = await NguoiDung.create({
+    fullName: 'Lãnh đạo khác',
+    email: 'other-lead@unit.test',
+    password: 'x',
+    role: 'manager',
+  });
+  const orphan = await SinhVien.create({ studentCode: 'LEG001', fullName: 'SV Cũ', classCode: 'L1' });
+  process.env.LEGACY_UNIT_EMAIL = legacy.email;
+  const saved = await Settings.findOne();
+  const previous = saved?.defaultUnitId ?? null;
+  await Settings.updateOne({}, { defaultUnitId: null }, { upsert: true });
+  try {
+    const { defaultUnitId } = await assignUnits();
+    assert.equal(String(defaultUnitId), String(legacy._id));
+    assert.equal(String((await NguoiDung.findById(other._id)).unitId), String(other._id));
+    assert.equal(String((await SinhVien.findById(orphan._id)).unitId), String(legacy._id));
+    // Running again changes nothing.
+    assert.equal(String((await assignUnits()).defaultUnitId), String(legacy._id));
+  } finally {
+    delete process.env.LEGACY_UNIT_EMAIL;
+    await Settings.updateOne({}, { defaultUnitId: previous });
+    // Leave the shared fixtures as the other tests expect them: outside any unit.
+    for (const model of [SinhVien, NhomHocPhan, DiemDanh, HoSoChamSoc, CuocGoi, NhiemVu])
+      await model.updateMany({}, { unitId: null });
+    await NguoiDung.updateMany({ email: { $not: /@unit\.test$/ } }, { unitId: null });
+    await UnitConfig.deleteMany({ unitId: { $ne: null } });
+    await SinhVien.deleteOne({ _id: orphan._id });
+    await NguoiDung.deleteMany({ email: /@unit\.test$/ });
+  }
+});

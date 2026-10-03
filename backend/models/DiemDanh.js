@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 
 const DiemDanhSchema = new mongoose.Schema(
   {
@@ -24,5 +25,8 @@ DiemDanhSchema.index(
 
 // Attendance history and summaries load every session of a course group.
 DiemDanhSchema.index({ courseGroupId: 1 });
+
+// Belongs to one unit (đơn vị); see utils/donVi.js.
+DiemDanhSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('DiemDanh', DiemDanhSchema, 'diem_danh');

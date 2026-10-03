@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 const { TASK_STATUS, TASK_STATUSES, TASK_CATEGORIES, TASK_PRIORITIES } = require('../utils/hangSo');
 
 const EvidenceFileSchema = new mongoose.Schema(
@@ -56,5 +57,8 @@ const NhiemVuSchema = new mongoose.Schema(
 );
 
 NhiemVuSchema.index({ assignedTo: 1, status: 1 });
+
+// Belongs to one unit (đơn vị); see utils/donVi.js.
+NhiemVuSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('NhiemVu', NhiemVuSchema, 'nhiem_vu');

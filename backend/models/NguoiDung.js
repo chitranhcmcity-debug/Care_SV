@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 
 const NguoiDungSchema = new mongoose.Schema(
   {
@@ -56,5 +57,8 @@ NguoiDungSchema.set('toJSON', {
     return ret;
   },
 });
+
+// unitId: the unit an account works in (a manager owns their own; admins have none).
+NguoiDungSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('NguoiDung', NguoiDungSchema, 'nguoi_dung');

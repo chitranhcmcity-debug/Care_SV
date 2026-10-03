@@ -1,4 +1,5 @@
 const express = require('express');
+const { keepUnit } = require('../utils/donVi');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -296,7 +297,7 @@ async function logToCase(call, userId) {
 
 // POST /api/calls/:id/recording — attach a recording made on the phone (multipart "file").
 router.post('/:id/recording', loadCall, (req, res, next) => {
-  upload.single('file')(req, res, async (uploadError) => {
+  keepUnit(upload.single('file'))(req, res, async (uploadError) => {
     try {
       if (uploadError)
         throw uploadError.code === 'LIMIT_FILE_SIZE'

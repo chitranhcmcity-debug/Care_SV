@@ -3,7 +3,7 @@
 // - Khung giờ giảng viên được điểm danh (trong giờ học, được sửa đến hết ngày).
 // - Quy đổi buổi vắng → tiết nghỉ → % tổng số tiết, và xếp mức cảnh báo do Trưởng phòng / PHT
 //   cấu hình (tên, ngưỡng, màu, có phải mức cấm thi hay không).
-const CaiDatHeThong = require('../models/CaiDatHeThong');
+const { settingsUnit, loadUnitConfig } = require('./dichVuCauHinhDonVi');
 const { dateKey } = require('../utils/kiemTra');
 const {
   WEEKDAY_INDEX,
@@ -14,7 +14,8 @@ const {
 } = require('../utils/hangSo');
 
 const CACHE_MS = 30 * 1000;
-let cache = null;
+// Per unit: { [unitId]: { levels, expires } }.
+const cache = new Map();
 
 const plain = (level) => ({
   name: level.name,
@@ -24,20 +25,21 @@ const plain = (level) => ({
   examBan: Boolean(level.examBan),
 });
 
-/** Configured warning levels, mildest first (defaults until a manager saves their own). */
+/** The unit's warning levels, mildest first (defaults until its manager saves their own). */
 async function getWarningLevels() {
-  if (cache && cache.expires > Date.now()) return cache.levels;
-  const settings = await CaiDatHeThong.findOne().select('warningLevels').lean();
-  const stored = settings?.warningLevels;
+  const key = String(await settingsUnit());
+  const hit = cache.get(key);
+  if (hit && hit.expires > Date.now()) return hit.levels;
+  const stored = (await loadUnitConfig()).warningLevels;
   const levels = (Array.isArray(stored) && stored.length ? stored : DEFAULT_WARNING_LEVELS).map(
     plain,
   );
-  cache = { levels, expires: Date.now() + CACHE_MS };
+  cache.set(key, { levels, expires: Date.now() + CACHE_MS });
   return levels;
 }
 
 function clearWarningCache() {
-  cache = null;
+  cache.clear();
 }
 
 // ------------------------------- Timetable -------------------------------

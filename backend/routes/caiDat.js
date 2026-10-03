@@ -11,6 +11,7 @@ const {
 const { getWarningLevels, clearWarningCache } = require('../services/dichVuCanhBao');
 const { describeIntegrations, updateIntegrations } = require('../services/dichVuCauHinhApi');
 const { WARNING_UNITS } = require('../utils/hangSo');
+const { loadUnitConfig } = require('../services/dichVuCauHinhDonVi');
 
 const BRANDING_FIELDS =
   'systemTitle schoolName departmentName supportHotline supportEmail logoDataUrl primaryColor';
@@ -21,10 +22,20 @@ async function loadSettings() {
   return (await CaiDatHeThong.findOne()) || CaiDatHeThong.create({});
 }
 
-/** Settings as returned to the app: never the encrypted API keys; warning levels resolved. */
+/**
+ * Settings as returned to the app: the system's identity plus the care settings of the user's
+ * unit; never the encrypted API keys.
+ */
 async function publicSettings(settings) {
-  const { integrations, ...rest } = settings.toObject();
-  return { ...rest, warningLevels: await getWarningLevels() };
+  const { integrations, warningLevels, absenceReasons, tags, defaultUnitId, ...rest } =
+    settings.toObject();
+  const unit = await loadUnitConfig();
+  return {
+    ...rest,
+    warningLevels: await getWarningLevels(),
+    absenceReasons: unit.absenceReasons,
+    tags: unit.tags,
+  };
 }
 
 const stringList = (value, name) => {
@@ -104,7 +115,8 @@ router.put(
   requirePermission('warnings.configure'),
   async (req, res, next) => {
     try {
-      const settings = await loadSettings();
+      // Saved for the manager's own unit only.
+      const settings = await loadUnitConfig();
       const { warningLevels, absenceReasons, tags } = req.body ?? {};
       if (warningLevels !== undefined) {
         assert(
@@ -142,7 +154,7 @@ router.put(
       clearWarningCache();
       res.json({
         message: 'Đã lưu cấu hình cảnh báo & chăm sóc!',
-        settings: await publicSettings(settings),
+        settings: await publicSettings(await loadSettings()),
       });
     } catch (error) {
       next(error);

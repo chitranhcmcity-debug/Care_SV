@@ -217,7 +217,7 @@ router.get('/me', verifyToken, requireSignedIn, (req, res) => {
 // and is activated, with a receipt emailed, as soon as PayOS confirms the payment.
 router.post('/register', async (req, res, next) => {
   try {
-    const { fullName, email, password, role, planCode } = req.body ?? {};
+    const { fullName, email, password, role, planCode, managerEmail } = req.body ?? {};
     const isPaid = role === PAID_REGISTER_ROLE;
     assert(
       typeof fullName === 'string' && fullName.trim() && fullName.trim().length <= 100,
@@ -269,6 +269,7 @@ router.post('/register', async (req, res, next) => {
       };
       if (user) user.set(fields);
       else user = new NguoiDung({ email: normalizedEmail, ...fields });
+      user.unitId = user._id; // a new, empty unit of their own
       await user.save();
       let order;
       try {
@@ -283,15 +284,21 @@ router.post('/register', async (req, res, next) => {
       });
     }
 
-    const managers = await NguoiDung.find({ role: 'manager', status: 'active' }).select(
-      'fullName email',
+    // The applicant joins this manager's unit; only this manager can approve them.
+    assert(
+      typeof managerEmail === 'string' && EMAIL_PATTERN.test(managerEmail.trim()),
+      'Vui lòng nhập email của Trưởng phòng / Phó hiệu trưởng quản lý bạn',
     );
-    if (!managers.length) {
-      return res.status(503).json({
-        message:
-          'Hệ thống chưa có tài khoản Trưởng phòng / Phó hiệu trưởng để duyệt. Vui lòng liên hệ quản trị viên.',
-      });
-    }
+    const manager = await NguoiDung.findOne({
+      email: managerEmail.trim().toLowerCase(),
+      role: 'manager',
+      status: 'active',
+    }).select('fullName email unitId');
+    assert(
+      manager,
+      'Không tìm thấy Trưởng phòng / Phó hiệu trưởng nào đang hoạt động với email này. Hãy kiểm tra lại email lãnh đạo.',
+      404,
+    );
 
     // Registering again while waiting simply replaces the details and asks again.
     const isNew = !user;
@@ -300,6 +307,7 @@ router.post('/register', async (req, res, next) => {
       password: await bcrypt.hash(password, 10),
       role,
       status: 'pending',
+      unitId: manager.unitId || manager._id,
       verifyTokenHash: null,
       verifyTokenExpires: null,
       activationKeyHash: null,
@@ -316,12 +324,12 @@ router.post('/register', async (req, res, next) => {
       email: normalizedEmail,
       role,
     };
-    const results = await Promise.all(
-      managers.map((m) =>
-        sendApprovalRequestEmail({ to: m.email, managerName: m.fullName, applicant }),
-      ),
-    );
-    if (!results.some(Boolean)) {
+    const sent = await sendApprovalRequestEmail({
+      to: manager.email,
+      managerName: manager.fullName,
+      applicant,
+    });
+    if (!sent) {
       if (isNew) await user.deleteOne();
       return res.status(503).json({
         message: 'Không gửi được email tới Trưởng phòng / PHT. Vui lòng thử lại sau ít phút.',
@@ -329,7 +337,7 @@ router.post('/register', async (req, res, next) => {
     }
 
     res.status(201).json({
-      message: `Đăng ký thành công! Yêu cầu đã được gửi tới Trưởng phòng / Phó hiệu trưởng. Khi được xác nhận, key kích hoạt sẽ được gửi tới ${normalizedEmail}.`,
+      message: `Đăng ký thành công! Yêu cầu đã được gửi tới ${manager.fullName}. Khi được xác nhận, key kích hoạt sẽ được gửi tới ${normalizedEmail}.`,
     });
   } catch (error) {
     next(error);
@@ -533,10 +541,21 @@ router.post('/reset-password', async (req, res, next) => {
   }
 });
 
+/** Active manager whose unit a staff member or teacher joins (admin picks one). */
+async function findUnitManager(managerId) {
+  assert(
+    /^[a-f\d]{24}$/i.test(String(managerId || '')),
+    'Vui lòng chọn Trưởng phòng / Phó hiệu trưởng quản lý tài khoản này',
+  );
+  const manager = await NguoiDung.findOne({ _id: managerId, role: 'manager', status: 'active' });
+  assert(manager, 'Không tìm thấy Trưởng phòng / Phó hiệu trưởng đang hoạt động đã chọn', 404);
+  return manager;
+}
+
 // POST /api/auth/create-staff (Admin only)
 router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const { fullName, email, customPassword, role } = req.body;
+    const { fullName, email, customPassword, role, managerId } = req.body;
     if (typeof fullName !== 'string' || !fullName.trim()) {
       return res.status(400).json({ message: 'Tên và email là bắt buộc' });
     }
@@ -550,6 +569,7 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) =
 
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     const assignedRole = ASSIGNABLE_ROLES.includes(role) ? role : 'staff';
+    const unitManager = assignedRole === 'manager' ? null : await findUnitManager(managerId);
 
     const newStaff = new NguoiDung({
       fullName: fullName.trim(),
@@ -558,6 +578,7 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) =
       role: assignedRole,
       status: 'active',
     });
+    newStaff.unitId = unitManager ? unitManager.unitId || unitManager._id : newStaff._id;
 
     await newStaff.save();
 
@@ -588,8 +609,10 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) =
 // GET /api/auth/staff-list (Admin or Staff)
 router.get('/staff-list', verifyToken, requireSignedIn, async (req, res, next) => {
   try {
+    // Admins see every unit, with the manager who owns each account's unit.
     const staffs = await NguoiDung.find({ role: { $ne: 'admin' } })
       .select(PRIVATE_FIELDS)
+      .populate(req.user.role === 'admin' ? { path: 'unitId', select: 'fullName email' } : [])
       .sort({ createdAt: -1 });
     res.json(staffs);
   } catch (error) {

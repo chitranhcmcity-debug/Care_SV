@@ -37,7 +37,7 @@
                 <span class="lg-grad">Tạo tài khoản</span>
               </h1>
               <p class="text-sm text-slate-500" *ngIf="role !== 'manager'">
-                Dành cho Giảng viên và Nhân viên. Sau khi Trưởng phòng / Phó hiệu trưởng xác nhận,
+                Nhập email của Trưởng phòng / Phó hiệu trưởng quản lý bạn. Khi người đó xác nhận,
                 bạn sẽ nhận key kích hoạt qua email.
               </p>
               <p class="text-sm text-slate-500" *ngIf="role === 'manager'">
@@ -538,6 +538,35 @@
               <ng-container *ngIf="role === 'manager'">
                 <ng-container *ngTemplateOutlet="planPicker"></ng-container>
               </ng-container>
+
+              <!-- Teachers and staff join the unit of the leader they name; that leader approves. -->
+              <div *ngIf="role !== 'manager'" class="lg-lead-field space-y-1.5">
+                <label for="register-manager" class="block text-sm font-medium text-slate-700"
+                  >Email Trưởng phòng / Phó hiệu trưởng quản lý bạn</label
+                >
+                <div class="relative">
+                  <span class="lg-lead-field-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5Z M5 19h14" />
+                    </svg>
+                  </span>
+                  <input
+                    id="register-manager"
+                    type="email"
+                    autocomplete="off"
+                    [(ngModel)]="managerEmail"
+                    name="managerEmail"
+                    required
+                    placeholder="lanhdao@itc.edu.vn"
+                    aria-describedby="register-manager-hint"
+                    class="w-full h-12 pl-12 pr-4 lg-input"
+                  />
+                </div>
+                <p id="register-manager-hint" class="text-xs text-slate-500">
+                  Yêu cầu chỉ gửi tới người này; bạn chỉ làm việc với sinh viên và dữ liệu của đơn vị
+                  họ quản lý.
+                </p>
+              </div>
 
               <div class="grid sm:grid-cols-2 gap-3">
                 <div class="space-y-1.5">

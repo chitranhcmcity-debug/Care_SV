@@ -154,6 +154,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   newStaffEmail = '';
   newStaffPass = '';
   newStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
+  /** Staff / teachers join the unit of this Trưởng phòng / PHT. */
+  newStaffManagerId = '';
   isCreatingStaff = false;
   staffCreatedMsg = '';
   staffGeneratedPass = '';
@@ -288,6 +290,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Task (Giao Việc) Management Methods
+  /** Active Trưởng phòng / PHT accounts: each owns a unit staff and teachers can join. */
+  get activeManagers(): User[] {
+    return this.staffList.filter((s) => s.role === 'manager' && s.status === 'active');
+  }
+
+  /** "Đơn vị của …" label for the admin's account list. */
+  unitLabel(user: User): string {
+    const unit = user.unitId;
+    if (!unit || typeof unit === 'string') return '';
+    return user.role === 'manager' ? 'Chủ đơn vị' : `Đơn vị: ${unit.fullName}`;
+  }
+
   get staffOnlyList(): User[] {
     return this.staffList.filter((s) => s.role === 'staff' && s.status === 'active');
   }
@@ -1185,6 +1199,14 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   createStaffAccount() {
     if (!this.newStaffName.trim() || !this.newStaffEmail.trim()) return;
+    if (this.newStaffRole !== 'manager' && !this.newStaffManagerId) {
+      this.triggerToast(
+        'error',
+        'Chưa chọn đơn vị',
+        'Hãy chọn Trưởng phòng / Phó hiệu trưởng quản lý tài khoản này.',
+      );
+      return;
+    }
     this.isCreatingStaff = true;
     this.staffCreatedMsg = '';
     this.staffGeneratedPass = '';
@@ -1195,6 +1217,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       email: this.newStaffEmail.trim(),
       customPassword: this.newStaffPass.trim() || undefined,
       role: this.newStaffRole,
+      ...(this.newStaffRole === 'manager' ? {} : { managerId: this.newStaffManagerId }),
     };
 
     this.staffService
@@ -1220,6 +1243,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.newStaffEmail = '';
           this.newStaffPass = '';
           this.newStaffRole = 'staff';
+          this.newStaffManagerId = '';
           this.loadStaffList();
           this.cdr.detectChanges();
         },

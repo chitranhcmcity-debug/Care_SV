@@ -132,6 +132,8 @@ export class AuthService {
     password: string;
     role: 'staff' | 'teacher' | 'manager';
     planCode?: string;
+    /** Teachers and staff: the Trưởng phòng / PHT whose unit they join and who approves them. */
+    managerEmail?: string;
   }): Observable<{ message: string; checkoutUrl?: string }> {
     return this.http.post<{ message: string; checkoutUrl?: string }>(
       `${this.apiUrl}/register`,

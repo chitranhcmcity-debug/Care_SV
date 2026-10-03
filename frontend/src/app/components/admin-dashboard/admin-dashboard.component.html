@@ -362,6 +362,25 @@
           <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy</option>
           <option value="manager">🏛️ Trưởng phòng / Phó hiệu trưởng</option>
         </select>
+        <p *ngIf="newStaffRole === 'manager'" class="text-xs text-slate-500 mt-1.5">
+          Trưởng phòng / PHT mới có đơn vị riêng, bắt đầu trống (không thấy dữ liệu đơn vị khác).
+        </p>
+      </div>
+      <div *ngIf="newStaffRole !== 'manager'">
+        <label class="staff-label" data-tone="2"
+          >👑 Thuộc đơn vị của <span class="text-rose-500">*</span></label
+        >
+        <select
+          [(ngModel)]="newStaffManagerId"
+          name="newStaffManagerId"
+          required
+          class="staff-field w-full px-4 py-3 text-sm font-bold"
+        >
+          <option value="">— Chọn Trưởng phòng / PHT —</option>
+          <option *ngFor="let m of activeManagers" [value]="m._id">
+            {{ m.fullName }} ({{ m.email }})
+          </option>
+        </select>
       </div>
       <div>
         <label class="staff-label" data-tone="3">🔑 Mật khẩu (tùy chọn)</label>
@@ -449,6 +468,9 @@
             </td>
             <td class="p-3 text-slate-600 font-medium tabular-nums text-xs">
               <span class="staff-email" [title]="staff.email">{{ staff.email }}</span>
+              <span *ngIf="unitLabel(staff)" class="block mt-0.5 text-[11px] text-violet-700">{{
+                unitLabel(staff)
+              }}</span>
             </td>
             <td class="p-3">
               <span class="staff-role">

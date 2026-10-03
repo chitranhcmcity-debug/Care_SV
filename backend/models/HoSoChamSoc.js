@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 const {
   CARE_STATUS,
   CARE_STATUSES,
@@ -80,5 +81,8 @@ HoSoChamSocSchema.index(
 );
 HoSoChamSocSchema.index({ assignedStaffId: 1, status: 1 });
 HoSoChamSocSchema.index({ status: 1, updatedAt: -1 });
+
+// Belongs to one unit (đơn vị); see utils/donVi.js.
+HoSoChamSocSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('HoSoChamSoc', HoSoChamSocSchema, 'ho_so_cham_soc');

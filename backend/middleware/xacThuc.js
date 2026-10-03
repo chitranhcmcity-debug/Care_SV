@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const NguoiDung = require('../models/NguoiDung');
 const { getJwtSecret } = require('../utils/moiTruong');
 const { permissionsForRole, can } = require('../services/dichVuPhanQuyen');
+const { runInUnit, unitOf } = require('../utils/donVi');
 async function verifyToken(req, res, next) {
   const match = /^Bearer (\S+)$/.exec(req.headers.authorization || '');
   if (!match) return res.status(401).json({ message: 'Authentication required' });
@@ -36,7 +37,8 @@ async function verifyToken(req, res, next) {
       id: String(user._id),
       permissions: await permissionsForRole(user.role),
     };
-    next();
+    // Everything after this runs inside the user's unit: queries only see that unit's data.
+    runInUnit(unitOf(user), next);
   } catch (error) {
     next(error);
   }

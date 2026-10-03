@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 
 // Lịch sử phân công lớp hành chính cho nhân viên CSSV. Bản ghi đang hiệu lực có active = true;
 // mỗi lần giao / chuyển / thu hồi lớp đóng bản ghi cũ và (nếu có người nhận) mở bản ghi mới.
@@ -20,8 +21,11 @@ LichSuPhanCongSchema.index({ classCode: 1, startedAt: -1 });
 LichSuPhanCongSchema.index({ staffId: 1, startedAt: -1 });
 // Mỗi lớp chỉ có tối đa một nhân viên phụ trách tại một thời điểm.
 LichSuPhanCongSchema.index(
-  { classCode: 1 },
+  { unitId: 1, classCode: 1 },
   { unique: true, partialFilterExpression: { active: true } },
 );
+
+// Belongs to one unit (đơn vị); see utils/donVi.js.
+LichSuPhanCongSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('LichSuPhanCong', LichSuPhanCongSchema, 'lich_su_phan_cong');

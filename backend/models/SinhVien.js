@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 
 const SinhVienSchema = new mongoose.Schema(
   {
-    studentCode: { type: String, required: true, unique: true, trim: true },
+    studentCode: { type: String, required: true, trim: true },
     fullName: { type: String, required: true, trim: true },
     classCode: { type: String, required: true, trim: true, uppercase: true },
     dob: { type: String, default: '' },
@@ -17,5 +18,10 @@ const SinhVienSchema = new mongoose.Schema(
 
 // Students are listed and counted by administrative class.
 SinhVienSchema.index({ classCode: 1 });
+// Student codes are unique within a unit.
+SinhVienSchema.index({ unitId: 1, studentCode: 1 }, { unique: true });
+
+// Belongs to one unit (đơn vị); see utils/donVi.js.
+SinhVienSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('SinhVien', SinhVienSchema, 'sinh_vien');

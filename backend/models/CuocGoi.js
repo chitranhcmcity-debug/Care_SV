@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { unitPlugin } = require('../utils/donVi');
 
 // One call placed from the app (by phone dialer or through the Stringee switchboard).
 const RecordingSchema = new mongoose.Schema(
@@ -47,5 +48,8 @@ const CuocGoiSchema = new mongoose.Schema(
 CuocGoiSchema.index({ callerId: 1, createdAt: -1 });
 CuocGoiSchema.index({ studentId: 1, createdAt: -1 });
 CuocGoiSchema.index({ careCaseId: 1, createdAt: -1 });
+
+// Belongs to one unit (đơn vị); see utils/donVi.js.
+CuocGoiSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('CuocGoi', CuocGoiSchema, 'cuoc_goi');

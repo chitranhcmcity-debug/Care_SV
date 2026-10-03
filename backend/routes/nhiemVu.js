@@ -1,4 +1,5 @@
 const express = require('express');
+const { keepUnit } = require('../utils/donVi');
 const router = express.Router();
 const path = require('node:path');
 const fs = require('node:fs');
@@ -61,7 +62,7 @@ const upload = multer({
     cb(null, true);
   },
 });
-const uploadEvidence = upload.array('files', 5);
+const uploadEvidence = keepUnit(upload.array('files', 5));
 function removeFiles(files) {
   for (const file of files) fs.unlink(path.join(UPLOAD_DIR, file.storedName), () => {});
 }

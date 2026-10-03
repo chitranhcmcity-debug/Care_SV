@@ -1,4 +1,5 @@
 const express = require('express');
+const { keepUnit } = require('../utils/donVi');
 const router = express.Router();
 const multer = require('multer');
 const ExcelJS = require('exceljs');
@@ -137,7 +138,7 @@ router.post(
   '/import-by-course',
   verifyToken,
   requirePermission('excel.import'),
-  upload.single('file'),
+  keepUnit(upload.single('file')),
   async (req, res, next) => {
     try {
       if (!req.file || !req.file.buffer) {
@@ -418,7 +419,7 @@ router.post(
   '/import-data',
   verifyToken,
   requirePermission('excel.import'),
-  upload.single('file'),
+  keepUnit(upload.single('file')),
   async (req, res, next) => {
     try {
       if (!req.file || !req.file.buffer) {

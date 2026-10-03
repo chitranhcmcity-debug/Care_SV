@@ -21,6 +21,8 @@ export class StaffService {
     email: string;
     customPassword?: string;
     role?: 'staff' | 'teacher' | 'manager';
+    /** Staff / teachers: the Trưởng phòng / PHT whose unit they join. */
+    managerId?: string;
   }): Observable<{
     message: string;
     staff: User;

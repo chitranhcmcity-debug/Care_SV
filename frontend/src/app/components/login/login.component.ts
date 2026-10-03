@@ -58,6 +58,8 @@ export class LoginComponent implements OnInit {
   confirmPassword = '';
   fullName = '';
   role: 'staff' | 'teacher' | 'manager' = 'teacher';
+  /** Teachers and staff: email of the Trưởng phòng / PHT they work under. */
+  managerEmail = '';
   /** Plans a Trưởng phòng / PHT buys for their own account (register and renew screens). */
   plans: SubscriptionPlan[] | null = null;
   planCode = '';
@@ -154,6 +156,10 @@ export class LoginComponent implements OnInit {
       this.errorMessage = 'Vui lòng nhập họ tên và email.';
       return;
     }
+    if (this.role !== 'manager' && !this.managerEmail.trim()) {
+      this.errorMessage = 'Vui lòng nhập email của Trưởng phòng / Phó hiệu trưởng quản lý bạn.';
+      return;
+    }
     if (this.role === 'manager' && !this.planCode) {
       this.errorMessage = 'Vui lòng chọn gói dịch vụ.';
       return;
@@ -165,7 +171,9 @@ export class LoginComponent implements OnInit {
         email: this.email.trim(),
         password: this.password,
         role: this.role,
-        ...(this.role === 'manager' ? { planCode: this.planCode } : {}),
+        ...(this.role === 'manager'
+          ? { planCode: this.planCode }
+          : { managerEmail: this.managerEmail.trim() }),
       }),
       (message, result) => {
         // Trưởng phòng / PHT: on to PayOS; the account works once the payment is confirmed.

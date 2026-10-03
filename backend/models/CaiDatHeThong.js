@@ -16,6 +16,11 @@ const CaiDatHeThongSchema = new mongoose.Schema(
     integrations: { type: mongoose.Schema.Types.Mixed, default: null },
     aiConfigurationVersion: { type: String, default: '' },
 
+    // Đơn vị gốc (dữ liệu có từ trước khi chia đơn vị). Admin và tác vụ hệ thống dùng cấu hình
+    // chăm sóc của đơn vị này; dữ liệu chưa thuộc đơn vị nào được gán về đây khi khởi động.
+    defaultUnitId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null },
+
+    // Cấu hình cũ (trước khi chia đơn vị), nay nằm ở CauHinhDonVi; chỉ đọc khi chuyển đổi.
     // Mức cảnh báo vắng (Trưởng phòng / PHT). null = DEFAULT_WARNING_LEVELS.
     warningLevels: {
       type: [
