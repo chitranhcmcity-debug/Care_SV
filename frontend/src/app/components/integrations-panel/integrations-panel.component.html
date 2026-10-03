@@ -24,6 +24,13 @@
       class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4"
     >
       <h4 class="font-bold text-slate-900 text-sm uppercase">{{ group.name }}</h4>
+      <p *ngIf="group.name.startsWith('Zalo')" class="text-xs text-slate-500 leading-relaxed">
+        Tạo mẫu tin (template) ZNS cảnh báo vắng trên Zalo OA với các tham số:
+        <code>ten_sinh_vien</code>, <code>ma_sinh_vien</code>, <code>lop</code>,
+        <code>so_buoi_vang</code>, <code>tuan</code>, <code>mon_vang</code>, <code>nhan_vien</code>,
+        <code>sdt_nhan_vien</code>, <code>giang_vien</code>. Chế độ <b>development</b> chỉ gửi tới
+        quản trị viên OA để thử mẫu.
+      </p>
       <ng-container *ngFor="let item of group.items">
         <div *ngIf="!item.provider || item.provider === aiProvider(group.items)" class="space-y-1">
           <div class="flex items-center justify-between gap-2">

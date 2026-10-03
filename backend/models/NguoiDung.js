@@ -5,6 +5,8 @@ const NguoiDungSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    // Phone parents can call back on (sent in the absence-warning Zalo message).
+    phone: { type: String, default: '', trim: true },
     tokenVersion: { type: Number, default: 0 },
     password: { type: String, required: true },
     // manager = Trưởng phòng / Phó hiệu trưởng

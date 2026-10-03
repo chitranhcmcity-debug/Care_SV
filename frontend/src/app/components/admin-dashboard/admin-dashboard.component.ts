@@ -14,6 +14,7 @@ import { TaskService } from '../../services/task.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService, ToastType } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
+import { ParentAlertsPanelComponent } from '../parent-alerts-panel/parent-alerts-panel.component';
 import { BrandingService } from '../../services/branding.service';
 import { PermissionService } from '../../services/permission.service';
 import { ClassAssignmentPanelComponent } from '../class-assignment-panel/class-assignment-panel.component';
@@ -68,6 +69,7 @@ const emptyTaskForm = () => ({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
+    ParentAlertsPanelComponent,
     CommonModule,
     FormsModule,
     ViLabelPipe,
@@ -153,6 +155,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   newStaffName = '';
   newStaffEmail = '';
   newStaffPass = '';
+  newStaffPhone = '';
   newStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
   /** Staff / teachers join the unit of this Trưởng phòng / PHT. */
   newStaffManagerId = '';
@@ -166,6 +169,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   editStaffName = '';
   editStaffEmail = '';
   editStaffPass = '';
+  editStaffPhone = '';
   editStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
   isUpdatingStaff = false;
 
@@ -212,6 +216,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   private readonly auth = inject(AuthService);
+  /** Report of Zalo messages to parents: Trưởng phòng / PHT and admins. */
+  readonly showParentAlerts = this.auth.isManager() || this.auth.isAdmin();
   private readonly permissionService = inject(PermissionService);
   private readonly branding = inject(BrandingService);
   readonly visibleTabs = visibleDashboardTabs(this.auth);
@@ -1216,6 +1222,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       fullName: this.newStaffName.trim(),
       email: this.newStaffEmail.trim(),
       customPassword: this.newStaffPass.trim() || undefined,
+      phone: this.newStaffPhone.trim(),
       role: this.newStaffRole,
       ...(this.newStaffRole === 'manager' ? {} : { managerId: this.newStaffManagerId }),
     };
@@ -1242,6 +1249,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.newStaffName = '';
           this.newStaffEmail = '';
           this.newStaffPass = '';
+          this.newStaffPhone = '';
           this.newStaffRole = 'staff';
           this.newStaffManagerId = '';
           this.loadStaffList();
@@ -1266,6 +1274,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.editingStaffId = staff.id || (staff as any)._id || '';
     this.editStaffName = staff.fullName;
     this.editStaffEmail = staff.email;
+    this.editStaffPhone = staff.phone || '';
     this.editStaffPass = '';
     this.editStaffRole =
       staff.role === 'teacher' || staff.role === 'manager' ? staff.role : 'staff';
@@ -1281,6 +1290,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const payload: any = {
       fullName: this.editStaffName.trim(),
       email: this.editStaffEmail.trim(),
+      phone: this.editStaffPhone.trim(),
       role: this.editStaffRole,
     };
     if (this.editStaffPass.trim()) {

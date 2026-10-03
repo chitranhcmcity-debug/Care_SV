@@ -611,6 +611,21 @@
                   "
                 ></ng-container>
                 <ng-container *ngTemplateOutlet="confirmField"></ng-container>
+                <div *ngIf="role !== 'manager'" class="space-y-1.5 sm:col-span-2">
+                  <label for="register-phone" class="block text-sm font-medium text-slate-700"
+                    >Số điện thoại <span class="text-slate-400 font-normal">(phụ huynh gọi lại số
+                    này)</span></label
+                  >
+                  <input
+                    id="register-phone"
+                    type="tel"
+                    autocomplete="tel"
+                    [(ngModel)]="phone"
+                    name="phone"
+                    placeholder="VD: 0912 345 678"
+                    class="w-full h-12 px-4 lg-input tabular-nums"
+                  />
+                </div>
               </div>
 
               <p *ngIf="role === 'teacher'" class="text-xs text-slate-500">

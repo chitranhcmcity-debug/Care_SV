@@ -23,6 +23,7 @@ export class StaffService {
     role?: 'staff' | 'teacher' | 'manager';
     /** Staff / teachers: the Trưởng phòng / PHT whose unit they join. */
     managerId?: string;
+    phone?: string;
   }): Observable<{
     message: string;
     staff: User;
@@ -39,7 +40,7 @@ export class StaffService {
 
   updateStaff(
     id: string,
-    payload: { fullName?: string; email?: string; password?: string },
+    payload: { fullName?: string; email?: string; password?: string; phone?: string },
   ): Observable<{ message: string; staff: User }> {
     return this.http.put<{ message: string; staff: User }>(`${this.apiUrl}/staff/${id}`, payload);
   }

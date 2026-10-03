@@ -84,6 +84,14 @@ function readEmail(value) {
   assert(typeof value === 'string' && EMAIL_PATTERN.test(value.trim()), 'Email không hợp lệ');
   return value.trim().toLowerCase();
 }
+// Optional phone (parents call it back from the absence-warning Zalo message).
+function readPhone(value) {
+  if (value === undefined || value === null) return undefined;
+  assert(typeof value === 'string', 'Số điện thoại không hợp lệ');
+  const phone = value.trim();
+  assert(!phone || /^\+?[\d\s.-]{8,20}$/.test(phone), 'Số điện thoại không hợp lệ');
+  return phone;
+}
 function assertPassword(value) {
   assert(
     typeof value === 'string' && value.length >= 8 && value.length <= 128,
@@ -206,8 +214,8 @@ router.post('/login', async (req, res, next) => {
 // GET /api/auth/me — the signed-in user and their current permissions, so the UI picks up
 // changes an admin makes to the permission matrix without signing in again.
 router.get('/me', verifyToken, requireSignedIn, (req, res) => {
-  const { id, fullName, email, role, status, accessExpiresAt, permissions } = req.user;
-  res.json({ user: { id, fullName, email, role, status, accessExpiresAt }, permissions });
+  const { id, fullName, email, phone, role, status, accessExpiresAt, permissions } = req.user;
+  res.json({ user: { id, fullName, email, phone, role, status, accessExpiresAt }, permissions });
 });
 
 // POST /api/auth/register (Public) — self sign-up.
@@ -218,6 +226,7 @@ router.get('/me', verifyToken, requireSignedIn, (req, res) => {
 router.post('/register', async (req, res, next) => {
   try {
     const { fullName, email, password, role, planCode, managerEmail } = req.body ?? {};
+    const phone = readPhone(req.body?.phone) ?? '';
     const isPaid = role === PAID_REGISTER_ROLE;
     assert(
       typeof fullName === 'string' && fullName.trim() && fullName.trim().length <= 100,
@@ -260,6 +269,7 @@ router.post('/register', async (req, res, next) => {
         fullName: fullName.trim(),
         password: await bcrypt.hash(password, 10),
         role,
+        phone,
         status: 'awaiting_payment',
         verifyTokenHash: null,
         verifyTokenExpires: null,
@@ -306,6 +316,7 @@ router.post('/register', async (req, res, next) => {
       fullName: fullName.trim(),
       password: await bcrypt.hash(password, 10),
       role,
+      phone,
       status: 'pending',
       unitId: manager.unitId || manager._id,
       verifyTokenHash: null,
@@ -556,6 +567,7 @@ async function findUnitManager(managerId) {
 router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) => {
   try {
     const { fullName, email, customPassword, role, managerId } = req.body;
+    const phone = readPhone(req.body?.phone) ?? '';
     if (typeof fullName !== 'string' || !fullName.trim()) {
       return res.status(400).json({ message: 'Tên và email là bắt buộc' });
     }
@@ -576,6 +588,7 @@ router.post('/create-staff', verifyToken, requireAdmin, async (req, res, next) =
       email: normalizedEmail,
       password: hashedPassword,
       role: assignedRole,
+      phone,
       status: 'active',
     });
     newStaff.unitId = unitManager ? unitManager.unitId || unitManager._id : newStaff._id;
@@ -632,6 +645,8 @@ router.put('/staff/:id', verifyToken, requireAdmin, async (req, res, next) => {
     }
 
     if (fullName) user.fullName = fullName.trim();
+    const phone = readPhone(req.body?.phone);
+    if (phone !== undefined) user.phone = phone;
     if (ASSIGNABLE_ROLES.includes(role) && role !== user.role) {
       await releaseRoleWork(user, req.user.id, 'Đổi vai trò tài khoản');
       user.role = role;

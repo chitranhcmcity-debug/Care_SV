@@ -21,6 +21,7 @@ const callRoutes = require('./routes/cuocGoi');
 const classAssignmentRoutes = require('./routes/phanCongLop');
 const overviewRoutes = require('./routes/tongQuan');
 const notificationRoutes = require('./routes/thongBao');
+const parentAlertRoutes = require('./routes/thongBaoPhuHuynh');
 const { requireActiveSubscription } = require('./middleware/goiDichVu');
 
 const app = express();
@@ -55,6 +56,7 @@ app.use('/api/students', requireActiveSubscription, studentRoutes);
 app.use('/api/calls', requireActiveSubscription, callRoutes);
 app.use('/api/class-assignments', requireActiveSubscription, classAssignmentRoutes);
 app.use('/api/notifications', requireActiveSubscription, notificationRoutes);
+app.use('/api/parent-alerts', requireActiveSubscription, parentAlertRoutes);
 
 app.get('/api/health', (req, res) =>
   res

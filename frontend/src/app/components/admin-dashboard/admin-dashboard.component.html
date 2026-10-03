@@ -350,6 +350,16 @@
         />
       </div>
       <div>
+        <label class="staff-label" data-tone="1">📞 Số điện thoại</label>
+        <input
+          type="tel"
+          [(ngModel)]="newStaffPhone"
+          name="newStaffPhone"
+          placeholder="Phụ huynh gọi lại số này"
+          class="staff-field w-full px-4 py-3 text-sm font-semibold tabular-nums"
+        />
+      </div>
+      <div>
         <label class="staff-label" data-tone="2"
           >🏷️ Vai trò tài khoản <span class="text-rose-500">*</span></label
         >
@@ -1442,6 +1452,9 @@
         </table>
       </div>
     </div>
+
+    <!-- Zalo messages sent to parents of students absent too often in one week -->
+    <app-parent-alerts-panel *ngIf="showParentAlerts"></app-parent-alerts-panel>
   </div>
 
   <!-- COMPONENT 6: COURSE & TIMETABLE MANAGEMENT PANEL -->
@@ -2092,6 +2105,17 @@
             [(ngModel)]="editStaffEmail"
             name="editStaffEmail"
             required
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
+          />
+        </div>
+
+        <div>
+          <label class="block uppercase mb-1">Số điện thoại</label>
+          <input
+            type="tel"
+            [(ngModel)]="editStaffPhone"
+            name="editStaffPhone"
+            placeholder="Phụ huynh gọi lại số này"
             class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
           />
         </div>

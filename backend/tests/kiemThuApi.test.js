@@ -2570,3 +2570,108 @@ test('startup conversion puts existing data in the legacy unit and gives other m
     await NguoiDung.deleteMany({ email: /@unit\.test$/ });
   }
 });
+
+test('parent alert: more than 2 absences in a week sends one Zalo message, kept in the report', async () => {
+  const ThongBaoPhuHuynh = require('../models/ThongBaoPhuHuynh');
+  const { checkWeeklyAbsences } = require('../services/dichVuCanhBaoPhuHuynh');
+  const { dateKey: key } = require('../utils/kiemTra');
+  const today = key(new Date());
+  const student = students[0];
+  await SinhVien.updateOne({ _id: student._id }, { parentPhone: '0912 345 678' });
+  await NguoiDung.updateOne({ _id: users.teacher._id }, { phone: '0987654321' });
+  // Three course groups, one absence each on the same day: 3 sessions in this week.
+  const groups = await Promise.all(
+    [1, 2, 3].map((i) =>
+      NhomHocPhan.create({
+        groupCode: `ZNS-${i}`,
+        courseName: `Môn ${i}`,
+        teacherId: users.teacher._id,
+        students: [student._id],
+      }),
+    ),
+  );
+  const absent = (g) =>
+    DiemDanh.create({ courseGroupId: g._id, sessionDay: today, absentStudents: [student._id] });
+  try {
+    await absent(groups[0]);
+    await absent(groups[1]);
+    // Two sessions: not yet.
+    assert.equal((await checkWeeklyAbsences([student._id], today)).length, 0);
+    await absent(groups[2]);
+
+    // Zalo not configured: recorded for the report, nothing sent.
+    const [first] = await checkWeeklyAbsences([student._id], today);
+    assert.equal(first.status, 'chua_cau_hinh');
+    assert.equal(first.absentCount, 3);
+    assert.match(first.content, /vắng 3 buổi/);
+    assert.match(first.content, /0987654321/);
+    // Once per student and week.
+    assert.equal((await checkWeeklyAbsences([student._id], today)).length, 0);
+    assert.equal(await ThongBaoPhuHuynh.countDocuments({ studentId: student._id }), 1);
+
+    // Report: managers and admins only.
+    assert.equal((await request('/parent-alerts', tokens.teacher)).status, 403);
+    const report = await request('/parent-alerts', tokens.manager);
+    assert.equal(report.status, 200);
+    assert.equal(report.body.items[0].studentId.studentCode, student.studentCode);
+    assert.equal(report.body.counts.chua_cau_hinh, 1);
+
+    // Configure Zalo and re-send: the access token is renewed and the new refresh token kept.
+    const realFetch = globalThis.fetch;
+    const calls = [];
+    Object.assign(process.env, {
+      ZALO_APP_ID: 'app',
+      ZALO_APP_SECRET: 'secret',
+      ZALO_OA_REFRESH_TOKEN: 'refresh-1',
+      ZALO_ZNS_TEMPLATE_ID: '123456',
+    });
+    globalThis.fetch = async (url, init = {}) => {
+      const target = String(url);
+      if (target.startsWith('https://oauth.zaloapp.com')) {
+        calls.push({ target, body: String(init.body) });
+        return new Response(
+          JSON.stringify({ access_token: 'access-1', refresh_token: 'refresh-2', expires_in: '90000' }),
+        );
+      }
+      if (target.startsWith('https://business.openapi.zalo.me')) {
+        calls.push({ target, body: JSON.parse(init.body), token: init.headers.access_token });
+        return new Response(JSON.stringify({ error: 0, message: 'Success', data: { msg_id: 'm-1' } }));
+      }
+      return realFetch(url, init);
+    };
+    try {
+      assert.equal(
+        (await request(`/parent-alerts/${first._id}/resend`, tokens.teacher, 'POST')).status,
+        403,
+      );
+      const resent = await request(`/parent-alerts/${first._id}/resend`, tokens.manager, 'POST');
+      assert.equal(resent.status, 200);
+      assert.equal(resent.body.alert.status, 'da_gui');
+      const sent = calls.find((c) => c.target.includes('business')).body;
+      assert.equal(sent.phone, '84912345678');
+      assert.equal(sent.template_id, '123456');
+      assert.equal(sent.template_data.so_buoi_vang, '3');
+      assert.match(sent.template_data.giang_vien, /0987654321/);
+      assert.equal(process.env.ZALO_OA_REFRESH_TOKEN, 'refresh-2');
+      assert.equal(
+        (await request(`/parent-alerts/${first._id}/resend`, tokens.manager, 'POST')).status,
+        400,
+      );
+    } finally {
+      globalThis.fetch = realFetch;
+      for (const k of ['ZALO_APP_ID', 'ZALO_APP_SECRET', 'ZALO_OA_REFRESH_TOKEN', 'ZALO_ZNS_TEMPLATE_ID'])
+        delete process.env[k];
+      await Settings.updateOne({}, { $unset: { 'integrations.ZALO_OA_REFRESH_TOKEN': 1 } });
+    }
+
+    // A unit that switched the messages off gets none.
+    await ThongBaoPhuHuynh.deleteMany({});
+    await UnitConfig.updateOne({ unitId: null }, { parentAlertsEnabled: false }, { upsert: true });
+    assert.equal((await checkWeeklyAbsences([student._id], today)).length, 0);
+  } finally {
+    await UnitConfig.updateOne({ unitId: null }, { $unset: { parentAlertsEnabled: 1 } });
+    await ThongBaoPhuHuynh.deleteMany({});
+    await DiemDanh.deleteMany({ courseGroupId: { $in: groups.map((g) => g._id) } });
+    await NhomHocPhan.deleteMany({ _id: { $in: groups.map((g) => g._id) } });
+  }
+});

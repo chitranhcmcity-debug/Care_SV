@@ -1,0 +1,120 @@
+<section class="pa-card">
+  <header class="pa-head">
+    <div class="flex items-start gap-3.5">
+      <span class="pa-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 5h16v11H8l-4 4Z M8 9h8 M8 12h5" />
+        </svg>
+      </span>
+      <div>
+        <h3 class="text-lg md:text-xl font-bold text-slate-900">Tin Zalo gửi phụ huynh</h3>
+        <p class="text-xs text-slate-500 font-medium mt-1">
+          Tự động gửi khi sinh viên vắng không phép quá 2 buổi trong một tuần (cộng mọi môn), kèm SĐT
+          nhân viên CSSV và giảng viên để phụ huynh gọi lại.
+        </p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        class="pa-chip"
+        [class.is-active]="filter() === ''"
+        (click)="setFilter('')"
+      >
+        Tất cả <span class="pa-chip-count">{{ totalAll() }}</span>
+      </button>
+      <button
+        *ngFor="let s of statuses"
+        type="button"
+        class="pa-chip"
+        [ngClass]="s.tone"
+        [class.is-active]="filter() === s.value"
+        (click)="setFilter(s.value)"
+      >
+        {{ s.label }} <span class="pa-chip-count">{{ data()?.counts?.[s.value] || 0 }}</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="pa-table-wrap overflow-x-auto">
+    <table class="pa-table w-full text-left text-sm">
+      <thead>
+        <tr class="uppercase text-xs font-bold">
+          <th class="p-4">Sinh viên</th>
+          <th class="p-4">Tuần</th>
+          <th class="p-4 text-center">Buổi vắng</th>
+          <th class="p-4">Phụ huynh</th>
+          <th class="p-4">Trạng thái</th>
+          <th class="p-4"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let a of data()?.items">
+          <tr>
+            <td class="p-4">
+              <div class="font-bold text-slate-900">{{ a.studentId?.fullName || '—' }}</div>
+              <div class="text-xs font-bold text-violet-800 tabular-nums">
+                {{ a.studentId?.studentCode }} · {{ a.studentId?.classCode }}
+              </div>
+            </td>
+            <td class="p-4 whitespace-nowrap tabular-nums">
+              {{ dm(a.weekStart) }} – {{ dm(a.weekEnd) }}
+            </td>
+            <td class="p-4 text-center font-bold text-slate-900">{{ a.absentCount }}</td>
+            <td class="p-4 tabular-nums">{{ a.parentPhone || '—' }}</td>
+            <td class="p-4">
+              <span class="pa-badge" [ngClass]="status(a).tone">{{ status(a).label }}</span>
+              <div *ngIf="a.sentAt" class="text-[11px] text-slate-400 mt-1">
+                {{ a.sentAt | date: 'HH:mm dd/MM' }}
+              </div>
+              <div *ngIf="a.error" class="text-[11px] text-rose-600 mt-1 max-w-[220px]">
+                {{ a.error }}
+              </div>
+            </td>
+            <td class="p-4 text-right whitespace-nowrap">
+              <button type="button" class="pa-link" (click)="toggle(a._id)">
+                {{ open() === a._id ? 'Ẩn nội dung' : 'Xem nội dung' }}
+              </button>
+              <button
+                *ngIf="canResend && a.status !== 'da_gui'"
+                type="button"
+                class="pa-resend"
+                [disabled]="resending() === a._id"
+                (click)="resend(a)"
+              >
+                {{ resending() === a._id ? 'Đang gửi...' : 'Gửi lại' }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="open() === a._id" class="pa-detail">
+            <td colspan="6" class="p-4">
+              <p class="text-slate-700">{{ a.content }}</p>
+              <ul class="mt-2 grid gap-1 text-xs text-slate-500">
+                <li *ngFor="let c of a.courses">
+                  <b class="text-slate-700">{{ c.courseName }}</b> — vắng {{ c.count }} buổi · GV
+                  {{ c.teacherName || 'chưa phân công' }}{{ c.teacherPhone ? ' - ' + c.teacherPhone : '' }}
+                </li>
+                <li>
+                  Nhân viên CSSV: {{ a.staffName || 'chưa phân công' }}{{
+                    a.staffPhone ? ' - ' + a.staffPhone : ''
+                  }}
+                </li>
+              </ul>
+            </td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="!loading() && !data()?.items?.length">
+          <td colspan="6" class="p-8 text-center text-slate-400 text-sm font-medium">
+            Chưa có tin nào gửi phụ huynh.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <nav *ngIf="pages() > 1" class="pa-pager" aria-label="Phân trang">
+    <button type="button" [disabled]="page() <= 1" (click)="goTo(page() - 1)">‹ Trước</button>
+    <span>Trang {{ page() }} / {{ pages() }}</span>
+    <button type="button" [disabled]="page() >= pages()" (click)="goTo(page() + 1)">Sau ›</button>
+  </nav>
+</section>

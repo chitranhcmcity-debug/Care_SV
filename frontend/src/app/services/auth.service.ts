@@ -134,6 +134,8 @@ export class AuthService {
     planCode?: string;
     /** Teachers and staff: the Trưởng phòng / PHT whose unit they join and who approves them. */
     managerEmail?: string;
+    /** Phone parents can call back on (absence-warning Zalo message). */
+    phone?: string;
   }): Observable<{ message: string; checkoutUrl?: string }> {
     return this.http.post<{ message: string; checkoutUrl?: string }>(
       `${this.apiUrl}/register`,
