@@ -1,10 +1,17 @@
-import { AfterViewInit, Component, OnDestroy, signal, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  ViewChild,
+  signal,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ROLE_LABELS } from '../../models/types';
 import { BrandingService } from '../../services/branding.service';
-import { DemoCalendarComponent } from './demo-calendar/demo-calendar.component';
 
 // 24px stroke icon paths (Tabler-style).
 const ICONS = {
@@ -47,12 +54,13 @@ const ICONS = {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, DemoCalendarComponent],
+  imports: [CommonModule, RouterLink],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css',
+  styleUrls: ['./home.component.css', './home-hero.css'],
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly branding = inject(BrandingService);
+  @ViewChild('heroVideo') private heroVideo?: ElementRef<HTMLVideoElement>;
 
   readonly icons = ICONS;
 
@@ -252,6 +260,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit() {
+    // Banner video: muted is set on the element itself (browsers only autoplay muted video);
+    // visitors who prefer reduced motion see the still poster instead.
+    const video = this.heroVideo?.nativeElement;
+    if (video) {
+      video.muted = true;
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {});
+    }
     // A section counts as active while it crosses a band just below the sticky header.
     this.sectionObserver = new IntersectionObserver(
       (entries) => {

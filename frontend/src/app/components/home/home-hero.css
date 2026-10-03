@@ -1,0 +1,65 @@
+/* Hero banner video. Desktop: the video fills the top of the hero, the copy sits on the left
+   on a light veil (the robot flies on the right side of the clip). Phones and tablets: the video
+   is a rounded card above the copy. */
+.hero {
+  --hero-h: clamp(560px, calc(100vh - 80px), 780px);
+}
+.hero-media {
+  position: relative;
+  margin: 16px 16px 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #efeafd url('/banner-hero.jpg') center / cover no-repeat;
+  box-shadow: 0 24px 50px -28px rgb(76 29 149 / 0.55);
+}
+.hero-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-veil {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero-media {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: var(--hero-h);
+    margin: 0;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .hero-video {
+    /* Keep the robot (right third of the clip) in frame on narrower desktops. */
+    object-position: 72% center;
+  }
+  .hero-veil {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgb(251 250 255 / 0.96) 0%,
+        rgb(251 250 255 / 0.9) 28%,
+        rgb(251 250 255 / 0.55) 46%,
+        rgb(251 250 255 / 0) 62%
+      ),
+      linear-gradient(180deg, rgb(251 250 255 / 0) 72%, #fbfaff 100%);
+  }
+  .hero-inner {
+    min-height: var(--hero-h);
+  }
+  .hero-copy {
+    max-width: 600px;
+  }
+}
+@media (min-width: 1536px) {
+  .hero-copy {
+    max-width: 660px;
+  }
+}

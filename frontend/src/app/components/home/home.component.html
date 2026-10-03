@@ -159,11 +159,28 @@
       <div class="dots"></div>
       <div class="hero-wave"></div>
 
+      <!-- Banner video: the copy sits on the left, where a soft light veil keeps it readable
+           while the robot flies on the right. Muted, looping, decorative only. -->
+      <div class="hero-media" aria-hidden="true">
+        <video
+          #heroVideo
+          class="hero-video"
+          src="banner-hero.mp4"
+          poster="banner-hero.jpg"
+          muted
+          loop
+          playsinline
+          preload="auto"
+          disablepictureinpicture
+        ></video>
+        <div class="hero-veil"></div>
+      </div>
+
       <div
-        class="relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pt-8 pb-10 md:pt-14 md:pb-16 grid lg:grid-cols-[0.9fr_1.1fr] gap-12 xl:gap-10 items-center"
+        class="hero-inner relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pt-6 pb-10 lg:pt-0 lg:pb-0 flex items-center"
       >
         <!-- Copy -->
-        <div class="space-y-6 md:space-y-7 text-center lg:text-left">
+        <div class="hero-copy space-y-6 md:space-y-7 text-center lg:text-left">
           <span
             class="glass inline-flex items-center gap-3 pl-1.5 pr-5 py-1.5 rounded-full text-violet-800 text-sm font-semibold"
           >
@@ -186,7 +203,7 @@
             {{ branding.schoolName() }}
           </span>
           <h1
-            class="text-[34px] min-[400px]:text-[38px] leading-[1.12] sm:text-[50px] md:text-[60px] xl:text-[66px] md:leading-[1.08] font-extrabold tracking-tight text-slate-900 text-balance"
+            class="text-[34px] min-[400px]:text-[38px] leading-[1.12] sm:text-[48px] md:text-[56px] xl:text-[62px] md:leading-[1.08] font-extrabold tracking-tight text-slate-900 text-balance"
           >
             Không để sinh viên nào
             <span class="text-grad">bị bỏ lại phía sau</span>
@@ -256,59 +273,6 @@
               <span class="text-slate-700">Ban Giám Hiệu, Phòng CTSV, CSKH &amp; Giảng viên</span>
             </div>
           </div>
-        </div>
-
-        <!-- Product mock-up (illustrative, no real data) -->
-        <div class="mock-stage relative hidden md:block">
-          <!-- floating 3D tiles -->
-          <span class="cube float -left-8 top-6 w-16 h-16"
-            ><svg
-              class="w-8 h-8"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path [attr.d]="icons.cap" /></svg
-          ></span>
-          <span class="cube float-slow -left-4 top-[58%] w-16 h-16 z-20"
-            ><svg
-              class="w-8 h-8"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            >
-              <path [attr.d]="icons.chart" /></svg
-          ></span>
-          <span class="cube float left-[2%] -bottom-6 w-14 h-14 z-20"
-            ><svg
-              class="w-7 h-7"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            >
-              <path [attr.d]="icons.user" /></svg
-          ></span>
-          <span class="cube float-slow -right-4 top-[22%] w-16 h-16 z-20 hidden lg:grid"
-            ><svg
-              class="w-8 h-8"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path [attr.d]="icons.cap" /></svg
-          ></span>
-
-          <app-demo-calendar></app-demo-calendar>
         </div>
       </div>
 
