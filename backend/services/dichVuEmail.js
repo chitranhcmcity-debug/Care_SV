@@ -268,7 +268,80 @@ function sendPasswordResetEmail({ to, fullName, token, minutes }) {
   });
 }
 
+const formatVnd = (amount) => `${Number(amount).toLocaleString('vi-VN')} đ`;
+const formatDate = (date) =>
+  new Date(date).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+const formatDay = (date) =>
+  new Date(date).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+/** Receipt for a Trưởng phòng / PHT account plan, sent once the payment is confirmed. */
+function sendInvoiceEmail({ to, fullName, order, expiresAt }) {
+  const rows = [
+    ['Mã đơn', order.orderCode],
+    ['Gói dịch vụ', order.planName],
+    ['Thời hạn', `${order.months} tháng`],
+    ['Số tiền', formatVnd(order.amount)],
+    ['Thanh toán lúc', formatDate(order.paidAt || Date.now())],
+    ['Mã giao dịch', order.reference || '—'],
+    ['Hiệu lực tài khoản đến', formatDay(expiresAt)],
+  ];
+  const link = `${getAppUrl()}/login`;
+  return deliver({
+    to,
+    subject: `[ITC Care] Hóa đơn thanh toán #${order.orderCode}`,
+    html: `
+      <h3>Xin chào ${escapeHtml(fullName)},</h3>
+      <p>Cảm ơn bạn đã thanh toán gói dịch vụ trên <b>${SYSTEM_NAME}</b>. Tài khoản Trưởng phòng /
+      Phó hiệu trưởng của bạn đã được kích hoạt.</p>
+      <table style="border-collapse:collapse;min-width:320px;font-size:14px">
+        ${rows
+          .map(
+            ([label, value]) =>
+              `<tr><td style="padding:8px 12px;border:1px solid #e9e3f7;background:#f8f5ff;color:#5b21b6;font-weight:600">${label}</td><td style="padding:8px 12px;border:1px solid #e9e3f7">${escapeHtml(value)}</td></tr>`,
+          )
+          .join('')}
+      </table>
+      ${linkButton(link, 'Đăng nhập')}
+      <p style="color:#64748b;font-size:13px">Hãy giữ email này làm chứng từ thanh toán.</p>
+    `,
+    text: [
+      `Xin chào ${fullName},`,
+      'Hóa đơn thanh toán gói dịch vụ ITC Care:',
+      ...rows.map(([label, value]) => `${label}: ${value}`),
+      `Đăng nhập: ${link}`,
+    ].join('\n'),
+  });
+}
+
+/** Before (expired = false) or on (expired = true) the end of an account's own plan. */
+function sendRenewalEmail({ to, fullName, expiresAt, renewUrl, expired }) {
+  const day = formatDay(expiresAt);
+  const intro = expired
+    ? `Gói dịch vụ của tài khoản Trưởng phòng / Phó hiệu trưởng trên <b>${SYSTEM_NAME}</b> đã hết hạn ngày <b>${day}</b>. Tài khoản tạm khóa cho tới khi được gia hạn.`
+    : `Gói dịch vụ của tài khoản Trưởng phòng / Phó hiệu trưởng trên <b>${SYSTEM_NAME}</b> sẽ hết hạn ngày <b>${day}</b>.`;
+  return deliver({
+    to,
+    subject: expired
+      ? '[ITC Care] Tài khoản đã hết hạn — gia hạn để tiếp tục sử dụng'
+      : `[ITC Care] Gói dịch vụ sắp hết hạn (${day})`,
+    html: `
+      <h3>Xin chào ${escapeHtml(fullName)},</h3>
+      <p>${intro}</p>
+      <p>Bấm nút dưới đây để chọn gói và chuyển khoản. Thanh toán xong, tài khoản được kích hoạt
+      lại ngay và hóa đơn sẽ gửi về email này.</p>
+      ${linkButton(renewUrl, 'Gia hạn ngay')}
+    `,
+    text: `Xin chào ${fullName},\n${
+      expired
+        ? `Gói dịch vụ tài khoản ITC Care của bạn đã hết hạn ngày ${day}.`
+        : `Gói dịch vụ tài khoản ITC Care của bạn sẽ hết hạn ngày ${day}.`
+    }\nGia hạn tại: ${renewUrl}`,
+  });
+}
+
 module.exports = {
+  sendInvoiceEmail,
+  sendRenewalEmail,
   sendAccountEmail,
   sendApprovalRequestEmail,
   sendActivationKeyEmail,

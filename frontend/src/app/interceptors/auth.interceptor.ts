@@ -19,7 +19,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     });
     return next(authReq).pipe(
       catchError((error) => {
-        if (error.status === 401) auth.logout();
+        if (error.status === 401) {
+          auth.logout();
+          // A Trưởng phòng / PHT whose own plan ran out: the login page explains how to renew.
+          if (error.error?.code === 'ACCOUNT_EXPIRED')
+            router.navigate(['/login'], { queryParams: { expired: 1 } });
+        }
         // Subscription expired: refresh the banner, and send whoever can renew to the billing page.
         if (error.status === 402) {
           billing.refreshStatus().subscribe({ error: () => {} });

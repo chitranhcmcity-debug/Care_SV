@@ -46,8 +46,10 @@ export interface User {
   fullName: string;
   email: string;
   role: Role;
-  status: 'active' | 'inactive' | 'pending' | 'awaiting_key' | 'unverified';
+  status: 'active' | 'inactive' | 'pending' | 'awaiting_key' | 'unverified' | 'awaiting_payment';
   managedClasses?: string[];
+  /** Own plan end of a self-registered Trưởng phòng / PHT; null = no own plan. */
+  accessExpiresAt?: string | null;
 }
 
 export interface Student {

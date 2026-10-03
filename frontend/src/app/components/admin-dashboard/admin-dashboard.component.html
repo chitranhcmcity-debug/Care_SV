@@ -457,7 +457,7 @@
                     ? '👨‍🏫 Giảng viên'
                     : staff.role === 'manager'
                       ? '🏛️ Trưởng phòng / PHT'
-                      : '🎧 Nhân viên CSKH'
+                      : '🎧 Nhân viên chăm sóc sinh viên'
                 }}
               </span>
             </td>
@@ -493,7 +493,9 @@
                       ? 'Tạm khóa'
                       : staff.status === 'awaiting_key'
                         ? 'Chờ nhập key'
-                        : 'Chờ duyệt'
+                        : staff.status === 'awaiting_payment'
+                          ? 'Chờ thanh toán'
+                          : 'Chờ duyệt'
                 }}
               </span>
             </td>

@@ -34,6 +34,8 @@ async function startServer() {
       listener.on('error', reject);
     });
     console.log('Backend listening on port', config.port);
+    // Renewal reminders for Trưởng phòng / PHT accounts that pay for their own plan.
+    require('./services/dichVuGiaHanTaiKhoan').startRenewalReminders();
     let stopping = false;
     const stop = async () => {
       if (stopping) return;

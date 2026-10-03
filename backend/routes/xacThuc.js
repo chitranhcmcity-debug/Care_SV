@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const NguoiDung = require('../models/NguoiDung');
 const NhomHocPhan = require('../models/NhomHocPhan');
-const { ROLE_LABEL } = require('../utils/hangSo');
+const { ROLE_LABEL, ORDER_STATUS } = require('../utils/hangSo');
 const {
   verifyToken,
   requireAdmin,
@@ -15,6 +15,14 @@ const {
   requireRoles,
 } = require('../middleware/xacThuc');
 const { permissionsForRole } = require('../services/dichVuPhanQuyen');
+const subscription = require('../services/dichVuGoiDichVu');
+const payos = require('../services/dichVuPayOS');
+const DonThanhToan = require('../models/DonThanhToan');
+const {
+  renewUrl,
+  accountFromRenewToken,
+  accountExpired,
+} = require('../services/dichVuGiaHanTaiKhoan');
 const { releaseStaffClasses } = require('../services/dichVuPhanCongLop');
 const {
   sendAccountEmail,
@@ -47,6 +55,8 @@ const RESET_MINUTES = 30;
 const EMAIL_COOLDOWN_MS = 60 * 1000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SELF_REGISTER_ROLES = ['staff', 'teacher'];
+// A Trưởng phòng / PHT may also sign up, but only by paying for their own plan.
+const PAID_REGISTER_ROLE = 'manager';
 // Roles an admin may give an account (admins are not created through the UI).
 const ASSIGNABLE_ROLES = ['staff', 'teacher', 'manager'];
 
@@ -145,8 +155,23 @@ router.post('/login', async (req, res, next) => {
       user.activationKeyExpires = null;
       await user.save();
     }
+    if (user.status === 'awaiting_payment') {
+      return res.status(403).json({
+        code: 'PAYMENT_REQUIRED',
+        message:
+          'Tài khoản chưa hoàn tất thanh toán gói dịch vụ. Hãy thanh toán để kích hoạt tài khoản.',
+        renewUrl: renewUrl(user),
+      });
+    }
     if (user.status !== 'active') {
       return res.status(403).json({ message: 'Tài khoản của bạn đã bị vô hiệu hóa' });
+    }
+    if (accountExpired(user)) {
+      return res.status(403).json({
+        code: 'ACCOUNT_EXPIRED',
+        message: 'Gói dịch vụ của tài khoản đã hết hạn. Gia hạn để kích hoạt lại tài khoản.',
+        renewUrl: renewUrl(user),
+      });
     }
 
     const token = jwt.sign(
@@ -169,6 +194,7 @@ router.post('/login', async (req, res, next) => {
         email: user.email,
         role: user.role,
         status: user.status,
+        accessExpiresAt: user.accessExpiresAt,
       },
       permissions: await permissionsForRole(user.role),
     });
@@ -180,16 +206,19 @@ router.post('/login', async (req, res, next) => {
 // GET /api/auth/me — the signed-in user and their current permissions, so the UI picks up
 // changes an admin makes to the permission matrix without signing in again.
 router.get('/me', verifyToken, requireSignedIn, (req, res) => {
-  const { id, fullName, email, role, status, permissions } = req.user;
-  res.json({ user: { id, fullName, email, role, status }, permissions });
+  const { id, fullName, email, role, status, accessExpiresAt, permissions } = req.user;
+  res.json({ user: { id, fullName, email, role, status, accessExpiresAt }, permissions });
 });
 
-// POST /api/auth/register (Public) — self sign-up for teachers and staff only.
-// The account stays 'pending' until a Trưởng phòng / PHT approves it; every active manager is
-// emailed. Approval emails the applicant an activation key that must be entered at login.
+// POST /api/auth/register (Public) — self sign-up.
+// Teachers and staff: the account stays 'pending' until a Trưởng phòng / PHT approves it; every
+// active manager is emailed. Approval emails the applicant an activation key for the login.
+// Trưởng phòng / PHT: must buy a plan (body.planCode). The account waits in 'awaiting_payment'
+// and is activated, with a receipt emailed, as soon as PayOS confirms the payment.
 router.post('/register', async (req, res, next) => {
   try {
-    const { fullName, email, password, role } = req.body ?? {};
+    const { fullName, email, password, role, planCode } = req.body ?? {};
+    const isPaid = role === PAID_REGISTER_ROLE;
     assert(
       typeof fullName === 'string' && fullName.trim() && fullName.trim().length <= 100,
       'Vui lòng nhập họ và tên',
@@ -197,8 +226,15 @@ router.post('/register', async (req, res, next) => {
     const normalizedEmail = readEmail(email);
     assertPassword(password);
     assert(
-      SELF_REGISTER_ROLES.includes(role),
-      'Chỉ được đăng ký tài khoản Giảng viên hoặc Nhân viên',
+      isPaid || SELF_REGISTER_ROLES.includes(role),
+      'Chỉ được đăng ký tài khoản Giảng viên, Nhân viên hoặc Trưởng phòng / PHT',
+    );
+    const plan = isPaid ? (await subscription.getPlans()).find((p) => p.code === planCode) : null;
+    assert(!isPaid || plan, 'Vui lòng chọn gói dịch vụ');
+    assert(
+      !isPaid || payos.isConfigured(),
+      'Hệ thống chưa bật thanh toán trực tuyến. Vui lòng liên hệ quản trị viên.',
+      503,
     );
     const domains = signupDomains();
     assert(
@@ -207,7 +243,7 @@ router.post('/register', async (req, res, next) => {
     );
 
     let user = await NguoiDung.findOne({ email: normalizedEmail });
-    if (user && !REGISTRATION_STATUSES.includes(user.status)) {
+    if (user && ![...REGISTRATION_STATUSES, 'awaiting_payment'].includes(user.status)) {
       return res.status(409).json({
         message: 'Email này đã được đăng ký. Hãy đăng nhập hoặc dùng chức năng Quên mật khẩu.',
       });
@@ -217,6 +253,36 @@ router.post('/register', async (req, res, next) => {
         .status(429)
         .json({ message: 'Yêu cầu vừa được gửi. Vui lòng chờ 1 phút rồi thử lại.' });
     }
+    if (isPaid) {
+      // Registering again before paying replaces the details and opens a new payment link.
+      const isNewAccount = !user;
+      const fields = {
+        fullName: fullName.trim(),
+        password: await bcrypt.hash(password, 10),
+        role,
+        status: 'awaiting_payment',
+        verifyTokenHash: null,
+        verifyTokenExpires: null,
+        activationKeyHash: null,
+        activationKeyExpires: null,
+        approvedBy: null,
+      };
+      if (user) user.set(fields);
+      else user = new NguoiDung({ email: normalizedEmail, ...fields });
+      await user.save();
+      let order;
+      try {
+        order = await subscription.createOrder(plan.code, user, { account: user });
+      } catch (error) {
+        if (isNewAccount) await user.deleteOne();
+        throw error;
+      }
+      return res.status(201).json({
+        message: 'Đang chuyển tới trang thanh toán...',
+        checkoutUrl: order.checkoutUrl,
+      });
+    }
+
     const managers = await NguoiDung.find({ role: 'manager', status: 'active' }).select(
       'fullName email',
     );
@@ -264,6 +330,78 @@ router.post('/register', async (req, res, next) => {
 
     res.status(201).json({
       message: `Đăng ký thành công! Yêu cầu đã được gửi tới Trưởng phòng / Phó hiệu trưởng. Khi được xác nhận, key kích hoạt sẽ được gửi tới ${normalizedEmail}.`,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ---- Own plans of self-registered Trưởng phòng / PHT accounts (public, no sign-in) ----
+
+// "ch***@gmail.com": enough for the holder to recognise, without exposing the address.
+const maskEmail = (email) => email.replace(/^(.{1,2})[^@]*/, '$1***');
+
+// GET /api/auth/account-plans — price list for the sign-up and renewal pages.
+router.get('/account-plans', async (req, res, next) => {
+  try {
+    res.json({ plans: await subscription.getPlans(), payosConfigured: payos.isConfigured() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const renewalAccount = async (token) => {
+  const user = await accountFromRenewToken(token);
+  assert(
+    user,
+    'Liên kết gia hạn không hợp lệ hoặc đã hết hạn. Hãy đăng nhập để nhận liên kết mới.',
+  );
+  return user;
+};
+
+// GET /api/auth/account-renewal?token= — who the renewal link (from email or login) is for.
+router.get('/account-renewal', async (req, res, next) => {
+  try {
+    const user = await renewalAccount(req.query.token);
+    res.json({
+      fullName: user.fullName,
+      email: maskEmail(user.email),
+      status: user.status,
+      accessExpiresAt: user.accessExpiresAt,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/auth/account-orders — body: { token, planCode }; returns the PayOS checkout link.
+router.post('/account-orders', async (req, res, next) => {
+  try {
+    const user = await renewalAccount(req.body?.token);
+    const order = await subscription.createOrder(req.body?.planCode, user, { account: user });
+    res.status(201).json({ orderCode: order.orderCode, checkoutUrl: order.checkoutUrl });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/auth/account-orders/:orderCode/sync — called by the PayOS return page. Asks PayOS
+// directly (so it works where PayOS cannot reach the webhook) and reports the result.
+router.post('/account-orders/:orderCode/sync', async (req, res, next) => {
+  try {
+    const code = Number(req.params.orderCode);
+    assert(Number.isSafeInteger(code) && code > 0, 'Mã đơn không hợp lệ');
+    const found = await DonThanhToan.findOne({ orderCode: code, kind: 'account' });
+    assert(found, 'Không tìm thấy đơn thanh toán', 404);
+    const order = await subscription.syncOrder(found);
+    const user = await NguoiDung.findById(order.account).select('email accessExpiresAt');
+    res.json({
+      status: order.status,
+      planName: order.planName,
+      months: order.months,
+      amount: order.amount,
+      email: user ? maskEmail(user.email) : '',
+      accessExpiresAt: order.status === ORDER_STATUS.PAID ? user?.accessExpiresAt : null,
     });
   } catch (error) {
     next(error);

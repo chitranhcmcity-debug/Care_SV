@@ -2314,3 +2314,81 @@ test('students can be added, edited and deleted by the manager only, with cascad
   assert.equal(await CuocGoi.countDocuments({ studentId: id }), 0);
   assert.equal((await request(`/students/${id}`, tokens.manager, 'DELETE')).status, 404);
 });
+
+test(
+  'a Trưởng phòng / PHT signs up by paying: activated with a receipt, locked when the plan ends, renewed by link',
+  withFakeSmtp(async () => {
+    const status = { value: 'PENDING', amount: 499000 };
+    await withFakePayOS(status, async () => {
+      const email = 'truongphong.moi@itc.edu.vn';
+      const signup = { fullName: 'Trưởng Phòng Mới', email, password: 'matkhau123', role: 'manager' };
+      assert.equal((await request('/auth/register', null, 'POST', signup)).status, 400);
+
+      const registered = await request('/auth/register', null, 'POST', {
+        ...signup,
+        planCode: 'goi_1_thang',
+      });
+      assert.equal(registered.status, 201);
+      assert.match(registered.body.checkoutUrl, /^https:\/\/pay\.payos\.vn\//);
+      const user = await NguoiDung.findOne({ email });
+      assert.equal(user.status, 'awaiting_payment');
+      const order = await DonThanhToan.findOne({ account: user._id });
+      assert.equal(order.kind, 'account');
+
+      // Not paid yet: login points to the payment page instead of signing in.
+      const credentials = { email, password: 'matkhau123' };
+      const unpaid = await request('/auth/login', null, 'POST', credentials);
+      assert.equal(unpaid.status, 403);
+      assert.equal(unpaid.body.code, 'PAYMENT_REQUIRED');
+      assert.match(unpaid.body.renewUrl, /\/renew\?token=/);
+
+      // PayOS confirms the payment: the account is active and the receipt is emailed.
+      status.value = 'PAID';
+      const synced = await request(`/auth/account-orders/${order.orderCode}/sync`, null, 'POST');
+      assert.equal(synced.body.status, 'da_thanh_toan');
+      assert.ok(new Date(synced.body.accessExpiresAt) > new Date());
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      assert.ok(sentMails.some((m) => m.to === email && /Hóa đơn/.test(m.subject)));
+      const signedIn = await request('/auth/login', null, 'POST', credentials);
+      assert.equal(signedIn.status, 200);
+      // Own-plan orders stay out of the shared plan's history.
+      const history = await request('/billing/orders', tokens.manager);
+      assert.ok(!history.body.some((o) => o.orderCode === order.orderCode));
+
+      // The plan runs out: the session stops working and login offers the renewal link.
+      await NguoiDung.updateOne({ email }, { accessExpiresAt: new Date(Date.now() - 1000) });
+      const me = await request('/auth/me', signedIn.body.token);
+      assert.equal(me.status, 401);
+      assert.equal(me.body.code, 'ACCOUNT_EXPIRED');
+      const expired = await request('/auth/login', null, 'POST', credentials);
+      assert.equal(expired.body.code, 'ACCOUNT_EXPIRED');
+      const token = new URL(expired.body.renewUrl).searchParams.get('token');
+      // A renewal link is not a sign-in token.
+      assert.equal((await request('/auth/me', token)).status, 401);
+
+      // The expiry email goes out once per expiry date, with a working renewal link.
+      const { sendDueReminders } = require('../services/dichVuGiaHanTaiKhoan');
+      await sendDueReminders();
+      await sendDueReminders();
+      const notices = sentMails.filter((m) => m.to === email && /hết hạn/.test(m.subject));
+      assert.equal(notices.length, 1);
+      assert.equal(tokenFromMail(email) !== null, true);
+
+      const info = await request(`/auth/account-renewal?token=${encodeURIComponent(token)}`);
+      assert.equal(info.status, 200);
+      assert.doesNotMatch(info.body.email, /truongphong\.moi/);
+      assert.equal((await request('/auth/account-renewal?token=sai')).status, 400);
+
+      status.value = 'PENDING';
+      const renewal = await request('/auth/account-orders', null, 'POST', {
+        token,
+        planCode: 'goi_1_thang',
+      });
+      assert.equal(renewal.status, 201);
+      status.value = 'PAID';
+      await request(`/auth/account-orders/${renewal.body.orderCode}/sync`, null, 'POST');
+      assert.equal((await request('/auth/login', null, 'POST', credentials)).status, 200);
+      await NguoiDung.deleteOne({ email });
+    });
+  }),
+);

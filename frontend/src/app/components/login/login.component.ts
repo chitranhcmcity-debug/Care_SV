@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
+import { AccountPaymentResult, AccountRenewal, AuthService } from '../../services/auth.service';
+import type { SubscriptionPlan } from '../../services/billing.service';
 import { BrandingService } from '../../services/branding.service';
 
 // Local development accounts. Only fill the username; the password is entered manually.
@@ -35,7 +36,7 @@ const DEMO_ACCOUNTS = [
 ];
 
 /** Which auth screen this route shows; set through the route's `data.mode`. */
-export type AuthMode = 'login' | 'register' | 'forgot' | 'reset';
+export type AuthMode = 'login' | 'register' | 'forgot' | 'reset' | 'renew' | 'payment';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -56,7 +57,17 @@ export class LoginComponent implements OnInit {
   password = '';
   confirmPassword = '';
   fullName = '';
-  role: 'staff' | 'teacher' = 'teacher';
+  role: 'staff' | 'teacher' | 'manager' = 'teacher';
+  /** Plans a Trưởng phòng / PHT buys for their own account (register and renew screens). */
+  plans: SubscriptionPlan[] | null = null;
+  planCode = '';
+  payosConfigured = true;
+  /** Payment / renewal page for an unpaid or expired Trưởng phòng / PHT account (from login). */
+  renewUrl = '';
+  /** Renew screen: whose account the emailed link renews. */
+  renewal: AccountRenewal | null = null;
+  /** Payment result screen (PayOS return page). */
+  payment: AccountPaymentResult | null = null;
   showPassword = false;
   /** Set once the server says this approved account still needs its emailed activation key. */
   needsKey = false;
@@ -85,6 +96,12 @@ export class LoginComponent implements OnInit {
       this.redirectByUserRole();
       return;
     }
+    if (this.mode === 'login' && this.route.snapshot.queryParamMap.get('expired')) {
+      this.successMessage =
+        'Gói dịch vụ của tài khoản đã hết hạn. Đăng nhập để nhận liên kết gia hạn.';
+    }
+    if (this.mode === 'renew') this.loadRenewal();
+    if (this.mode === 'payment') this.checkPayment();
     if (this.mode === 'reset' && !this.token) {
       this.linkMissing = true;
       this.errorMessage =
@@ -116,6 +133,10 @@ export class LoginComponent implements OnInit {
       () => this.redirectByUserRole(),
       (err) => {
         const code = err.error?.code;
+        if (code === 'PAYMENT_REQUIRED' || code === 'ACCOUNT_EXPIRED') {
+          this.renewUrl = err.error?.renewUrl ?? '';
+          return;
+        }
         if (code !== 'ACTIVATION_KEY_REQUIRED' && code !== 'ACTIVATION_KEY_INVALID') return;
         this.needsKey = true;
         // First ask is guidance, not an error.
@@ -133,6 +154,10 @@ export class LoginComponent implements OnInit {
       this.errorMessage = 'Vui lòng nhập họ tên và email.';
       return;
     }
+    if (this.role === 'manager' && !this.planCode) {
+      this.errorMessage = 'Vui lòng chọn gói dịch vụ.';
+      return;
+    }
     if (!this.checkNewPassword()) return;
     this.run(
       this.authService.register({
@@ -140,12 +165,78 @@ export class LoginComponent implements OnInit {
         email: this.email.trim(),
         password: this.password,
         role: this.role,
+        ...(this.role === 'manager' ? { planCode: this.planCode } : {}),
       }),
-      (message) => {
+      (message, result) => {
+        // Trưởng phòng / PHT: on to PayOS; the account works once the payment is confirmed.
+        if (result.checkoutUrl) {
+          window.location.href = result.checkoutUrl;
+          return;
+        }
         this.successMessage = message;
         this.password = this.confirmPassword = '';
       },
     );
+  }
+
+  /** Register screen: picking Trưởng phòng / PHT loads the plans to buy. */
+  selectRole(role: 'staff' | 'teacher' | 'manager') {
+    this.role = role;
+    if (role === 'manager') this.loadPlans();
+  }
+
+  private loadPlans() {
+    if (this.plans) return;
+    this.authService.getAccountPlans().subscribe({
+      next: ({ plans, payosConfigured }) => {
+        this.plans = plans;
+        this.payosConfigured = payosConfigured;
+        this.planCode ||= plans[0]?.code ?? '';
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.plans = [];
+        this.errorMessage = 'Không tải được bảng giá gói dịch vụ. Vui lòng thử lại.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private loadRenewal() {
+    if (!this.token) {
+      this.errorMessage = 'Liên kết gia hạn thiếu mã xác thực. Hãy mở lại liên kết trong email.';
+      return;
+    }
+    this.run(this.authService.getAccountRenewal(this.token), (_, renewal) => {
+      this.renewal = renewal;
+      this.loadPlans();
+    });
+  }
+
+  onRenew() {
+    if (!this.planCode) {
+      this.errorMessage = 'Vui lòng chọn gói dịch vụ.';
+      return;
+    }
+    this.run(this.authService.createAccountOrder(this.token, this.planCode), (_, order) => {
+      window.location.href = order.checkoutUrl;
+    });
+  }
+
+  /** PayOS return page: confirms the payment with the server. */
+  checkPayment() {
+    const orderCode = this.route.snapshot.queryParamMap.get('orderCode') || '';
+    if (!orderCode) {
+      this.errorMessage = 'Không tìm thấy mã đơn thanh toán.';
+      return;
+    }
+    this.run(this.authService.syncAccountOrder(orderCode), (_, result) => {
+      this.payment = result;
+    });
+  }
+
+  formatVnd(amount: number) {
+    return amount.toLocaleString('vi-VN') + ' đ';
   }
 
   onForgot() {
@@ -182,7 +273,7 @@ export class LoginComponent implements OnInit {
   private run<T>(
     request: Observable<T>,
     onSuccess: (message: string, result: T) => void,
-    onError?: (err: { status: number; error?: { code?: string; message?: string } }) => void,
+    onError?: (err: { status: number; error?: { code?: string; message?: string; renewUrl?: string } }) => void,
   ) {
     this.loading = true;
     this.errorMessage = '';

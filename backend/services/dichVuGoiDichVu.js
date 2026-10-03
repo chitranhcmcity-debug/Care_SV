@@ -2,6 +2,8 @@
 const crypto = require('crypto');
 const CaiDatHeThong = require('../models/CaiDatHeThong');
 const DonThanhToan = require('../models/DonThanhToan');
+const NguoiDung = require('../models/NguoiDung');
+const { sendInvoiceEmail } = require('./dichVuEmail');
 const payos = require('./dichVuPayOS');
 const { SUBSCRIPTION_PLANS, ORDER_STATUS } = require('../utils/hangSo');
 const { getAppUrl } = require('../utils/moiTruong');
@@ -89,6 +91,27 @@ function extendSubscription(months, planCode) {
 }
 
 /**
+ * Extends one Trưởng phòng / PHT account's own plan, activates it if it was waiting for its
+ * first payment, and emails the receipt.
+ */
+function extendAccount(order) {
+  const run = extendQueue.then(async () => {
+    const user = await NguoiDung.findById(order.account);
+    if (!user) return null;
+    const current = user.accessExpiresAt?.getTime() || 0;
+    const newExpiry = addMonths(new Date(Math.max(Date.now(), current)), order.months);
+    user.accessExpiresAt = newExpiry;
+    user.accessPlan = order.planCode;
+    if (user.status === 'awaiting_payment') user.status = 'active';
+    await user.save();
+    sendInvoiceEmail({ to: user.email, fullName: user.fullName, order, expiresAt: newExpiry });
+    return newExpiry;
+  });
+  extendQueue = run.catch(() => {});
+  return run;
+}
+
+/**
  * Marks an order paid and extends the subscription — exactly once per order, however
  * many times the webhook and the return-page sync report the same payment.
  */
@@ -113,7 +136,10 @@ async function applyPaidOrder(orderCode, { amount, reference, paidAt } = {}) {
     { new: true },
   );
   if (!claimed) return DonThanhToan.findById(order._id); // another request applied it first
-  claimed.extendedTo = await extendSubscription(claimed.months, claimed.planCode);
+  claimed.extendedTo =
+    claimed.kind === 'account'
+      ? await extendAccount(claimed)
+      : await extendSubscription(claimed.months, claimed.planCode);
   await claimed.save();
   console.log(
     `[PayOS] Đơn ${orderCode} đã thanh toán, gia hạn tới ${claimed.extendedTo.toISOString()}.`,
@@ -163,8 +189,11 @@ async function savePlans(input) {
   return plans;
 }
 
-/** Creates a pending order plus its PayOS payment link. */
-async function createOrder(planCode, user) {
+/**
+ * Creates a pending order plus its PayOS payment link. With `account`, the order pays for that
+ * Trưởng phòng / PHT account's own plan instead of the shared system plan.
+ */
+async function createOrder(planCode, user, { account = null } = {}) {
   const plan = (await getPlans()).find((p) => p.code === planCode);
   assert(plan, 'Gói không hợp lệ');
   assert(payos.isConfigured(), 'Chưa cấu hình PayOS trên máy chủ', 503);
@@ -176,13 +205,16 @@ async function createOrder(planCode, user) {
     months: plan.months,
     amount: plan.amount,
     createdBy: user.id,
+    kind: account ? 'account' : 'system',
+    account: account ? account.id : null,
   });
-  const returnUrl = `${getAppUrl()}/billing`;
+  const returnUrl = `${getAppUrl()}${account ? '/account-payment' : '/billing'}`;
   try {
     const link = await payos.createPaymentLink({
       orderCode: order.orderCode,
       amount: order.amount,
-      description: `ITC Care ${plan.months} thang`, // PayOS: ≤ 25 chars, no accents
+      // PayOS: ≤ 25 chars, no accents
+      description: `ITC Care ${account ? 'TK ' : ''}${plan.months} thang`,
       returnUrl,
       cancelUrl: returnUrl,
       items: [{ name: plan.name, quantity: 1, price: plan.amount }],

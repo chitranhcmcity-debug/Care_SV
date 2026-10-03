@@ -19,6 +19,9 @@ export const routes: Routes = [
       ['register', 'register'],
       ['forgot-password', 'forgot'],
       ['reset-password', 'reset'],
+      // Trưởng phòng / PHT own plan: renewal link from email or login, and PayOS return page.
+      ['renew', 'renew'],
+      ['account-payment', 'payment'],
     ] as const
   ).map(([path, mode]) => ({
     path,

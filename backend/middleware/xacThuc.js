@@ -12,7 +12,7 @@ async function verifyToken(req, res, next) {
     return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn' });
   }
   try {
-    if (!decoded.id || !/^[a-f\d]{24}$/i.test(decoded.id))
+    if (decoded.purpose || !decoded.id || !/^[a-f\d]{24}$/i.test(decoded.id))
       return res.status(401).json({ message: 'Invalid token' });
     // Runs on every request: a plain object is enough (no Mongoose document needed).
     const user = await NguoiDung.findById(decoded.id)
@@ -24,6 +24,12 @@ async function verifyToken(req, res, next) {
       (decoded.tokenVersion || 0) !== (user.tokenVersion || 0)
     )
       return res.status(401).json({ message: 'Session revoked' });
+    // A Trưởng phòng / PHT whose own plan has run out is signed out until it is renewed.
+    if (user.accessExpiresAt && new Date(user.accessExpiresAt).getTime() <= Date.now())
+      return res.status(401).json({
+        code: 'ACCOUNT_EXPIRED',
+        message: 'Gói dịch vụ của tài khoản đã hết hạn. Hãy gia hạn để tiếp tục sử dụng.',
+      });
     // Permissions are read live, so a change in the matrix applies without signing in again.
     req.user = {
       ...user,

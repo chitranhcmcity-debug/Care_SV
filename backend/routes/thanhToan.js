@@ -54,7 +54,8 @@ router.put('/plans', verifyToken, requireAdmin, async (req, res, next) => {
 // GET /api/billing/orders (Admin, Trưởng phòng / PHT) — payment history, newest first.
 router.get('/orders', verifyToken, requireBillingViewer, async (req, res, next) => {
   try {
-    const orders = await DonThanhToan.find()
+    // Shared system plan only; Trưởng phòng / PHT own-plan orders belong to their accounts.
+    const orders = await DonThanhToan.find({ kind: { $ne: 'account' } })
       .populate('createdBy', 'fullName email')
       .sort({ createdAt: -1 })
       .limit(50);

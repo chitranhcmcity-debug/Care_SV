@@ -27,10 +27,28 @@
               <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
                 <span class="lg-grad">Tạo tài khoản</span>
               </h1>
-              <p class="text-sm text-slate-500">
+              <p class="text-sm text-slate-500" *ngIf="role !== 'manager'">
                 Dành cho Giảng viên và Nhân viên. Sau khi Trưởng phòng / Phó hiệu trưởng xác nhận,
                 bạn sẽ nhận key kích hoạt qua email.
               </p>
+              <p class="text-sm text-slate-500" *ngIf="role === 'manager'">
+                Trưởng phòng / Phó hiệu trưởng cần thanh toán gói dịch vụ để hoàn tất đăng ký. Thanh
+                toán xong, tài khoản dùng được ngay và hóa đơn được gửi về email.
+              </p>
+            </ng-container>
+            <ng-container *ngSwitchCase="'renew'">
+              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+                <span class="lg-grad">Gia hạn gói dịch vụ</span>
+              </h1>
+              <p class="text-sm text-slate-500">
+                Chọn gói và chuyển khoản qua PayOS. Thanh toán xong, tài khoản được kích hoạt lại
+                ngay và hóa đơn được gửi về email.
+              </p>
+            </ng-container>
+            <ng-container *ngSwitchCase="'payment'">
+              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+                <span class="lg-grad">Kết quả thanh toán</span>
+              </h1>
             </ng-container>
             <ng-container *ngSwitchCase="'forgot'">
               <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
@@ -79,7 +97,15 @@
               <circle cx="12" cy="12" r="9" />
               <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
             </svg>
-            <span>{{ errorMessage }}</span>
+            <span class="space-y-2">
+              <span class="block">{{ errorMessage }}</span>
+              <a
+                *ngIf="renewUrl && mode === 'login'"
+                [href]="renewUrl"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700"
+                >Thanh toán / gia hạn ngay →</a
+              >
+            </span>
           </div>
 
           <!-- Success Alert -->
@@ -188,6 +214,46 @@
                 class="w-full h-12 px-4 lg-input"
               />
             </div>
+          </ng-template>
+
+          <!-- Plan picker (Trưởng phòng / PHT sign-up and renewal) -->
+          <ng-template #planPicker>
+            <fieldset class="space-y-1.5">
+              <legend class="block text-sm font-medium text-slate-700 mb-1.5">Gói dịch vụ</legend>
+              <p *ngIf="!plans" class="text-sm text-slate-500">Đang tải bảng giá...</p>
+              <p
+                *ngIf="plans && !payosConfigured"
+                class="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm"
+              >
+                Hệ thống chưa bật thanh toán trực tuyến. Vui lòng liên hệ quản trị viên.
+              </p>
+              <div *ngIf="plans?.length" class="grid gap-2">
+                <label
+                  *ngFor="let plan of plans"
+                  class="flex items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                  [ngClass]="
+                    planCode === plan.code
+                      ? 'border-violet-500 bg-violet-50'
+                      : 'border-slate-200 hover:border-violet-300'
+                  "
+                >
+                  <input
+                    type="radio"
+                    name="planCode"
+                    class="sr-only"
+                    [value]="plan.code"
+                    [(ngModel)]="planCode"
+                  />
+                  <span>
+                    <span class="block text-sm font-semibold text-slate-800">{{ plan.name }}</span>
+                    <span class="block text-xs text-slate-500">{{ plan.months }} tháng</span>
+                  </span>
+                  <span class="text-sm font-bold text-violet-700 whitespace-nowrap">{{
+                    formatVnd(plan.amount)
+                  }}</span>
+                </label>
+              </div>
+            </fieldset>
           </ng-template>
 
           <!-- Submit button shared by every form -->
@@ -410,9 +476,15 @@
                           label: 'Nhân viên CSKH',
                           hint: 'Gọi điện chăm sóc sinh viên',
                         },
+                        {
+                          value: 'manager',
+                          label: 'Trưởng phòng / Phó hiệu trưởng',
+                          hint: 'Quản lý toàn bộ hệ thống · cần mua gói dịch vụ',
+                        },
                       ]
                     "
                     class="flex flex-col gap-0.5 p-3 rounded-lg border cursor-pointer transition-colors"
+                    [class.col-span-2]="option.value === 'manager'"
                     [ngClass]="
                       role === option.value
                         ? 'border-violet-500 bg-violet-50'
@@ -424,13 +496,19 @@
                       name="role"
                       class="sr-only"
                       [value]="option.value"
-                      [(ngModel)]="role"
+                      [ngModel]="role"
+                      (ngModelChange)="selectRole($event)"
                     />
                     <span class="text-sm font-semibold text-slate-800">{{ option.label }}</span>
                     <span class="text-xs text-slate-500">{{ option.hint }}</span>
                   </label>
                 </div>
               </fieldset>
+
+              <!-- Trưởng phòng / PHT: pick the plan to pay for -->
+              <ng-container *ngIf="role === 'manager'">
+                <ng-container *ngTemplateOutlet="planPicker"></ng-container>
+              </ng-container>
 
               <div class="space-y-1.5">
                 <label for="register-name" class="block text-sm font-medium text-slate-700"
@@ -484,7 +562,10 @@
               <ng-container
                 *ngTemplateOutlet="
                   submitButton;
-                  context: { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
+                  context:
+                    role === 'manager'
+                      ? { label: 'Thanh toán & hoàn tất đăng ký', busy: 'Đang tạo thanh toán...' }
+                      : { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
                 "
               ></ng-container>
             </form>
@@ -497,6 +578,83 @@
                 >Đăng nhập</a
               >
             </p>
+          </ng-container>
+
+          <!-- ============ RENEW (Trưởng phòng / PHT own plan) ============ -->
+          <ng-container *ngIf="mode === 'renew'">
+            <form *ngIf="renewal" (ngSubmit)="onRenew()" class="space-y-5" novalidate>
+              <div class="p-3 rounded-lg border border-slate-200 bg-slate-50 text-sm">
+                <div class="font-semibold text-slate-800">{{ renewal.fullName }}</div>
+                <div class="text-xs text-slate-500">{{ renewal.email }}</div>
+                <div class="text-xs mt-1" [class.text-rose-600]="renewal.accessExpiresAt">
+                  {{
+                    renewal.status === 'awaiting_payment'
+                      ? 'Chưa thanh toán lần đầu — tài khoản chưa được kích hoạt.'
+                      : renewal.accessExpiresAt
+                        ? 'Hạn sử dụng: ' + (renewal.accessExpiresAt | date: 'dd/MM/yyyy')
+                        : ''
+                  }}
+                </div>
+              </div>
+              <ng-container *ngTemplateOutlet="planPicker"></ng-container>
+              <ng-container
+                *ngTemplateOutlet="
+                  submitButton;
+                  context: { label: 'Thanh toán qua PayOS', busy: 'Đang tạo thanh toán...' }
+                "
+              ></ng-container>
+            </form>
+            <p class="text-sm text-slate-500 text-center">
+              <a
+                routerLink="/login"
+                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                >Quay lại đăng nhập</a
+              >
+            </p>
+          </ng-container>
+
+          <!-- ============ PAYMENT RESULT (PayOS return page) ============ -->
+          <ng-container *ngIf="mode === 'payment'">
+            <div *ngIf="payment" class="space-y-4">
+              <div
+                *ngIf="payment.status === 'da_thanh_toan'"
+                class="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm space-y-1"
+              >
+                <div class="font-bold">Thanh toán thành công — tài khoản đã được kích hoạt.</div>
+                <div>
+                  {{ payment.planName }} · {{ formatVnd(payment.amount) }}. Hạn sử dụng đến
+                  <b>{{ payment.accessExpiresAt | date: 'dd/MM/yyyy' }}</b>.
+                </div>
+                <div>Hóa đơn đã được gửi tới {{ payment.email }}.</div>
+              </div>
+              <div
+                *ngIf="payment.status === 'cho_thanh_toan'"
+                class="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm"
+              >
+                Chưa nhận được thanh toán. Nếu bạn đã chuyển khoản, đợi vài giây rồi bấm Kiểm tra
+                lại.
+              </div>
+              <div
+                *ngIf="payment.status === 'da_huy' || payment.status === 'het_han'"
+                class="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm"
+              >
+                Thanh toán đã bị hủy hoặc hết hạn. Đăng nhập để nhận liên kết thanh toán mới.
+              </div>
+              <button
+                *ngIf="payment.status === 'cho_thanh_toan'"
+                type="button"
+                (click)="checkPayment()"
+                [disabled]="loading"
+                class="w-full h-11 rounded-lg border border-violet-300 text-violet-700 font-semibold text-sm hover:bg-violet-50"
+              >
+                {{ loading ? 'Đang kiểm tra...' : 'Kiểm tra lại' }}
+              </button>
+            </div>
+            <a
+              routerLink="/login"
+              class="lg-submit w-full h-[54px] text-white font-bold text-[15px] flex items-center justify-center"
+              >Đăng nhập</a
+            >
           </ng-container>
 
           <!-- ============ FORGOT PASSWORD ============ -->

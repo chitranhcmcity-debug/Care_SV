@@ -3,6 +3,23 @@ import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { Permission, Role, User } from '../models/types';
+import type { SubscriptionPlan } from './billing.service';
+
+export interface AccountRenewal {
+  fullName: string;
+  email: string; // masked
+  status: 'active' | 'awaiting_payment';
+  accessExpiresAt: string | null;
+}
+
+export interface AccountPaymentResult {
+  status: 'cho_thanh_toan' | 'da_thanh_toan' | 'da_huy' | 'het_han';
+  planName: string;
+  months: number;
+  amount: number;
+  email: string; // masked
+  accessExpiresAt: string | null;
+}
 
 export interface Registration {
   _id: string;
@@ -107,14 +124,52 @@ export class AuthService {
     );
   }
 
-  /** Self sign-up (teachers and staff only); a Trưởng phòng / PHT must approve it. */
+  /** Self sign-up. Teachers and staff wait for a Trưởng phòng / PHT to approve; a Trưởng
+   *  phòng / PHT picks a plan and gets a PayOS checkout link to pay before the account works. */
   register(payload: {
     fullName: string;
     email: string;
     password: string;
-    role: 'staff' | 'teacher';
-  }): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/register`, payload);
+    role: 'staff' | 'teacher' | 'manager';
+    planCode?: string;
+  }): Observable<{ message: string; checkoutUrl?: string }> {
+    return this.http.post<{ message: string; checkoutUrl?: string }>(
+      `${this.apiUrl}/register`,
+      payload,
+    );
+  }
+
+  /** Price list for a Trưởng phòng / PHT account's own plan (public). */
+  getAccountPlans(): Observable<{ plans: SubscriptionPlan[]; payosConfigured: boolean }> {
+    return this.http.get<{ plans: SubscriptionPlan[]; payosConfigured: boolean }>(
+      `${this.apiUrl}/account-plans`,
+    );
+  }
+
+  /** Who a renewal link belongs to. */
+  getAccountRenewal(token: string): Observable<AccountRenewal> {
+    return this.http.get<AccountRenewal>(`${this.apiUrl}/account-renewal`, {
+      params: { token },
+    });
+  }
+
+  /** Opens a PayOS payment for a renewal link. */
+  createAccountOrder(
+    token: string,
+    planCode: string,
+  ): Observable<{ orderCode: number; checkoutUrl: string }> {
+    return this.http.post<{ orderCode: number; checkoutUrl: string }>(
+      `${this.apiUrl}/account-orders`,
+      { token, planCode },
+    );
+  }
+
+  /** Asks the server (and through it PayOS) whether an account payment went through. */
+  syncAccountOrder(orderCode: string): Observable<AccountPaymentResult> {
+    return this.http.post<AccountPaymentResult>(
+      `${this.apiUrl}/account-orders/${encodeURIComponent(orderCode)}/sync`,
+      {},
+    );
   }
 
   /** Trưởng phòng / PHT: sign-ups waiting for approval or for their activation key. */
