@@ -283,59 +283,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     this.setupReveal();
   }
 
-  /**
-   * Scroll reveal. Plain `.rv` blocks drop in as they enter the screen. Cards inside an `.rv-group`
-   * grid are different: while the grid is on screen, each wheel notch drops ONE card and the page
-   * stays put; only after every card has landed does scrolling carry on to the next block.
-   * Touch screens, other ways of scrolling (nav links, keyboard, scrollbar) fill the grid by themselves.
-   */
-  private groups: { el: HTMLElement; items: HTMLElement[]; next: number }[] = [];
-  private lastWheel = 0;
-  private lastDrop = 0;
-
-  private drop(el: HTMLElement, delay = 0) {
-    el.style.setProperty('--rv-delay', `${delay}ms`);
-    el.classList.add('rv-in');
-  }
-
-  private dropRest(g: { items: HTMLElement[]; next: number }, step: number) {
-    for (let i = 0; g.next < g.items.length; i++) this.drop(g.items[g.next++], i * step);
-  }
-
-  private readonly onWheel = (e: WheelEvent) => {
-    this.lastWheel = Date.now();
-    if (e.deltaY <= 0 || e.ctrlKey) return;
-    const vh = window.innerHeight;
-    const g = this.groups.find((x) => {
-      if (x.next >= x.items.length) return false;
-      const r = x.el.getBoundingClientRect();
-      return r.top < vh * 0.6 && r.bottom > 80 && x.items[x.next].getBoundingClientRect().top < vh - 40;
-    });
-    if (!g) return;
-    e.preventDefault();
-    if (this.lastWheel - this.lastDrop < 380) return; // one card per notch, trackpad bursts count once
-    this.lastDrop = this.lastWheel;
-    this.drop(g.items[g.next++]);
-  };
-
-  private readonly onScroll = () => {
-    const wheeling = Date.now() - this.lastWheel < 250;
-    const vh = window.innerHeight;
-    for (const g of this.groups) {
-      if (g.next >= g.items.length) continue;
-      const r = g.el.getBoundingClientRect();
-      if (r.bottom < 0) this.dropRest(g, 0);
-      else if (!wheeling && r.top < vh * 0.8) this.dropRest(g, 140);
-    }
-  };
-
+  /** Drops each `.rv` block into place as it scrolls in; blocks entering together go one after another. */
   private setupReveal() {
-    const calm = matchMedia('(hover: none), (prefers-reduced-motion: reduce)').matches;
-    const groupEls = Array.from(document.querySelectorAll<HTMLElement>('.rv-group'));
-    const inGroup = new Set(groupEls.flatMap((g) => Array.from(g.querySelectorAll<HTMLElement>('.rv'))));
-    const items = Array.from(document.querySelectorAll<HTMLElement>('.rv')).filter(
-      (el) => calm || !inGroup.has(el),
-    );
+    const items = Array.from(document.querySelectorAll<HTMLElement>('.rv'));
     this.revealObserver = new IntersectionObserver(
       (entries) => {
         entries
@@ -346,28 +296,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
               a.boundingClientRect.left - b.boundingClientRect.left,
           )
           .forEach((e, i) => {
-            this.drop(e.target as HTMLElement, i * 140);
-            this.revealObserver?.unobserve(e.target);
+            const el = e.target as HTMLElement;
+            el.style.setProperty('--rv-delay', `${i * 140}ms`);
+            el.classList.add('rv-in');
+            this.revealObserver?.unobserve(el);
           });
       },
       { threshold: 0.15, rootMargin: '0px 0px -8% 0px' },
     );
     items.forEach((el) => this.revealObserver!.observe(el));
-    if (calm) return;
-
-    this.groups = groupEls.map((el) => ({
-      el,
-      items: Array.from(el.querySelectorAll<HTMLElement>(':scope > .rv')),
-      next: 0,
-    }));
-    window.addEventListener('wheel', this.onWheel, { passive: false });
-    window.addEventListener('scroll', this.onScroll, { passive: true });
-    this.onScroll();
   }
 
   ngOnDestroy() {
-    window.removeEventListener('wheel', this.onWheel);
-    window.removeEventListener('scroll', this.onScroll);
     this.revealObserver?.disconnect();
     this.sectionObserver?.disconnect();
   }
