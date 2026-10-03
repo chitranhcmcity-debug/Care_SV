@@ -357,7 +357,7 @@
               aria-label="Nhân viên chăm sóc"
               class="h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
             >
-              <option value="">— Chọn nhân viên CSKH —</option>
+              <option value="">— Chọn nhân viên CSSV —</option>
               <option *ngFor="let s of staffOptions()" [value]="s._id">
                 {{ s.fullName }} · {{ s.openCases }} hồ sơ đang mở{{
                   suggestedStaff(c)?._id === s._id ? ' · phụ trách lớp' : ''

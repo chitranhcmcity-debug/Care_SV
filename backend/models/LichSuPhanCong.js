@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// Lịch sử phân công lớp hành chính cho nhân viên CSKH. Bản ghi đang hiệu lực có active = true;
+// Lịch sử phân công lớp hành chính cho nhân viên CSSV. Bản ghi đang hiệu lực có active = true;
 // mỗi lần giao / chuyển / thu hồi lớp đóng bản ghi cũ và (nếu có người nhận) mở bản ghi mới.
 const LichSuPhanCongSchema = new mongoose.Schema(
   {

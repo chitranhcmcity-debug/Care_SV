@@ -30,7 +30,7 @@ const text = (value, name, max = 500) => {
 const optionalText = (value, max = 1000) =>
   typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : undefined;
 
-/** One active CSKH staff member by (part of) name or email; asks to be more specific if ambiguous. */
+/** One active CSSV staff member by (part of) name or email; asks to be more specific if ambiguous. */
 async function findStaff(query) {
   const q = text(query, 'tên nhân viên', 100);
   const pattern = new RegExp(escapeRegex(q), 'i');
@@ -41,7 +41,7 @@ async function findStaff(query) {
   })
     .select('fullName email')
     .limit(10);
-  assert(matches.length, `Không tìm thấy nhân viên CSKH đang hoạt động nào khớp "${q}"`);
+  assert(matches.length, `Không tìm thấy nhân viên CSSV đang hoạt động nào khớp "${q}"`);
   const exact = matches.find((s) => s.fullName.toLowerCase() === q.toLowerCase());
   assert(
     exact || matches.length === 1,
@@ -166,8 +166,8 @@ const ACTIONS = [
   },
   {
     name: 'giao_viec',
-    label: 'Giao nhiệm vụ cho nhân viên CSKH',
-    description: `Soạn một nhiệm vụ nội bộ giao cho nhân viên CSKH (tìm theo tên hoặc email). loai: ${Object.keys(TASK_CATEGORY_LABEL).join(' | ')}; uuTien: ${Object.keys(TASK_PRIORITY_LABEL).join(' | ')}; hanChot dạng YYYY-MM-DD. Chỉ soạn; người dùng phải bấm Xác nhận.`,
+    label: 'Giao nhiệm vụ cho nhân viên CSSV',
+    description: `Soạn một nhiệm vụ nội bộ giao cho nhân viên CSSV (tìm theo tên hoặc email). loai: ${Object.keys(TASK_CATEGORY_LABEL).join(' | ')}; uuTien: ${Object.keys(TASK_PRIORITY_LABEL).join(' | ')}; hanChot dạng YYYY-MM-DD. Chỉ soạn; người dùng phải bấm Xác nhận.`,
     input_schema: {
       type: 'object',
       properties: {
@@ -260,9 +260,9 @@ const ACTIONS = [
   },
   {
     name: 'phan_lop_cskh',
-    label: 'Phân / chuyển lớp hành chính cho nhân viên CSKH',
+    label: 'Phân / chuyển lớp hành chính cho nhân viên CSSV',
     description:
-      'Soạn việc giao một lớp hành chính cho nhân viên CSKH (tìm theo tên), hoặc thu hồi (nhanVien để trống) — hồ sơ chăm sóc đang mở của nhân viên cũ cho sinh viên lớp đó chuyển theo. Chỉ soạn; người dùng phải bấm Xác nhận.',
+      'Soạn việc giao một lớp hành chính cho nhân viên CSSV (tìm theo tên), hoặc thu hồi (nhanVien để trống) — hồ sơ chăm sóc đang mở của nhân viên cũ cho sinh viên lớp đó chuyển theo. Chỉ soạn; người dùng phải bấm Xác nhận.',
     input_schema: {
       type: 'object',
       properties: {

@@ -1,4 +1,4 @@
-// Phân công lớp hành chính cho nhân viên CSKH, có lưu lịch sử.
+// Phân công lớp hành chính cho nhân viên CSSV, có lưu lịch sử.
 // Nguồn sự thật cho "ai đang phụ trách lớp nào" là bản ghi LichSuPhanCong đang active; trường
 // NguoiDung.managedClasses được giữ đồng bộ để kiểm tra quyền nhanh.
 const LichSuPhanCong = require('../models/LichSuPhanCong');
@@ -68,7 +68,7 @@ async function assignClass({ classCode, staffId, by, reason = '' }) {
     staff = await NguoiDung.findById(staffId);
     assert(
       staff && staff.role === 'staff' && staff.status === 'active',
-      'Chỉ giao lớp cho nhân viên CSKH đang hoạt động',
+      'Chỉ giao lớp cho nhân viên CSSV đang hoạt động',
     );
   }
   const current = await LichSuPhanCong.findOne({ classCode: code, active: true });

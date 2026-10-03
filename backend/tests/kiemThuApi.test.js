@@ -317,7 +317,7 @@ test('a warning in a class without staff waits for a directive; the manager dire
     [String(careCase._id)],
   );
   const { staff: carer, token: carerToken } = await createTaskStaff('directed');
-  // Only a manager directs, and only to active CSKH staff.
+  // Only a manager directs, and only to active CSSV staff.
   for (const [token, staffId, status] of [
     [carerToken, carer._id, 403],
     [tokens.admin, carer._id, 403],

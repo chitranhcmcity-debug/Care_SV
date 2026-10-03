@@ -32,7 +32,7 @@ const NguoiDungSchema = new mongoose.Schema(
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null },
     resetTokenHash: { type: String, default: null },
     resetTokenExpires: { type: Date, default: null },
-    // Lớp hành chính đang phụ trách (nhân viên CSKH); lịch sử ở LichSuPhanCong.
+    // Lớp hành chính đang phụ trách (nhân viên CSSV); lịch sử ở LichSuPhanCong.
     managedClasses: [{ type: String }],
     // When the user last looked at each kind of work (bell or its page); newer work is unseen.
     notificationsSeen: {

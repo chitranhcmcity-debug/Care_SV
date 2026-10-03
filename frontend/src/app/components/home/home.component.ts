@@ -99,7 +99,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     },
     {
       title: 'Dành cho mọi vai trò',
-      text: 'Từ Ban Giám Hiệu, Phòng CTSV, CSKH đến giảng viên.',
+      text: 'Từ Ban Giám Hiệu, Phòng CTSV, CSSV đến giảng viên.',
       icon: ICONS.users,
       tone: 'from-emerald-400 to-green-500 shadow-emerald-500/30',
       theme: 'hl-emerald',
@@ -136,7 +136,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       theme: 'f-amber',
     },
     {
-      title: 'Phân lớp cho CSKH',
+      title: 'Phân lớp cho CSSV',
       text: 'Mỗi lớp hành chính có một nhân viên phụ trách; sinh viên vắng tự vào đúng hàng gọi của người đó, có lưu lịch sử bàn giao.',
       icon: ICONS.users,
       theme: 'f-emerald',
@@ -169,7 +169,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       theme: 'st-pink',
     },
     {
-      title: 'CSKH chăm sóc',
+      title: 'CSSV chăm sóc',
       text: 'Gọi điện, tìm nguyên nhân, đưa hướng giải quyết theo các bước — AI gợi ý, báo khó khăn.',
       icon: ICONS.headset,
       theme: 'st-orange',
@@ -199,20 +199,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     },
     {
       title: 'Trưởng phòng / PHT',
-      text: 'Phân lớp CSKH, giao việc, cấu hình mức cảnh báo, xem báo cáo.',
+      text: 'Phân lớp CSSV, giao việc, cấu hình mức cảnh báo, xem báo cáo.',
       icon: ICONS.chart,
       tone: 'from-pink-500 to-orange-400',
       theme: 'rl-pink',
       art: [ICONS.clipboard, ICONS.chart, ICONS.users],
       points: [
-        'Phân lớp và quản lý CSKH',
+        'Phân lớp và quản lý CSSV',
         'Giao việc và theo dõi tiến độ',
         'Cài đặt mức cảnh báo',
         'Xem báo cáo tổng quan, chi tiết',
       ],
     },
     {
-      title: 'Nhân viên CSKH',
+      title: 'Nhân viên CSSV',
       text: 'Gọi điện chăm sóc sinh viên các lớp được phân công, thực hiện việc được giao.',
       icon: ICONS.headset,
       tone: 'from-emerald-400 to-teal-500',

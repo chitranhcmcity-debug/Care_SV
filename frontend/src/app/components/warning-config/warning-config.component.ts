@@ -9,7 +9,7 @@ const PALETTE = ['#eab308', '#f97316', '#ef4444', '#dc2626', '#9333ea', '#2563eb
 
 /**
  * Trưởng phòng / PHT: absence warning levels (name, threshold in periods or % of total
- * periods, colour, exam ban) plus the absence-reason and student-tag lists used by CSKH.
+ * periods, colour, exam ban) plus the absence-reason and student-tag lists used by CSSV.
  */
 @Component({
   selector: 'app-warning-config',

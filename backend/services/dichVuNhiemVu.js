@@ -27,13 +27,13 @@ function readClassification(body, task) {
   }
 }
 
-/** Active CSKH staff member a task can be given to. */
+/** Active CSSV staff member a task can be given to. */
 async function findAssignableStaff(staffId) {
   validateId(staffId);
   const staff = await NguoiDung.findById(staffId);
   assert(
     staff && staff.status === 'active' && staff.role === 'staff',
-    'Vui lòng chọn một nhân viên CSKH đang hoạt động',
+    'Vui lòng chọn một nhân viên CSSV đang hoạt động',
   );
   return staff;
 }

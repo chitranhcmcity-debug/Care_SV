@@ -124,7 +124,7 @@ ${
     .join('\n') || '(chưa từng liên hệ trước đó)'
 }
 
-Hãy đưa ra gợi ý ngắn gọn cho nhân viên chăm sóc sinh viên (CSKH) khi gọi điện cho sinh viên này, gồm 3 phần:
+Hãy đưa ra gợi ý ngắn gọn cho nhân viên chăm sóc sinh viên (CSSV) khi gọi điện cho sinh viên này, gồm 3 phần:
 1. Câu mở đầu nên nói
 2. 2-3 câu hỏi nên hỏi để tìm hiểu nguyên nhân
 3. Hướng xử lý/khuyên nhủ phù hợp với tình huống
@@ -133,7 +133,7 @@ Trả lời bằng tiếng Việt, ngắn gọn, thực tế, không quá 150 t�
 
     const advice = await aiService.chat({
       system:
-        'Bạn là trợ lý hỗ trợ nhân viên chăm sóc sinh viên (CSKH) của một trường cao đẳng tại Việt Nam. Đưa ra lời khuyên thực tế, ngắn gọn, tôn trọng và mang tính xây dựng. Không bịa thông tin ngoài dữ liệu được cung cấp.',
+        'Bạn là trợ lý hỗ trợ nhân viên chăm sóc sinh viên (CSSV) của một trường cao đẳng tại Việt Nam. Đưa ra lời khuyên thực tế, ngắn gọn, tôn trọng và mang tính xây dựng. Không bịa thông tin ngoài dữ liệu được cung cấp.',
       messages: [{ role: 'user', content: prompt }],
     });
     res.json({ advice });
@@ -212,7 +212,7 @@ router.post('/chat', verifyToken, requirePermission('ai.chat'), async (req, res,
     const contextSnapshot = `Số liệu hệ thống hiện tại:
 - Tổng số sinh viên: ${totalStudents}
 - Tổng số học phần: ${totalCourseGroups}
-- Tổng số nhân viên CSKH đang hoạt động: ${totalStaff}
+- Tổng số nhân viên CSSV đang hoạt động: ${totalStaff}
 - Hồ sơ chăm sóc sinh viên theo trạng thái: ${formatStatusCounts(callStats) || 'chưa có'}
 - Nhiệm vụ nội bộ theo trạng thái: ${formatStatusCounts(taskStats) || 'chưa có'}
 - Các mức cảnh báo vắng (tính theo tiết nghỉ):

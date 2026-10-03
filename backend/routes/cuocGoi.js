@@ -148,7 +148,7 @@ router.post(
     if (req.user.role === 'admin') {
       return res.status(403).json({
         message:
-          'Tài khoản Quản trị viên chỉ được xem dữ liệu nghiệp vụ. Hãy dùng tài khoản Trưởng phòng, Nhân viên CSKH hoặc Giảng viên để gọi điện.',
+          'Tài khoản Quản trị viên chỉ được xem dữ liệu nghiệp vụ. Hãy dùng tài khoản Trưởng phòng, Nhân viên CSSV hoặc Giảng viên để gọi điện.',
       });
     }
     requireOperator(req, res, next);

@@ -1,4 +1,4 @@
-// Dữ liệu demo đầy đủ cho mọi trang: tài khoản, lớp, sinh viên, học phần, phân lớp CSKH, điểm danh
+// Dữ liệu demo đầy đủ cho mọi trang: tài khoản, lớp, sinh viên, học phần, phân lớp CSSV, điểm danh
 // ~8 tuần, hồ sơ chăm sóc (đang chăm sóc, chờ chỉ đạo, chờ duyệt, đã kết thúc), cuộc gọi, giao
 // việc và đơn thanh toán.
 //
@@ -94,7 +94,7 @@ const TEN_NU = [
   'Yến',
 ];
 
-// Administrative classes. CD25DH1 is deliberately left without a CSKH staff member, so its
+// Administrative classes. CD25DH1 is deliberately left without a CSSV staff member, so its
 // absences land in the manager's queue.
 const CLASSES = [
   { code: 'CD25CT1', major: 'Công nghệ Thông tin', prefix: '5012500', size: 10 },
@@ -376,7 +376,7 @@ async function main() {
     groups.push({ group, teacher, members });
   }
 
-  // --- CSKH class assignment (history included: CD24KT1 changed hands once)
+  // --- CSSV class assignment (history included: CD24KT1 changed hands once)
   const assign = (classCode, staff, reason) =>
     assignClass({ classCode, staffId: staff?._id ?? null, by: users.manager._id, reason });
   await assign('CD25CT1', users.staff);
@@ -451,7 +451,7 @@ async function main() {
     const opened = c.createdAt;
     const ageDays = (now - opened) / DAY;
     let caller = staffById.get(String(c.assignedStaffId));
-    // A class without CSKH staff: the manager directs someone after a day or two.
+    // A class without CSSV staff: the manager directs someone after a day or two.
     if (!caller && ageDays > 2) {
       caller = users.staff2;
       const at = new Date(opened.getTime() + between(1, 2) * DAY);
@@ -609,7 +609,7 @@ async function main() {
     }
   }
 
-  // --- Internal tasks from the manager to CSKH staff, one per status
+  // --- Internal tasks from the manager to CSSV staff, one per status
   const daysAgo = (n, h = 9) => {
     const d = new Date(now.getTime() - n * DAY);
     d.setHours(h, 0, 0, 0);

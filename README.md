@@ -68,10 +68,10 @@ guard Angular chỉ phục vụ điều hướng. Dùng các hằng trạng thá
 - **Admin**: quản trị hệ thống — tài khoản, phân quyền, cấu hình hệ thống, cấu hình API
   (ChatGPT (OpenAI), Stringee, SMTP; khóa mã hóa trong database, ghi đè `.env`), giao diện web (tên, logo, màu).
   Chỉ **xem** dữ liệu nghiệp vụ.
-- **Trưởng phòng / Phó hiệu trưởng**: giao việc, phân lớp hành chính cho CSKH (có lịch sử),
+- **Trưởng phòng / Phó hiệu trưởng**: giao việc, phân lớp hành chính cho CSSV (có lịch sử),
   xử lý hàng chờ cuộc gọi chưa phân công, học phần & thời khóa biểu, cấu hình **mức cảnh báo**
   (tên, ngưỡng theo tiết hoặc % tổng số tiết, màu, mức cấm thi), điểm danh ngoài giờ.
-- **Nhân viên CSKH**: chỉ thấy sinh viên các lớp hành chính được phân công; cuộc gọi của SV vắng
+- **Nhân viên CSSV**: chỉ thấy sinh viên các lớp hành chính được phân công; cuộc gọi của SV vắng
   tự giao cho người phụ trách lớp, lớp chưa có người thì vào hàng chờ Trưởng phòng.
 - **Giảng viên**: điểm danh học phần mình dạy chỉ trong giờ học theo thời khóa biểu (mở sớm
   10 phút), sửa được đến hết ngày; mọi cuộc gọi cho sinh viên được lưu lịch sử.

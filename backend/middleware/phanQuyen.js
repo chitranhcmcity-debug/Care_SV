@@ -10,7 +10,7 @@ const { can } = require('../services/dichVuPhanQuyen');
  * Whether a user may see (and call) a student:
  * - Roles granted 'students.view' (Trưởng phòng by default; admin read-only): every student.
  * - Giảng viên: students enrolled in a course group they teach.
- * - Nhân viên CSKH: students of the administrative classes currently assigned to them, and any
+ * - Nhân viên CSSV: students of the administrative classes currently assigned to them, and any
  *   student whose open care case they were directed to.
  */
 async function canAccessStudent(user, student) {

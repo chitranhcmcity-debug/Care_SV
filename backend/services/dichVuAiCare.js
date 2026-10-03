@@ -1,6 +1,6 @@
 // AI Care — trợ lý AI dùng chung cho mọi vai trò. Mỗi người dùng chỉ được trao những công cụ
 // (tra cứu dữ liệu) mà quyền của họ cho phép, và mỗi công cụ tự giới hạn dữ liệu theo phạm vi
-// của người hỏi (giảng viên: học phần mình dạy; CSKH: sinh viên mình phụ trách...).
+// của người hỏi (giảng viên: học phần mình dạy; CSSV: sinh viên mình phụ trách...).
 // Không gửi số điện thoại hay dữ liệu liên lạc của sinh viên cho mô hình.
 const mongoose = require('mongoose');
 const SinhVien = require('../models/SinhVien');
@@ -48,7 +48,7 @@ const seesWarnings = (u) => canTakeAttendance(u) || can(u, 'reports.view') || se
 
 /**
  * Scope for attendance data: { groups, students } filters (null = no restriction), or null when
- * the user may not see attendance at all. Teachers: groups they teach. CSKH: students of their
+ * the user may not see attendance at all. Teachers: groups they teach. CSSV: students of their
  * assigned classes. Overseers: everything.
  */
 async function attendanceScope(user) {
@@ -387,7 +387,7 @@ const TOOLS = [
     description:
       'Tổng số sinh viên, học phần, nhân viên, buổi điểm danh, hồ sơ chăm sóc và nhiệm vụ nội bộ theo trạng thái.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
-    // School-wide numbers: only for the whole-school AI right (reports.view is class-scoped for CSKH).
+    // School-wide numbers: only for the whole-school AI right (reports.view is class-scoped for CSSV).
     allowed: (u) => can(u, 'ai.chat'),
     async run() {
       const byStatus = (Model) =>
@@ -418,7 +418,7 @@ const TOOLS = [
       return {
         sinhVien,
         hocPhan,
-        nhanVienCSKH: nhanVien,
+        nhanVienCSSV: nhanVien,
         giangVien,
         buoiDiemDanh,
         hoSoChamSoc: goiDien,
@@ -446,9 +446,9 @@ const TOOLS = [
   },
   {
     name: 'khoi_luong_nhan_vien',
-    label: 'Khối lượng công việc và tiến độ nhân viên CSKH',
+    label: 'Khối lượng công việc và tiến độ nhân viên CSSV',
     description:
-      'Theo từng nhân viên CSKH: số hồ sơ chăm sóc đang làm, chờ duyệt kết thúc, quá hạn, đã kết thúc, và nhiệm vụ nội bộ đang làm / chờ duyệt / quá hạn.',
+      'Theo từng nhân viên CSSV: số hồ sơ chăm sóc đang làm, chờ duyệt kết thúc, quá hạn, đã kết thúc, và nhiệm vụ nội bộ đang làm / chờ duyệt / quá hạn.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
     allowed: (u) => can(u, 'tasks.manage') || can(u, 'care.manage'),
     async run() {
@@ -696,7 +696,7 @@ const ROLE_PROFILES = {
   },
   staff: {
     focus:
-      'Hỗ trợ nhân viên chăm sóc sinh viên (CSKH): làm các hồ sơ chăm sóc được giao theo chỉ đạo của cấp quản lý — ưu tiên hồ sơ gấp, chuẩn bị nội dung cuộc gọi, tìm hiểu nguyên nhân, đề xuất hướng giải quyết, báo khó khăn, theo dõi nhiệm vụ được giao.',
+      'Hỗ trợ nhân viên chăm sóc sinh viên (CSSV): làm các hồ sơ chăm sóc được giao theo chỉ đạo của cấp quản lý — ưu tiên hồ sơ gấp, chuẩn bị nội dung cuộc gọi, tìm hiểu nguyên nhân, đề xuất hướng giải quyết, báo khó khăn, theo dõi nhiệm vụ được giao.',
     pages:
       '"Hồ sơ chăm sóc" (hồ sơ được giao: các bước chăm sóc, gọi điện, nguyên nhân, hướng giải quyết, trao đổi với cấp quản lý, đề nghị kết thúc), "Giao việc" (xác nhận và nộp minh chứng), "Báo cáo" (chỉ lớp mình phụ trách), "Lịch sử cuộc gọi" (chỉ nghe lại ghi âm của mình).',
     suggestions: [
@@ -711,9 +711,9 @@ const ROLE_PROFILES = {
   },
   manager: {
     focus:
-      'Hỗ trợ Trưởng phòng / Phó hiệu trưởng: tổng quan chuyên cần toàn trường theo các mức cảnh báo, chỉ đạo nhân viên chăm sóc các hồ sơ chờ chỉ đạo, theo dõi hồ sơ đã chăm sóc tới đâu, duyệt kết thúc hồ sơ, phân lớp cho nhân viên CSKH, giao việc và giám sát tiến độ.',
+      'Hỗ trợ Trưởng phòng / Phó hiệu trưởng: tổng quan chuyên cần toàn trường theo các mức cảnh báo, chỉ đạo nhân viên chăm sóc các hồ sơ chờ chỉ đạo, theo dõi hồ sơ đã chăm sóc tới đâu, duyệt kết thúc hồ sơ, phân lớp cho nhân viên CSSV, giao việc và giám sát tiến độ.',
     pages:
-      '"Hồ sơ chăm sóc" (hồ sơ chờ chỉ đạo, đang chăm sóc, chờ duyệt kết thúc, lịch sử), "Quản lý" (giao việc, duyệt minh chứng, phân lớp CSKH & lịch sử phân công, học phần & thời khóa biểu, cấu hình mức cảnh báo, báo cáo), "Sinh viên", "Điểm danh" (sửa ngoài giờ khi cần), "Lịch sử cuộc gọi" (nghe lại mọi ghi âm).',
+      '"Hồ sơ chăm sóc" (hồ sơ chờ chỉ đạo, đang chăm sóc, chờ duyệt kết thúc, lịch sử), "Quản lý" (giao việc, duyệt minh chứng, phân lớp CSSV & lịch sử phân công, học phần & thời khóa biểu, cấu hình mức cảnh báo, báo cáo), "Sinh viên", "Điểm danh" (sửa ngoài giờ khi cần), "Lịch sử cuộc gọi" (nghe lại mọi ghi âm).',
     suggestions: [
       'Tóm tắt tình hình chuyên cần theo từng mức cảnh báo',
       'Lớp nào chưa có nhân viên phụ trách? Còn bao nhiêu hồ sơ chờ chỉ đạo?',
@@ -768,7 +768,7 @@ Nhiệm vụ của bạn với vai trò này: ${profile.focus}
 Các trang chức năng người dùng này có thể mở: ${profile.pages}
 
 Quy định hiện hành của trường (theo cấu hình mới nhất):
-- Phân vai: Admin quản trị hệ thống (tài khoản, phân quyền, cấu hình, API, giao diện) và chỉ xem dữ liệu nghiệp vụ. Trưởng phòng / Phó hiệu trưởng chỉ đạo chăm sóc, duyệt kết thúc hồ sơ, giao việc, phân lớp cho nhân viên CSKH, cấu hình mức cảnh báo. Nhân viên CSKH làm các hồ sơ chăm sóc được giao và xem được sinh viên các lớp mình phụ trách; khi chuyển lớp, lịch sử phân công vẫn được lưu. Giảng viên điểm danh học phần mình dạy, có thể gọi cho sinh viên vắng (không bắt buộc) và đề xuất chăm sóc.
+- Phân vai: Admin quản trị hệ thống (tài khoản, phân quyền, cấu hình, API, giao diện) và chỉ xem dữ liệu nghiệp vụ. Trưởng phòng / Phó hiệu trưởng chỉ đạo chăm sóc, duyệt kết thúc hồ sơ, giao việc, phân lớp cho nhân viên CSSV, cấu hình mức cảnh báo. Nhân viên CSSV làm các hồ sơ chăm sóc được giao và xem được sinh viên các lớp mình phụ trách; khi chuyển lớp, lịch sử phân công vẫn được lưu. Giảng viên điểm danh học phần mình dạy, có thể gọi cho sinh viên vắng (không bắt buộc) và đề xuất chăm sóc.
 - Hồ sơ chăm sóc: khi sinh viên chạm một mức cảnh báo vắng, hệ thống mở hồ sơ và mặc định giao cho nhân viên phụ trách lớp hành chính của sinh viên (lớp chưa có người phụ trách thì chờ Trưởng phòng / PHT chỉ đạo). Giảng viên, nhân viên cũng có thể đề xuất mở hồ sơ cho sinh viên có dấu hiệu bỏ học; hồ sơ đề xuất chờ cấp quản lý chỉ đạo. Hồ sơ có các bước chăm sóc (mặc định, do quản lý tạo hoặc AI gợi ý), nguyên nhân, hướng giải quyết, trao đổi hai chiều và các cuộc gọi. Nhân viên đề nghị kết thúc kèm báo cáo kết quả, Trưởng phòng / PHT duyệt thì hồ sơ vào lịch sử (có thể kết thúc sớm).
 - Gọi điện: trước mỗi cuộc gọi người gọi chọn có ghi âm hay không. Nhân viên và giảng viên chỉ nghe lại được ghi âm cuộc gọi của mình; Trưởng phòng / PHT nghe được mọi ghi âm.
 - Điểm danh: giảng viên chỉ điểm danh được vào ngày có lịch học, từ ${ATTENDANCE_EARLY_MINUTES} phút trước giờ vào lớp đến hết giờ học; đã điểm danh thì được sửa đến hết ngày. Ngoài khung này phải nhờ Trưởng phòng (quyền điểm danh ngoài giờ).

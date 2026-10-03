@@ -1,7 +1,7 @@
 // Hồ sơ chăm sóc sinh viên.
 // - Trưởng phòng / PHT (care.manage): xem mọi hồ sơ, chỉ đạo nhân viên, tạo bước, phản hồi,
 //   duyệt hoặc tự kết thúc hồ sơ. Admin chỉ xem.
-// - Nhân viên CSKH (care.work): làm hồ sơ được giao — tick các bước, ghi nguyên nhân / hướng giải
+// - Nhân viên CSSV (care.work): làm hồ sơ được giao — tick các bước, ghi nguyên nhân / hướng giải
 //   quyết, gọi điện, báo khó khăn, đề nghị kết thúc.
 // - Ai có care.propose (giảng viên, nhân viên) đề xuất mở hồ sơ cho sinh viên mình phụ trách.
 const express = require('express');
@@ -177,7 +177,7 @@ router.get('/summary', async (req, res, next) => {
   }
 });
 
-// GET /api/care-cases/staff — CSKH staff a manager can direct, with their open case load.
+// GET /api/care-cases/staff — CSSV staff a manager can direct, with their open case load.
 router.get('/staff', requireManageRead, async (req, res, next) => {
   try {
     const [staffs, load] = await Promise.all([
@@ -277,7 +277,7 @@ async function activeStaff(id) {
   const staff = await NguoiDung.findById(id);
   assert(
     staff && staff.role === 'staff' && staff.status === 'active',
-    'Chỉ giao cho nhân viên CSKH đang hoạt động',
+    'Chỉ giao cho nhân viên CSSV đang hoạt động',
   );
   return staff;
 }

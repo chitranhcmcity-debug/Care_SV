@@ -718,6 +718,6 @@ router.delete('/staff/:id', verifyToken, requireAdmin, async (req, res, next) =>
   }
 });
 
-// Phân lớp phụ trách cho nhân viên CSKH: xem routes/phanCongLop.js (/api/class-assignments).
+// Phân lớp phụ trách cho nhân viên CSSV: xem routes/phanCongLop.js (/api/class-assignments).
 
 module.exports = router;

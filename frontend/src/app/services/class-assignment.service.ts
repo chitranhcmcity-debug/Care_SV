@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ClassAssignmentOverview, ClassAssignmentRecord } from '../models/types';
 
-/** Phân lớp hành chính cho nhân viên CSKH (Trưởng phòng), có lịch sử phân công. */
+/** Phân lớp hành chính cho nhân viên CSSV (Trưởng phòng), có lịch sử phân công. */
 @Injectable({
   providedIn: 'root',
 })

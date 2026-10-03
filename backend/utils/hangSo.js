@@ -127,7 +127,7 @@ const DEFAULT_SCHEDULE_DAYS = Object.freeze(['thu_2', 'thu_4', 'thu_6']);
 const ROLE_LABEL = Object.freeze({
   admin: 'Quản trị viên',
   manager: 'Trưởng phòng / Phó hiệu trưởng',
-  staff: 'Nhân viên CSKH',
+  staff: 'Nhân viên CSSV',
   teacher: 'Giảng viên',
 });
 
@@ -135,8 +135,8 @@ const ROLE_LABEL = Object.freeze({
 // Mô hình vai trò:
 // - Admin: quản trị hệ thống (tài khoản, phân quyền, cấu hình hệ thống / API / giao diện, gói
 //   dịch vụ). Được XEM dữ liệu nghiệp vụ (ADMIN_PERMISSIONS) nhưng không thao tác nghiệp vụ.
-// - Trưởng phòng / Phó hiệu trưởng: giao việc, phân lớp cho CSKH, cấu hình mức cảnh báo, tổng quan.
-// - Nhân viên CSKH: chăm sóc sinh viên thuộc các lớp hành chính được phân công.
+// - Trưởng phòng / Phó hiệu trưởng: giao việc, phân lớp cho CSSV, cấu hình mức cảnh báo, tổng quan.
+// - Nhân viên CSSV: chăm sóc sinh viên thuộc các lớp hành chính được phân công.
 // - Giảng viên: điểm danh học phần mình dạy, đúng giờ trong thời khóa biểu.
 // Admin bật/tắt các quyền dưới đây cho từng vai trò (trừ admin) trong bảng phân quyền.
 const PERMISSIONS = Object.freeze([
@@ -189,7 +189,7 @@ const PERMISSIONS = Object.freeze([
     description:
       'Nhận hồ sơ chăm sóc, gọi điện, cập nhật các bước, trao đổi với cấp quản lý, đề nghị kết thúc hồ sơ.',
     defaultRoles: ['staff'],
-    // Care cases are only ever assigned to Nhân viên CSKH.
+    // Care cases are only ever assigned to Nhân viên CSSV.
     onlyRoles: ['staff'],
   },
   {
@@ -218,7 +218,7 @@ const PERMISSIONS = Object.freeze([
   {
     key: 'classes.assign',
     group: 'Chăm sóc sinh viên',
-    label: 'Phân lớp phụ trách cho nhân viên CSKH',
+    label: 'Phân lớp phụ trách cho nhân viên CSSV',
     description:
       'Giao / chuyển lớp hành chính cho nhân viên (có lưu lịch sử). Hồ sơ chăm sóc của sinh viên lớp đó mặc định giao cho nhân viên phụ trách lớp.',
     defaultRoles: ['manager'],
@@ -235,7 +235,7 @@ const PERMISSIONS = Object.freeze([
     key: 'tasks.manage',
     group: 'Giao việc',
     label: 'Giao và duyệt nhiệm vụ',
-    description: 'Giao việc cho nhân viên CSKH, duyệt minh chứng, đánh giá hiệu suất bằng AI.',
+    description: 'Giao việc cho nhân viên CSSV, duyệt minh chứng, đánh giá hiệu suất bằng AI.',
     defaultRoles: ['manager'],
   },
   {
@@ -243,7 +243,7 @@ const PERMISSIONS = Object.freeze([
     group: 'Báo cáo',
     label: 'Xem thống kê & xuất báo cáo',
     description:
-      'Thống kê chuyên cần, cảnh báo vắng, xuất báo cáo chăm sóc (.xlsx). Nhân viên CSKH chỉ thấy lớp mình phụ trách.',
+      'Thống kê chuyên cần, cảnh báo vắng, xuất báo cáo chăm sóc (.xlsx). Nhân viên CSSV chỉ thấy lớp mình phụ trách.',
     defaultRoles: ['manager', 'staff'],
   },
   {

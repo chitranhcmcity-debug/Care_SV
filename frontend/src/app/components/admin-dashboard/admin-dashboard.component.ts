@@ -894,7 +894,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     return Boolean(this.permissionDraft?.[role].includes(key));
   }
 
-  /** False when the permission cannot work for that role (e.g. attendance for CSKH staff). */
+  /** False when the permission cannot work for that role (e.g. attendance for CSSV staff). */
   permissionApplies(role: ConfigurableRole, key: Permission): boolean {
     const item = this.permissionConfig?.permissions.find((p) => p.key === key);
     return !item?.onlyRoles || item.onlyRoles.includes(role);

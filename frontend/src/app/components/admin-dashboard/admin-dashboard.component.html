@@ -312,7 +312,7 @@
       <div>
         <h3 class="text-lg md:text-xl font-bold text-slate-900">Tài khoản & nhân sự</h3>
         <p class="text-xs text-slate-500 font-medium">
-          Tạo, sửa, khóa, xóa tài khoản và đặt lại mật khẩu. Phân lớp phụ trách cho nhân viên CSKH
+          Tạo, sửa, khóa, xóa tài khoản và đặt lại mật khẩu. Phân lớp phụ trách cho nhân viên CSSV
           do Trưởng phòng / PHT thực hiện (tab "Phân lớp CSSV").
         </p>
       </div>
@@ -2081,7 +2081,7 @@
             name="editStaffRole"
             class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900"
           >
-            <option value="staff">🎧 Nhân Viên CSKH (Chăm sóc sinh viên)</option>
+            <option value="staff">🎧 Nhân Viên CSSV (Chăm sóc sinh viên)</option>
             <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy (Điểm danh môn)</option>
             <option value="manager">🏛️ Trưởng phòng / Phó hiệu trưởng (Quản lý, giao việc)</option>
           </select>
@@ -2375,7 +2375,7 @@
 
   <app-integrations-panel *ngIf="activeTab === 'integrations'"></app-integrations-panel>
 
-  <!-- MANAGER: CLASS ASSIGNMENT (lớp hành chính → nhân viên CSKH) -->
+  <!-- MANAGER: CLASS ASSIGNMENT (lớp hành chính → nhân viên CSSV) -->
   <app-class-assignment-panel
     *ngIf="activeTab === 'classes'"
     [canAssessStaff]="canAssessStaff"

@@ -3,7 +3,7 @@ export type Role = 'admin' | 'manager' | 'staff' | 'teacher';
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Quản trị viên',
   manager: 'Trưởng phòng / Phó hiệu trưởng',
-  staff: 'Nhân viên CSKH',
+  staff: 'Nhân viên CSSV',
   teacher: 'Giảng viên',
 };
 /** Permission keys an admin can grant per role (mirrors PERMISSIONS in backend/utils/hangSo.js).

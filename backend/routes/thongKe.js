@@ -23,7 +23,7 @@ const REASON_PATTERNS = [
 /**
  * Students the caller may report on: everyone with students.view (Trưởng phòng, admin read-only),
  * otherwise the administrative classes assigned to them and the students of care cases they were
- * directed to (Nhân viên CSKH). null = everyone.
+ * directed to (Nhân viên CSSV). null = everyone.
  */
 async function reportScope(user) {
   if (can(user, 'students.view')) return null;

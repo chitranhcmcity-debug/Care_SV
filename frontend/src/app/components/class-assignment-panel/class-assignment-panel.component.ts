@@ -19,7 +19,7 @@ import { ClassAssignmentOverview, ClassAssignmentRecord, User } from '../../mode
 type StaffRow = ClassAssignmentOverview['staffs'][number];
 
 /**
- * Trưởng phòng: gives each administrative class to one CSKH staff member. Changes keep a
+ * Trưởng phòng: gives each administrative class to one CSSV staff member. Changes keep a
  * history; open calls follow the class, and classes without anyone feed the manager's queue.
  */
 @Component({
