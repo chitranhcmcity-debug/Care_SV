@@ -278,7 +278,7 @@
 
       <!-- Highlights -->
       <div class="relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pb-10 md:pb-14">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+        <div class="rv-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           <a
             *ngFor="let stat of highlights"
             [href]="'#' + stat.target"
@@ -347,7 +347,7 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        <div class="rv-group grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           <article
             *ngFor="let feature of features"
             class="rv fcard group relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-start gap-5"
@@ -542,7 +542,7 @@
             Từ buổi học đến khi hồ sơ được chốt — mỗi bước đều có người phụ trách và lịch sử rõ ràng.
           </p>
         </div>
-        <div class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="rv-group relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div class="step-line hidden lg:block" aria-hidden="true"></div>
           <div *ngFor="let step of steps; let i = index; let last = last" class="rv step relative" [ngClass]="step.theme">
             <div class="flex items-start justify-between">
@@ -577,7 +577,7 @@
             và phối hợp hiệu quả hơn.
           </p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="rv-group grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <article *ngFor="let role of roles" class="rv role group relative overflow-hidden flex flex-col" [ngClass]="role.theme">
             <!-- illustrated header -->
             <div class="role-head relative h-40" aria-hidden="true">
