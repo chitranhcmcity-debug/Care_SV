@@ -2,37 +2,21 @@ const express = require('express');
 const { keepUnit } = require('../utils/donVi');
 const router = express.Router();
 const path = require('node:path');
-const fs = require('node:fs');
 const crypto = require('node:crypto');
 const multer = require('multer');
-const NhiemVu = require('../models/NhiemVu');
-const { TASK_STATUS, TASK_STATUSES } = require('../utils/hangSo');
-const {
-  logProgress,
-  readClassification,
-  createTask,
-  acknowledgeTask,
-  reviewTask,
-} = require('../services/dichVuNhiemVu');
-const { staffProgress } = require('../services/dichVuTienDoNhanVien');
-const { can } = require('../services/dichVuPhanQuyen');
+const ctrl = require('../controllers/dieuKhienNhiemVu');
 const {
   verifyToken,
   requirePermission,
   requireSignedIn,
   requireRoles,
 } = require('../middleware/xacThuc');
-const { assert, validateId, parseOptionalDate } = require('../utils/kiemTra');
-const { getUploadDir } = require('../utils/moiTruong');
 
 // Only the assigned staff member acts on a task (acknowledge / submit) — not admins.
 const requireStaff = requireRoles('staff');
 
 // ---- Evidence file upload (disk storage; served back through an authenticated route,
 // never express.static, so evidence isn't reachable by anyone who guesses the URL) ----
-const UPLOAD_DIR = path.join(getUploadDir(), 'tasks');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/png',
@@ -46,7 +30,7 @@ const ALLOWED_MIME = new Set([
 ]);
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  destination: (req, file, cb) => cb(null, ctrl.UPLOAD_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(path.basename(file.originalname)).slice(0, 10);
     cb(null, `${Date.now()}-${crypto.randomBytes(16).toString('hex')}${ext}`);
@@ -63,331 +47,24 @@ const upload = multer({
   },
 });
 const uploadEvidence = keepUnit(upload.array('files', 5));
-function removeFiles(files) {
-  for (const file of files) fs.unlink(path.join(UPLOAD_DIR, file.storedName), () => {});
-}
 
-async function loadTask(req, res, next) {
-  try {
-    validateId(req.params.id);
-    req.task = await NhiemVu.findById(req.params.id);
-    assert(req.task, 'Không tìm thấy nhiệm vụ', 404);
-    next();
-  } catch (error) {
-    next(error);
-  }
-}
-function requireTaskOwnerOrAdmin(req, res, next) {
-  const allowed = can(req.user, 'tasks.manage') || String(req.task.assignedTo) === req.user.id;
-  if (!allowed)
-    return res.status(403).json({ message: 'Bạn không có quyền truy cập nhiệm vụ này' });
-  next();
-}
+const manage = [verifyToken, requirePermission('tasks.manage')];
+const ownTask = [verifyToken, requireSignedIn, ctrl.loadTask, ctrl.requireTaskOwnerOrAdmin];
+const staffTask = [verifyToken, requireStaff, ctrl.loadTask, ctrl.requireTaskOwnerOrAdmin];
 
-const taskPopulation = [
-  { path: 'assignedTo', select: 'fullName email' },
-  { path: 'assignedBy', select: 'fullName email' },
-  { path: 'reviewedBy', select: 'fullName email' },
-];
+router.post('/', ...manage, ctrl.create);
+router.get('/admin-all', ...manage, ctrl.listAll);
+router.get('/my-tasks', verifyToken, requireSignedIn, ctrl.listMine);
+router.get('/pending-count', verifyToken, requireSignedIn, ctrl.pendingCount);
+router.get('/staff-progress', ...manage, ctrl.getStaffProgress);
 
-// POST /api/tasks (Admin: create & assign a task to a staff member)
-router.post('/', verifyToken, requirePermission('tasks.manage'), async (req, res, next) => {
-  try {
-    const { task, staff } = await createTask(req.body, req.user.id);
-    await task.populate(taskPopulation);
-    res.status(201).json({ message: `Đã giao nhiệm vụ cho ${staff.fullName}!`, task });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/tasks/admin-all (Admin: list every task, optional status/assignedTo filters)
-router.get('/admin-all', verifyToken, requirePermission('tasks.manage'), async (req, res, next) => {
-  try {
-    const { status, assignedTo } = req.query;
-    const filter = {};
-    if (status) {
-      assert(TASK_STATUSES.includes(status), 'Trạng thái không hợp lệ');
-      filter.status = status;
-    }
-    if (assignedTo) {
-      validateId(assignedTo);
-      filter.assignedTo = assignedTo;
-    }
-    const tasks = await NhiemVu.find(filter)
-      .populate(taskPopulation)
-      .sort({ createdAt: -1 })
-      .lean();
-    res.json(tasks);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/tasks/my-tasks (Staff: tasks assigned to me)
-router.get('/my-tasks', verifyToken, requireSignedIn, async (req, res, next) => {
-  try {
-    const { status } = req.query;
-    const filter = { assignedTo: req.user.id };
-    if (status) {
-      assert(TASK_STATUSES.includes(status), 'Trạng thái không hợp lệ');
-      filter.status = status;
-    }
-    const tasks = await NhiemVu.find(filter)
-      .populate(taskPopulation)
-      .sort({ createdAt: -1 })
-      .lean();
-    res.json(tasks);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/tasks/pending-count (Staff: badge count of tasks needing action)
-router.get('/pending-count', verifyToken, requireSignedIn, async (req, res, next) => {
-  try {
-    const count = await NhiemVu.countDocuments({
-      assignedTo: req.user.id,
-      status: { $in: [TASK_STATUS.PENDING, TASK_STATUS.REJECTED] },
-    });
-    res.json({ pendingCount: count });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/tasks/staff-progress?from=YYYY-MM-DD&to=YYYY-MM-DD (Trưởng phòng / PHT: tiến độ &
-// KPI của từng nhân viên, tính trên công việc và hồ sơ chăm sóc tạo trong khoảng thời gian)
-router.get(
-  '/staff-progress',
-  verifyToken,
-  requirePermission('tasks.manage'),
-  async (req, res, next) => {
-    try {
-      const from = parseOptionalDate(req.query.from, 'Ngày bắt đầu không hợp lệ');
-      const to = parseOptionalDate(req.query.to, 'Ngày kết thúc không hợp lệ');
-      assert(!from || !to || from <= to, 'Ngày bắt đầu phải trước ngày kết thúc');
-      res.json({ from, to, staff: await staffProgress({ from, to }) });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// GET /api/tasks/:id (Admin, or the assignee)
-router.get(
-  '/:id',
-  verifyToken,
-  requireSignedIn,
-  loadTask,
-  requireTaskOwnerOrAdmin,
-  async (req, res, next) => {
-    try {
-      await req.task.populate(taskPopulation);
-      res.json(req.task);
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// PUT /api/tasks/:id (Admin: edit title/description/due date before work is submitted)
-router.put(
-  '/:id',
-  verifyToken,
-  requirePermission('tasks.manage'),
-  loadTask,
-  async (req, res, next) => {
-    try {
-      const { task } = req;
-      assert(
-        [TASK_STATUS.PENDING, TASK_STATUS.ACKNOWLEDGED].includes(task.status),
-        'Chỉ có thể sửa nhiệm vụ khi chưa nộp minh chứng',
-      );
-      const { title, description, dueDate } = req.body;
-      if (title !== undefined) {
-        assert(typeof title === 'string' && title.trim(), 'Tiêu đề không hợp lệ');
-        task.title = title.trim();
-      }
-      if (description !== undefined) {
-        assert(typeof description === 'string' && description.trim(), 'Mô tả không hợp lệ');
-        task.description = description.trim();
-      }
-      if (dueDate !== undefined) task.dueDate = parseOptionalDate(dueDate, 'Hạn chót không hợp lệ');
-      readClassification(req.body, task);
-      await task.save();
-      await task.populate(taskPopulation);
-      res.json({ message: 'Đã cập nhật nhiệm vụ', task });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// DELETE /api/tasks/:id (Admin: cancel a task and clean up its evidence files)
-router.delete(
-  '/:id',
-  verifyToken,
-  requirePermission('tasks.manage'),
-  loadTask,
-  async (req, res, next) => {
-    try {
-      await req.task.deleteOne();
-      removeFiles(req.task.evidenceFiles);
-      res.json({ message: 'Đã xóa nhiệm vụ' });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// PUT /api/tasks/:id/acknowledge (Staff: confirm receipt of the task)
-router.put(
-  '/:id/acknowledge',
-  verifyToken,
-  requireStaff,
-  loadTask,
-  requireTaskOwnerOrAdmin,
-  async (req, res, next) => {
-    try {
-      await acknowledgeTask(req.task);
-      await req.task.populate(taskPopulation);
-      res.json({ message: 'Đã xác nhận nhiệm vụ, bắt đầu thực hiện!', task: req.task });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// PUT /api/tasks/:id/progress (Staff: report % done and what was done while working on a task)
-router.put(
-  '/:id/progress',
-  verifyToken,
-  requireStaff,
-  loadTask,
-  requireTaskOwnerOrAdmin,
-  async (req, res, next) => {
-    try {
-      assert(
-        [TASK_STATUS.ACKNOWLEDGED, TASK_STATUS.REJECTED].includes(req.task.status),
-        'Chỉ cập nhật tiến độ cho nhiệm vụ đang thực hiện',
-      );
-      const { percent, note } = req.body ?? {};
-      assert(
-        Number.isInteger(percent) && percent >= 0 && percent < 100,
-        'Tiến độ phải là số nguyên từ 0 đến 99 (nộp minh chứng để hoàn thành 100%)',
-      );
-      assert(
-        note === undefined || (typeof note === 'string' && note.length <= 500),
-        'Ghi chú tiến độ tối đa 500 ký tự',
-      );
-      logProgress(req.task, percent, note ? note.trim() : '');
-      await req.task.save();
-      await req.task.populate(taskPopulation);
-      res.json({ message: `Đã cập nhật tiến độ ${percent}%`, task: req.task });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// PUT /api/tasks/:id/submit (Staff: submit evidence — note, link and/or files, any mix)
-router.put(
-  '/:id/submit',
-  verifyToken,
-  requireStaff,
-  loadTask,
-  requireTaskOwnerOrAdmin,
-  uploadEvidence,
-  async (req, res, next) => {
-    const files = req.files || [];
-    try {
-      assert(
-        [TASK_STATUS.ACKNOWLEDGED, TASK_STATUS.REJECTED].includes(req.task.status),
-        'Cần xác nhận nhiệm vụ trước khi nộp minh chứng',
-      );
-      const { note, link } = req.body;
-      assert(
-        (note && note.trim()) || (link && link.trim()) || files.length > 0,
-        'Vui lòng cung cấp ít nhất một minh chứng: ghi chú, link hoặc file',
-      );
-      if (link && link.trim()) {
-        assert(
-          /^https?:\/\//i.test(link.trim()),
-          'Link minh chứng phải bắt đầu bằng http:// hoặc https://',
-        );
-      }
-      // A resubmission after rejection replaces the previous evidence set (deleted once saved).
-      const previousFiles = req.task.evidenceFiles.toObject();
-      req.task.evidenceNote = note ? note.trim() : '';
-      req.task.evidenceLink = link ? link.trim() : '';
-      req.task.evidenceFiles = files.map((f) => ({
-        storedName: f.filename,
-        originalName: f.originalname,
-        mimeType: f.mimetype,
-        size: f.size,
-      }));
-      req.task.status = TASK_STATUS.SUBMITTED;
-      req.task.submittedAt = new Date();
-      logProgress(req.task, 100, 'Nộp minh chứng hoàn thành');
-      req.task.reviewNote = '';
-      await req.task.save();
-      removeFiles(previousFiles);
-      await req.task.populate(taskPopulation);
-      res.json({ message: 'Đã nộp minh chứng, chờ sếp duyệt!', task: req.task });
-    } catch (error) {
-      // Files of a rejected submission must not stay on disk.
-      for (const file of files) fs.unlink(file.path, () => {});
-      next(error);
-    }
-  },
-);
-
-// PUT /api/tasks/:id/review (Admin: approve & close, or reject back to the assignee)
-router.put(
-  '/:id/review',
-  verifyToken,
-  requirePermission('tasks.manage'),
-  loadTask,
-  async (req, res, next) => {
-    try {
-      const { task } = req;
-      const approve = req.body?.approve;
-      await reviewTask(task, req.body ?? {}, req.user.id);
-      await task.populate(taskPopulation);
-      res.json({
-        message: approve ? 'Đã duyệt và đóng nhiệm vụ!' : 'Đã từ chối, yêu cầu nhân viên làm lại.',
-        task,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-// GET /api/tasks/:id/evidence/:fileId (stream one evidence file — admin or the assignee only)
-router.get(
-  '/:id/evidence/:fileId',
-  verifyToken,
-  requireSignedIn,
-  loadTask,
-  requireTaskOwnerOrAdmin,
-  async (req, res, next) => {
-    try {
-      const file = req.task.evidenceFiles.id(req.params.fileId);
-      assert(file, 'Không tìm thấy tệp minh chứng', 404);
-      res.setHeader('Content-Type', file.mimeType);
-      res.setHeader(
-        'Content-Disposition',
-        `inline; filename="${encodeURIComponent(file.originalName)}"`,
-      );
-      res.sendFile(path.join(UPLOAD_DIR, file.storedName), (err) => {
-        if (err) next(err);
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+router.get('/:id', ...ownTask, ctrl.getOne);
+router.put('/:id', ...manage, ctrl.loadTask, ctrl.update);
+router.delete('/:id', ...manage, ctrl.loadTask, ctrl.remove);
+router.put('/:id/acknowledge', ...staffTask, ctrl.acknowledge);
+router.put('/:id/progress', ...staffTask, ctrl.reportProgress);
+router.put('/:id/submit', ...staffTask, uploadEvidence, ctrl.submit);
+router.put('/:id/review', ...manage, ctrl.loadTask, ctrl.review);
+router.get('/:id/evidence/:fileId', ...ownTask, ctrl.downloadEvidence);
 
 module.exports = router;
