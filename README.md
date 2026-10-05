@@ -40,7 +40,8 @@ Mở `http://localhost:4201`. Angular chuyển `/api` đến Express cổng 5000
 backend/
   app.js          Express app, middleware, API routes và static frontend
   server.js       Kết nối database, khởi động và dừng server
-  routes/         Khai báo endpoint và handler HTTP
+  routes/         Khai báo endpoint và middleware
+  controllers/    Xử lý request/response cho từng route
   services/       Truy vấn, xử lý điểm danh và phân công cuộc gọi
   models/         Schema, validation và index MongoDB
   middleware/     Xác thực, phân quyền và xử lý lỗi

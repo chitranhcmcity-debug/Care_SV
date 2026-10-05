@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { pageGuard } from './guards/auth.guard';
 
 const dashboard = () =>
-  import('./components/admin-dashboard/admin-dashboard.component').then(
+  import('./components/bang-dieu-khien-quan-tri/bang-dieu-khien-quan-tri.component').then(
     (m) => m.AdminDashboardComponent,
   );
 
@@ -10,7 +10,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./components/home/home.component').then((m) => m.HomeComponent),
+    loadComponent: () => import('./components/trang-chu/trang-chu.component').then((m) => m.HomeComponent),
   },
   // One component renders every auth screen; `data.mode` picks which.
   ...(
@@ -26,7 +26,7 @@ export const routes: Routes = [
   ).map(([path, mode]) => ({
     path,
     data: { mode },
-    loadComponent: () => import('./components/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('./components/dang-nhap/dang-nhap.component').then((m) => m.LoginComponent),
   })),
   // One dashboard; tabs are filtered by permission (see AdminDashboardComponent.visibleTabs).
   { path: 'admin', loadComponent: dashboard, canActivate: [pageGuard] },
@@ -35,13 +35,13 @@ export const routes: Routes = [
   {
     path: 'students',
     loadComponent: () =>
-      import('./components/students/students.component').then((m) => m.StudentsComponent),
+      import('./components/sinh-vien/sinh-vien.component').then((m) => m.StudentsComponent),
     canActivate: [pageGuard],
   },
   {
     path: 'calls',
     loadComponent: () =>
-      import('./components/call-history/call-history.component').then(
+      import('./components/lich-su-cuoc-goi/lich-su-cuoc-goi.component').then(
         (m) => m.CallHistoryComponent,
       ),
     canActivate: [pageGuard],
@@ -49,38 +49,38 @@ export const routes: Routes = [
   {
     path: 'timetable',
     loadComponent: () =>
-      import('./components/timetable/timetable.component').then((m) => m.TimetableComponent),
+      import('./components/thoi-khoa-bieu/thoi-khoa-bieu.component').then((m) => m.TimetableComponent),
     canActivate: [pageGuard],
   },
   {
     path: 'attendance',
     loadComponent: () =>
-      import('./components/attendance/attendance.component').then((m) => m.AttendanceComponent),
+      import('./components/diem-danh/diem-danh.component').then((m) => m.AttendanceComponent),
     canActivate: [pageGuard],
   },
   {
     path: 'care',
-    loadComponent: () => import('./components/care/care.component').then((m) => m.CareComponent),
+    loadComponent: () => import('./components/cham-soc/cham-soc.component').then((m) => m.CareComponent),
     canActivate: [pageGuard],
   },
   { path: 'call-tasks', redirectTo: 'care' },
   {
     path: 'billing',
     loadComponent: () =>
-      import('./components/billing/billing.component').then((m) => m.BillingComponent),
+      import('./components/thanh-toan/thanh-toan.component').then((m) => m.BillingComponent),
     canActivate: [pageGuard],
   },
   {
     path: 'account-approvals',
     loadComponent: () =>
-      import('./components/account-approvals/account-approvals.component').then(
+      import('./components/duyet-tai-khoan/duyet-tai-khoan.component').then(
         (m) => m.AccountApprovalsComponent,
       ),
     canActivate: [pageGuard],
   },
   {
     path: 'tasks',
-    loadComponent: () => import('./components/task/task.component').then((m) => m.TaskComponent),
+    loadComponent: () => import('./components/nhiem-vu/nhiem-vu.component').then((m) => m.TaskComponent),
     canActivate: [pageGuard],
   },
   { path: '**', redirectTo: '' },
