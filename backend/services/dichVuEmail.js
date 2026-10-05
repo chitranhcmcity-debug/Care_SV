@@ -14,16 +14,16 @@ function smtpConfig() {
   return {
     host: SMTP_HOST || 'smtp.gmail.com',
     port,
-    secure: port === 465, // 465 = implicit TLS; 587 upgrades with STARTTLS
+    secure: port === 465, // 465 = TLS ngầm định; 587 nâng cấp bằng STARTTLS
     auth: { user: SMTP_USER, pass: SMTP_PASS },
-    // Fail fast so an unreachable SMTP server never stalls the request.
+    // Thất bại nhanh để máy chủ SMTP không truy cập được không làm treo request.
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
   };
 }
 
-// One transporter per SMTP config, rebuilt only if the env changes.
+// Một transporter cho mỗi cấu hình SMTP, chỉ dựng lại khi env thay đổi.
 function getTransporter() {
   const config = smtpConfig();
   if (!config) return null;
@@ -43,7 +43,7 @@ const escapeHtml = (value) =>
 
 const SENDER_NAME = 'Hệ thống Quản lý ITC Care';
 
-// Brevo's HTTP API goes out over 443, so it works on hosts that block SMTP ports (e.g. Railway).
+// HTTP API của Brevo đi qua cổng 443 nên chạy được trên máy chủ chặn cổng SMTP (vd Railway).
 async function deliverViaBrevo({ to, subject, html, text }) {
   const sender = process.env.MAIL_FROM || process.env.SMTP_USER;
   try {
@@ -68,8 +68,8 @@ async function deliverViaBrevo({ to, subject, html, text }) {
   }
 }
 
-// Cloudflare Email Service REST API (also over 443). Sending to arbitrary recipients needs the
-// Workers Paid plan, and MAIL_FROM must be on a domain onboarded to Email Service.
+// REST API của Cloudflare Email Service (cũng qua 443). Gửi cho người nhận bất kỳ cần
+// gói Workers Paid, và MAIL_FROM phải thuộc tên miền đã đăng ký với Email Service.
 async function deliverViaCloudflare({ to, subject, html, text }) {
   const { CF_ACCOUNT_ID, CF_EMAIL_API_TOKEN, MAIL_FROM } = process.env;
   try {
@@ -99,7 +99,7 @@ async function deliverViaCloudflare({ to, subject, html, text }) {
   }
 }
 
-// Resend HTTP API (over 443). MAIL_FROM must be on a domain verified in Resend.
+// HTTP API của Resend (qua 443). MAIL_FROM phải thuộc tên miền đã xác minh trong Resend.
 async function deliverViaResend({ to, subject, html, text }) {
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -127,9 +127,9 @@ async function deliverViaResend({ to, subject, html, text }) {
 }
 
 /**
- * Sends one email. Never throws: returns true when the provider accepted it,
- * false when email is not configured or delivery failed.
- * Provider order: Resend, Cloudflare Email Service, Brevo, then SMTP (nodemailer).
+ * Gửi một email. Không bao giờ ném lỗi: trả true khi nhà cung cấp đã nhận,
+ * false khi chưa cấu hình email hoặc gửi thất bại.
+ * Thứ tự nhà cung cấp: Resend, Cloudflare Email Service, Brevo, rồi SMTP (nodemailer).
  */
 async function deliver({ to, subject, html, text }) {
   const { RESEND_API_KEY, CF_ACCOUNT_ID, CF_EMAIL_API_TOKEN, MAIL_FROM } = process.env;
@@ -162,7 +162,7 @@ const linkButton = (href, label) =>
   `<p><a href="${escapeHtml(href)}" style="display:inline-block;padding:10px 20px;background:#5e35b1;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">${label}</a></p>
    <p style="color:#64748b;font-size:13px">Nếu nút không bấm được, hãy mở liên kết sau:<br>${escapeHtml(href)}</p>`;
 
-/** Login details for an account an admin created or whose password an admin reset. */
+/** Thông tin đăng nhập cho tài khoản do admin tạo hoặc được admin đặt lại mật khẩu. */
 function sendAccountEmail({ to, fullName, password, role, isReset = false }) {
   const roleLabel = ROLE_LABEL[role] || ROLE_LABEL.staff;
   const intro = isReset
@@ -195,7 +195,7 @@ function sendAccountEmail({ to, fullName, password, role, isReset = false }) {
   });
 }
 
-/** Tells a Trưởng phòng / PHT that a new account is waiting for their approval. */
+/** Báo cho Trưởng phòng / PHT biết có tài khoản mới đang chờ họ duyệt. */
 function sendApprovalRequestEmail({ to, managerName, applicant }) {
   const link = `${getAppUrl()}/account-approvals?id=${encodeURIComponent(applicant.id)}`;
   const roleLabel = ROLE_LABEL[applicant.role] || '';
@@ -218,7 +218,7 @@ function sendApprovalRequestEmail({ to, managerName, applicant }) {
   });
 }
 
-/** Activation key for a self-registered account a manager has approved. */
+/** Key kích hoạt cho tài khoản tự đăng ký đã được quản lý duyệt. */
 function sendActivationKeyEmail({ to, fullName, role, key, approvedBy, days }) {
   const link = `${getAppUrl()}/login`;
   return deliver({
@@ -237,7 +237,7 @@ function sendActivationKeyEmail({ to, fullName, role, key, approvedBy, days }) {
   });
 }
 
-/** Tells an applicant their sign-up was declined. */
+/** Báo cho người đăng ký biết đăng ký bị từ chối. */
 function sendRegistrationRejectedEmail({ to, fullName }) {
   return deliver({
     to,
@@ -251,7 +251,7 @@ function sendRegistrationRejectedEmail({ to, fullName }) {
   });
 }
 
-/** Link for the self-service "forgot password" flow. */
+/** Link cho luồng "quên mật khẩu" tự phục vụ. */
 function sendPasswordResetEmail({ to, fullName, token, minutes }) {
   const link = `${getAppUrl()}/reset-password?token=${encodeURIComponent(token)}`;
   return deliver({
@@ -274,7 +274,7 @@ const formatDate = (date) =>
 const formatDay = (date) =>
   new Date(date).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
-/** Receipt for a Trưởng phòng / PHT account plan, sent once the payment is confirmed. */
+/** Biên lai gói riêng của tài khoản Trưởng phòng / PHT, gửi khi thanh toán được xác nhận. */
 function sendInvoiceEmail({ to, fullName, order, expiresAt }) {
   const rows = [
     ['Mã đơn', order.orderCode],
@@ -313,7 +313,7 @@ function sendInvoiceEmail({ to, fullName, order, expiresAt }) {
   });
 }
 
-/** Before (expired = false) or on (expired = true) the end of an account's own plan. */
+/** Trước (expired = false) hoặc đúng lúc (expired = true) gói riêng của tài khoản kết thúc. */
 function sendRenewalEmail({ to, fullName, expiresAt, renewUrl, expired }) {
   const day = formatDay(expiresAt);
   const intro = expired

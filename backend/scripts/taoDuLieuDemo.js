@@ -37,7 +37,7 @@ const {
 const DEMO_PASSWORD = '123';
 const DAY = 24 * 60 * 60 * 1000;
 
-// Deterministic randomness: the same data on every run.
+// Ngẫu nhiên có kiểm soát: dữ liệu giống nhau ở mọi lần chạy.
 let seed = 20260925;
 const rand = () => {
   seed = (seed + 0x6d2b79f5) | 0;
@@ -94,8 +94,8 @@ const TEN_NU = [
   'Yến',
 ];
 
-// Administrative classes. CD25DH1 is deliberately left without a CSSV staff member, so its
-// absences land in the manager's queue.
+// Các lớp sinh hoạt. CD25DH1 cố ý để không có nhân viên CSSV, nên
+// các buổi vắng của lớp này rơi vào hàng chờ của quản lý.
 const CLASSES = [
   { code: 'CD25CT1', major: 'Công nghệ Thông tin', prefix: '5012500', size: 10 },
   { code: 'CD25CT2', major: 'Công nghệ Thông tin', prefix: '5012501', size: 9 },
@@ -182,16 +182,16 @@ const GROUPS = [
   },
 ];
 
-// Extra demo accounts; the existing admin / manager / staff / teacher accounts are kept as-is.
+// Các tài khoản demo bổ sung; tài khoản admin / quản lý / nhân viên / giảng viên hiện có được giữ nguyên.
 const EXTRA_USERS = [
   { email: 'staff2', fullName: 'Trần Thị Mai', role: 'staff', status: 'active' },
   { email: 'teacher2', fullName: 'ThS. Lê Hoàng Phúc', role: 'teacher', status: 'active' },
   { email: 'staff3', fullName: 'Phạm Quốc Bảo', role: 'staff', status: 'inactive' },
-  // Self sign-ups: one waiting for a manager, one approved and waiting for its key.
+  // Tự đăng ký: một người chờ quản lý duyệt, một người đã duyệt và đang chờ key.
   { email: 'gv.moi@itc.edu.vn', fullName: 'Võ Thanh Hà', role: 'teacher', status: 'pending' },
   { email: 'nv.moi@itc.edu.vn', fullName: 'Đặng Minh Khoa', role: 'staff', status: 'awaiting_key' },
 ];
-// Activation key of the approved demo sign-up (the real one is emailed; see routes/xacThuc.js).
+// Key kích hoạt của đăng ký demo đã duyệt (key thật được gửi qua email; xem routes/xacThuc.js).
 const DEMO_ACTIVATION_KEY = 'DEMO-KEYS-2026';
 const keyHash = (key) =>
   crypto
@@ -223,7 +223,7 @@ const NOTES_BY_REASON = {
   Khác: ['Xe hư giữa đường, không kịp đến lớp.', 'Trời mưa ngập đường, không đi được.'],
 };
 
-/** Backdates timestamps (Mongoose would otherwise stamp everything "now"). */
+/** Lùi mốc thời gian (nếu không Mongoose sẽ đóng dấu tất cả là "bây giờ"). */
 const backdate = (Model, id, at, extra = {}) =>
   Model.collection.updateOne({ _id: id }, { $set: { createdAt: at, updatedAt: at, ...extra } });
 
@@ -303,7 +303,7 @@ async function createStudents(tags) {
   return SinhVien.insertMany(students);
 }
 
-/** Every class day of the group from the semester start up to today. */
+/** Mọi ngày học của học phần từ đầu học kỳ đến hôm nay. */
 function classDays(group, until) {
   const days = group.scheduleDays.map((d) => WEEKDAY_INDEX[d]);
   const result = [];
@@ -331,10 +331,10 @@ async function main() {
   const settings = (await CaiDatHeThong.findOne()) || (await CaiDatHeThong.create({}));
   const reasons = settings.absenceReasons;
 
-  // --- Students and course groups
+  // --- Sinh viên và học phần
   const students = await createStudents(settings.tags);
   const byClass = (code) => students.filter((s) => s.classCode === code);
-  // A few students skip class a lot, so every warning level has someone in it.
+  // Một số sinh viên nghỉ học nhiều, để mỗi mức cảnh báo đều có người.
   const absenceRate = new Map(
     students.map((s) => {
       const r = rand();
@@ -376,7 +376,7 @@ async function main() {
     groups.push({ group, teacher, members });
   }
 
-  // --- CSSV class assignment (history included: CD24KT1 changed hands once)
+  // --- Phân công lớp cho CSSV (có cả lịch sử: CD24KT1 đã đổi người một lần)
   const assign = (classCode, staff, reason) =>
     assignClass({ classCode, staffId: staff?._id ?? null, by: users.manager._id, reason });
   await assign('CD25CT1', users.staff);
@@ -395,14 +395,14 @@ async function main() {
       );
   }
 
-  // --- Attendance up to today (the real service creates and routes the call tasks)
+  // --- Điểm danh đến hôm nay (service thật tạo và định tuyến các nhiệm vụ gọi)
   const now = new Date();
   let sessions = 0;
   for (const { group, teacher, members } of groups) {
     const recorder = teacher ?? users.manager;
     for (const day of classDays(group, now)) {
       const start = atTime(day, group.startTime, between(2, 15));
-      if (start > now) continue; // today's class has not started yet
+      if (start > now) continue; // buổi học hôm nay chưa bắt đầu
       const absent = [];
       const excused = [];
       for (const s of members) {
@@ -429,8 +429,8 @@ async function main() {
     }
   }
 
-  // --- Work the care cases: older ones further along (closed / waiting for approval),
-  // recent ones still in progress. Calls are logged against the case.
+  // --- Xử lý các hồ sơ chăm sóc: hồ sơ cũ thì tiến xa hơn (đã đóng / chờ duyệt),
+  // hồ sơ gần đây thì còn đang chăm sóc. Cuộc gọi được ghi theo hồ sơ.
   const cases = await HoSoChamSoc.find().populate('studentId');
   const staffById = new Map([users.staff, users.staff2].map((u) => [String(u._id), u]));
   let calls = 0;
@@ -451,7 +451,7 @@ async function main() {
     const opened = c.createdAt;
     const ageDays = (now - opened) / DAY;
     let caller = staffById.get(String(c.assignedStaffId));
-    // A class without CSSV staff: the manager directs someone after a day or two.
+    // Lớp không có nhân viên CSSV: quản lý chỉ đạo người phụ trách sau một hai ngày.
     if (!caller && ageDays > 2) {
       caller = users.staff2;
       const at = new Date(opened.getTime() + between(1, 2) * DAY);
@@ -471,7 +471,7 @@ async function main() {
       continue;
     }
 
-    // Calls: one to three tries, the last one answered for cases older than a couple of days.
+    // Cuộc gọi: một đến ba lần thử, lần cuối được nghe máy với các hồ sơ cũ hơn vài ngày.
     const attempts = ageDays < 1 ? 0 : between(1, 3);
     let callAt = atTime(new Date(opened.getTime() + DAY), '08:30', between(0, 420));
     for (let a = 1; a <= attempts; a++) {
@@ -554,8 +554,8 @@ async function main() {
     );
   }
 
-  // Two cases proposed by lecturers for students showing signs of dropping out.
-  // Groups share students, so remember who already has a case (one open case per student).
+  // Hai hồ sơ do giảng viên đề xuất cho sinh viên có dấu hiệu bỏ học.
+  // Các nhóm dùng chung sinh viên, nên nhớ ai đã có hồ sơ (mỗi sinh viên một hồ sơ đang mở).
   const withCase = new Set(cases.map((c) => String(c.studentId._id)));
   for (const { group, teacher, members } of groups.filter((g) => g.teacher).slice(0, 2)) {
     const student = members.find((m) => !withCase.has(String(m._id)));
@@ -581,7 +581,7 @@ async function main() {
     await backdate(HoSoChamSoc, careCase._id, at);
   }
 
-  // Lecturers also call parents directly after taking attendance (not tied to a case).
+  // Giảng viên cũng gọi trực tiếp phụ huynh sau khi điểm danh (không gắn với hồ sơ).
   for (const { group, teacher, members } of groups.filter((g) => g.teacher)) {
     for (let i = 0; i < 2; i++) {
       const student = pick(members);
@@ -609,7 +609,7 @@ async function main() {
     }
   }
 
-  // --- Internal tasks from the manager to CSSV staff, one per status
+  // --- Nhiệm vụ nội bộ từ quản lý giao cho nhân viên CSSV, mỗi trạng thái một nhiệm vụ
   const daysAgo = (n, h = 9) => {
     const d = new Date(now.getTime() - n * DAY);
     d.setHours(h, 0, 0, 0);
@@ -702,7 +702,7 @@ async function main() {
       status: t.status,
       category: t.category ?? 'khac',
       priority: t.priority ?? 'trung_binh',
-      // Handed-in work counts as done; in-progress work shows its latest report.
+      // Việc đã nộp tính là xong; việc đang làm hiện báo cáo mới nhất.
       progress: t.submitted ? 100 : (t.progressLog?.at(-1)?.percent ?? 0),
       progressLog: t.progressLog ?? [],
       reviewScore: t.reviewScore ?? null,
@@ -720,7 +720,7 @@ async function main() {
     });
   }
 
-  // --- Billing history (a Trưởng phòng / PHT buys): history only, the subscription is untouched
+  // --- Lịch sử thanh toán (Trưởng phòng / PHT mua): chỉ có lịch sử, gói dịch vụ không bị đụng tới
   {
     const [monthly, halfYear] = SUBSCRIPTION_PLANS;
     const orders = [

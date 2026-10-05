@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-/** Native size of each page; it is scaled down to fit the hero. */
+/** Kích thước gốc của mỗi trang; nó được thu nhỏ để vừa hero. */
 const W = 1000;
 const H = 560;
 const FLIP_MS = 1900;
@@ -24,8 +24,8 @@ const I = {
 };
 
 /**
- * Landing-page hero: a desk calendar of product-introduction pages (no dashboard screens or
- * data). A page is lifted by its bottom-right corner and turned up over the binding.
+ * Hero trang chủ: lịch để bàn gồm các trang giới thiệu sản phẩm (không có màn hình bảng điều khiển hay
+ * dữ liệu). Trang được nhấc ở góc dưới bên phải và lật lên qua gáy.
  */
 @Component({
   selector: 'app-demo-calendar',
@@ -73,14 +73,14 @@ export class DemoCalendarComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
-  /** Care flow shown on page 2. */
+  /** Luồng chăm sóc hiển thị ở trang 2. */
   readonly flow = [
     { label: 'Sinh viên vắng học', icon: I.userX, tone: 'from-sky-400 to-indigo-500' },
     { label: 'Chạm mức cảnh báo', icon: I.alert, tone: 'from-amber-400 to-orange-500' },
     { label: 'Mở hồ sơ chăm sóc', icon: I.heart, tone: 'from-pink-400 to-rose-500' },
     { label: 'Gọi điện & theo dõi', icon: I.phone, tone: 'from-emerald-400 to-teal-500' },
   ];
-  /** Abstract roster rows on page 1 (no names, just shapes). */
+  /** Các dòng danh sách trừu tượng ở trang 1 (không có tên, chỉ có hình khối). */
   readonly rows = [
     { av: 'from-amber-300 to-orange-400', w: 70, state: 'on' },
     { av: 'from-sky-300 to-indigo-400', w: 55, state: 'on' },
@@ -90,11 +90,11 @@ export class DemoCalendarComponent implements AfterViewInit, OnDestroy {
   ];
   readonly bars = [45, 70, 55, 88, 64, 96, 78];
 
-  // ---------- Page turning ----------
+  // ---------- Lật trang ----------
   readonly page = signal(0);
-  /** Page revealed underneath while the current one is turned. */
+  /** Trang lộ ra bên dưới khi trang hiện tại đang lật. */
   readonly next = signal(1);
-  /** Index of the page being turned, or -1. */
+  /** Chỉ số của trang đang lật, hoặc -1. */
   readonly turning = signal(-1);
   paused = false;
   private timer?: ReturnType<typeof setInterval>;

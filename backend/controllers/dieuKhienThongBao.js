@@ -7,17 +7,17 @@ const { can, permissionsForRole } = require('../services/dichVuPhanQuyen');
 
 const SCOPES = ['care', 'tasks'];
 
-/** Care cases that need the user: their own cases in progress (staff), or cases waiting for a
- *  directive or a closing approval (managers). */
+/** Hồ sơ chăm sóc cần người dùng xử lý: hồ sơ đang chăm sóc của chính họ (nhân viên), hoặc hồ sơ đang chờ
+ *  chỉ đạo hoặc chờ duyệt kết thúc (quản lý). */
 function careFilter(user) {
   const mine = { assignedStaffId: user._id, status: CARE_STATUS.IN_PROGRESS };
   if (user.role === 'admin' || !can(user, 'care.manage')) return mine;
   return { $or: [mine, { status: { $in: [CARE_STATUS.AWAITING, CARE_STATUS.CLOSING] } }] };
 }
 
-// Work waiting for the signed-in user (care cases, assigned tasks new or rejected) and how much of
-// it changed since they last looked at it — through the bell, or by opening that kind's page.
-// updatedAt is used so a case with a new reply or a rejected task counts as new again.
+// Công việc đang chờ người dùng đăng nhập (hồ sơ chăm sóc, nhiệm vụ mới được giao hoặc bị từ chối) và số lượng
+// đã thay đổi từ lần xem gần nhất — qua chuông thông báo hoặc mở trang tương ứng.
+// Dùng updatedAt để hồ sơ có phản hồi mới hoặc nhiệm vụ bị từ chối được tính là mới trở lại.
 async function summary(userId) {
   const user = await NguoiDung.findById(userId).select('role notificationsSeen').lean();
   user.permissions = await permissionsForRole(user.role);

@@ -1,4 +1,4 @@
-/* ---------- Intro bar ---------- */
+/* ---------- Thanh giới thiệu ---------- */
 .ch-intro {
   position: relative;
   overflow: hidden;
@@ -41,7 +41,7 @@
   font-weight: 800;
 }
 
-/* ---------- Table ---------- */
+/* ---------- Bảng ---------- */
 .ch-table thead tr {
   background: linear-gradient(90deg, #d1fae5, #e0f2fe 35%, #ede9fe 70%, #fce7f3);
 }

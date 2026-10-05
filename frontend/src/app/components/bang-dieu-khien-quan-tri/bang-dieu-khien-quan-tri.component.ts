@@ -86,7 +86,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.notify.show(type, message, title);
   }
 
-  // Course Group Management State
+  // Trạng thái quản lý học phần
   courseGroupList: CourseGroup[] = [];
   filterShift = '';
   searchCourseTerm = '';
@@ -112,20 +112,20 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     teacherName: '',
   };
 
-  // Enrolled Student Modal State
+  // Trạng thái modal sinh viên đã đăng ký
   showEnrollModal = false;
   activeGroupForEnroll: CourseGroup | null = null;
   classToEnroll = '';
   mssvToEnroll = '';
   enrollAlertMsg = '';
 
-  // Excel State (legacy)
+  // Trạng thái Excel (cũ)
   isDownloadingExcel = false;
   isUploadingExcel = false;
   selectedFile: File | null = null;
   excelAlert = '';
 
-  // Excel by Course State (new)
+  // Trạng thái Excel theo học phần (mới)
   isDownloadingCourseExcel = false;
   isUploadingCourseExcel = false;
   selectedCourseFile: File | null = null;
@@ -145,18 +145,18 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   showTaskModal = false;
   reviewingTask: WorkTask | null = null;
   reviewNoteInput = '';
-  /** Quality score (1–5) given when approving; null = not scored. */
+  /** Điểm chất lượng (1–5) khi duyệt; null = chưa chấm. */
   reviewScore: number | null = null;
   aiEvidenceAnalysis = '';
   isAnalyzingEvidence = false;
 
-  // AI Staff Performance State
-  /** Staff member whose AI assessment modal is open. */
+  // Trạng thái AI đánh giá nhân viên
+  /** Nhân viên có modal đánh giá AI đang mở. */
   staffAiTarget: { id: string; name: string } | null = null;
 
-  // Analytics State
+  // Trạng thái thống kê
   analyticsData: AnalyticsSummary | null = null;
-  /** Warning level name shown in the warning table ('' = all levels). */
+  /** Tên mức cảnh báo hiển thị trong bảng cảnh báo ('' = mọi mức). */
   warningFilter = '';
   isExportingCareReport = false;
   isRefreshingAnalytics = false;
@@ -191,21 +191,21 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Load only what the visible tabs need (other roles cannot read admin-only data).
+    // Chỉ nạp những gì các tab đang hiển thị cần (vai trò khác không đọc được dữ liệu chỉ admin).
     this.activeTab = this.visibleTabs[0]?.id ?? 'analytics';
     if (this.hasTab('staff') || this.hasTab('tasks') || this.hasTab('courses'))
       this.loadStaffList();
     if (this.hasTab('analytics')) this.loadAnalytics();
     if (this.hasTab('courses') || this.hasTab('excel')) this.loadCourseGroups();
-    // The sidebar selects the tab through ?tab=; a missing or unknown tab falls back to the first.
+    // Sidebar chọn tab qua ?tab=; tab thiếu hoặc không rõ thì quay về tab đầu.
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const tab = params.get('tab');
-      // Staff progress was merged into the tasks tab; old links still land there.
+      // Tiến độ nhân viên đã gộp vào tab nhiệm vụ; link cũ vẫn dẫn về đó.
       const requested = (tab === 'progress' ? 'tasks' : tab) as AdminTab | null;
       if (requested && this.hasTab(requested)) {
         if (requested !== this.activeTab || !this.tabOpened) this.switchTab(requested);
         this.tabOpened = true;
-        // Zoneless: a router emission is not a template event, so re-render explicitly.
+        // Zoneless: sự kiện router không phải sự kiện template, nên cần render lại tường minh.
         this.cdr.markForCheck();
       } else if (this.visibleTabs.length) {
         this.openTab(this.visibleTabs[0].id, true);
@@ -215,7 +215,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
 
   private tabOpened = false;
 
-  /** Navigates to a tab (the sidebar highlights it and the URL can be shared). */
+  /** Điều hướng tới một tab (sidebar đánh dấu nó và có thể chia sẻ URL). */
   openTab(tab: AdminTab, replaceUrl = false) {
     this.router.navigate([], { relativeTo: this.route, queryParams: { tab }, replaceUrl });
   }
@@ -272,7 +272,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   readonly lastProgressNote = lastProgressNote;
   readonly taskProgress = taskProgress;
 
-  // ---- "Chăm sóc sinh viên" task for one student → a directed care case.
+  // ---- Nhiệm vụ "Chăm sóc sinh viên" cho một sinh viên → một hồ sơ chăm sóc có chỉ đạo.
   readonly canDirectCare = this.auth.can('care.manage') && this.auth.can('students.view');
   careStudentQuery = '';
   careStudentResults: Student[] = [];
@@ -478,7 +478,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.staffAiTarget = { id: staff._id || staff.id || '', name: staff.fullName };
   }
 
-  // Course Group Management Methods
+  // Các phương thức quản lý học phần
   loadCourseGroups() {
     this.courseGroupService.getCourseGroups(this.filterShift, this.searchCourseTerm).subscribe({
       next: (list) => {
@@ -598,7 +598,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     this.isSavingCourse = true;
     this.cdr.detectChanges();
 
-    // Safety timeout fallback: reset state after 8 seconds if no response
+    // Timeout dự phòng an toàn: đặt lại trạng thái sau 8 giây nếu không có phản hồi
     const saveTimer = setTimeout(() => {
       if (this.isSavingCourse) {
         this.isSavingCourse = false;
@@ -688,7 +688,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Enrolled Student Modal Logic
+  // Logic modal sinh viên đã đăng ký
   openEnrollModal(group: CourseGroup) {
     this.activeGroupForEnroll = group;
     this.classToEnroll = '';
@@ -759,7 +759,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Avatar letters for a name: first and last word. */
+  /** Chữ cái đại diện cho một tên: từ đầu và từ cuối. */
   initials(name?: string) {
     const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '?';
@@ -851,7 +851,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Component 2: Excel logic
+  // Component 2: Logic Excel
   downloadExcelTemplate() {
     this.isDownloadingExcel = true;
     this.excelService.exportTemplate().subscribe({
@@ -871,7 +871,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Download course-based Excel template */
+  /** Tải mẫu Excel theo học phần */
   downloadCourseTemplate() {
     this.isDownloadingCourseExcel = true;
     this.excelService.exportCourseTemplate().subscribe({
@@ -927,7 +927,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Upload file Excel theo học phần (new flow) */
+  /** Tải file Excel lên theo học phần (luồng mới) */
   uploadByCourse() {
     if (!this.selectedCourseFile) return;
     this.isUploadingCourseExcel = true;
@@ -950,7 +950,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Component 3: Staff list shared with the tasks and courses tabs
+  // Component 3: Danh sách nhân viên dùng chung với tab nhiệm vụ và học phần
   loadStaffList() {
     this.staffService.getStaffList().subscribe({
       next: (list) => {

@@ -1,4 +1,4 @@
-/* Attendance tab: class picker, book status and the attendance book. */
+/* Tab điểm danh: chọn lớp, trạng thái sổ và sổ điểm danh. */
 .at-card {
   border: 1.5px solid #dccdf6;
   border-radius: 22px;
@@ -124,7 +124,7 @@
   text-align: center;
 }
 
-/* Class picker */
+/* Chọn lớp */
 .at-picker {
   display: grid;
   gap: 14px;
@@ -229,7 +229,7 @@
   color: #5e6784;
 }
 
-/* Selected class status */
+/* Trạng thái lớp đã chọn */
 .at-status {
   display: flex;
   flex-wrap: wrap;
@@ -293,7 +293,7 @@
   border-color: #e9d5ff;
 }
 
-/* Attendance book */
+/* Sổ điểm danh */
 .at-book {
   overflow: hidden;
 }
@@ -629,7 +629,7 @@
   transform: scale(1.08);
   box-shadow: 0 4px 10px -4px #6d28d966;
 }
-/* Final sessions keep their colours, only a little quieter, and cannot be clicked. */
+/* Các buổi đã chốt giữ màu của chúng, chỉ dịu hơn một chút, và không bấm được. */
 .at-chip.is-locked {
   cursor: default;
   opacity: 0.82;

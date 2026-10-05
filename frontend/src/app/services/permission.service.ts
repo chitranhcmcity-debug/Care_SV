@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PermissionConfig, PermissionMatrix } from '../models/types';
 
-/** Admin-only: the role → permission matrix. */
+/** Chỉ admin: ma trận vai trò → quyền. */
 @Injectable({
   providedIn: 'root',
 })

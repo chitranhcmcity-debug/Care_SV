@@ -52,10 +52,10 @@
   border-radius: 18px;
   background: #ffffffb3;
 }
-/* Case list; the application navigation is untouched. */
-/* Student identity and four overview cells. */
-/* Lightweight decorative education illustration, built with CSS. */
-/* Section navigation and work area. */
+/* Danh sách hồ sơ; điều hướng ứng dụng không bị ảnh hưởng. */
+/* Thông tin sinh viên và bốn ô tổng quan. */
+/* Hình minh họa giáo dục trang trí nhẹ, dựng bằng CSS. */
+/* Điều hướng mục và vùng làm việc. */
 .care-detail-tabs {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -357,7 +357,7 @@
   gap: 12px;
   margin-top: 16px;
 }
-/* Each field is its own tinted tile with a coloured accent bar. */
+/* Mỗi trường là một ô tô màu riêng với thanh nhấn màu. */
 .care-student-details dl > div {
   --tile: #6d28d9;
   position: relative;
@@ -498,7 +498,7 @@
     grid-template-columns: 330px minmax(0, 1fr);
   }
 }
-/* Edge handle that folds the case list so the detail spans the full width. */
+/* Tay nắm cạnh gập danh sách hồ sơ để phần chi tiết chiếm toàn chiều rộng. */
 .care-layout {
   position: relative;
   --care-list-w: 300px;

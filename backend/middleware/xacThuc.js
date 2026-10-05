@@ -15,7 +15,7 @@ async function verifyToken(req, res, next) {
   try {
     if (decoded.purpose || !decoded.id || !/^[a-f\d]{24}$/i.test(decoded.id))
       return res.status(401).json({ message: 'Invalid token' });
-    // Runs on every request: a plain object is enough (no Mongoose document needed).
+    // Chạy ở mọi request: object thường là đủ (không cần Mongoose document).
     const user = await NguoiDung.findById(decoded.id)
       .select('-password -verifyTokenHash -resetTokenHash -activationKeyHash')
       .lean();
@@ -25,19 +25,19 @@ async function verifyToken(req, res, next) {
       (decoded.tokenVersion || 0) !== (user.tokenVersion || 0)
     )
       return res.status(401).json({ message: 'Session revoked' });
-    // A Trưởng phòng / PHT whose own plan has run out is signed out until it is renewed.
+    // Trưởng phòng / PHT có gói riêng đã hết sẽ bị đăng xuất cho đến khi gia hạn.
     if (user.accessExpiresAt && new Date(user.accessExpiresAt).getTime() <= Date.now())
       return res.status(401).json({
         code: 'ACCOUNT_EXPIRED',
         message: 'Gói dịch vụ của tài khoản đã hết hạn. Hãy gia hạn để tiếp tục sử dụng.',
       });
-    // Permissions are read live, so a change in the matrix applies without signing in again.
+    // Quyền được đọc trực tiếp, nên thay đổi ở ma trận có hiệu lực mà không cần đăng nhập lại.
     req.user = {
       ...user,
       id: String(user._id),
       permissions: await permissionsForRole(user.role),
     };
-    // Everything after this runs inside the user's unit: queries only see that unit's data.
+    // Mọi thứ phía sau chạy trong đơn vị của người dùng: truy vấn chỉ thấy dữ liệu của đơn vị đó.
     runInUnit(unitOf(user), next);
   } catch (error) {
     next(error);
@@ -50,7 +50,7 @@ const requireRoles =
       return res.status(403).json({ message: 'Access denied' });
     next();
   };
-// Passes when the user holds any of the given permissions (PERMISSIONS in utils/hangSo.js).
+// Cho qua khi người dùng có bất kỳ quyền nào trong danh sách (PERMISSIONS ở utils/hangSo.js).
 const requirePermission =
   (...permissions) =>
   (req, res, next) => {
@@ -60,7 +60,7 @@ const requirePermission =
   };
 const requireAdmin = requireRoles('admin');
 const requireSignedIn = requireRoles('admin', 'manager', 'staff', 'teacher');
-// Business actions (calls, edits of student data): the admin only views business data.
+// Thao tác nghiệp vụ (gọi điện, sửa dữ liệu sinh viên): admin chỉ được xem dữ liệu nghiệp vụ.
 const requireOperator = requireRoles('manager', 'staff', 'teacher');
 module.exports = {
   verifyToken,

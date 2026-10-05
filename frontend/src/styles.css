@@ -14,9 +14,9 @@
   src: url('/fonts/roboto-italic-variable.woff2') format('woff2');
 }
 
-/* Shared typography and theme tokens. */
+/* Kiểu chữ và token giao diện dùng chung. */
 :root {
-  /* Accent palette (Tailwind 'violet'); BrandingService overrides it with the admin's colour. */
+  /* Bảng màu nhấn (Tailwind 'violet'); BrandingService ghi đè bằng màu của admin. */
   --brand-50: 237 231 246;
   --brand-100: 209 196 233;
   --brand-200: 179 157 219;
@@ -71,7 +71,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Thin, unobtrusive scrollbars */
+/* Thanh cuộn mỏng, kín đáo */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -90,7 +90,7 @@ body {
   background: #bec8d0;
 }
 
-/* Touch Target Minimum Standard for Office Workers */
+/* Chuẩn kích thước chạm tối thiểu cho nhân viên văn phòng */
 .touch-target {
   min-height: 42px;
   min-width: 42px;
@@ -99,7 +99,7 @@ body {
   justify-content: center;
 }
 
-/* Cards */
+/* Thẻ */
 .office-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -120,7 +120,7 @@ body {
   border-top-right-radius: 12px;
 }
 
-/* Buttons */
+/* Nút */
 .btn-corporate {
   background-color: var(--primary-color);
   color: #ffffff;
@@ -145,7 +145,7 @@ body {
   cursor: not-allowed;
 }
 
-/* Soft badges */
+/* Huy hiệu mềm */
 .badge {
   padding: 3px 10px;
   border-radius: 6px;
@@ -198,7 +198,7 @@ body {
   }
 }
 
-/* Focus styles for accessibility */
+/* Kiểu focus cho khả năng truy cập */
 input:focus,
 select:focus,
 textarea:focus {
@@ -213,7 +213,7 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Sidebar: thin scrollbar that only shows on hover. */
+/* Sidebar: thanh cuộn mỏng chỉ hiện khi rê chuột. */
 .nav-scroll {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -222,17 +222,17 @@ a:focus-visible {
   scrollbar-color: #cdd5df transparent;
 }
 
-/* Tailwind (built at compile time; theme in tailwind.config.js). Kept last so utilities
-   win over the base rules above, as with the former CDN script. */
+/* Tailwind (build lúc biên dịch; theme trong tailwind.config.js). Để cuối cùng để các utility
+   thắng các quy tắc nền phía trên, như với script CDN trước đây. */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ===================== Young & lively theme (signed-in pages) =====================
-   Applied to the routed page area (<main class="app-main">), after Tailwind so it can
-   refine the utility classes the pages already use: gradient primary buttons, soft cards,
-   tinted stat cards, friendlier tables and headings. The brand colour still comes from
-   --brand-* (admin setting); pink and amber are fixed accents. */
+/* ===================== Giao diện trẻ trung & sinh động (các trang đã đăng nhập) =====================
+   Áp dụng cho vùng trang theo route (<main class="app-main">), sau Tailwind để nó có thể
+   tinh chỉnh các class utility mà các trang đã dùng: nút chính gradient, thẻ mềm,
+   thẻ thống kê có màu, bảng và tiêu đề thân thiện hơn. Màu thương hiệu vẫn lấy từ
+   --brand-* (cài đặt của admin); hồng và hổ phách là các màu nhấn cố định. */
 :root {
   --accent-pink: #db2777;
   --accent-amber: #f59e0b;
@@ -249,7 +249,7 @@ a:focus-visible {
   );
 }
 
-/* Sidebar: the current page is a gradient pill. */
+/* Sidebar: trang hiện tại là một viên thuốc gradient. */
 .nav-active {
   color: #fff;
   background-image: var(--hero-gradient);
@@ -262,10 +262,10 @@ a:focus-visible {
     radial-gradient(700px 380px at -10% 110%, rgb(252 231 243 / 0.7), transparent 70%), #ecebf6;
 }
 
-/* ---------- Card borders (every page, every role) ----------
-   One outline system so cards read clearly on the tinted page background without looking
-   heavy: a soft lavender edge, a faint inner highlight and a low glow. Only block elements
-   are touched, so inputs, selects and small buttons keep their own borders. */
+/* ---------- Viền thẻ (mọi trang, mọi vai trò) ----------
+   Một hệ thống viền để thẻ đọc rõ trên nền trang có màu mà không trông
+   nặng nề: viền oải hương mềm, ánh sáng bên trong mờ và quầng sáng thấp. Chỉ đụng tới các phần tử block,
+   nên ô nhập, ô chọn và nút nhỏ giữ viền riêng của chúng. */
 .app-main
   :is(div, section, article, aside, li, form, details, a).border:is(
     .rounded-md,
@@ -277,7 +277,7 @@ a:focus-visible {
   border-width: 1.5px;
 }
 
-/* White cards (panels, list items, modals). */
+/* Thẻ trắng (panel, mục danh sách, modal). */
 .app-main
   :is(div, section, article, aside, li, form, details, a).bg-white:is(
     .border,
@@ -298,14 +298,14 @@ a:focus-visible {
     box-shadow 0.2s ease,
     transform 0.2s ease;
 }
-/* Modals keep their big drop shadow, just with the same edge. */
+/* Modal giữ bóng đổ lớn, chỉ thêm cùng viền. */
 .app-main :is(div, section, form).bg-white.shadow-2xl {
   box-shadow:
     0 0 0 1.5px var(--card-border),
     0 30px 60px -24px rgb(76 29 149 / 0.45);
   border-color: transparent;
 }
-/* Clickable cards: the edge warms to the brand colour on hover. */
+/* Thẻ bấm được: viền ấm lên theo màu thương hiệu khi rê chuột. */
 .app-main a.bg-white.border:hover,
 .app-main :is(div, li).bg-white.border.cursor-pointer:hover {
   border-color: var(--card-border-hover);
@@ -314,8 +314,8 @@ a:focus-visible {
     0 18px 36px -14px rgb(76 29 149 / 0.5);
 }
 
-/* Raised 3D card: thicker lower edge, a top highlight and stacked shadows, so key panels
-   (lists, tables, search bars) read as slabs sitting above the tinted page. */
+/* Thẻ nổi 3D: cạnh dưới dày hơn, vệt sáng phía trên và nhiều lớp bóng, để các panel chính
+   (danh sách, bảng, thanh tìm kiếm) trông như những tấm đặt nổi trên nền trang có màu. */
 .app-main .card-3d {
   background: linear-gradient(180deg, #ffffff 0%, #fcfbff 100%);
   border: 1.5px solid var(--card-border);
@@ -329,13 +329,13 @@ a:focus-visible {
     0 30px 50px -24px rgb(76 29 149 / 0.45);
 }
 
-/* Info tiles inside cards (grey fills): a visible edge instead of near-white on white. */
+/* Ô thông tin trong thẻ (nền xám): viền nhìn thấy được thay vì gần trắng trên trắng. */
 .app-main
   :is(div, section, li, a, form).border:is(.bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-gray-100) {
   border-color: var(--tile-border);
 }
 
-/* Tinted cards keep their hue but get a matching, clearly visible edge. */
+/* Thẻ có màu giữ sắc thái nhưng có viền tương ứng, nhìn rõ. */
 .app-main :is(div, section, li, a, form).border:is(.bg-violet-50, .bg-violet-100, .bg-purple-50) {
   border-color: rgb(var(--brand-200) / 0.9);
 }
@@ -364,12 +364,12 @@ a:focus-visible {
   ) {
   border-color: #bfdbfe;
 }
-/* Dashed drop zones stay dashed, just easier to spot. */
+/* Vùng thả viền đứt vẫn đứt nét, chỉ dễ nhận hơn. */
 .app-main .border-dashed {
   border-color: rgb(var(--brand-300) / 0.7);
 }
 
-/* Tinted cards (stat tiles, notices): a gentle two-tone gradient instead of a flat fill. */
+/* Thẻ có màu (ô thống kê, thông báo): gradient hai tông nhẹ thay vì nền phẳng. */
 .app-main .bg-violet-50.border,
 .app-main .bg-violet-50.rounded-2xl {
   background-image: linear-gradient(135deg, rgb(var(--brand-50)), #fdf4ff);
@@ -390,7 +390,7 @@ a:focus-visible {
   background-image: linear-gradient(135deg, #eff6ff, #e0e7ff);
 }
 
-/* Primary actions and brand banners: brand → pink gradient with a coloured glow. */
+/* Thao tác chính và banner thương hiệu: gradient thương hiệu → hồng với ánh sáng màu. */
 .app-main .bg-violet-600 {
   background-image: var(--hero-gradient);
   background-size: 140% 140%;
@@ -410,7 +410,7 @@ a:focus-visible {
   background-position: 100% 50%;
   transform: translateY(-1px);
 }
-/* Decorative circles on the violet/blue banners read better as white glass on a gradient. */
+/* Các vòng tròn trang trí trên banner tím/xanh trông đẹp hơn dưới dạng kính trắng trên nền gradient. */
 .app-main .bg-violet-600 > .bg-violet-800,
 .app-main .bg-violet-600 > .bg-violet-800\/50,
 .app-main .bg-blue-500 > .bg-blue-700,
@@ -424,7 +424,7 @@ a:focus-visible {
   background-image: linear-gradient(115deg, #0ea5e9, #6366f1 70%, #a855f7);
 }
 
-/* Other solid action colours keep their hue but get the same lift. */
+/* Các màu nút đặc khác giữ sắc thái nhưng có cùng hiệu ứng nâng. */
 .app-main a.bg-emerald-700,
 .app-main button.bg-emerald-600,
 .app-main button.bg-rose-600 {
@@ -439,7 +439,7 @@ a:focus-visible {
   transform: translateY(-1px);
 }
 
-/* Headings: bolder and tighter; shouty ALL-CAPS page titles become normal case. */
+/* Tiêu đề: đậm và sát hơn; tiêu đề trang IN HOA ồn ào trở lại chữ thường. */
 .app-main h2,
 .app-main h3 {
   letter-spacing: -0.015em;
@@ -449,7 +449,7 @@ a:focus-visible {
   font-weight: 800;
 }
 
-/* Tables: tinted header, airy rows, hover highlight. */
+/* Bảng: tiêu đề có màu, dòng thoáng, làm nổi khi rê chuột. */
 .app-main table thead tr {
   background: linear-gradient(90deg, rgb(var(--brand-50)), #fdf4ff);
 }
@@ -465,20 +465,20 @@ a:focus-visible {
   background-color: rgb(var(--brand-50) / 0.55);
 }
 
-/* Form fields: rounder, with a faint brand tint while idle. */
+/* Trường nhập: bo tròn hơn, có sắc thương hiệu nhạt khi nghỉ. */
 .app-main input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
 .app-main select,
 .app-main textarea {
   border-radius: 12px;
 }
 
-/* Pills everywhere. */
+/* Viên thuốc ở mọi nơi. */
 .badge {
   border-radius: 999px;
   padding: 4px 12px;
 }
 
-/* Page hero (navbar): the page title on a gradient cover, like the student profile. */
+/* Hero trang (navbar): tiêu đề trang trên ảnh bìa gradient, giống hồ sơ sinh viên. */
 .page-hero {
   --hero-bg: linear-gradient(
     105deg,
@@ -505,7 +505,7 @@ a:focus-visible {
   --hero-bg: linear-gradient(105deg, #4338ca 0%, #6d28d9 40%, #a21caf 75%, #db2777 105%);
   --hero-accent: #6d28d9;
 }
-/* Lavender: the pastel purple–pink family of the app, lighter than the default hero. */
+/* Oải hương: họ tím–hồng pastel của ứng dụng, nhạt hơn hero mặc định. */
 .page-hero--teal {
   --hero-bg: linear-gradient(
     105deg,
@@ -598,10 +598,10 @@ a:focus-visible {
   letter-spacing: 0;
 }
 
-/* ===================== Pop-ups (every page) =====================
-   Every modal is a full-screen overlay (fixed inset-0, centred flex) with a white panel as its
-   child. The overlay gets a violet-tinted blur, the panel a gradient top stripe, a thick lower
-   edge and a coloured glow, so it reads as a solid block floating above the page. */
+/* ===================== Popup (mọi trang) =====================
+   Mỗi modal là một lớp phủ toàn màn hình (fixed inset-0, flex căn giữa) với một khung trắng làm
+   phần tử con. Lớp phủ có độ mờ pha tím, khung có dải gradient phía trên, cạnh dưới
+   dày và quầng sáng màu, để nó trông như một khối đặc nổi trên trang. */
 .fixed.inset-0.flex.items-center.justify-center,
 .profile-backdrop {
   background:
@@ -635,7 +635,7 @@ a:focus-visible {
   font-weight: 800;
   letter-spacing: -0.01em;
 }
-/* Fields inside pop-ups: lavender, rounded, with a clear focus ring. */
+/* Trường trong popup: oải hương, bo tròn, có vòng focus rõ. */
 .fixed.inset-0.flex.items-center.justify-center
   > .bg-white
   :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) {
@@ -659,7 +659,7 @@ a:focus-visible {
 .fixed.inset-0.flex.items-center.justify-center > .bg-white label {
   color: #5b21b6;
 }
-/* Close (×) buttons: a soft round chip that turns rose on hover. */
+/* Nút đóng (×): chip tròn mềm chuyển hồng khi rê chuột. */
 .fixed.inset-0.flex.items-center.justify-center > .bg-white button[aria-label='Đóng'] {
   display: inline-flex;
   align-items: center;
@@ -690,8 +690,8 @@ a:focus-visible {
   }
 }
 
-/* iOS Safari zooms in on any field under 16px when it is focused and never zooms back out,
-   leaving the page slightly too big. Phones get 16px fields; desktop keeps its compact size. */
+/* iOS Safari phóng to ở mọi trường dưới 16px khi được focus và không bao giờ thu nhỏ lại,
+   khiến trang hơi quá to. Điện thoại dùng trường 16px; desktop giữ kích thước gọn. */
 @media (max-width: 767px) {
   input,
   select,
@@ -700,7 +700,7 @@ a:focus-visible {
   }
 }
 
-/* Header: bell and profile chip */
+/* Header: chuông và chip hồ sơ */
 .hdr-bell {
   border: 1.5px solid #ece7fb;
   background: #fff;
@@ -723,8 +723,8 @@ a:focus-visible {
   box-shadow: 0 6px 16px -12px rgb(76 29 149 / 0.45);
 }
 
-/* Logo loader: brand logo inside a spinning arc ("Đang tải...").
-   Used by the boot splash in index.html and the route-change overlay in app.html. */
+/* Loader logo: logo thương hiệu trong một cung xoay ("Đang tải...").
+   Dùng bởi màn hình chờ khởi động trong index.html và lớp phủ đổi route trong app.html. */
 .logo-loader {
   position: fixed;
   inset: 0;

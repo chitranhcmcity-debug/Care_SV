@@ -33,13 +33,13 @@ const NhomHocPhanSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Teachers see their own groups; removing a student updates every group that lists them.
-// Group codes are unique within a unit.
+// Giảng viên thấy các nhóm của mình; gỡ sinh viên sẽ cập nhật mọi nhóm có sinh viên đó.
+// Mã nhóm là duy nhất trong một đơn vị.
 NhomHocPhanSchema.index({ unitId: 1, groupCode: 1 }, { unique: true });
 NhomHocPhanSchema.index({ teacherId: 1 });
 NhomHocPhanSchema.index({ students: 1 });
 
-// Belongs to one unit (đơn vị); see utils/donVi.js.
+// Thuộc về một đơn vị; xem utils/donVi.js.
 NhomHocPhanSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('NhomHocPhan', NhomHocPhanSchema, 'nhom_hoc_phan');

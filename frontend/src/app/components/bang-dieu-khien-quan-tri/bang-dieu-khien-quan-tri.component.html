@@ -1,7 +1,7 @@
 <div class="mx-4 md:mx-6 my-5 space-y-5">
-  <!-- COMPONENT 2: EXCEL IMPORT BY COURSE -->
+  <!-- COMPONENT 2: NHẬP EXCEL THEO HỌC PHẦN -->
   <div *ngIf="activeTab === 'excel'" class="space-y-6">
-    <!-- One block: title and the three steps, then template download and upload side by side -->
+    <!-- Một khối: tiêu đề và ba bước, rồi tải mẫu và tải lên cạnh nhau -->
     <div
       class="bg-white border border-violet-100 rounded-3xl shadow-[0_12px_35px_-18px_rgba(76,29,149,0.3)] overflow-hidden"
     >
@@ -44,7 +44,7 @@
       <div
         class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-violet-100"
       >
-        <!-- Download template -->
+        <!-- Tải mẫu -->
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
             <div
@@ -110,7 +110,7 @@
           </div>
         </div>
 
-        <!-- Upload -->
+        <!-- Tải lên -->
         <div class="p-6 space-y-4">
           <div class="flex items-center gap-3">
             <div
@@ -188,7 +188,7 @@
       </div>
     </div>
 
-    <!-- Import Result Display -->
+    <!-- Hiển thị kết quả nhập -->
     <div
       *ngIf="importCourseResult"
       class="bg-white border border-emerald-200 rounded-2xl p-6 shadow-sm space-y-4 animate-fade-in"
@@ -203,7 +203,7 @@
         </div>
       </div>
 
-      <!-- Summary Stats -->
+      <!-- Thống kê tổng -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
           <div class="text-xs font-bold text-slate-500 uppercase">Tổng SV</div>
@@ -231,7 +231,7 @@
         </div>
       </div>
 
-      <!-- Per-sheet results -->
+      <!-- Kết quả theo từng sheet -->
       <div class="space-y-2">
         <div class="text-xs font-bold text-slate-700 uppercase">Chi tiết theo học phần:</div>
         <div class="overflow-x-auto rounded-xl border border-slate-200">
@@ -273,7 +273,7 @@
         </div>
       </div>
 
-      <!-- Errors -->
+      <!-- Lỗi -->
       <div
         *ngIf="importCourseResult.errors?.length"
         class="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-bold space-y-1"
@@ -292,7 +292,7 @@
       </button>
     </div>
 
-    <!-- Old Excel Alert -->
+    <!-- Cảnh báo Excel cũ -->
     <div
       *ngIf="excelAlert"
       class="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm font-bold"
@@ -311,7 +311,7 @@
 
   <!-- COMPONENT 3B: TASK ASSIGNMENT (GIAO VIỆC) -->
   <div *ngIf="activeTab === 'tasks'" class="space-y-6">
-    <!-- Task toolbar: new tasks are assigned in a popup -->
+    <!-- Thanh công cụ nhiệm vụ: nhiệm vụ mới được giao trong popup -->
     <div class="tk-bar">
       <div class="tk-bar-copy">
         <span class="tk-bar-icon" aria-hidden="true">📋</span>
@@ -325,12 +325,12 @@
       </button>
     </div>
 
-    <!-- Progress & evaluation of every staff member -->
+    <!-- Tiến độ & đánh giá của mọi nhân viên -->
     <app-staff-progress></app-staff-progress>
 
     <h3 class="tk-list-title">Danh sách nhiệm vụ</h3>
 
-    <!-- New task popup -->
+    <!-- Popup nhiệm vụ mới -->
     <div *ngIf="showTaskModal" class="tk-overlay" (click)="closeTaskModal()">
       <div
         class="tk-modal"
@@ -504,7 +504,7 @@
               </select>
             </span>
           </label>
-          <!-- "Chăm sóc sinh viên" for one student becomes that student's care case -->
+          <!-- "Chăm sóc sinh viên" cho một sinh viên trở thành hồ sơ chăm sóc của sinh viên đó -->
           <div *ngIf="taskForm.category === 'cham_soc_sv' && canDirectCare" class="tk-full tk-care">
             <label class="block text-xs font-bold text-violet-800 uppercase">
               Chăm sóc một sinh viên cụ thể (không bắt buộc)
@@ -582,7 +582,7 @@
       </div>
     </div>
 
-    <!-- Stats + Filter -->
+    <!-- Thống kê + Bộ lọc -->
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 flex-1">
         <div class="bg-white border border-slate-200 rounded-xl p-3 text-center shadow-sm">
@@ -626,7 +626,7 @@
       </select>
     </div>
 
-    <!-- Task List -->
+    <!-- Danh sách nhiệm vụ -->
     <div class="space-y-3">
       <div
         *ngFor="let task of taskList"
@@ -706,7 +706,7 @@
           </div>
         </div>
 
-        <!-- Evidence preview when waiting for review -->
+        <!-- Xem trước minh chứng khi chờ duyệt -->
         <div
           *ngIf="task.status === 'cho_duyet'"
           class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2"
@@ -769,7 +769,7 @@
     </div>
   </div>
 
-  <!-- MODAL: REVIEW TASK SUBMISSION -->
+  <!-- MODAL: DUYỆT BÀI NỘP NHIỆM VỤ -->
   <div
     *ngIf="showTaskReviewModal"
     class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
@@ -872,9 +872,9 @@
     </div>
   </div>
 
-  <!-- COMPONENT 4: ANALYTICS & EXAM BAN WARNINGS -->
+  <!-- COMPONENT 4: THỐNG KÊ & CẢNH BÁO CẤM THI -->
   <div *ngIf="activeTab === 'analytics'" class="space-y-6">
-    <!-- Refresh Bar -->
+    <!-- Thanh làm mới -->
     <div class="an-bar flex flex-wrap items-center justify-between gap-3 px-5 py-3">
       <div class="flex items-center gap-2 text-xs text-slate-500 font-medium">
         <svg
@@ -934,7 +934,7 @@
       </div>
     </div>
 
-    <!-- Overview Metrics Cards -->
+    <!-- Thẻ chỉ số tổng quan -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
       <div
         *ngFor="let m of analyticsCards; trackBy: trackCard"
@@ -973,9 +973,9 @@
       </div>
     </div>
 
-    <!-- Charts Section -->
+    <!-- Khu vực biểu đồ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Chart 1: Absence count by course group -->
+      <!-- Biểu đồ 1: Số buổi vắng theo học phần -->
       <div class="bar-panel bar-panel--violet p-6 space-y-4">
         <div class="bar-head">
           <h4><span class="bar-icon" aria-hidden="true">📊</span> Tỷ lệ vắng theo nhóm học phần</h4>
@@ -1006,7 +1006,7 @@
         </div>
       </div>
 
-      <!-- Chart 2: Most Common Reasons Breakdown -->
+      <!-- Biểu đồ 2: Phân tích các lý do phổ biến nhất -->
       <div class="bar-panel bar-panel--pink p-6 space-y-4">
         <div class="bar-head">
           <h4><span class="bar-icon" aria-hidden="true">💡</span> Thống kê lý do vắng phổ biến</h4>
@@ -1032,7 +1032,7 @@
       </div>
     </div>
 
-    <!-- WARNING LEVEL TABLE (levels and colours configured by the manager) -->
+    <!-- BẢNG MỨC CẢNH BÁO (mức và màu do quản lý cấu hình) -->
     <div
       class="warn-card bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6"
     >
@@ -1177,12 +1177,12 @@
     </div>
   </div>
 
-  <!-- COMPONENT 6: COURSE & TIMETABLE MANAGEMENT PANEL -->
+  <!-- COMPONENT 6: QUẢN LÝ HỌC PHẦN & THỜI KHÓA BIỂU -->
   <div
     *ngIf="activeTab === 'courses'"
     class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6"
   >
-    <!-- Header & Action Bar -->
+    <!-- Tiêu đề & thanh thao tác -->
     <div
       class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-4"
     >
@@ -1212,7 +1212,7 @@
       </div>
     </div>
 
-    <!-- Visual Shift Filter Tabs for Office Workers -->
+    <!-- Tab lọc ca học trực quan -->
     <div
       class="flex flex-wrap items-center justify-between gap-3 bg-violet-50/50 p-3 rounded-2xl border border-violet-100"
     >
@@ -1274,7 +1274,7 @@
       />
     </div>
 
-    <!-- Alert Message -->
+    <!-- Thông báo -->
     <div
       *ngIf="courseAlertMsg"
       class="p-4 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 text-sm font-bold animate-bounce"
@@ -1282,13 +1282,13 @@
       🎉 {{ courseAlertMsg }}
     </div>
 
-    <!-- Course Cards Grid -->
+    <!-- Lưới thẻ học phần -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         *ngFor="let g of courseGroupList"
         class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-violet-200 transition-all flex flex-col gap-4"
       >
-        <!-- Shift and class size -->
+        <!-- Ca học và sĩ số lớp -->
         <div class="flex items-center justify-between gap-2">
           <span
             class="px-3 py-1 rounded-full text-sm font-bold border"
@@ -1310,7 +1310,7 @@
           </span>
         </div>
 
-        <!-- Course name and group code -->
+        <!-- Tên học phần và mã nhóm -->
         <div class="space-y-1">
           <h4 class="font-bold text-slate-900 text-xl leading-tight">{{ g.courseName }}</h4>
           <div class="text-sm font-semibold text-slate-500 tabular-nums">
@@ -1318,7 +1318,7 @@
           </div>
         </div>
 
-        <!-- Details: small label over a larger value -->
+        <!-- Chi tiết: nhãn nhỏ phía trên giá trị lớn hơn -->
         <div class="grid grid-cols-2 gap-2.5">
           <div class="bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-100 min-w-0">
             <div class="text-xs font-medium text-slate-500">📅 Lịch học</div>
@@ -1355,7 +1355,7 @@
           </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Thao tác -->
         <div class="mt-auto flex gap-2">
           <button
             type="button"
@@ -1394,7 +1394,7 @@
     </div>
   </div>
 
-  <!-- MODAL 1: CREATE / EDIT COURSE GROUP FORM -->
+  <!-- MODAL 1: FORM TẠO / SỬA NHÓM HỌC PHẦN -->
   <div
     *ngIf="showCourseModal"
     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -1414,7 +1414,7 @@
         </button>
       </div>
 
-      <!-- Inline Modal Error Alert Banner -->
+      <!-- Banner báo lỗi trong modal -->
       <div
         *ngIf="modalErrorMsg"
         class="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-bold flex items-center justify-between animate-pulse"
@@ -1479,7 +1479,7 @@
           </div>
         </div>
 
-        <!-- Start Date & End Date Range Picker -->
+        <!-- Chọn khoảng ngày bắt đầu & kết thúc -->
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block uppercase mb-1">📅 Ngày Bắt Đầu Học</label>
@@ -1502,7 +1502,7 @@
           </div>
         </div>
 
-        <!-- Class hours & periods (drive the teacher's attendance window and absence warnings) -->
+        <!-- Giờ học & số tiết (quyết định khung giờ điểm danh của giảng viên và cảnh báo vắng) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label class="block uppercase mb-1">🕐 Giờ vào học</label>
@@ -1551,7 +1551,7 @@
           dùng giờ mặc định của ca; tổng số tiết = 0 thì tự tính từ lịch học × số tiết mỗi buổi.
         </p>
 
-        <!-- Schedule Days Multi-Checkbox Chips -->
+        <!-- Chip chọn nhiều ngày học trong tuần -->
         <div>
           <label class="block uppercase mb-2 flex items-center justify-between">
             <span>Các Ngày Học Trong Tuần</span>
@@ -1640,7 +1640,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: ENROLLED STUDENTS MANAGEMENT MODAL -->
+  <!-- MODAL 2: QUẢN LÝ SINH VIÊN ĐÃ ĐĂNG KÝ -->
   <div
     *ngIf="showEnrollModal && activeGroupForEnroll"
     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -1648,7 +1648,7 @@
     <div
       class="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full p-6 space-y-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto"
     >
-      <!-- Modal Header -->
+      <!-- Tiêu đề modal -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-4">
         <div>
           <span
@@ -1668,11 +1668,11 @@
         </button>
       </div>
 
-      <!-- Quick Enroll Options Box -->
+      <!-- Khung đăng ký nhanh -->
       <div
         class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200"
       >
-        <!-- Option 1: Enroll Entire Class -->
+        <!-- Cách 1: Đăng ký cả lớp -->
         <div class="space-y-2">
           <label class="block text-xs font-bold text-slate-700 uppercase"
             >⚡ Option 1: Đăng ký Nguyên Cả Lớp</label
@@ -1694,7 +1694,7 @@
           </div>
         </div>
 
-        <!-- Option 2: Enroll Individual Student by MSSV -->
+        <!-- Cách 2: Đăng ký từng sinh viên theo MSSV -->
         <div class="space-y-2">
           <label class="block text-xs font-bold text-slate-700 uppercase"
             >➕ Option 2: Thêm SV Lẻ Theo MSSV</label
@@ -1717,7 +1717,7 @@
         </div>
       </div>
 
-      <!-- Alert -->
+      <!-- Cảnh báo -->
       <div
         *ngIf="enrollAlertMsg"
         class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold"
@@ -1725,7 +1725,7 @@
         ℹ️ {{ enrollAlertMsg }}
       </div>
 
-      <!-- Currently Enrolled Students Table -->
+      <!-- Bảng sinh viên đang đăng ký -->
       <div class="space-y-3">
         <div class="flex items-center justify-between text-xs font-bold text-slate-800 uppercase">
           <span
@@ -1786,7 +1786,7 @@
 
   <app-system-settings-panel *ngIf="activeTab === 'settings'"></app-system-settings-panel>
 
-  <!-- ADMIN: API INTEGRATIONS -->
+  <!-- ADMIN: TÍCH HỢP API -->
   <app-system-overview *ngIf="activeTab === 'overview'"></app-system-overview>
 
   <app-integrations-panel *ngIf="activeTab === 'integrations'"></app-integrations-panel>
@@ -1798,12 +1798,12 @@
     (assessStaff)="openStaffAiAssessment($event)"
   ></app-class-assignment-panel>
 
-  <!-- MANAGER: WARNING LEVELS & CARE LISTS -->
+  <!-- QUẢN LÝ: MỨC CẢNH BÁO & DANH SÁCH CHĂM SÓC -->
   <app-warning-config *ngIf="activeTab === 'warnings'"></app-warning-config>
 
-  <!-- MANAGER: STAFF PROGRESS & KPI -->
+  <!-- QUẢN LÝ: TIẾN ĐỘ NHÂN VIÊN & KPI -->
 
-  <!-- MODAL: AI STAFF PERFORMANCE ASSESSMENT -->
+  <!-- MODAL: AI ĐÁNH GIÁ NĂNG LỰC NHÂN VIÊN -->
   <app-staff-ai-modal
     *ngIf="staffAiTarget as target"
     [staffId]="target.id"

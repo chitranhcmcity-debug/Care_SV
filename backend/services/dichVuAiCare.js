@@ -47,9 +47,9 @@ const seesAllStudents = (u) => can(u, 'students.view');
 const seesWarnings = (u) => canTakeAttendance(u) || can(u, 'reports.view') || seesAllStudents(u);
 
 /**
- * Scope for attendance data: { groups, students } filters (null = no restriction), or null when
- * the user may not see attendance at all. Teachers: groups they teach. CSSV: students of their
- * assigned classes. Overseers: everything.
+ * Phạm vi dữ liệu điểm danh: bộ lọc { groups, students } (null = không giới hạn), hoặc null khi
+ * người dùng không được xem điểm danh. Giảng viên: các nhóm họ dạy. CSSV: sinh viên của
+ * các lớp được giao. Bên giám sát: tất cả.
  */
 async function attendanceScope(user) {
   if (seesAllStudents(user)) return { groups: {}, students: null };
@@ -68,7 +68,7 @@ const warningText = (w) =>
     ? `${w.warningLevel.name}${w.warningLevel.examBan ? ' (cấm thi)' : ''}`
     : 'Chưa tới mức cảnh báo';
 
-// ================================ Tools ================================
+// ================================ Công cụ ================================
 // allowed(user) quyết định công cụ có được đưa cho mô hình không; run(user, input) chạy truy vấn.
 const TOOLS = [
   {
@@ -387,7 +387,7 @@ const TOOLS = [
     description:
       'Tổng số sinh viên, học phần, nhân viên, buổi điểm danh, hồ sơ chăm sóc và nhiệm vụ nội bộ theo trạng thái.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
-    // School-wide numbers: only for the whole-school AI right (reports.view is class-scoped for CSSV).
+    // Số liệu toàn trường: chỉ cho quyền AI toàn trường (reports.view với CSSV bị giới hạn theo lớp).
     allowed: (u) => can(u, 'ai.chat'),
     async run() {
       const byStatus = (Model) =>
@@ -679,7 +679,7 @@ const TOOLS = [
   },
 ];
 
-// ============================ Role profiles ============================
+// ============================ Hồ sơ theo vai trò ============================
 // Vai trò chính, hướng dẫn trang chức năng và câu hỏi gợi ý hiển thị trên giao diện.
 const ROLE_PROFILES = {
   teacher: {
@@ -737,7 +737,7 @@ const ROLE_PROFILES = {
   },
 };
 
-// Look-up tools plus the actions this user may ask AI Care to prepare (see dichVuAiThaoTac).
+// Các công cụ tra cứu cùng các thao tác người dùng này có thể nhờ AI Care chuẩn bị (xem dichVuAiThaoTac).
 const toolsFor = (user) => [...TOOLS.filter((t) => t.allowed(user)), ...actionTools(user)];
 
 function profileFor(user) {
@@ -753,9 +753,9 @@ function profileFor(user) {
 }
 
 /**
- * System prompt with the school's current rules (warning levels configured by the manager,
- * attendance window, class assignment), rebuilt on every request so AI Care always knows the
- * latest configuration.
+ * System prompt kèm quy tắc hiện hành của trường (mức cảnh báo do quản lý cấu hình,
+ * khung giờ điểm danh, phân công lớp), dựng lại ở mỗi request để AI Care luôn biết
+ * cấu hình mới nhất.
  */
 async function systemPromptFor(user) {
   const profile = ROLE_PROFILES[user.role] || ROLE_PROFILES.staff;
@@ -792,8 +792,8 @@ Nguyên tắc:
 }
 
 /**
- * Runs the tool the model asked for, re-checking permission on every call. Action tools only
- * prepare a proposal, collected in ctx.actions (ctx.navigate for page opening) for the UI.
+ * Chạy công cụ mô hình yêu cầu, kiểm tra lại quyền ở mỗi lần gọi. Các công cụ thao tác chỉ
+ * chuẩn bị đề xuất, gom vào ctx.actions (ctx.navigate để mở trang) cho giao diện.
  */
 async function executeTool(user, name, input, ctx = { actions: [], navigate: null }) {
   const tool = TOOLS.find((t) => t.name === name);

@@ -6,8 +6,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   staff: 'Nhân viên CSSV',
   teacher: 'Giảng viên',
 };
-/** Permission keys an admin can grant per role (mirrors PERMISSIONS in backend/utils/hangSo.js).
- *  The admin itself holds a fixed view-only set (ADMIN_PERMISSIONS in the backend). */
+/** Các khóa quyền admin có thể cấp theo vai trò (phản chiếu PERMISSIONS trong backend/utils/hangSo.js).
+ *  Bản thân admin giữ bộ cố định chỉ xem (ADMIN_PERMISSIONS ở backend). */
 export type Permission =
   | 'students.view'
   | 'attendance.take'
@@ -32,7 +32,7 @@ export interface PermissionConfig {
     group: string;
     label: string;
     description: string;
-    /** Roles the permission can work for; null = every role. */
+    /** Các vai trò mà quyền có thể hoạt động; null = mọi vai trò. */
     onlyRoles?: ConfigurableRole[] | null;
   }[];
   roles: { role: ConfigurableRole; label: string }[];
@@ -48,12 +48,12 @@ export interface User {
   role: Role;
   status: 'active' | 'inactive' | 'pending' | 'awaiting_key' | 'unverified' | 'awaiting_payment';
   managedClasses?: string[];
-  /** Phone parents can call back on (shown to staff when calling). */
+  /** SĐT phụ huynh có thể gọi lại (hiển thị cho nhân viên khi gọi). */
   phone?: string;
-  /** Unit the account works in (a manager's own id). The admin's staff list fills in the
-   *  owning manager. */
+  /** Đơn vị mà tài khoản làm việc (id của chính quản lý). Danh sách nhân viên của admin điền
+   *  quản lý sở hữu. */
   unitId?: string | { _id: string; fullName: string; email: string } | null;
-  /** Own plan end of a self-registered Trưởng phòng / PHT; null = no own plan. */
+  /** Ngày kết thúc gói riêng của Trưởng phòng / PHT tự đăng ký; null = không có gói riêng. */
   accessExpiresAt?: string | null;
 }
 
@@ -79,10 +79,10 @@ export interface CourseGroup {
   shift?: Shift;
   scheduleDays?: Weekday[];
   room?: string;
-  /** HH:mm; empty = default hours of the shift. */
+  /** HH:mm; rỗng = giờ mặc định của ca. */
   startTime?: string;
   endTime?: string;
-  /** 0 = default / computed from the schedule. */
+  /** 0 = mặc định / tính từ lịch. */
   periodsPerSession?: number;
   totalPeriods?: number;
   startDate?: string;
@@ -106,17 +106,17 @@ export interface SystemSettings {
   tags: string[];
 }
 
-/** Absence warning level configured by the manager; levels are ordered mildest first. */
+/** Mức cảnh báo vắng do quản lý cấu hình; các mức xếp nhẹ nhất trước. */
 export interface WarningLevel {
   name: string;
-  /** 'percent' = % of the course's total periods; 'periods' = number of periods missed. */
+  /** 'percent' = % tổng số tiết của học phần; 'periods' = số tiết đã vắng. */
   unit: 'percent' | 'periods';
   threshold: number;
   color: string;
   examBan: boolean;
 }
 
-/** Absence figures of one student in one course group. */
+/** Số liệu vắng của một sinh viên trong một học phần. */
 export interface AbsenceWarning {
   absentPeriods: number;
   absentPercent: number | null;
@@ -129,9 +129,9 @@ export interface AttendanceWindow {
   reason: string;
   startTime: string;
   endTime: string;
-  /** Only the lecturer of the group writes; everyone else sees a read-only book. */
+  /** Chỉ giảng viên của học phần được ghi; mọi người khác thấy sổ chỉ đọc. */
   canWrite: boolean;
-  /** The class is over: the session is final. */
+  /** Lớp đã kết thúc: buổi học được chốt. */
   locked?: boolean;
 }
 
@@ -172,9 +172,9 @@ export interface IntegrationItem {
   label: string;
   secret: boolean;
   placeholder?: string;
-  /** Values accepted (rendered as a dropdown). */
+  /** Các giá trị được chấp nhận (hiển thị dạng dropdown). */
   allowed?: string[];
-  /** AI provider this field belongs to; shown only when that provider is selected. */
+  /** Nhà cung cấp AI mà trường này thuộc về; chỉ hiện khi nhà cung cấp đó được chọn. */
   provider?: string;
   source: 'database' | 'env' | 'none';
   value: string;
@@ -193,8 +193,8 @@ export interface TimelineItem {
   stepsTotal?: number;
 }
 
-// Stored values are unaccented codes mirroring backend/utils/hangSo.js; VI_LABELS holds the
-// Vietnamese display text (render with the viLabel pipe).
+// Giá trị lưu là mã không dấu phản chiếu backend/utils/hangSo.js; VI_LABELS giữ
+// chữ hiển thị tiếng Việt (render bằng pipe viLabel).
 export const TASK_STATUS = {
   PENDING: 'moi_giao',
   ACKNOWLEDGED: 'da_xac_nhan',
@@ -204,7 +204,7 @@ export const TASK_STATUS = {
 } as const;
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS];
 
-/** Loại công việc (mirrors TASK_CATEGORY_LABEL in the backend). */
+/** Loại công việc (phản chiếu TASK_CATEGORY_LABEL ở backend). */
 export const TASK_CATEGORY_LABELS = {
   hanh_chinh: 'Hành chính - Văn thư',
   dao_tao: 'Đào tạo - Học vụ',
@@ -218,7 +218,7 @@ export const TASK_CATEGORY_LABELS = {
 export type TaskCategory = keyof typeof TASK_CATEGORY_LABELS;
 export const TASK_CATEGORIES = Object.keys(TASK_CATEGORY_LABELS) as TaskCategory[];
 
-/** Mức độ ưu tiên (mirrors TASK_PRIORITY_LABEL in the backend). */
+/** Mức độ ưu tiên (phản chiếu TASK_PRIORITY_LABEL ở backend). */
 export const TASK_PRIORITY_LABELS = {
   thap: 'Thấp',
   trung_binh: 'Trung bình',
@@ -228,7 +228,7 @@ export const TASK_PRIORITY_LABELS = {
 export type TaskPriority = keyof typeof TASK_PRIORITY_LABELS;
 export const TASK_PRIORITIES = Object.keys(TASK_PRIORITY_LABELS) as TaskPriority[];
 
-/** Hồ sơ chăm sóc (mirrors CARE_STATUS in the backend). */
+/** Hồ sơ chăm sóc (phản chiếu CARE_STATUS ở backend). */
 export const CARE_STATUS = {
   AWAITING: 'cho_chi_dao',
   IN_PROGRESS: 'dang_cham_soc',
@@ -259,7 +259,7 @@ export type CareResult = keyof typeof CARE_RESULT_LABELS;
 export const SHIFT = { MORNING: 'sang', AFTERNOON: 'chieu', EVENING: 'toi' } as const;
 export type Shift = (typeof SHIFT)[keyof typeof SHIFT];
 
-// Indexed by Date#getDay() (0 = Sunday).
+// Đánh chỉ số theo Date#getDay() (0 = Chủ nhật).
 export const WEEKDAYS_BY_JS_DAY = [
   'chu_nhat',
   'thu_2',
@@ -332,7 +332,7 @@ export interface WorkTask {
   updatedAt?: string;
 }
 
-/** One row of GET /api/tasks/staff-progress (see backend services/dichVuTienDoNhanVien.js). */
+/** Một dòng của GET /api/tasks/staff-progress (xem backend services/dichVuTienDoNhanVien.js). */
 export interface StaffProgressRow {
   staff: { _id: string; fullName: string; email: string; status: string };
   tasks: {
@@ -352,18 +352,18 @@ export interface StaffProgressRow {
     avgCompletionDays: number | null;
     byCategory: Partial<Record<TaskCategory, { total: number; completed: number }>>;
   };
-  /** Care cases assigned in the period. */
+  /** Các hồ sơ chăm sóc được giao trong kỳ. */
   care: {
     total: number;
     inProgress: number;
     closing: number;
     closed: number;
-    /** Closed with the student improved or stable. */
+    /** Đã đóng với sinh viên tiến bộ hoặc ổn định. */
     improved: number;
     stepsDone: number;
     stepsTotal: number;
   };
-  /** Percentages 0–100, null = no data for that part. */
+  /** Phần trăm 0–100, null = không có dữ liệu cho phần đó. */
   rates: {
     completion: number | null;
     onTime: number | null;

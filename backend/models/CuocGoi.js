@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const { unitPlugin } = require('../utils/donVi');
 
-// One call placed from the app (by phone dialer or through the Stringee switchboard).
+// Một cuộc gọi thực hiện từ ứng dụng (bằng bàn phím gọi điện hoặc qua tổng đài Stringee).
 const RecordingSchema = new mongoose.Schema(
   {
-    storedName: { type: String, required: true }, // random name on disk, never user input
+    storedName: { type: String, required: true }, // tên ngẫu nhiên trên đĩa, không bao giờ lấy từ dữ liệu người dùng
     originalName: { type: String, default: '' },
     mimeType: { type: String, required: true },
     size: { type: Number, default: 0 },
@@ -21,9 +21,9 @@ const CuocGoiSchema = new mongoose.Schema(
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'SinhVien', required: true },
     target: { type: String, enum: ['sinh_vien', 'phu_huynh'], required: true },
     phoneNumber: { type: String, required: true },
-    // dien_thoai = opened the device's dialer (tel:); stringee = browser call via switchboard.
+    // dien_thoai = mở bàn phím gọi của thiết bị (tel:); stringee = gọi từ trình duyệt qua tổng đài.
     method: { type: String, enum: ['dien_thoai', 'stringee'], required: true },
-    // Where the call was started from, when relevant.
+    // Cuộc gọi bắt đầu từ đâu, nếu có.
     careCaseId: { type: mongoose.Schema.Types.ObjectId, ref: 'HoSoChamSoc', default: null },
     courseGroupId: { type: mongoose.Schema.Types.ObjectId, ref: 'NhomHocPhan', default: null },
     status: { type: String, enum: ['dang_goi', 'ket_thuc'], default: 'dang_goi' },
@@ -36,8 +36,8 @@ const CuocGoiSchema = new mongoose.Schema(
     startedAt: { type: Date, default: Date.now },
     endedAt: { type: Date, default: null },
     durationSec: { type: Number, default: 0, min: 0 },
-    // The caller chose to record this call (asked before every call); otherwise no recording
-    // is made, fetched or accepted.
+    // Người gọi chọn ghi âm cuộc gọi này (hỏi trước mỗi cuộc gọi); nếu không thì không có ghi âm
+    // nào được tạo, tải hay chấp nhận.
     record: { type: Boolean, default: false },
     stringeeCallId: { type: String, default: '' },
     recording: { type: RecordingSchema, default: null },
@@ -49,7 +49,7 @@ CuocGoiSchema.index({ callerId: 1, createdAt: -1 });
 CuocGoiSchema.index({ studentId: 1, createdAt: -1 });
 CuocGoiSchema.index({ careCaseId: 1, createdAt: -1 });
 
-// Belongs to one unit (đơn vị); see utils/donVi.js.
+// Thuộc về một đơn vị; xem utils/donVi.js.
 CuocGoiSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('CuocGoi', CuocGoiSchema, 'cuoc_goi');

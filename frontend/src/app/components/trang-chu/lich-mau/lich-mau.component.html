@@ -13,7 +13,7 @@
       [class.is-next]="pi === next() && turning() >= 0"
       [class.is-turning]="pi === turning()"
     >
-      <!-- Back of the sheet, seen once it has turned past upright -->
+      <!-- Mặt sau của tờ, thấy khi nó đã lật qua phương thẳng đứng -->
       <div class="dc-back"></div>
 
       <div class="dc-front" [ngClass]="p.theme">
@@ -23,12 +23,12 @@
           [style.height.px]="H"
           [style.transform]="'scale(' + scale() + ')'"
         >
-          <!-- decorative blobs -->
+          <!-- các hình khối trang trí -->
           <span class="pg-blob pg-blob--a"></span>
           <span class="pg-blob pg-blob--b"></span>
 
           <div class="relative h-full grid grid-cols-[1fr_1.05fr] gap-10 px-14 pt-16 pb-12">
-            <!-- Copy -->
+            <!-- Nội dung -->
             <div class="flex flex-col justify-center">
               <span class="pg-kicker">{{ p.kicker }}</span>
               <h3
@@ -61,9 +61,9 @@
               </ul>
             </div>
 
-            <!-- Illustration -->
+            <!-- Hình minh họa -->
             <div class="relative flex items-center justify-center" [ngSwitch]="p.id">
-              <!-- 01: abstract attendance card -->
+              <!-- 01: thẻ điểm danh trừu tượng -->
               <ng-container *ngSwitchCase="'attendance'">
                 <div class="pg-card w-[380px] p-6 -rotate-2">
                   <div class="flex items-center gap-3">
@@ -127,7 +127,7 @@
                 </div>
               </ng-container>
 
-              <!-- 02: care flow -->
+              <!-- 02: luồng chăm sóc -->
               <ng-container *ngSwitchCase="'care'">
                 <div class="relative w-[400px] space-y-4">
                   <span class="pg-flow-line"></span>
@@ -155,7 +155,7 @@
                 </div>
               </ng-container>
 
-              <!-- 03: AI chat + abstract chart -->
+              <!-- 03: chat AI + biểu đồ trừu tượng -->
               <ng-container *ngSwitchCase="'ai'">
                 <div class="relative w-[410px] space-y-3">
                   <div class="pg-bubble pg-bubble--me ml-auto">Lớp nào đang vắng nhiều nhất?</div>
@@ -217,19 +217,19 @@
             </div>
           </div>
 
-          <!-- page number -->
+          <!-- số trang -->
           <span class="absolute right-24 bottom-6 text-[14px] font-bold text-slate-400">
             {{ pi + 1 }} / {{ pages.length }}
           </span>
         </div>
-        <!-- folded corner hinting where to lift -->
+        <!-- góc gập gợi ý chỗ nhấc lên -->
         <span class="dc-corner"></span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Page tabs under the calendar -->
+<!-- Tab trang dưới lịch -->
 <div class="dc-nav mt-7 flex flex-wrap items-center justify-center gap-2">
   <button
     *ngFor="let p of pages; let pi = index"

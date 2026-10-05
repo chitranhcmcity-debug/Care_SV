@@ -9,15 +9,15 @@ const {
   RENAMED_PERMISSIONS,
 } = require('../utils/hangSo');
 
-// Every authenticated request reads the matrix, so keep it in memory briefly. Saving through
-// setRolePermissions clears it at once; the TTL covers edits made by another server instance.
+// Mọi request đã xác thực đều đọc ma trận, nên giữ trong bộ nhớ một lúc. Lưu qua
+// setRolePermissions sẽ xóa cache ngay; TTL bao phủ các thay đổi từ máy chủ khác.
 const CACHE_MS = 30 * 1000;
 let cache = null;
 
 /**
- * A matrix saved before a key existed grants that key from the old keys it replaced
- * (LEGACY_PERMISSIONS), so upgrading keeps every role's rights. Once saved again it holds the
- * new keys and is left alone.
+ * Ma trận lưu trước khi một khóa tồn tại sẽ cấp khóa đó từ các khóa cũ mà nó thay thế
+ * (LEGACY_PERMISSIONS), nên nâng cấp vẫn giữ nguyên quyền của mọi vai trò. Khi đã lưu lại thì nó chứa
+ * các khóa mới và được để yên.
  */
 function upgrade(stored) {
   const lists = CONFIGURABLE_ROLES.map((role) => stored?.[role]).filter(Array.isArray);
@@ -36,7 +36,7 @@ function upgrade(stored) {
   );
 }
 
-/** Stored matrix merged over the defaults, with unknown or non-applicable keys dropped. */
+/** Ma trận đã lưu được gộp lên giá trị mặc định, bỏ các khóa không biết hoặc không áp dụng. */
 function normalize(rawStored) {
   const stored = upgrade(rawStored);
   return Object.fromEntries(
@@ -67,13 +67,13 @@ async function setRolePermissions(matrix) {
   return clean;
 }
 
-/** Permission keys held by a role; the admin has a fixed, view-only set (see ADMIN_PERMISSIONS). */
+/** Các khóa quyền của một vai trò; admin có bộ cố định, chỉ xem (xem ADMIN_PERMISSIONS). */
 async function permissionsForRole(role) {
   if (role === 'admin') return [...ADMIN_PERMISSIONS];
   return (await getRolePermissions())[role] ?? [];
 }
 
-/** Sync check on a req.user that verifyToken already loaded `permissions` into. */
+/** Kiểm tra đồng bộ trên req.user mà verifyToken đã nạp sẵn `permissions`. */
 const can = (user, permission) => Boolean(user?.permissions?.includes(permission));
 
 module.exports = { getRolePermissions, setRolePermissions, permissionsForRole, can };

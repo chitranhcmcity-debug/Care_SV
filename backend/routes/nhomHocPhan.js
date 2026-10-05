@@ -5,28 +5,28 @@ const ctrl = require('../controllers/dieuKhienNhomHocPhan');
 
 const manage = [verifyToken, requirePermission('courses.manage')];
 
-// GET /api/course-groups/timetable (every role) — schedule only, no student personal data.
+// GET /api/course-groups/timetable (mọi vai trò) — chỉ có lịch học, không có dữ liệu cá nhân của sinh viên.
 router.get('/timetable', verifyToken, requireSignedIn, ctrl.getTimetable);
 
-// GET /api/course-groups (List all course groups with student & teacher details)
+// GET /api/course-groups (liệt kê mọi học phần kèm thông tin sinh viên và giảng viên)
 router.get('/', verifyToken, requirePermission('courses.manage', 'excel.import'), ctrl.list);
 
-// POST /api/course-groups (Create new Course Group with schedule & teacher)
+// POST /api/course-groups (tạo học phần mới kèm lịch học và giảng viên)
 router.post('/', ...manage, ctrl.create);
 
-// PUT /api/course-groups/:id (Update Course Group schedule & info)
+// PUT /api/course-groups/:id (cập nhật lịch học và thông tin học phần)
 router.put('/:id', ...manage, ctrl.update);
 
-// DELETE /api/course-groups/:id (Delete Course Group)
+// DELETE /api/course-groups/:id (xóa học phần)
 router.delete('/:id', ...manage, ctrl.remove);
 
-// POST /api/course-groups/:id/assign-student (Enroll individual student by MSSV or ID)
+// POST /api/course-groups/:id/assign-student (đăng ký từng sinh viên theo MSSV hoặc ID)
 router.post('/:id/assign-student', ...manage, ctrl.assignStudent);
 
-// DELETE /api/course-groups/:id/remove-student/:studentId (Unenroll student)
+// DELETE /api/course-groups/:id/remove-student/:studentId (rút tên sinh viên)
 router.delete('/:id/remove-student/:studentId', ...manage, ctrl.removeStudent);
 
-// POST /api/course-groups/:id/assign-class (Enroll all students of an entire Class into this Course Group)
+// POST /api/course-groups/:id/assign-class (đăng ký toàn bộ sinh viên của một lớp vào học phần này)
 router.post('/:id/assign-class', ...manage, ctrl.assignClass);
 
 module.exports = router;

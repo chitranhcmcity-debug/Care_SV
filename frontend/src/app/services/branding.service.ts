@@ -3,7 +3,7 @@ import { Branding, SettingsService } from './settings.service';
 
 const DEFAULT_COLOR = '#673ab7';
 const DEFAULT_LOGO = 'logo_truong.png';
-// Tailwind shade → mix ratio: positive = towards white, negative = towards black.
+// Sắc Tailwind → tỷ lệ pha: dương = về phía trắng, âm = về phía đen.
 const SHADES: [number, number][] = [
   [50, 0.9],
   [100, 0.78],
@@ -19,9 +19,9 @@ const SHADES: [number, number][] = [
 ];
 
 /**
- * Web interface configured by the admin: system name, logo and primary colour. The `violet`
- * Tailwind palette (the app's accent colour) reads CSS variables, so changing the colour
- * re-themes the whole app without a rebuild (see index.html and styles.css).
+ * Giao diện web do admin cấu hình: tên hệ thống, logo và màu chính. Bảng màu Tailwind
+ * `violet` (màu nhấn của ứng dụng) đọc biến CSS, nên đổi màu sẽ
+ * đổi chủ đề toàn ứng dụng mà không cần build lại (xem index.html và styles.css).
  */
 @Injectable({ providedIn: 'root' })
 export class BrandingService {
@@ -34,11 +34,11 @@ export class BrandingService {
   readonly supportEmail = signal('cskh@itc.edu.vn');
   readonly logo = signal(DEFAULT_LOGO);
 
-  /** Loads the public branding once at start-up (works before sign-in). */
+  /** Nạp thương hiệu công khai một lần lúc khởi động (chạy được trước khi đăng nhập). */
   load(): void {
     this.settings.getBranding().subscribe({
       next: (b) => this.apply(b),
-      error: () => {}, // keep the defaults
+      error: () => {}, // giữ mặc định
     });
   }
 
@@ -58,7 +58,7 @@ export class BrandingService {
   private applyColor(hex: string): void {
     const root = document.documentElement.style;
     if (!/^#[0-9a-f]{6}$/i.test(hex) || hex.toLowerCase() === DEFAULT_COLOR) {
-      // The hand-tuned default palette in styles.css.
+      // Bảng màu mặc định chỉnh tay trong styles.css.
       for (const [shade] of SHADES) root.removeProperty(`--brand-${shade}`);
       return;
     }

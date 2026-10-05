@@ -1,29 +1,29 @@
-// Đơn vị (unit): each Trưởng phòng / PHT owns one unit with its own students, classes,
-// attendance, care cases, calls, tasks, staff and settings. A signed-in request runs inside its
-// unit (set by verifyToken), and the unitPlugin below scopes every query of a business model to
-// that unit and stamps new documents with it. Admins and system work (startup, webhooks,
-// reminders) run without a unit and see every unit.
+// Đơn vị (unit): mỗi Trưởng phòng / PHT sở hữu một đơn vị với sinh viên, lớp,
+// điểm danh, hồ sơ chăm sóc, cuộc gọi, nhiệm vụ, nhân viên và cài đặt. Request đã đăng nhập chạy trong
+// đơn vị của nó (do verifyToken đặt), và unitPlugin bên dưới giới hạn mọi truy vấn của một model nghiệp vụ vào
+// đơn vị đó và đóng dấu đơn vị lên tài liệu mới. Admin và công việc hệ thống (khởi động, webhook,
+// nhắc việc) chạy không có đơn vị và thấy mọi đơn vị.
 const { AsyncLocalStorage } = require('node:async_hooks');
 const mongoose = require('mongoose');
 
 const storage = new AsyncLocalStorage();
 
-/** Runs fn inside a unit (null = every unit). */
+/** Chạy fn trong một đơn vị (null = mọi đơn vị). */
 const runInUnit = (unitId, fn) => storage.run({ unitId: unitId ? String(unitId) : null }, fn);
 
-/** Unit of the current request, or null outside one (admin, system work). */
+/** Đơn vị của request hiện tại, hoặc null ngoài request (admin, công việc hệ thống). */
 const currentUnit = () => storage.getStore()?.unitId ?? null;
 
 /**
- * Unit a user works in (a manager's unitId is their own _id). Admins have none; an account not
- * yet in a unit (only before the startup conversion has run) is not scoped either.
+ * Đơn vị mà người dùng làm việc (unitId của quản lý là _id của chính họ). Admin không có; tài khoản
+ * chưa thuộc đơn vị nào (chỉ trước khi chuyển đổi lúc khởi động chạy) cũng không bị giới hạn.
  */
 const unitOf = (user) =>
   user && user.role !== 'admin' && user.unitId ? String(user.unitId) : null;
 
 /**
- * Wraps a middleware that resumes from stream callbacks (multer), where the request's unit
- * would otherwise be lost, so the handlers after it still run inside the unit.
+ * Bọc một middleware tiếp tục từ callback của stream (multer), nơi đơn vị của request
+ * sẽ bị mất, để các handler phía sau vẫn chạy trong đơn vị.
  */
 const keepUnit = (middleware) => (req, res, next) => {
   const unitId = currentUnit();
@@ -45,7 +45,7 @@ const QUERY_HOOKS = [
   'updateOne',
 ];
 
-/** Adds `unitId` to a schema and scopes all its queries and new documents to the current unit. */
+/** Thêm `unitId` vào schema và giới hạn mọi truy vấn cùng tài liệu mới vào đơn vị hiện tại. */
 function unitPlugin(schema) {
   schema.add({
     unitId: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null, index: true },

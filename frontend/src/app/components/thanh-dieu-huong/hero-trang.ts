@@ -1,11 +1,11 @@
-/** Per-page look of the page banner: subtitle, colour theme, mascot side and the tip card. */
+/** Giao diện từng trang của banner trang: phụ đề, bảng màu, phía linh vật và thẻ mẹo. */
 export interface PageHero {
   subtitle: string;
-  /** Gradient theme, see `.page-hero--*` in styles.css. */
+  /** Bảng màu gradient, xem `.page-hero--*` trong styles.css. */
   tone: 'violet' | 'blue' | 'teal' | 'sunset' | 'rose' | 'indigo';
-  /** Which robot image floats next to the tile. */
+  /** Ảnh robot nào nổi bên cạnh ô. */
   mascot: 'left' | 'right';
-  /** Tip card on the right. */
+  /** Thẻ mẹo ở bên phải. */
   tipTitle: string;
   tipText: string;
 }
@@ -18,7 +18,7 @@ const FALLBACK: PageHero = {
   tipText: 'làm việc hiệu quả!',
 };
 
-/** Keyed by route path, or by dashboard tab id for /admin and /management. */
+/** Khóa theo đường dẫn route, hoặc theo id tab bảng điều khiển cho /admin và /management. */
 const HEROES: Record<string, PageHero> = {
   '/students': {
     subtitle: 'Tra cứu hồ sơ, thông tin liên lạc và tình trạng học tập của sinh viên.',

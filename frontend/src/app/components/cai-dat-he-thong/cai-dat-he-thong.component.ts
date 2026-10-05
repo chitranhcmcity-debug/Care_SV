@@ -8,7 +8,7 @@ import { SystemSettings } from '../../models/types';
 
 const MAX_LOGO_BYTES = 300 * 1024;
 
-/** Admin: system identity and web interface (title, school, contacts, logo, colour). */
+/** Admin: nhận diện hệ thống và giao diện web (tiêu đề, trường, liên hệ, logo, màu). */
 @Component({
   selector: 'app-system-settings-panel',
   standalone: true,
@@ -81,7 +81,7 @@ export class SystemSettingsPanelComponent implements OnInit {
       });
   }
 
-  /** Reads the chosen logo as a data URL (kept small: it is stored in the settings). */
+  /** Đọc logo đã chọn dưới dạng data URL (giữ nhỏ: nó được lưu trong cài đặt). */
   onLogoSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;

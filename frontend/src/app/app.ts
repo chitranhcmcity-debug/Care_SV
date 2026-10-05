@@ -11,7 +11,7 @@ import { AuthService } from './services/auth.service';
 import { BrandingService } from './services/branding.service';
 import { LoadingService } from './services/loading.service';
 
-// Pages rendered full-width without the signed-in sidebar shell.
+// Các trang hiển thị toàn chiều rộng, không có khung sidebar đã đăng nhập.
 const PUBLIC_PATHS = [
   '/',
   '/login',
@@ -56,7 +56,7 @@ export class App {
   readonly loading = inject(LoadingService);
 
   constructor(public authService: AuthService) {
-    // Admin-configured name, logo and colour, loaded before sign-in for the login page.
+    // Tên, logo và màu do admin cấu hình, nạp trước khi đăng nhập cho trang đăng nhập.
     this.branding.load();
   }
 }

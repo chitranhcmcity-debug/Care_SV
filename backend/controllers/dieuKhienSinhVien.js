@@ -11,7 +11,7 @@ const { getUploadDir } = require('../utils/moiTruong');
 
 const MAX_PAGE_SIZE = 100;
 
-// Editable fields of a student record; courseGroups and tags are managed elsewhere.
+// Các trường có thể sửa của hồ sơ sinh viên; courseGroups và tags được quản lý ở nơi khác.
 const FIELDS = Object.freeze({
   studentCode: { label: 'MSSV', required: true, max: 30 },
   fullName: { label: 'Họ và tên', required: true, max: 100 },
@@ -22,7 +22,7 @@ const FIELDS = Object.freeze({
   parentPhone: { label: 'SĐT phụ huynh', max: 20, phone: true },
 });
 
-/** Validates and trims the body; `partial` (update) skips fields that were left out. */
+/** Kiểm tra và cắt khoảng trắng body; `partial` (cập nhật) bỏ qua các trường không gửi lên. */
 function studentData(body, partial) {
   assert(body && typeof body === 'object' && !Array.isArray(body), 'Dữ liệu không hợp lệ');
   const data = {};
@@ -47,7 +47,7 @@ async function assertCodeFree(studentCode, exceptId) {
   assert(!taken, `MSSV ${studentCode} đã tồn tại`, 409);
 }
 
-// Query: search (code / name / phone), classCode, page, limit.
+// Query: search (mã / tên / SĐT), classCode, page, limit.
 async function list(req, res, next) {
   try {
     const { search, classCode } = req.query;
@@ -144,7 +144,7 @@ async function remove(req, res, next) {
 
 async function getProfile(req, res, next) {
   try {
-    const { student } = req; // loaded and access-checked by requireStudentAccess
+    const { student } = req; // đã được nạp và kiểm tra quyền bởi requireStudentAccess
     const [attendanceRecords, cases, calls] = await Promise.all([
       DiemDanh.find({
         $or: [{ absentStudents: student._id }, { 'excusedStudents.studentId': student._id }],

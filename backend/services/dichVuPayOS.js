@@ -1,13 +1,13 @@
-// Minimal PayOS client over its REST API (https://payos.vn/docs/api/).
-// Every request and webhook is signed with HMAC-SHA256 using the channel's checksum key.
+// Client PayOS tối giản trên REST API của nó (https://payos.vn/docs/api/).
+// Mọi request và webhook đều được ký HMAC-SHA256 bằng checksum key của kênh.
 const crypto = require('crypto');
 
 const API_BASE = 'https://api-merchant.payos.vn';
 const REQUEST_TIMEOUT_MS = 15000;
 
 function credentials() {
-  // Trim: keys pasted into a hosting dashboard often carry a stray space or newline,
-  // which PayOS reports as an invalid signature.
+  // Trim: khóa dán vào trang quản trị hosting thường dính thêm khoảng trắng hoặc xuống dòng,
+  // khiến PayOS báo chữ ký không hợp lệ.
   const [PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY] = [
     process.env.PAYOS_CLIENT_ID,
     process.env.PAYOS_API_KEY,
@@ -31,15 +31,15 @@ function requireCredentials() {
 
 const hmac = (key, text) => crypto.createHmac('sha256', key).update(text).digest('hex');
 
-// Constant-time comparison of two hex signatures.
+// So sánh thời gian hằng số hai chữ ký hex.
 function sameSignature(a, b) {
   const left = Buffer.from(String(a || ''), 'utf8');
   const right = Buffer.from(String(b || ''), 'utf8');
   return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
-// PayOS's canonical form for signing an object: keys sorted, "key=value" joined by "&",
-// null/undefined as empty strings, arrays of objects as JSON with sorted keys.
+// Dạng chuẩn PayOS dùng để ký một object: sắp xếp khóa, nối "key=value" bằng "&",
+// null/undefined thành chuỗi rỗng, mảng object thành JSON với khóa đã sắp xếp.
 const sortKeys = (obj) =>
   Object.fromEntries(
     Object.keys(obj)
@@ -88,8 +88,8 @@ async function call(method, path, body) {
 }
 
 /**
- * Creates a payment link. `description` must be ≤ 25 characters, unaccented.
- * Returns { checkoutUrl, qrCode, paymentLinkId, ... }.
+ * Tạo link thanh toán. `description` phải ≤ 25 ký tự, không dấu.
+ * Trả về { checkoutUrl, qrCode, paymentLinkId, ... }.
  */
 function createPaymentLink({
   orderCode,
@@ -101,7 +101,7 @@ function createPaymentLink({
   expiredAt,
 }) {
   const { checksumKey } = requireCredentials();
-  // Only these five fields are covered by the create signature, in this exact order.
+  // Chỉ năm trường này nằm trong chữ ký khi tạo, theo đúng thứ tự này.
   const signature = hmac(
     checksumKey,
     `amount=${amount}&cancelUrl=${cancelUrl}&description=${description}&orderCode=${orderCode}&returnUrl=${returnUrl}`,
@@ -118,12 +118,12 @@ function createPaymentLink({
   });
 }
 
-/** Current state of a payment link: { status: 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | ... }. */
+/** Trạng thái hiện tại của link thanh toán: { status: 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | ... }. */
 const getPaymentInfo = (orderCode) => call('GET', `/v2/payment-requests/${orderCode}`);
 
 /**
- * Checks a webhook body's signature and returns its `data`, or null when the body is
- * malformed or the signature does not match (i.e. it did not come from PayOS).
+ * Kiểm tra chữ ký của body webhook và trả về `data`, hoặc null khi body
+ * sai định dạng hoặc chữ ký không khớp (tức là không đến từ PayOS).
  */
 function verifyWebhook(body) {
   const creds = credentials();
@@ -138,7 +138,7 @@ module.exports = {
   createPaymentLink,
   getPaymentInfo,
   verifyWebhook,
-  // exported for tests
+  // xuất ra cho test
   canonicalize,
   hmac,
 };

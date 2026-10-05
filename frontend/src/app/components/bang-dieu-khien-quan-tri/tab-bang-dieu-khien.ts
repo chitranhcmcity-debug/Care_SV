@@ -1,8 +1,8 @@
 import { AuthService } from '../../services/auth.service';
 import { Permission } from '../../models/types';
 
-// Tabs of the admin / management dashboard. The sidebar lists them under the dashboard entry and
-// the dashboard reads the active one from the ?tab= query parameter.
+// Các tab của bảng điều khiển quản trị / quản lý. Sidebar liệt kê chúng dưới mục bảng điều khiển và
+// bảng điều khiển đọc tab đang chọn từ tham số truy vấn ?tab=.
 export type AdminTab =
   | 'overview'
   | 'excel'
@@ -11,14 +11,14 @@ export type AdminTab =
   | 'courses'
   | 'settings'
   | 'tasks'
-  // Old ?tab=progress links: staff progress now lives in the tasks tab.
+  // Link ?tab=progress cũ: tiến độ nhân viên giờ nằm trong tab nhiệm vụ.
   | 'progress'
   | 'permissions'
   | 'integrations'
   | 'classes'
   | 'warnings';
 
-/** The admin runs the system (accounts, permissions, config, API, look) and only views reports. */
+/** Admin vận hành hệ thống (tài khoản, phân quyền, cấu hình, API, giao diện) và chỉ xem báo cáo. */
 export const ADMIN_TABS: AdminTab[] = [
   'overview',
   'staff',
@@ -28,11 +28,11 @@ export const ADMIN_TABS: AdminTab[] = [
   'analytics',
 ];
 
-/** The admin's sidebar splits its tabs into two groups: running the system and configuring it. */
+/** Sidebar của admin chia các tab thành hai nhóm: vận hành hệ thống và cấu hình hệ thống. */
 export const ADMIN_SYSTEM_TABS: AdminTab[] = ['overview', 'staff', 'analytics', 'permissions'];
 export const ADMIN_CONFIG_TABS: AdminTab[] = ['integrations', 'settings'];
 
-/** Permission that unlocks each tab for non-admins; tabs without one are admin-only. */
+/** Quyền mở khóa từng tab cho người không phải admin; tab không có quyền thì chỉ dành cho admin. */
 export const TAB_PERMISSION: Partial<Record<AdminTab, Permission>> = {
   classes: 'classes.assign',
   warnings: 'warnings.configure',
@@ -45,9 +45,9 @@ export const TAB_PERMISSION: Partial<Record<AdminTab, Permission>> = {
 export interface DashboardTab {
   id: AdminTab;
   label: string;
-  /** Short label for the mobile bottom tab bar. */
+  /** Nhãn ngắn cho thanh tab dưới trên điện thoại. */
   short?: string;
-  /** 24px stroke icon path (Tabler-style). */
+  /** Đường path icon nét 24px (kiểu Tabler). */
   icon: string;
 }
 
@@ -111,16 +111,16 @@ export const DASHBOARD_TABS: DashboardTab[] = [
   },
 ];
 
-/** The manager's landing tab: the analytics tab under its own name. Created once, because the
- *  sidebar calls visibleDashboardTabs on every render and a fresh object each time makes *ngFor
- *  rebuild the link endlessly (the page freezes). */
+/** Tab đầu của quản lý: tab thống kê dưới tên riêng của nó. Tạo một lần, vì
+ *  sidebar gọi visibleDashboardTabs ở mỗi lần render và một object mới mỗi lần khiến *ngFor
+ *  dựng lại link liên tục (trang bị đơ). */
 const MANAGER_OVERVIEW_TAB: DashboardTab = {
   ...DASHBOARD_TABS.find((tab) => tab.id === 'analytics')!,
   label: 'Tổng quan & cảnh báo',
   short: 'Tổng quan',
 };
 
-/** The admin sees the system tabs; other roles see the tabs their permissions unlock. */
+/** Admin thấy các tab hệ thống; vai trò khác thấy các tab mà quyền của họ mở khóa. */
 export function visibleDashboardTabs(auth: AuthService): DashboardTab[] {
   const tabs = DASHBOARD_TABS.filter((tab) => {
     if (auth.isAdmin()) return ADMIN_TABS.includes(tab.id);

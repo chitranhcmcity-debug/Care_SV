@@ -25,13 +25,13 @@ export interface StudentSummary {
   excusedCount?: number;
   attendCount: number;
   attendRate: number;
-  /** Absent periods (sessions x periods per session), share of the course's total periods. */
+  /** Số tiết vắng (số buổi x số tiết mỗi buổi), tỷ lệ trên tổng số tiết của học phần. */
   absentPeriods: number;
   absentPercent: number | null;
   warningLevel: WarningLevel | null;
-  /** Reached a level marked as exam ban. */
+  /** Đạt mức được đánh dấu cấm thi. */
   isAtRisk: boolean;
-  /** Latest care case of the student (open or closed). */
+  /** Hồ sơ chăm sóc gần nhất của sinh viên (đang mở hoặc đã đóng). */
   careCaseId: string | null;
   careStatus: string | null;
   assignedStaff: string | null;
@@ -56,7 +56,7 @@ export interface SubmitAttendanceResult {
   message: string;
   attendance: { _id: string; courseGroupId: string; date: string; absentStudents: string[] };
   isUpdate: boolean;
-  /** The absent students, so the lecturer may call them (optional). */
+  /** Các sinh viên vắng, để giảng viên có thể gọi (tùy chọn). */
   absentStudents: {
     _id: string;
     studentCode: string;
@@ -65,7 +65,7 @@ export interface SubmitAttendanceResult {
     phone?: string;
     parentPhone?: string;
   }[];
-  /** Students who reached a warning level and got a care case. */
+  /** Sinh viên đạt mức cảnh báo và đã có hồ sơ chăm sóc. */
   openedCases: { caseId: string; studentName: string; studentCode: string; level: string }[];
 }
 

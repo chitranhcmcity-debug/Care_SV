@@ -8,15 +8,15 @@ const { loadUnitConfig } = require('../services/dichVuCauHinhDonVi');
 const BRANDING_FIELDS =
   'systemTitle schoolName departmentName supportHotline supportEmail logoDataUrl primaryColor';
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
-const MAX_LOGO_CHARS = 400 * 1024; // ~300 KB image as a data URL
+const MAX_LOGO_CHARS = 400 * 1024; // ~300 KB ảnh dạng data URL
 
 async function loadSettings() {
   return (await CaiDatHeThong.findOne()) || CaiDatHeThong.create({});
 }
 
 /**
- * Settings as returned to the app: the system's identity plus the care settings of the user's
- * unit; never the encrypted API keys.
+ * Cấu hình trả về cho ứng dụng: thông tin nhận diện hệ thống cùng cấu hình chăm sóc của
+ * đơn vị người dùng; không bao giờ trả về khóa API đã mã hóa.
  */
 async function publicSettings(settings) {
   const { integrations, warningLevels, absenceReasons, tags, defaultUnitId, ...rest } =
@@ -99,7 +99,7 @@ async function updateSystem(req, res, next) {
 
 async function updateCare(req, res, next) {
   try {
-    // Saved for the manager's own unit only.
+    // Chỉ lưu cho đơn vị của chính trưởng phòng.
     const settings = await loadUnitConfig();
     const { warningLevels, absenceReasons, tags } = req.body ?? {};
     if (warningLevels !== undefined) {

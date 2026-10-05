@@ -35,7 +35,7 @@ export class TaskComponent implements OnInit {
   tasks: WorkTask[] = [];
   filterStatus: TaskStatus | '' = '';
 
-  /** Status filter pills (icon keys map to inline SVGs in the template). */
+  /** Nút lọc trạng thái (khóa icon ứng với SVG inline trong template). */
   readonly statusFilters: { value: TaskStatus | ''; label: string; icon: string; tone: string }[] =
     [
       { value: '', label: 'Tất cả', icon: 'all', tone: 'violet' },
@@ -137,7 +137,7 @@ export class TaskComponent implements OnInit {
     });
   }
 
-  /** Newest first, a few entries: enough context without a long history. */
+  /** Mới nhất trước, vài mục: đủ ngữ cảnh mà không cần lịch sử dài. */
   recentProgress(task: WorkTask) {
     return (task.progressLog ?? []).slice(-3).reverse();
   }

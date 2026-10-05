@@ -1,4 +1,4 @@
-/* Colour per status; used by the stat cards and the filter pills. */
+/* Màu theo trạng thái; dùng cho thẻ thống kê và nút lọc. */
 [data-tone='violet'] {
   --tone: #7c3aed;
   --tone-2: #c026d3;
@@ -44,7 +44,7 @@ svg {
   stroke-linejoin: round;
 }
 
-/* ---------- Stat cards ---------- */
+/* ---------- Thẻ thống kê ---------- */
 .task-stat {
   display: flex;
   align-items: center;
@@ -93,7 +93,7 @@ svg {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Status filter pills ---------- */
+/* ---------- Nút lọc trạng thái ---------- */
 .task-filter {
   display: inline-flex;
   align-items: center;

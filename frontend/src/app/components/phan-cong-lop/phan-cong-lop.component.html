@@ -14,7 +14,7 @@
       </button>
     </div>
 
-    <!-- Summary -->
+    <!-- Tổng quan -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="ca-stat" data-tone="violet">
         <span class="ca-stat-icon" aria-hidden="true">🏫</span>
@@ -50,7 +50,7 @@
       </a>
     </div>
 
-    <!-- Class table -->
+    <!-- Bảng lớp -->
     <div class="flex flex-wrap items-center gap-3">
       <div class="ca-search">
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -140,7 +140,7 @@
     </div>
   </div>
 
-  <!-- Staff workload -->
+  <!-- Khối lượng công việc nhân viên -->
   <div class="card-3d ca-card p-6 pt-8 space-y-4">
     <h4 class="ca-title">
       <span class="ca-title-icon" aria-hidden="true">🎧</span> Nhân viên CSSV &amp; khối lượng
@@ -195,7 +195,7 @@
     </div>
   </div>
 
-  <!-- History modal -->
+  <!-- Modal lịch sử -->
   <div
     *ngIf="history() as list"
     class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4"
@@ -237,7 +237,7 @@
     </div>
   </div>
 
-  <!-- Transfer modal -->
+  <!-- Modal bàn giao -->
   <div
     *ngIf="showTransfer"
     class="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4"

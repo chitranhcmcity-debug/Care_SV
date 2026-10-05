@@ -2,7 +2,7 @@
   display: block;
 }
 
-/* ---------- Calendar body ---------- */
+/* ---------- Thân lịch ---------- */
 .dc {
   position: relative;
   padding-top: 14px;
@@ -17,7 +17,7 @@
   transform-style: preserve-3d;
 }
 
-/* One sheet: a front face and a back face, turned around the binding (top edge). */
+/* Một tờ: mặt trước và mặt sau, lật quanh gáy (mép trên). */
 .dc-page {
   position: absolute;
   inset: 0;
@@ -49,7 +49,7 @@
     0 20px 40px -24px rgb(219 39 119 / 0.35),
     0 0 0 1px rgb(var(--brand-200));
 }
-/* The back of the paper: soft lavender with faint ruled lines. */
+/* Mặt sau tờ giấy: oải hương nhạt với các dòng kẻ mờ. */
 .dc-back {
   transform: rotateX(180deg);
   background:
@@ -59,16 +59,16 @@
 }
 
 /*
- * Turning = peeling: the dog-ear at the bottom-right corner keeps growing along the diagonal
- * until the whole sheet is folded away, revealing the next page underneath. The fold line
- * sweeps from the corner to the top-left; the page is cut along it (clip-path) and the folded
- * flap (the back of the paper) lies over it, mirrored across the fold.
+ * Lật trang = bóc trang: góc gập ở dưới bên phải lớn dần theo đường chéo
+ * cho đến khi cả tờ được gập đi, để lộ trang kế bên dưới. Đường gập
+ * quét từ góc tới góc trên bên trái; trang bị cắt dọc theo nó (clip-path) và phần
+ * nắp gập (mặt sau tờ giấy) phủ lên trên, đối xứng qua đường gập.
  */
 .dc-page.is-turning {
   z-index: 3;
 }
-/* Cut the sheet along the fold line (45°), which sweeps from the corner to the top-left.
-   The cut and the flap share duration and easing so they stay in step. */
+/* Cắt tờ giấy dọc đường gập (45°), quét từ góc tới góc trên bên trái.
+   Phần cắt và nắp gập dùng chung thời lượng và easing để chạy khớp nhau. */
 .dc-page.is-turning .dc-front {
   animation: dc-peel-cut 1.9s cubic-bezier(0.5, 0.05, 0.3, 1) forwards;
 }
@@ -83,8 +83,8 @@
 .dc-page.is-turning .dc-corner {
   opacity: 0;
 }
-/* The curl: a narrow roll of paper riding along the fold line. The wrapper casts the shadow,
-   its layers are cut to the roll so they never spill past the fold. */
+/* Phần cuộn: một cuộn giấy hẹp chạy dọc đường gập. Lớp bọc đổ bóng,
+   các lớp của nó được cắt theo cuộn để không bao giờ tràn qua đường gập. */
 .dc-back {
   display: none;
 }
@@ -109,12 +109,12 @@
   animation-timing-function: cubic-bezier(0.5, 0.05, 0.3, 1);
   animation-fill-mode: forwards;
 }
-/* The roll itself: back of the paper, lighter toward its outer edge. */
+/* Cuộn giấy: mặt sau tờ giấy, sáng dần về mép ngoài. */
 .dc-page.is-turning .dc-back::before {
   background: linear-gradient(315deg, #d9cdf8, #f3eeff 45%, #ffffff);
   animation-name: dc-roll;
 }
-/* A thin crease right at the fold. */
+/* Một nếp gấp mỏng ngay chỗ gập. */
 .dc-page.is-turning .dc-back::after {
   background: #c6b6f0;
   animation-name: dc-crease;
@@ -164,11 +164,11 @@
     opacity: 0;
   }
 }
-/* Keep the whole turn inside the calendar frame. */
+/* Giữ toàn bộ lượt lật bên trong khung lịch. */
 .dc-page.is-turning {
   clip-path: inset(0 round 24px);
 }
-/* The sheet underneath starts in the shadow of the one being lifted and brightens slowly. */
+/* Tờ bên dưới bắt đầu trong bóng của tờ đang được nhấc và sáng dần chậm rãi. */
 .dc-page.is-next .dc-front::after {
   position: absolute;
   inset: 0;
@@ -193,7 +193,7 @@
   }
 }
 
-/* Dog-ear at the bottom-right corner, where the page is lifted from. */
+/* Góc gập ở dưới bên phải, nơi trang được nhấc lên. */
 .dc-corner {
   position: absolute;
   right: -1px;
@@ -262,7 +262,7 @@
     inset 0 1px 0 rgb(255 255 255 / 0.6);
 }
 
-/* ---------- Tabs ---------- */
+/* ---------- Tab ---------- */
 .dc-tab {
   display: inline-flex;
   align-items: center;
@@ -295,7 +295,7 @@
   background: #fff;
 }
 
-/* ---------- Product pages ---------- */
+/* ---------- Các trang giới thiệu sản phẩm ---------- */
 .pg-violet {
   --a: #7c3aed;
   --b: #c026d3;

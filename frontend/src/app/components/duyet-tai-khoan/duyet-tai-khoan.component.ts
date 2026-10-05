@@ -10,8 +10,8 @@ const ROLE_LABEL: Record<Registration['role'], string> = {
 };
 
 /**
- * Trưởng phòng / PHT: self sign-ups waiting for approval. Approving emails the applicant an
- * activation key; the key is also shown here once in case that email never arrives.
+ * Trưởng phòng / PHT: các đăng ký đang chờ duyệt. Duyệt sẽ gửi email cho người đăng ký một
+ * key kích hoạt; key cũng hiện ở đây một lần phòng khi email không bao giờ tới.
  */
 @Component({
   selector: 'app-account-approvals',
@@ -28,9 +28,9 @@ export class AccountApprovalsComponent implements OnInit {
   readonly items = signal<Registration[]>([]);
   readonly loading = signal(true);
   readonly busyId = signal('');
-  /** Keys issued in this session, by account id, with whether the email went out. */
+  /** Các key đã cấp trong phiên này, theo id tài khoản, kèm việc email đã gửi đi hay chưa. */
   readonly shownKeys = signal<Record<string, { key: string; emailSent: boolean }>>({});
-  /** Account opened from the approval email link. */
+  /** Tài khoản được mở từ link trong email duyệt. */
   readonly focusId = signal('');
   readonly roleLabel = ROLE_LABEL;
 

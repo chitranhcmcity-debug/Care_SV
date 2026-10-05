@@ -26,7 +26,7 @@ export class ClassAssignmentService {
     return this.http.get<ClassAssignmentRecord[]>(`${this.apiUrl}/history`, { params });
   }
 
-  /** staffId null = thu hồi (open calls of the class go to the manager queue). */
+  /** staffId null = thu hồi (các cuộc gọi đang mở của lớp chuyển vào hàng chờ của quản lý). */
   assign(classCode: string, staffId: string | null): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.apiUrl}/${encodeURIComponent(classCode)}`, {
       staffId,

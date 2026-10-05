@@ -1,9 +1,9 @@
-// Stored values are unaccented codes; the *_LABEL maps hold the Vietnamese display text.
+// Giá trị lưu là mã không dấu; các map *_LABEL giữ chữ hiển thị tiếng Việt.
 
 // --- Hồ sơ chăm sóc sinh viên
-// cho_chi_dao: waiting for Trưởng phòng / PHT to direct a staff member (no default owner, or
-// proposed by hand); dang_cham_soc: the assigned staff member is working on it;
-// cho_duyet_ket_thuc: staff asked to close it, waiting for approval; da_ket_thuc: closed, in history.
+// cho_chi_dao: đang chờ Trưởng phòng / PHT chỉ đạo một nhân viên (chưa có người phụ trách mặc định, hoặc
+// đề xuất thủ công); dang_cham_soc: nhân viên được giao đang xử lý;
+// cho_duyet_ket_thuc: nhân viên đã xin đóng, đang chờ duyệt; da_ket_thuc: đã đóng, nằm trong lịch sử.
 const CARE_STATUS = Object.freeze({
   AWAITING: 'cho_chi_dao',
   IN_PROGRESS: 'dang_cham_soc',
@@ -22,14 +22,14 @@ const OPEN_CARE_STATUSES = Object.freeze([
   CARE_STATUS.IN_PROGRESS,
   CARE_STATUS.CLOSING,
 ]);
-// Why the case was opened.
+// Vì sao hồ sơ được mở.
 const CARE_SOURCE_LABEL = Object.freeze({
   canh_bao: 'Cảnh báo vắng học',
   de_xuat: 'Đề xuất chăm sóc',
   giao_viec: 'Chỉ đạo từ giao việc',
 });
 const CARE_SOURCES = Object.freeze(Object.keys(CARE_SOURCE_LABEL));
-// Result recorded when a case is closed.
+// Kết quả ghi nhận khi hồ sơ đóng.
 const CARE_RESULT_LABEL = Object.freeze({
   tien_bo: 'Đã tiến bộ, đi học đều',
   on_dinh: 'Ổn định, tiếp tục theo dõi',
@@ -37,14 +37,14 @@ const CARE_RESULT_LABEL = Object.freeze({
   nghi_hoc: 'Đã nghỉ học / bảo lưu',
 });
 const CARE_RESULTS = Object.freeze(Object.keys(CARE_RESULT_LABEL));
-// Steps every new case starts with; the manager, the staff member or AI Care can add more.
+// Các bước mà mọi hồ sơ mới đều có sẵn; quản lý, nhân viên hoặc AI Care có thể thêm.
 const DEFAULT_CARE_STEPS = Object.freeze([
   'Liên hệ sinh viên / phụ huynh',
   'Tìm hiểu nguyên nhân',
   'Đưa ra hướng giải quyết',
   'Theo dõi chuyển biến sau chăm sóc',
 ]);
-// Kinds of entries in a case's exchange between staff and managers.
+// Các loại mục trong trao đổi giữa nhân viên và quản lý của một hồ sơ.
 const CARE_NOTE_KINDS = Object.freeze(['trao_doi', 'kho_khan', 'chi_dao', 'su_kien', 'cuoc_goi']);
 
 // --- Trạng thái nhiệm vụ
@@ -101,7 +101,7 @@ const SHIFT_LABEL = Object.freeze({
 });
 const SHIFTS = Object.freeze(Object.values(SHIFT));
 
-// Weekday code → JS Date#getDay() (0 = Sunday).
+// Mã thứ → JS Date#getDay() (0 = Chủ nhật).
 const WEEKDAY_INDEX = Object.freeze({
   chu_nhat: 0,
   thu_2: 1,
@@ -163,7 +163,7 @@ const PERMISSIONS = Object.freeze([
     description:
       'Điểm danh học phần mình dạy, chỉ trong giờ học theo thời khóa biểu; hết giờ học thì điểm danh được chốt, không sửa được nữa.',
     defaultRoles: ['teacher'],
-    // Only a teacher can be the lecturer of a course group, so the right means nothing elsewhere.
+    // Chỉ giảng viên mới làm giảng viên của một học phần, nên quyền này vô nghĩa ở nơi khác.
     onlyRoles: ['teacher'],
   },
   {
@@ -189,7 +189,7 @@ const PERMISSIONS = Object.freeze([
     description:
       'Nhận hồ sơ chăm sóc, gọi điện, cập nhật các bước, trao đổi với cấp quản lý, đề nghị kết thúc hồ sơ.',
     defaultRoles: ['staff'],
-    // Care cases are only ever assigned to Nhân viên CSSV.
+    // Hồ sơ chăm sóc chỉ được giao cho Nhân viên CSSV.
     onlyRoles: ['staff'],
   },
   {
@@ -254,17 +254,17 @@ const PERMISSIONS = Object.freeze([
     defaultRoles: ['manager'],
   },
 ]);
-// Keys granted from older stored matrices that predate them: new key -> the old keys it replaces.
+// Các khóa cấp từ ma trận cũ đã lưu có trước chúng: khóa mới -> các khóa cũ mà nó thay thế.
 const LEGACY_PERMISSIONS = Object.freeze({
   'care.work': ['callTasks.update'],
   'care.manage': ['callTasks.viewAll'],
   'recordings.viewAll': ['callTasks.viewAll'],
   'care.propose': ['callTasks.update', 'attendance.take'],
 });
-// Keys renamed in stored matrices: old key -> its replacement.
+// Các khóa đã đổi tên trong ma trận đã lưu: khóa cũ -> khóa thay thế.
 const RENAMED_PERMISSIONS = Object.freeze({ 'attendance.override': 'attendance.view' });
 const PERMISSION_KEYS = Object.freeze(PERMISSIONS.map((p) => p.key));
-/** Whether a permission can be granted to a role (onlyRoles limits it to roles where it works). */
+/** Một quyền có cấp được cho vai trò không (onlyRoles giới hạn ở các vai trò mà nó hoạt động). */
 const permissionAppliesTo = (key, role) => {
   const p = PERMISSIONS.find((item) => item.key === key);
   return Boolean(p) && (!p.onlyRoles || p.onlyRoles.includes(role));
@@ -346,7 +346,7 @@ const ORDER_STATUS_LABEL = Object.freeze({
 const ORDER_STATUSES = Object.freeze(Object.values(ORDER_STATUS));
 
 // --- Nhãn hiển thị
-// Every stored code is unique across these sets, so one lookup covers them all.
+// Mọi mã lưu đều duy nhất trong các tập này, nên một lần tra cứu bao phủ tất cả.
 const LABELS = Object.freeze({
   ...CARE_STATUS_LABEL,
   ...CARE_SOURCE_LABEL,
@@ -359,7 +359,7 @@ const LABELS = Object.freeze({
   ...ORDER_STATUS_LABEL,
 });
 
-// Vietnamese display text for a stored code; unknown values pass through unchanged.
+// Chữ hiển thị tiếng Việt cho một mã đã lưu; giá trị không rõ được giữ nguyên.
 const toLabel = (value) => LABELS[value] ?? value;
 
 module.exports = {

@@ -13,7 +13,7 @@ const { CARE_STATUS, DEFAULT_CARE_STEPS } = require('../utils/hangSo');
 const { assert, validateId } = require('../utils/kiemTra');
 const { getAppUrl, getUploadDir } = require('../utils/moiTruong');
 
-// ---- Recordings live on disk and are only served through the authenticated route.
+// ---- File ghi âm lưu trên đĩa và chỉ được phát qua route có xác thực.
 const RECORDING_DIR = path.join(getUploadDir(), 'recordings');
 fs.mkdirSync(RECORDING_DIR, { recursive: true });
 const EXT_BY_MIME = { 'audio/mpeg': '.mp3', 'audio/mp3': '.mp3', 'audio/wav': '.wav' };
@@ -24,7 +24,7 @@ const removeRecording = (recording) => {
 
 const MAX_CALL_SEC = 4 * 60 * 60;
 const OUTCOMES = ['', 'nghe_may', 'khong_nghe_may', 'may_ban', 'sai_so'];
-// A Stringee call must reach answer_url shortly after its log was created.
+// Cuộc gọi Stringee phải đến answer_url ngay sau khi bản ghi cuộc gọi được tạo.
 const STRINGEE_ANSWER_WINDOW_MS = 10 * 60 * 1000;
 
 const callPopulation = [
@@ -34,12 +34,12 @@ const callPopulation = [
   { path: 'careCaseId', select: 'status' },
 ];
 
-/** Whether the user may play a call's recording: their own calls, or every call with
+/** Người dùng có được nghe ghi âm của cuộc gọi không: cuộc gọi của chính họ, hoặc mọi cuộc gọi nếu có
  *  recordings.viewAll (Trưởng phòng / PHT). */
 const canHear = (user, call) =>
   String(call.callerId?._id ?? call.callerId) === user.id || can(user, 'recordings.viewAll');
 
-/** Loads :id; only the caller may change a call (listening is widened by canHear). */
+/** Nạp :id; chỉ người gọi mới được sửa cuộc gọi (quyền nghe được mở rộng bởi canHear). */
 const findCall = (check, message) => async (req, res, next) => {
   try {
     validateId(req.params.id);
@@ -68,11 +68,11 @@ function requireCaller(req, res, next) {
   requireOperator(req, res, next);
 }
 
-// ======================= Stringee callbacks (public, called by Stringee) =======================
+// ======================= Callback của Stringee (công khai, do Stringee gọi) =======================
 
-// answer_url: Stringee asks what to do with an outgoing browser call. We only connect calls
-// that match a fresh call log made by the same user for the same number — so a leaked client
-// token cannot be used to dial arbitrary numbers on the school's hotline.
+// answer_url: Stringee hỏi cần xử lý thế nào với cuộc gọi đi từ trình duyệt. Chỉ kết nối các cuộc gọi
+// khớp với bản ghi mới tạo bởi cùng người dùng cho cùng số điện thoại — để token client bị lộ
+// không thể dùng gọi số tùy ý qua tổng đài của trường.
 async function stringeeAnswer(req, res) {
   const params = { ...req.query, ...(typeof req.body === 'object' ? req.body : {}) };
   try {
@@ -100,16 +100,16 @@ async function stringeeAnswer(req, res) {
       }),
     );
   } catch {
-    res.json([]); // malformed request → no call
+    res.json([]); // yêu cầu sai định dạng → không gọi
   }
 }
 
-// event_url: call/recording events. Nothing to trust here; recordings are fetched on demand.
+// event_url: sự kiện cuộc gọi/ghi âm. Không có gì cần tin ở đây; ghi âm được tải khi cần.
 function stringeeEvent(req, res) {
   res.json({ ok: true });
 }
 
-// ============================== App endpoints (signed in) ==============================
+// ============================== Endpoint của ứng dụng (đã đăng nhập) ==============================
 
 function getConfig(req, res) {
   res.json({ stringee: stringee.isConfigured(), hotline: stringee.hotline() });
@@ -141,7 +141,7 @@ async function startCall(req, res, next) {
       target === 'phu_huynh' ? 'Sinh viên chưa có SĐT phụ huynh' : 'Sinh viên chưa có SĐT',
     );
 
-    // Optional context must belong to the same student / the caller.
+    // Ngữ cảnh tùy chọn phải thuộc cùng sinh viên / người gọi.
     if (careCaseId) {
       validateId(careCaseId);
       const careCase = await HoSoChamSoc.findById(careCaseId);
@@ -204,7 +204,7 @@ const OUTCOME_LABEL = {
   may_ban: 'máy bận',
   sai_so: 'sai số',
 };
-/** A finished call shows up in its care case; an answered one ticks the "contact" step. */
+/** Cuộc gọi đã kết thúc hiện trong hồ sơ chăm sóc; cuộc gọi được nghe máy sẽ đánh dấu xong bước "liên hệ". */
 async function logToCase(call, userId) {
   const careCase = await HoSoChamSoc.findById(call.careCaseId);
   if (!careCase) return;
@@ -254,7 +254,7 @@ async function endCall(req, res, next) {
   }
 }
 
-// Runs after the upload middleware; the file (if any) is removed again when the call is rejected.
+// Chạy sau middleware upload; file (nếu có) bị xóa lại khi cuộc gọi bị từ chối.
 async function attachRecording(req, res, next) {
   try {
     assert(req.file, 'Chưa chọn file ghi âm');

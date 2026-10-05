@@ -1,6 +1,6 @@
 import { StaffProgressRow } from '../../models/types';
 
-/** The four KPI parts, in the order and weight the backend uses (dichVuTienDoNhanVien.js). */
+/** Bốn thành phần KPI, theo thứ tự và trọng số backend dùng (dichVuTienDoNhanVien.js). */
 export const RATE_PARTS: { key: keyof StaffProgressRow['rates']; label: string; weight: number }[] =
   [
     { key: 'completion', label: 'Hoàn thành', weight: 30 },
@@ -9,7 +9,7 @@ export const RATE_PARTS: { key: keyof StaffProgressRow['rates']; label: string; 
     { key: 'care', label: 'Bước chăm sóc', weight: 20 },
   ];
 
-/** Tailwind classes for a KPI score badge. */
+/** Các class Tailwind cho huy hiệu điểm KPI. */
 export function kpiTone(score: number | null): string {
   if (score === null) return 'bg-slate-100 text-slate-600 border-slate-300';
   if (score >= 85) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
@@ -18,7 +18,7 @@ export function kpiTone(score: number | null): string {
   return 'bg-rose-100 text-rose-800 border-rose-300';
 }
 
-/** Bar colour for a 0–100 rate. */
+/** Màu thanh cho tỷ lệ 0–100. */
 export function rateTone(value: number | null): string {
   if (value === null) return 'bg-slate-300';
   if (value >= 85) return 'bg-emerald-500';

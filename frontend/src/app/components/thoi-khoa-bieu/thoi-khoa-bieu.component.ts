@@ -16,7 +16,7 @@ const SHIFTS = [
   { key: 'chieu', label: 'Ca chiều' },
   { key: 'toi', label: 'Ca tối' },
 ];
-/** Card icons (book, monitor, database, palette, calculator, code), one per colour tone. */
+/** Icon thẻ (sách, màn hình, cơ sở dữ liệu, bảng màu, máy tính, mã), mỗi tông màu một icon. */
 const COURSE_ICONS = [
   'M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z',
   'M3 4h18v12H3zM8 20h8M12 16v4',
@@ -26,7 +26,7 @@ const COURSE_ICONS = [
   'M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16',
 ];
 
-/** Weekly timetable of every course group (read-only, no student data). */
+/** Thời khóa biểu tuần của mọi học phần (chỉ đọc, không có dữ liệu sinh viên). */
 @Component({
   selector: 'app-timetable',
   standalone: true,
@@ -55,7 +55,7 @@ export class TimetableComponent implements OnInit {
     this.selected.set(null);
   }
 
-  /** Monday of the week being viewed. */
+  /** Thứ Hai của tuần đang xem. */
   readonly weekStart = signal(this.mondayOf(new Date()));
   readonly groupFilter = signal('');
   readonly view = signal<'week' | 'list'>('week');
@@ -68,7 +68,7 @@ export class TimetableComponent implements OnInit {
     () => this.weekStart().getTime() === this.mondayOf(new Date()).getTime(),
   );
 
-  /** Group codes for the class filter. */
+  /** Mã nhóm cho bộ lọc lớp. */
   readonly groupCodes = computed(() =>
     [...new Set(this.entries().map((e) => e.groupCode))].sort((a, b) => a.localeCompare(b)),
   );
@@ -90,7 +90,7 @@ export class TimetableComponent implements OnInit {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  /** Every class meeting in the viewed week (respecting course start/end dates and filters). */
+  /** Mọi buổi học trong tuần đang xem (theo ngày bắt đầu/kết thúc học phần và bộ lọc). */
   readonly occurrences = computed(() => {
     const code = this.groupFilter();
     const list = this.entries().filter(
@@ -120,7 +120,7 @@ export class TimetableComponent implements OnInit {
     return e.startTime || `~${SHIFT_ORDER[e.shift ?? ''] ?? 9}`;
   }
 
-  /** Hour range used when a course group has no explicit start/end time. */
+  /** Khoảng giờ dùng khi học phần không có giờ bắt đầu/kết thúc rõ ràng. */
   private hoursOf(e: TimetableEntry): [number, number] {
     const toH = (t: string) => {
       const [h, m] = t.split(':').map(Number);
@@ -135,8 +135,8 @@ export class TimetableComponent implements OnInit {
   }
 
   /**
-   * Hour-by-hour week grid: one row per hour, each class block spans the hours it covers,
-   * and every free hour of a day gets an empty placeholder cell.
+   * Lưới tuần từng giờ: mỗi giờ một dòng, mỗi khối lớp trải qua các giờ nó chiếm,
+   * và mỗi giờ trống trong ngày có một ô giữ chỗ trống.
    */
   readonly layout = computed(() => {
     const occ = this.occurrences();
@@ -153,8 +153,8 @@ export class TimetableComponent implements OnInit {
     }
     const hours = Array.from({ length: maxH - minH }, (_, i) => minH + i);
 
-    // Classes whose hours overlap on the same day share one block; separate blocks for them
-    // would occupy the same grid area and hide each other.
+    // Các lớp trùng giờ trong cùng ngày dùng chung một khối; tách khối riêng cho chúng
+    // sẽ chiếm cùng vùng lưới và che nhau.
     const blocks: {
       col: number;
       rowStart: number;
@@ -208,7 +208,7 @@ export class TimetableComponent implements OnInit {
     return { hours, blocks, empties, counts };
   });
 
-  /** Sessions today, for the banner (ignores the week being browsed and the class filter). */
+  /** Các buổi hôm nay, cho banner (bỏ qua tuần đang duyệt và bộ lọc lớp). */
   readonly todayCount = computed(() => {
     const now = new Date();
     const day = WEEK[(now.getDay() + 6) % 7];
@@ -226,7 +226,7 @@ export class TimetableComponent implements OnInit {
     return `${String(h).padStart(2, '0')}:00`;
   }
 
-  /** Stable colour tone per course so the same course looks the same every day. */
+  /** Tông màu ổn định theo học phần để cùng học phần trông giống nhau mỗi ngày. */
   tone(e: TimetableEntry): number {
     const code = e.courseCode || e.groupCode;
     let h = 0;

@@ -11,7 +11,7 @@ import { CareCaseService, CareCaseSummary } from '../../services/care-case.servi
 import { CallLog, CallService, CALL_OUTCOME_LABELS } from '../../services/call.service';
 
 const PAGE_SIZE = 20;
-// Avatar colours: each student always gets the same pair, picked from their MSSV.
+// Màu avatar: mỗi sinh viên luôn có cùng một cặp màu, chọn theo MSSV.
 const AVATAR_GRADIENTS = [
   ['#8b5cf6', '#ec4899'],
   ['#06b6d4', '#3b82f6'],
@@ -30,7 +30,7 @@ const EMPTY_FORM: StudentInput = {
   parentPhone: '',
 };
 
-/** Admin / Trưởng phòng / Phó hiệu trưởng: every student's record, history and calls. */
+/** Admin / Trưởng phòng / Phó hiệu trưởng: hồ sơ, lịch sử và cuộc gọi của mọi sinh viên. */
 @Component({
   selector: 'app-students',
   standalone: true,
@@ -45,19 +45,19 @@ export class StudentsComponent implements OnInit {
   readonly calls = inject(CallService);
   private readonly notify = inject(NotificationService);
   private readonly auth = inject(AuthService);
-  /** Add / edit / delete students (same permission as the Excel import). */
+  /** Thêm / sửa / xóa sinh viên (cùng quyền với nhập Excel). */
   readonly canManage = this.auth.can('excel.import');
-  /** Trưởng phòng / PHT hear every recording, so they see every call to the student. */
+  /** Trưởng phòng / PHT nghe được mọi bản ghi âm, nên họ thấy mọi cuộc gọi tới sinh viên. */
   readonly seesAllCalls = this.auth.can('recordings.viewAll');
   readonly canOpenCare =
     !this.auth.isAdmin() && (this.auth.can('care.manage') || this.auth.can('care.propose'));
-  /** The student's care cases, newest first (one at most is open). */
+  /** Các hồ sơ chăm sóc của sinh viên, mới nhất trước (tối đa một hồ sơ đang mở). */
   readonly studentCases = signal<CareCaseSummary[]>([]);
   readonly openCase = computed(() => this.studentCases().find((c) => c.status !== 'da_ket_thuc'));
-  /** Proposal form in the profile: null = closed. */
+  /** Form đề xuất trong hồ sơ: null = đóng. */
   proposal: { reason: string } | null = null;
 
-  /** Add/edit form: null = closed; editingId '' = adding a new student. */
+  /** Form thêm/sửa: null = đóng; editingId '' = đang thêm sinh viên mới. */
   form: StudentInput | null = null;
   editingId = '';
   readonly saving = signal(false);
@@ -74,7 +74,7 @@ export class StudentsComponent implements OnInit {
   readonly selected = signal<Student | null>(null);
   readonly profile = signal<Student360Profile | null>(null);
   readonly studentCalls = signal<CallLog[]>([]);
-  /** The profile lists the latest calls first; the rest open on request. */
+  /** Hồ sơ liệt kê các cuộc gọi mới nhất trước; phần còn lại mở khi được yêu cầu. */
   readonly callsPreview = 3;
   readonly showAllCalls = signal(false);
   readonly visibleCalls = computed(() =>
@@ -85,7 +85,7 @@ export class StudentsComponent implements OnInit {
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    // Refresh the open profile's call list after a call is saved from the dialog.
+    // Làm mới danh sách cuộc gọi của hồ sơ đang mở sau khi một cuộc gọi được lưu từ hộp thoại.
     effect(() => {
       this.calls.savedVersion();
       const student = untracked(() => this.selected());
@@ -175,7 +175,7 @@ export class StudentsComponent implements OnInit {
       next: (res) => {
         this.notify.success(res.message);
         if (this.selected()?._id === student._id) this.selected.set(null);
-        // Step back a page when the last row of the last page was removed.
+        // Lùi một trang khi dòng cuối của trang cuối bị xóa.
         this.refresh(this.items().length === 1 && this.page() > 1 ? this.page() - 1 : this.page());
       },
       error: (err) => this.notify.error(err.error?.message || 'Không xóa được sinh viên'),
@@ -201,7 +201,7 @@ export class StudentsComponent implements OnInit {
     this.router.navigate(['/care'], { queryParams: { case: id } });
   }
 
-  /** Opens a care case for the student: a proposal, or waiting for the manager's directive. */
+  /** Mở hồ sơ chăm sóc cho sinh viên: một đề xuất, hoặc đang chờ chỉ đạo của quản lý. */
   submitProposal(student: Student) {
     const reason = this.proposal?.reason.trim();
     if (!reason) return this.notify.error('Nhập lý do cần chăm sóc');
@@ -221,7 +221,7 @@ export class StudentsComponent implements OnInit {
     return typeof call.callerId === 'string' ? '' : call.callerId.fullName;
   }
 
-  /** "Phạm Ngọc Yến" → "PY": first letter of the family name and of the given name. */
+  /** "Phạm Ngọc Yến" → "PY": chữ cái đầu của họ và của tên. */
   initials(name: string): string {
     const words = name.trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '?';
@@ -235,7 +235,7 @@ export class StudentsComponent implements OnInit {
     return `linear-gradient(135deg, ${from}, ${to})`;
   }
 
-  /** Stable colour slot (0–5) for a class code, so each class keeps the same chip colour. */
+  /** Ô màu ổn định (0–5) cho một mã lớp, để mỗi lớp giữ cùng màu chip. */
   classTone(code = ''): number {
     return [...code].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 6;
   }

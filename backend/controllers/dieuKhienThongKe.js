@@ -7,8 +7,8 @@ const { can } = require('../services/dichVuPhanQuyen');
 const { getWarningLevels, periodInfo, evaluate } = require('../services/dichVuCanhBao');
 const { CARE_STATUS, toLabel } = require('../utils/hangSo');
 
-// Whole-word match so short keywords like "ca" do not hit "các", "cả", "cái"...
-// Checked in order; the first bucket that matches wins.
+// So khớp nguyên từ để từ khóa ngắn như "ca" không trúng "các", "cả", "cái"...
+// Kiểm tra theo thứ tự; nhóm đầu tiên khớp sẽ thắng.
 const wholeWords = (words) => new RegExp(`(^|[^\\p{L}])(${words.join('|')})([^\\p{L}]|$)`, 'u');
 const REASON_PATTERNS = [
   { reason: 'Ốm / Sức khỏe', pattern: wholeWords(['ốm', 'bệnh', 'sốt', 'viện', 'sức khỏe']) },
@@ -18,9 +18,9 @@ const REASON_PATTERNS = [
 ];
 
 /**
- * Students the caller may report on: everyone with students.view (Trưởng phòng, admin read-only),
- * otherwise the administrative classes assigned to them and the students of care cases they were
- * directed to (Nhân viên CSSV). null = everyone.
+ * Sinh viên mà người gọi được xem báo cáo: mọi người có students.view (Trưởng phòng, admin chỉ đọc),
+ * nếu không thì các lớp sinh hoạt được giao cho họ và sinh viên thuộc hồ sơ chăm sóc họ được chỉ đạo
+ * được chỉ đạo (Nhân viên CSSV). null = tất cả.
  */
 async function reportScope(user) {
   if (can(user, 'students.view')) return null;
@@ -46,10 +46,10 @@ async function getSummary(req, res, next) {
         count(CARE_STATUS.CLOSED),
       ]);
 
-    // 1. Absences per (course group, student), limited to the caller's scope.
+    // 1. Số buổi vắng theo (học phần, sinh viên), giới hạn trong phạm vi của người gọi.
     const scopeSet = scope ? new Set(scope.map(String)) : null;
     const attendances = await DiemDanh.find({}).select('courseGroupId absentStudents').lean();
-    const perGroup = new Map(); // groupId -> Map(studentId -> absentSessions)
+    const perGroup = new Map(); // groupId -> Map(studentId -> số buổi vắng)
     for (const att of attendances) {
       const gid = String(att.courseGroupId);
       if (!perGroup.has(gid)) perGroup.set(gid, new Map());
@@ -72,7 +72,7 @@ async function getSummary(req, res, next) {
       }))
       .filter((row) => row.absentCount > 0);
 
-    // 2. Reason breakdown from the causes staff recorded in care cases.
+    // 2. Thống kê lý do từ nguyên nhân nhân viên ghi trong hồ sơ chăm sóc.
     const casesWithCause = await HoSoChamSoc.find({ ...caseFilter, cause: { $ne: '' } })
       .select('cause')
       .lean();
@@ -92,7 +92,7 @@ async function getSummary(req, res, next) {
       count: reasonCounts[key],
     }));
 
-    // 3. Students who reached any configured warning level (periods / % of total periods).
+    // 3. Sinh viên đạt bất kỳ mức cảnh báo đã cấu hình (số tiết / % tổng số tiết).
     const levels = await getWarningLevels();
     const flagged = [];
     for (const [gid, counts] of perGroup) {
@@ -157,7 +157,7 @@ async function getSummary(req, res, next) {
       courseAbsenceStats,
       reasonStats,
       warningList,
-      // Kept for older clients: the exam-ban subset of warningList.
+      // Giữ cho client cũ: tập con cấm thi của warningList.
       examBanRiskList: warningList.filter((w) => w.isAtRisk),
     });
   } catch (error) {
@@ -202,7 +202,7 @@ async function exportCareReport(req, res, next) {
     sheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF1E3A8A' }, // Dark Navy
+      fgColor: { argb: 'FF1E3A8A' }, // Xanh navy đậm
     };
     sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 

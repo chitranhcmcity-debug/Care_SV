@@ -22,11 +22,11 @@ export interface SystemOverview {
     courseGroups: number;
     groupsWithoutTeacher: number;
   };
-  /** Care cases waiting for a directive / being worked on. */
+  /** Hồ sơ chăm sóc đang chờ chỉ đạo / đang xử lý. */
   careCases: { awaiting: number; inProgress: number };
-  /** Calls made in the last 7 days, by how they went. */
+  /** Các cuộc gọi trong 7 ngày qua, theo kết quả. */
   callOutcomes: { answered: number; noAnswer: number; busy: number; unrecorded: number };
-  /** Students at a warning level: how many, and the most severe / most recent few. */
+  /** Sinh viên ở mức cảnh báo: bao nhiêu, và vài người nặng nhất / gần nhất. */
   warnings: {
     count: number;
     items: {
@@ -39,21 +39,21 @@ export interface SystemOverview {
       lastAbsence: string;
     }[];
   };
-  /** Last 7 days, oldest first; date is YYYY-MM-DD in school time. */
+  /** 7 ngày qua, cũ nhất trước; date là YYYY-MM-DD theo giờ của trường. */
   activity: {
     date: string;
     attendance: number;
     calls: number;
-    /** Students present / excused / absent in the sessions recorded that day. */
+    /** Sinh viên có mặt / vắng có phép / vắng trong các buổi ghi nhận ngày đó. */
     students: { present: number; excused: number; absent: number };
-    /** Records created that day. */
+    /** Số bản ghi tạo trong ngày đó. */
     created: { users: number; students: number; courseGroups: number; careCases: number };
   }[];
   callsWithRecording: number;
   integrations: { name: string; configured: boolean }[];
 }
 
-/** Admin landing page: system health at a glance. */
+/** Trang đầu của admin: sức khỏe hệ thống trong một cái nhìn. */
 @Injectable({ providedIn: 'root' })
 export class OverviewService {
   private readonly apiUrl = inject(API_BASE_URL) + '/overview';

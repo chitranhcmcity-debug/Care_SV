@@ -19,16 +19,16 @@ import { pageHero } from './hero-trang';
 interface NavItem {
   path: string;
   label: string;
-  /** Short label for the mobile bottom tab bar. */
+  /** Nhãn ngắn cho thanh tab dưới trên di động. */
   short?: string;
-  /** 24px stroke icon path (Tabler-style). */
+  /** Đường path icon nét 24px (kiểu Tabler). */
   icon: string;
   badge?: 'unread' | 'pendingTasks';
-  /** Set on links to a dashboard section (?tab=). */
+  /** Đặt trên các link tới một mục của bảng điều khiển (?tab=). */
   queryParams?: { tab: AdminTab };
 }
 
-/** A titled group of sidebar links; every link has the same look. */
+/** Một nhóm link sidebar có tiêu đề; mọi link có cùng giao diện. */
 interface NavSection {
   title: string;
   links: NavItem[];
@@ -97,10 +97,10 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-/** Sidebar entries that host the dashboard sections. */
+/** Các mục sidebar chứa các phần của bảng điều khiển. */
 const DASHBOARD_PATHS = ['/admin', '/management'];
 
-/** Non-admin sidebar groups (pages by path, dashboard sections by tab id). */
+/** Các nhóm sidebar của người không phải admin (trang theo đường dẫn, mục bảng điều khiển theo id tab). */
 const OVERVIEW_TABS: AdminTab[] = ['analytics'];
 const WORK_PATHS = ['/care', '/tasks', '/students', '/attendance', '/calls', '/timetable'];
 const TEAM_TABS: AdminTab[] = ['tasks', 'classes'];
@@ -108,12 +108,12 @@ const TEAM_PATHS = ['/account-approvals'];
 const SETUP_TABS: AdminTab[] = ['courses', 'warnings', 'excel'];
 const SETUP_PATHS = ['/billing'];
 
-/** Lowercase and strip Vietnamese diacritics so "diem danh" matches "Điểm danh". */
+/** Chuyển chữ thường và bỏ dấu tiếng Việt để "diem danh" khớp "Điểm danh". */
 const normalize = (text: string) =>
   text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase().trim();
 
-/** Signed-in app shell (Berry layout): full-width header, sidebar, and the routed page
- *  projected into the rounded content area. */
+/** Khung ứng dụng đã đăng nhập (bố cục Berry): header toàn chiều rộng, sidebar, và trang theo route
+ *  chiếu vào vùng nội dung bo tròn. */
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -125,18 +125,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly branding = inject(BrandingService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  /** Work still to do (listed in the bell). */
+  /** Công việc còn phải làm (liệt kê trong chuông thông báo). */
   unreadCount = 0;
   pendingTaskCount = 0;
-  /** Unseen work per kind (sidebar badges) and in total (bell badge). */
+  /** Công việc chưa xem theo từng loại (huy hiệu sidebar) và tổng (huy hiệu chuông). */
   careNew = 0;
   tasksNew = 0;
   unseenCount = 0;
-  /** What was new when the bell was opened, so the list can still mark it. */
+  /** Những gì mới khi mở chuông, để danh sách vẫn đánh dấu được. */
   newCare = 0;
   newTasks = 0;
-  sidebarOpen = false; // mobile drawer
-  sidebarCollapsed = false; // desktop
+  sidebarOpen = false; // ngăn kéo di động
+  sidebarCollapsed = false; // máy tính
   profileMenuOpen = false;
   notificationsOpen = false;
   searchTerm = '';
@@ -167,21 +167,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.billing.refreshStatus().subscribe({ error: () => {} });
     this.authService.refreshSession().subscribe();
     this.fetchNotifications();
-    // Opening a work page marks that kind of work as seen. Zoneless: a finished navigation is
-    // not a template event, so re-render to move the sidebar highlight to the new page.
+    // Mở một trang công việc sẽ đánh dấu loại việc đó là đã xem. Zoneless: điều hướng xong
+    // không phải sự kiện template, nên render lại để chuyển vùng sáng của sidebar sang trang mới.
     this.navigation = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
         this.markPageSeen();
         this.cdr.markForCheck();
       });
-    // Poll the bell and sidebar counts every 15 seconds while the tab is visible, and catch up
-    // as soon as it is shown again.
+    // Thăm dò số liệu chuông và sidebar mỗi 15 giây khi tab đang hiển thị, và cập nhật ngay
+    // khi nó hiện lại.
     this.intervalId = setInterval(() => {
       if (!document.hidden) this.fetchNotifications();
     }, 15000);
     document.addEventListener('visibilitychange', this.onVisibilityChange);
-    // Pick up permission changes made by the admin while this tab stays open.
+    // Nhận thay đổi quyền do admin thực hiện trong lúc tab này vẫn mở.
     this.sessionIntervalId = setInterval(() => {
       if (!document.hidden) this.authService.refreshSession().subscribe();
     }, 60000);
@@ -198,7 +198,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!document.hidden) this.fetchNotifications();
   };
 
-  // The navbar is only rendered inside the signed-in shell (app.html), so no login checks here.
+  // Navbar chỉ được render trong khung đã đăng nhập (app.html), nên không cần kiểm tra đăng nhập ở đây.
   fetchNotifications() {
     if (!this.showNotifications) return;
     this.inbox.summary().subscribe({
@@ -220,11 +220,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.newCare = res.care.new;
       this.newTasks = res.tasks.new;
     }
-    // Zoneless: an HTTP response is not a template event, so re-render explicitly.
+    // Zoneless: phản hồi HTTP không phải sự kiện template, nên render lại tường minh.
     this.cdr.markForCheck();
   }
 
-  /** On the call-task or task page, new work of that kind is seen as soon as it shows up. */
+  /** Ở trang nhiệm vụ gọi hoặc nhiệm vụ, việc mới loại đó được xem là đã thấy ngay khi xuất hiện. */
   private markPageSeen() {
     const path = this.router.url.split(/[?#]/)[0];
     const scope: InboxScope | null = path === '/care' ? 'care' : path === '/tasks' ? 'tasks' : null;
@@ -233,7 +233,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.inbox.markSeen(scope).subscribe({ next: (res) => this.apply(res), error: () => {} });
   }
 
-  /** Opening the bell marks everything as seen; the list keeps showing what was new. */
+  /** Mở chuông đánh dấu mọi thứ là đã xem; danh sách vẫn hiện những gì mới. */
   toggleNotifications() {
     if (this.notificationsOpen) return this.closeNotifications();
     this.notificationsOpen = true;
@@ -249,7 +249,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.newTasks = 0;
   }
 
-  /** Expired, or at most 7 days left: show the renewal banner. */
+  /** Đã hết hạn, hoặc còn tối đa 7 ngày: hiện banner gia hạn. */
   get subscriptionWarning() {
     const s = this.billing.status();
     return s && (!s.active || s.daysLeft <= 7) ? s : null;
@@ -268,8 +268,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return role ? ROLE_LABELS[role] : '';
   }
 
-  /** Sidebar groups, rebuilt only when the role or permissions change: *ngFor must get the
-   *  same objects on every render, or it rebuilds the links endlessly. */
+  /** Các nhóm sidebar, chỉ dựng lại khi vai trò hoặc quyền thay đổi: *ngFor phải nhận
+   *  cùng các object ở mọi lần render, nếu không nó dựng lại link liên tục. */
   get navSections(): NavSection[] {
     const key = `${this.user?.role}|${this.authService.permissions()?.join(',')}`;
     if (key !== this.sectionsKey) {
@@ -309,7 +309,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       ].filter((section) => section.links.length);
     }
 
-    // Other roles: overview first, then daily work, then running the team, then setup.
+    // Vai trò khác: tổng quan trước, rồi công việc hằng ngày, rồi điều hành đội, rồi thiết lập.
     const byPath = (paths: string[]) =>
       paths.flatMap((p) => pages.filter((item) => item.path === p));
     const home = auth.homePath();
@@ -319,7 +319,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         (item) => ![...WORK_PATHS, ...TEAM_PATHS, ...SETUP_PATHS].includes(item.path),
       ),
     ];
-    // The role's landing page leads its group, so it is also the first mobile tab.
+    // Trang đầu của vai trò đứng đầu nhóm của nó, nên cũng là tab di động đầu tiên.
     daily.sort((a, b) => Number(b.path === home) - Number(a.path === home));
     const listedTabs: AdminTab[] = [...OVERVIEW_TABS, ...TEAM_TABS, ...SETUP_TABS];
     const overview: NavSection = {
@@ -327,7 +327,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       links: tabLinks('/management', OVERVIEW_TABS),
     };
     const workSection: NavSection = { title: 'Công việc', links: daily };
-    // Whichever group holds the landing page comes first (it also leads the mobile tab bar).
+    // Nhóm nào chứa trang đầu thì đứng trước (nó cũng dẫn đầu thanh tab di động).
     return [
       ...(home === '/management' ? [overview, workSection] : [workSection, overview]),
       {
@@ -345,8 +345,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     ].filter((section) => section.links.length);
   }
 
-  /** Mobile bottom tab bar: the role's first link (its home), then pages, then dashboard
-   *  sections; whatever does not fit stays in the Menu drawer. */
+  /** Thanh tab dưới di động: link đầu của vai trò (trang chủ của nó), rồi các trang, rồi các mục
+   *  bảng điều khiển; cái gì không vừa thì ở lại ngăn kéo Menu. */
   get bottomTabs(): NavItem[] {
     const sections = this.navSections;
     if (sections !== this.tabsFor) {
@@ -364,7 +364,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private tabsFor: NavSection[] = [];
   private tabs: NavItem[] = [];
 
-  /** Section links match path and ?tab= (no tab = the dashboard's first); pages match path. */
+  /** Link mục khớp đường dẫn và ?tab= (không có tab = tab đầu của bảng điều khiển); trang khớp đường dẫn. */
   isActive(item: NavItem): boolean {
     const path = this.router.url.split(/[?#]/)[0];
     if (path !== item.path && !path.startsWith(item.path + '/')) return false;
@@ -375,7 +375,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return item.queryParams.tab === tab;
   }
 
-  /** Shown to anyone who can receive call tasks or assigned tasks. */
+  /** Hiện cho ai có thể nhận nhiệm vụ gọi hoặc nhiệm vụ được giao. */
   get showNotifications(): boolean {
     return this.authService.canOpen('/care') || this.authService.canOpen('/tasks');
   }
@@ -386,7 +386,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  /** Pages with their own detail header do not repeat the generic page banner. */
+  /** Các trang có header chi tiết riêng không lặp lại banner trang chung. */
   get showPageHero(): boolean {
     const path = this.router.url.split(/[?#]/)[0];
     if (path === '/timetable') return false;
@@ -398,7 +398,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return tab !== 'overview';
   }
 
-  /** Icon, texts and theme of the page banner for the current page. */
+  /** Icon, văn bản và bảng màu của banner trang cho trang hiện tại. */
   get heroInfo() {
     const path = this.router.url.split(/[?#]/)[0];
     const tabId = DASHBOARD_PATHS.includes(path)
@@ -439,7 +439,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar() {
-    // One button: drawer on mobile, collapse on desktop.
+    // Một nút: ngăn kéo trên di động, thu gọn trên máy tính.
     if (window.matchMedia('(min-width: 768px)').matches) {
       this.sidebarCollapsed = !this.sidebarCollapsed;
     } else {

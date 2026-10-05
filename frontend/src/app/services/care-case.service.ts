@@ -35,7 +35,7 @@ export interface CareWarning {
   absentPercent: number | null;
 }
 
-/** A row of the case list. */
+/** Một dòng của danh sách hồ sơ. */
 export interface CareCaseSummary {
   _id: string;
   studentId: { _id: string; studentCode: string; fullName: string; classCode: string };
@@ -100,7 +100,7 @@ export class CareCaseService {
   private readonly apiUrl = inject(API_BASE_URL) + '/care-cases';
   private readonly http = inject(HttpClient);
 
-  /** status: 'open' | 'closed' | 'all' | a CareStatus. mine: only cases assigned to / proposed by me. */
+  /** status: 'open' | 'closed' | 'all' | một CareStatus. mine: chỉ hồ sơ được giao / do tôi đề xuất. */
   list(query: { status?: string; q?: string; mine?: boolean } = {}): Observable<{
     items: CareCaseSummary[];
   }> {
@@ -129,7 +129,7 @@ export class CareCaseService {
     return this.http.get<CareCase>(`${this.apiUrl}/${id}`);
   }
 
-  /** Propose care (or, for a manager naming a staff member, open it directed). */
+  /** Đề xuất chăm sóc (hoặc, với quản lý nêu tên nhân viên, mở ở dạng có chỉ đạo). */
   create(payload: {
     studentId: string;
     reason: string;
@@ -183,7 +183,7 @@ export class CareCaseService {
     return this.http.post<CareCase>(`${this.apiUrl}/${id}/close-request`, payload);
   }
 
-  /** approve true/false answers a close request; with result + summary a manager closes directly. */
+  /** approve true/false trả lời một đề nghị đóng; có result + summary thì quản lý đóng trực tiếp. */
   close(
     id: string,
     payload: {

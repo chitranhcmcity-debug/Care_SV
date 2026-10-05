@@ -30,14 +30,14 @@ function dayBounds(value = new Date()) {
   end.setDate(end.getDate() + 1);
   return { date, start, end };
 }
-// Empty value -> null; anything else must parse to a valid Date.
+// Giá trị rỗng -> null; mọi thứ khác phải parse được thành Date hợp lệ.
 function parseOptionalDate(value, message = 'Ngày không hợp lệ') {
   if (!value) return null;
   const date = new Date(value);
   assert(!Number.isNaN(date.getTime()), message);
   return date;
 }
-// Administrative class codes are compared case-insensitively: always stored trimmed, upper case.
+// Mã lớp sinh hoạt được so sánh không phân biệt hoa thường: luôn lưu đã cắt khoảng trắng, chữ hoa.
 const normalizeClass = (code) =>
   String(code || '')
     .trim()

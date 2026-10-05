@@ -38,7 +38,7 @@ async function savePlans(req, res, next) {
 
 async function listOrders(req, res, next) {
   try {
-    // Shared system plan only; Trưởng phòng / PHT own-plan orders belong to their accounts.
+    // Chỉ gói hệ thống dùng chung; đơn gói riêng của Trưởng phòng / PHT thuộc về tài khoản của họ.
     const orders = await DonThanhToan.find({ kind: { $ne: 'account' } })
       .populate('createdBy', 'fullName email')
       .sort({ createdAt: -1 })
@@ -125,7 +125,7 @@ async function payosWebhook(req, res, next) {
   try {
     const data = payos.verifyWebhook(req.body);
     if (!data) return res.status(400).json({ message: 'Chữ ký không hợp lệ' });
-    // PayOS's "confirm webhook" test call uses an order we never created — just acknowledge.
+    // Lần gọi thử "confirm webhook" của PayOS dùng đơn ta chưa từng tạo — chỉ cần xác nhận.
     if (data.code === '00' && req.body.success !== false) {
       const order = await DonThanhToan.findOne({ orderCode: Number(data.orderCode) });
       if (order && order.status === ORDER_STATUS.PENDING) {

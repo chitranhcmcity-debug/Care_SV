@@ -1,5 +1,5 @@
 <div class="bl">
-  <!-- Current subscription -->
+  <!-- Gói dịch vụ hiện tại -->
   <section *ngIf="!isAdmin" class="bl-card bl-current">
     <span class="bl-current-icon" aria-hidden="true">💳</span>
     <div class="bl-current-info">
@@ -39,7 +39,7 @@
     </ng-template>
   </div>
 
-  <!-- Plans -->
+  <!-- Các gói -->
   <section *ngIf="!isAdmin" class="bl-plans">
     <article
       *ngFor="let plan of plans(); let last = last"
@@ -76,7 +76,7 @@
     </article>
   </section>
 
-  <!-- Price list (Admin) -->
+  <!-- Bảng giá (Admin) -->
   <section *ngIf="isAdmin" class="bl-card bl-section">
     <div class="bl-section-head">
       <div>
@@ -140,7 +140,7 @@
     </div>
   </section>
 
-  <!-- Revenue report (Admin) -->
+  <!-- Báo cáo doanh thu (Admin) -->
   <section *ngIf="isAdmin && revenue() as r" class="bl-card bl-section">
     <div class="bl-section-head">
       <div>
@@ -221,7 +221,7 @@
     </ng-container>
   </section>
 
-  <!-- History -->
+  <!-- Lịch sử -->
   <section *ngIf="!isAdmin" class="bl-card bl-section">
     <div class="bl-section-head">
       <h2>Lịch sử thanh toán</h2>

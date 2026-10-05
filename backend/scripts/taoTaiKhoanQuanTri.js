@@ -1,6 +1,6 @@
-// First admin account for a fresh deployment (production included): created at startup from
-// ADMIN_EMAIL / ADMIN_PASSWORD, only while the database has no admin yet. Once an admin exists
-// this is a no-op, so the variables can stay set (or be removed) without touching the account.
+// Tài khoản admin đầu tiên cho bản triển khai mới (kể cả production): tạo lúc khởi động từ
+// ADMIN_EMAIL / ADMIN_PASSWORD, chỉ khi cơ sở dữ liệu chưa có admin. Khi đã có admin thì
+// không làm gì, nên các biến này có thể để nguyên (hoặc xóa) mà không ảnh hưởng tài khoản.
 const bcrypt = require('bcryptjs');
 const NguoiDung = require('../models/NguoiDung');
 

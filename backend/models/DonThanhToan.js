@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const { ORDER_STATUS, ORDER_STATUSES } = require('../utils/hangSo');
 
-// One PayOS payment link for a plan: the shared system plan, or one manager account's own plan.
+// Một link thanh toán PayOS cho một gói: gói dùng chung của hệ thống, hoặc gói riêng của một tài khoản trưởng phòng.
 const DonThanhToanSchema = new mongoose.Schema(
   {
-    orderCode: { type: Number, required: true, unique: true }, // PayOS order code
+    orderCode: { type: Number, required: true, unique: true }, // Mã đơn PayOS
     planCode: { type: String, required: true },
     planName: { type: String, required: true },
     months: { type: Number, required: true },
@@ -16,8 +16,8 @@ const DonThanhToanSchema = new mongoose.Schema(
     account: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', required: true },
     paidAt: { type: Date, default: null },
-    reference: { type: String, default: '' }, // bank transaction reference from PayOS
-    // Plan end date right after this order was applied (system plan or the account's own).
+    reference: { type: String, default: '' }, // mã tham chiếu giao dịch ngân hàng từ PayOS
+    // Ngày hết hạn gói ngay sau khi đơn này được áp dụng (gói hệ thống hoặc gói riêng của tài khoản).
     extendedTo: { type: Date, default: null },
   },
   { timestamps: true },

@@ -67,7 +67,7 @@
         [hidden]="detailTab() !== 'process'"
         class="care-process-grid"
       >
-        <!-- Steps -->
+        <!-- Các bước -->
         <div class="care-card care-steps-panel">
           <div class="flex items-center justify-between gap-2">
             <h3 class="care-title">
@@ -341,7 +341,7 @@
             </div>
           </dl>
         </section>
-        <!-- Directive (managers) -->
+        <!-- Chỉ đạo (quản lý) -->
         <div
           *ngIf="canAct() && c.status !== STATUS.CLOSED"
           class="care-card p-3.5 space-y-2.5"
@@ -388,7 +388,7 @@
           </button>
         </div>
 
-        <!-- Closing -->
+        <!-- Đóng hồ sơ -->
         <div
           *ngIf="c.status === STATUS.CLOSED; else closingForms"
           class="care-card care-card--done p-3.5 space-y-2"
@@ -405,7 +405,7 @@
           </div>
         </div>
         <ng-template #closingForms>
-          <!-- Waiting for approval -->
+          <!-- Chờ duyệt -->
           <div
             *ngIf="c.status === STATUS.CLOSING"
             class="care-card care-card--attention p-3.5 space-y-2.5"
@@ -450,7 +450,7 @@
             </p>
           </div>
 
-          <!-- Report & close (staff asks; a manager may close directly) -->
+          <!-- Báo cáo & đóng (nhân viên xin; quản lý có thể đóng trực tiếp) -->
           <div
             *ngIf="c.status === STATUS.IN_PROGRESS && c.permissions.work"
             class="care-card p-3.5 space-y-2.5"
@@ -501,7 +501,7 @@
           <h2 class="care-title"><app-care-icon name="phone" />Liên hệ sinh viên & phụ huynh</h2>
           <ng-container *ngTemplateOutlet="callControls; context: { $implicit: c }" />
         </div>
-        <!-- Calls -->
+        <!-- Cuộc gọi -->
         <div class="care-card p-3.5 space-y-2.5">
           <h3 class="care-title">📞 Cuộc gọi trong hồ sơ ({{ c.calls.length }})</h3>
           <p *ngIf="!c.calls.length" class="text-sm text-slate-400">Chưa có cuộc gọi nào.</p>
@@ -549,7 +549,7 @@
         [hidden]="detailTab() !== 'notes'"
         class="care-tab-content"
       >
-        <!-- Exchange / timeline -->
+        <!-- Trao đổi / dòng thời gian -->
         <div class="care-card p-3.5 space-y-2.5">
           <h3 class="care-title">💬 Trao đổi & tiến trình</h3>
           <div *ngIf="c.permissions.work" class="space-y-2">
@@ -638,7 +638,7 @@
     </section>
   </div>
 </div>
-<!-- New case (manager) -->
+<!-- Hồ sơ mới (quản lý) -->
 <div
   *ngIf="showNew()"
   class="fixed inset-0 z-[60] bg-slate-900/50 flex items-center justify-center p-4"
@@ -716,7 +716,7 @@
 </div>
 
 <ng-template #callControls let-c>
-  <!-- Call buttons -->
+  <!-- Nút gọi -->
   <div *ngIf="c.permissions.work && c.status !== STATUS.CLOSED" class="flex flex-wrap gap-2">
     <button
       type="button"

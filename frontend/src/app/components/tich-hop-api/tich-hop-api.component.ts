@@ -5,7 +5,7 @@ import { SettingsService } from '../../services/settings.service';
 import { NotificationService } from '../../services/notification.service';
 import { IntegrationItem } from '../../models/types';
 
-/** Admin: API keys for ChatGPT (OpenAI) (AI Care), Stringee (calls) and SMTP (email). */
+/** Admin: khóa API cho ChatGPT (OpenAI) (AI Care), Stringee (cuộc gọi) và SMTP (email). */
 @Component({
   selector: 'app-integrations-panel',
   standalone: true,
@@ -19,7 +19,7 @@ export class IntegrationsPanelComponent implements OnInit {
 
   readonly groups = signal<{ name: string; items: IntegrationItem[] }[]>([]);
   readonly saving = signal(false);
-  /** Values typed by the admin; only these are sent. '' clears the saved value. */
+  /** Giá trị admin đã nhập; chỉ những giá trị này được gửi. '' xóa giá trị đã lưu. */
   draft: Record<string, string> = {};
 
   ngOnInit() {
@@ -32,7 +32,7 @@ export class IntegrationsPanelComponent implements OnInit {
   private show(items: IntegrationItem[]) {
     const names = [...new Set(items.map((i) => i.group))];
     this.groups.set(names.map((name) => ({ name, items: items.filter((i) => i.group === name) })));
-    // Plain (non-secret) values are editable in place; secrets start empty.
+    // Giá trị thường (không bí mật) sửa tại chỗ; bí mật bắt đầu trống.
     this.draft = Object.fromEntries(
       items.filter((i) => !i.secret && i.source === 'database').map((i) => [i.key, i.value]),
     );
@@ -46,7 +46,7 @@ export class IntegrationsPanelComponent implements OnInit {
     chat: 'Chat Completions',
   };
 
-  /** AI provider whose fields are shown: the typed/saved choice, else what the server picks. */
+  /** Nhà cung cấp AI có trường được hiển thị: lựa chọn đã nhập/lưu, nếu không thì cái máy chủ chọn. */
   aiProvider(items: IntegrationItem[]): string {
     const chosen =
       this.draft['AI_PROVIDER'] || items.find((i) => i.key === 'AI_PROVIDER')?.value || '';

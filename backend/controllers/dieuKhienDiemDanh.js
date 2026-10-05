@@ -4,8 +4,8 @@ const { attendanceWindow } = require('../services/dichVuCanhBao');
 const { assert, dateKey } = require('../utils/kiemTra');
 
 /**
- * Attendance is written only by the lecturer, for today, inside the class-time window of the
- * timetable (see dichVuCanhBao.attendanceWindow). Once the class ends the record is final.
+ * Điểm danh chỉ do giảng viên ghi, cho ngày hôm nay, trong khung giờ học của
+ * thời khóa biểu (xem dichVuCanhBao.attendanceWindow). Hết giờ học thì bản ghi được chốt.
  */
 async function assertTeacherWindow(req, recordDate) {
   const now = new Date();
@@ -29,7 +29,7 @@ async function getWindow(req, res) {
   const isTeacher = String(req.courseGroup.teacherId) === req.user.id;
   res.json({
     ...window,
-    // Only the lecturer writes; overseers always see a read-only book.
+    // Chỉ giảng viên được ghi; bên giám sát luôn chỉ xem (chế độ chỉ đọc).
     canWrite: isTeacher,
     open: isTeacher && window.open,
   });
@@ -70,7 +70,7 @@ async function deleteRecord(req, res) {
 }
 
 async function submit(req, res) {
-  // A record is always for right now; past sessions are final.
+  // Bản ghi luôn là cho thời điểm hiện tại; các buổi trước đã được chốt.
   const date = new Date();
   await assertTeacherWindow(req, date);
   const result = await saveAttendance({

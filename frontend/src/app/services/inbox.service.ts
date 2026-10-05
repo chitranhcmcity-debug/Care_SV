@@ -3,17 +3,17 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-/** Work waiting for the user; `new` = appeared since they last opened the bell. */
+/** Công việc đang chờ người dùng; `new` = xuất hiện từ lần họ mở chuông gần nhất. */
 export interface InboxSummary {
   care: { pending: number; new: number };
   tasks: { pending: number; new: number };
   unseen: number;
 }
 
-/** Kinds of work; each is marked seen by the bell or by opening its page. */
+/** Các loại công việc; mỗi loại được đánh dấu đã xem khi bấm chuông hoặc mở trang của nó. */
 export type InboxScope = 'care' | 'tasks';
 
-/** The header bell (GET /api/notifications). */
+/** Chuông ở header (GET /api/notifications). */
 @Injectable({ providedIn: 'root' })
 export class InboxService {
   private readonly apiUrl = inject(API_BASE_URL) + '/notifications';
@@ -23,7 +23,7 @@ export class InboxService {
     return this.http.get<InboxSummary>(this.apiUrl);
   }
 
-  /** Marks work as seen: one kind (its page was opened) or, without a scope, all (the bell). */
+  /** Đánh dấu công việc đã xem: một loại (trang của nó đã mở) hoặc, không có scope, tất cả (chuông). */
   markSeen(scope?: InboxScope): Observable<InboxSummary> {
     return this.http.put<InboxSummary>(`${this.apiUrl}/seen`, scope ? { scope } : {});
   }

@@ -59,7 +59,7 @@
   gap: 4px;
 }
 
-/* Actions are round icon buttons (label in the tooltip); wide screens show the label too. */
+/* Thao tác là nút icon tròn (nhãn trong tooltip); màn hình rộng hiện cả nhãn. */
 .staff-actions button {
   flex-shrink: 0;
   display: inline-flex;
@@ -90,7 +90,7 @@
   white-space: nowrap;
 }
 
-/* ---------- Staff tab: add-account form ---------- */
+/* ---------- Tab nhân viên: form thêm tài khoản ---------- */
 .staff-form {
   position: relative;
   overflow: hidden;
@@ -163,7 +163,7 @@
   opacity: 0.6;
 }
 
-/* ---------- Staff tab: list rows ---------- */
+/* ---------- Tab nhân viên: các dòng danh sách ---------- */
 .staff-row {
   border-bottom: 1px solid #efeafb;
   transition: background 0.15s ease;
@@ -255,7 +255,7 @@
   color: #be123c;
 }
 
-/* Action buttons: soft tinted pills, one colour per action. */
+/* Nút thao tác: viên thuốc nhạt có màu, mỗi thao tác một màu. */
 .act {
   --a: #7c3aed;
   border: 1.5px solid color-mix(in srgb, var(--a) 30%, white);

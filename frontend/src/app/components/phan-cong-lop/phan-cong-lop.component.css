@@ -1,4 +1,4 @@
-/* Colour slots used by the stat tiles, class chips and staff cards. */
+/* Các ô màu dùng cho ô thống kê, chip lớp và thẻ nhân viên. */
 [data-tone='violet'] {
   --tone: #7c3aed;
   --tone-2: #a855f7;
@@ -36,7 +36,7 @@
   --soft: #fecdd3;
 }
 
-/* ---------- Panels ---------- */
+/* ---------- Các panel ---------- */
 .ca-card {
   position: relative;
   overflow: hidden;
@@ -89,7 +89,7 @@
   filter: brightness(1.05);
 }
 
-/* ---------- Stat tiles ---------- */
+/* ---------- Ô thống kê ---------- */
 .ca-stat {
   display: flex;
   align-items: center;
@@ -134,7 +134,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Filters ---------- */
+/* ---------- Bộ lọc ---------- */
 .ca-search {
   position: relative;
 }
@@ -188,7 +188,7 @@
   border-color: #fbbf24;
 }
 
-/* ---------- Class table ---------- */
+/* ---------- Bảng lớp ---------- */
 .ca-table-wrap {
   border: 1.5px solid #e4dcf8;
   border-radius: 18px;
@@ -284,7 +284,7 @@
   --a: #c026d3;
 }
 
-/* ---------- Staff workload cards ---------- */
+/* ---------- Thẻ khối lượng công việc của nhân viên ---------- */
 .ca-staff {
   padding: 16px;
   border: 1.5px solid var(--soft);

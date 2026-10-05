@@ -13,13 +13,13 @@ import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 
 const STRINGEE_SDK_URL = 'https://cdn.stringee.com/sdk/web/latest/stringee-web-sdk.min.js';
-// StringeeCall "signalingstate" codes that mean the call is over (busy / ended).
+// Các mã "signalingstate" của StringeeCall nghĩa là cuộc gọi đã kết thúc (bận / đã kết thúc).
 const STRINGEE_ENDED_CODES = new Set([5, 6]);
 const STRINGEE_ANSWERED_CODE = 3;
 
 type Step = 'setup' | 'calling' | 'result';
 
-// Minimal typing of the global Stringee Web SDK.
+// Khai báo kiểu tối giản cho Stringee Web SDK toàn cục.
 declare const StringeeClient: new () => {
   connect(token: string): void;
   disconnect(): void;
@@ -53,7 +53,7 @@ function loadStringeeSdk(): Promise<void> {
   return sdkPromise;
 }
 
-/** App-wide call dialog: pick student/parent and method, call, then log the outcome. */
+/** Hộp thoại gọi toàn ứng dụng: chọn sinh viên/phụ huynh và phương thức, gọi, rồi ghi kết quả. */
 @Component({
   selector: 'app-call-dialog',
   standalone: true,
@@ -75,10 +75,10 @@ export class CallDialogComponent implements OnDestroy {
   readonly step = signal<Step>('setup');
   readonly target = signal<CallTarget>('sinh_vien');
   readonly method = signal<CallMethod>('dien_thoai');
-  /** Asked before every call; nothing is recorded unless the caller says yes. */
+  /** Hỏi trước mỗi cuộc gọi; không ghi âm gì trừ khi người gọi đồng ý. */
   readonly record = signal<boolean | null>(null);
   readonly stringeeAvailable = signal(false);
-  /** Avatar letters: first and last word of the student's name. */
+  /** Chữ cái đại diện: từ đầu và từ cuối của tên sinh viên. */
   readonly initials = computed(() => {
     const words = (this.request()?.student.fullName ?? '').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '?';
@@ -106,7 +106,7 @@ export class CallDialogComponent implements OnDestroy {
   private stringeeCallId = '';
 
   constructor() {
-    // Reset whenever a new call request opens the dialog.
+    // Đặt lại mỗi khi một yêu cầu gọi mới mở hộp thoại.
     effect(() => {
       const req = this.request();
       if (!req) return;
@@ -120,12 +120,12 @@ export class CallDialogComponent implements OnDestroy {
       this.outcome = '';
       this.note = '';
       this.recordingFile = null;
-      // After the reset above: the cached config answers synchronously on later opens.
+      // Sau lần đặt lại ở trên: cấu hình đã cache trả lời đồng bộ ở các lần mở sau.
       untracked(() =>
         this.calls.config().subscribe({
           next: (c) => {
             this.stringeeAvailable.set(c.stringee);
-            // Prefer the switchboard call whenever the server supports it.
+            // Ưu tiên gọi qua tổng đài bất cứ khi nào máy chủ hỗ trợ.
             if (c.stringee && this.step() === 'setup') this.method.set('stringee');
           },
           error: () => this.stringeeAvailable.set(false),
@@ -173,7 +173,7 @@ export class CallDialogComponent implements OnDestroy {
       });
   }
 
-  /** Phone-dialer calls: the user ends the call on the phone, then taps here. */
+  /** Cuộc gọi qua bàn phím điện thoại: người dùng kết thúc cuộc gọi trên điện thoại, rồi bấm vào đây. */
   finishCalling() {
     this.stopTimer();
     this.hangupStringee();
@@ -216,7 +216,7 @@ export class CallDialogComponent implements OnDestroy {
       });
   }
 
-  /** Close without saving an outcome; a started call stays in history as unfinished. */
+  /** Đóng mà không lưu kết quả; cuộc gọi đã bắt đầu vẫn nằm trong lịch sử ở dạng chưa hoàn tất. */
   close() {
     this.stopTimer();
     this.teardownStringee();
@@ -250,7 +250,7 @@ export class CallDialogComponent implements OnDestroy {
     this.timer = null;
   }
 
-  // ---------------- Stringee (browser → phone through the switchboard) ----------------
+  // ---------------- Stringee (trình duyệt → điện thoại qua tổng đài) ----------------
 
   private async startStringee(
     callLogId: string,
@@ -269,7 +269,7 @@ export class CallDialogComponent implements OnDestroy {
       if (res.r !== 0) return this.stringeeState.set(`Tổng đài từ chối: ${res.message || res.r}`);
       const call = new StringeeCall(client, cfg.from, cfg.to, false);
       this.stringeeCall = call;
-      // answer_url matches this against the call log before connecting.
+      // answer_url đối chiếu giá trị này với bản ghi cuộc gọi trước khi kết nối.
       call.custom = JSON.stringify({ callLogId });
       call.on('addremotestream', (stream: MediaStream) => {
         const audio = document.getElementById('stringee-remote-audio') as HTMLAudioElement | null;
@@ -303,7 +303,7 @@ export class CallDialogComponent implements OnDestroy {
     try {
       this.stringeeCall?.hangup();
     } catch {
-      /* already ended */
+      /* đã kết thúc */
     }
     this.stringeeCall = null;
   }
@@ -313,7 +313,7 @@ export class CallDialogComponent implements OnDestroy {
     try {
       this.stringeeClient?.disconnect();
     } catch {
-      /* already disconnected */
+      /* đã ngắt kết nối */
     }
     this.stringeeClient = null;
   }

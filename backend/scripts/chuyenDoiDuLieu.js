@@ -1,5 +1,5 @@
-// Brings data from older versions up to date. Safe to run on every startup: once
-// converted, nothing matches the legacy names/values and every step is a no-op.
+// Đưa dữ liệu từ các phiên bản cũ lên mới. An toàn khi chạy mỗi lần khởi động: sau khi
+// đã chuyển đổi, không còn gì khớp tên/giá trị cũ nên mọi bước đều không làm gì.
 const mongoose = require('mongoose');
 const CuocGoi = require('../models/CuocGoi');
 const NhiemVu = require('../models/NhiemVu');
@@ -7,7 +7,7 @@ const NhomHocPhan = require('../models/NhomHocPhan');
 const SinhVien = require('../models/SinhVien');
 const { TASK_STATUS_LABEL, SHIFT_LABEL, WEEKDAY_LABEL } = require('../utils/hangSo');
 
-// 1. Old English collection names -> unaccented Vietnamese names.
+// 1. Tên collection tiếng Anh cũ -> tên tiếng Việt không dấu.
 const LEGACY_COLLECTIONS = Object.freeze({
   attendances: 'diem_danh',
   calltasks: 'nhiem_vu_goi_dien',
@@ -27,7 +27,7 @@ async function renameCollections() {
 
   for (const [legacy, name] of Object.entries(LEGACY_COLLECTIONS)) {
     if (!existing.has(legacy)) continue;
-    // Mongoose may already have created the new collection (empty) while building indexes.
+    // Mongoose có thể đã tạo collection mới (rỗng) khi dựng index.
     if (existing.has(name) && (await db.collection(name).estimatedDocumentCount()) > 0) {
       console.warn(`Skipped renaming "${legacy}": "${name}" already has data.`);
       continue;
@@ -75,7 +75,7 @@ async function migrateEnumCodes() {
   if (total) console.log(`Migrated ${total} documents to unaccented enum codes.`);
 }
 
-// 3. Class codes are matched in upper case (class assignments, staff scope); fix older records.
+// 3. Mã lớp được so khớp ở dạng chữ hoa (phân công lớp, phạm vi nhân viên); sửa các bản ghi cũ.
 async function normalizeClassCodes() {
   const { modifiedCount } = await SinhVien.collection.updateMany(
     { classCode: { $type: 'string', $regex: /(^\s|\s$|[a-z])/ } },
@@ -84,7 +84,7 @@ async function normalizeClassCodes() {
   if (modifiedCount) console.log(`Normalized the class code of ${modifiedCount} students.`);
 }
 
-// 4. Calls from before the "record?" question were always recorded; keep them playable.
+// 4. Các cuộc gọi từ trước khi có câu hỏi "ghi âm?" luôn được ghi âm; giữ cho vẫn phát được.
 async function markLegacyRecordings() {
   const { modifiedCount } = await CuocGoi.collection.updateMany(
     {

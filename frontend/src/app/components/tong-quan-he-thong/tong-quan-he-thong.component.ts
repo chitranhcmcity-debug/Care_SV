@@ -11,7 +11,7 @@ const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 type Activity = SystemOverview['activity'][number];
 type CreatedKey = keyof Activity['created'];
 
-// 24px stroke icon paths (Tabler-style).
+// Đường path icon nét 24px (kiểu Tabler).
 const ICONS = {
   users:
     'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
@@ -30,7 +30,7 @@ const ICONS = {
   check: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8.5 12l2.5 2.5 4.5-5',
 };
 
-/** Fills fields an older API may not send yet, so one missing field cannot break the page. */
+/** Điền các trường mà API cũ có thể chưa gửi, để một trường thiếu không làm hỏng trang. */
 function withDefaults(d: SystemOverview): SystemOverview {
   return {
     ...d,
@@ -45,7 +45,7 @@ function withDefaults(d: SystemOverview): SystemOverview {
   };
 }
 
-/** Admin landing tab: accounts, data, 7-day activity, subscription and integrations. */
+/** Tab đầu của admin: tài khoản, dữ liệu, hoạt động 7 ngày, gói dịch vụ và tích hợp. */
 @Component({
   selector: 'app-system-overview',
   standalone: true,
@@ -62,9 +62,9 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
   readonly error = signal('');
   readonly loading = signal(false);
   readonly updatedAt = signal<Date | null>(null);
-  /** Ticks every 30 s for the clock in the welcome banner. */
+  /** Nhảy mỗi 30 giây cho đồng hồ trong banner chào mừng. */
   readonly now = signal(new Date());
-  /** Hovered day in the attendance chart. */
+  /** Ngày đang rê chuột trong biểu đồ điểm danh. */
   readonly hovered = signal<number | null>(null);
   readonly roles: Role[] = ['admin', 'manager', 'staff', 'teacher'];
   readonly roleLabels = ROLE_LABELS;
@@ -73,7 +73,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
 
   readonly userName = computed(() => this.auth.currentUser()?.fullName?.trim() || 'bạn');
 
-  /** Headline cards: current value, what was added in 7 days and a 7-bar sparkline. */
+  /** Thẻ số liệu chính: giá trị hiện tại, phần thêm trong 7 ngày và sparkline 7 cột. */
   readonly stats = computed(() => {
     const d = this.data();
     if (!d) return [];
@@ -134,10 +134,10 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     ];
   });
 
-  /** Top of the stacked attendance chart's axis: the largest day, rounded up. */
+  /** Đỉnh trục của biểu đồ điểm danh dạng chồng: ngày lớn nhất, làm tròn lên. */
   readonly attendanceMax = computed(() => {
     const totals = (this.data()?.activity ?? []).map((a) => this.dayTotal(a));
-    // Four equal steps of 1, 2 or 5 × 10^n so every gridline gets a round label.
+    // Bốn bước đều nhau 1, 2 hoặc 5 × 10^n để mỗi đường lưới có nhãn tròn.
     const raw = Math.max(4, ...totals) / 4;
     const magnitude = 10 ** Math.floor(Math.log10(raw));
     const step = [1, 2, 5, 10].map((m) => m * magnitude).find((v) => v >= raw)!;
@@ -149,7 +149,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return [4, 3, 2, 1, 0].map((i) => Math.round((max * i) / 4));
   });
 
-  /** Calls of the week as donut segments, by how they went. */
+  /** Các cuộc gọi trong tuần dưới dạng các phần donut, theo kết quả. */
   readonly donut = computed(() => {
     const week = this.data()?.callOutcomes;
     if (!week) return null;
@@ -207,12 +207,12 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return (this.data()?.activity ?? []).reduce((sum, day) => sum + day[chart], 0);
   }
 
-  /** Records of one kind created in the last 7 days. */
+  /** Số bản ghi một loại tạo trong 7 ngày qua. */
   added(key: CreatedKey): number {
     return (this.data()?.activity ?? []).reduce((sum, day) => sum + day.created[key], 0);
   }
 
-  /** Running total at the end of each of the 7 days, ending at today's `value`. */
+  /** Tổng lũy kế cuối mỗi ngày trong 7 ngày, kết thúc ở `value` của hôm nay. */
   private cumulative(value: number, key: CreatedKey): number[] {
     const activity = this.data()?.activity ?? [];
     let later = 0;
@@ -224,7 +224,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return totals;
   }
 
-  /** Sparkline bar heights in %, scaled from the smallest to the largest value. */
+  /** Chiều cao cột sparkline theo %, co giãn từ giá trị nhỏ nhất đến lớn nhất. */
   sparkHeights(values: number[]): number[] {
     const max = Math.max(...values);
     const min = Math.min(...values);
@@ -269,7 +269,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return `${Math.round(hours / 24)} ngày trước`;
   }
 
-  /** Share of all accounts held by one role, in % (for the small bar next to each role). */
+  /** Tỷ lệ tài khoản của một vai trò trên tổng, theo % (cho thanh nhỏ cạnh mỗi vai trò). */
   roleShare(role: Role): number {
     const users = this.data()?.users;
     return users?.total ? ((users.byRole[role] || 0) / users.total) * 100 : 0;
@@ -302,7 +302,7 @@ export class SystemOverviewComponent implements OnInit, OnDestroy {
     return (this.data()?.integrations ?? []).filter((i) => !i.configured).map((i) => i.name);
   }
 
-  /** Items for the "Cần chú ý" strip. */
+  /** Các mục cho dải "Cần chú ý". */
   attentionCount(d: SystemOverview): number {
     return (
       Number(!d.subscription.active || d.subscription.daysLeft <= 7) +

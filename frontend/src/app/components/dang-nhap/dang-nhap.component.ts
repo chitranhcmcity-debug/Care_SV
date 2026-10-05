@@ -7,7 +7,7 @@ import { AccountPaymentResult, AccountRenewal, AuthService } from '../../service
 import type { SubscriptionPlan } from '../../services/billing.service';
 import { BrandingService } from '../../services/branding.service';
 
-// Local development accounts. Only fill the username; the password is entered manually.
+// Tài khoản phát triển cục bộ. Chỉ điền tên đăng nhập; mật khẩu nhập thủ công.
 const DEMO_ACCOUNTS = [
   {
     email: 'admin',
@@ -35,7 +35,7 @@ const DEMO_ACCOUNTS = [
   },
 ];
 
-/** Which auth screen this route shows; set through the route's `data.mode`. */
+/** Màn xác thực mà route này hiển thị; đặt qua `data.mode` của route. */
 export type AuthMode = 'login' | 'register' | 'forgot' | 'reset' | 'renew' | 'payment';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -58,30 +58,30 @@ export class LoginComponent implements OnInit {
   confirmPassword = '';
   fullName = '';
   role: 'staff' | 'teacher' | 'manager' = 'teacher';
-  /** Teachers and staff: email of the Trưởng phòng / PHT they work under. */
+  /** Giảng viên và nhân viên: email của Trưởng phòng / PHT mà họ làm việc dưới quyền. */
   managerEmail = '';
-  /** Phone parents can call back on (parents can call back on it). */
+  /** SĐT phụ huynh có thể gọi lại (phụ huynh có thể gọi lại số này). */
   phone = '';
-  /** Plans a Trưởng phòng / PHT buys for their own account (register and renew screens). */
+  /** Các gói Trưởng phòng / PHT mua cho tài khoản của mình (màn đăng ký và gia hạn). */
   plans: SubscriptionPlan[] | null = null;
   planCode = '';
   payosConfigured = true;
-  /** Payment / renewal page for an unpaid or expired Trưởng phòng / PHT account (from login). */
+  /** Trang thanh toán / gia hạn cho tài khoản Trưởng phòng / PHT chưa thanh toán hoặc đã hết hạn (từ đăng nhập). */
   renewUrl = '';
-  /** Renew screen: whose account the emailed link renews. */
+  /** Màn gia hạn: link gửi qua email gia hạn cho tài khoản nào. */
   renewal: AccountRenewal | null = null;
-  /** Payment result screen (PayOS return page). */
+  /** Màn kết quả thanh toán (trang quay về từ PayOS). */
   payment: AccountPaymentResult | null = null;
   showPassword = false;
-  /** Set once the server says this approved account still needs its emailed activation key. */
+  /** Đặt khi máy chủ báo tài khoản đã duyệt này vẫn cần key kích hoạt gửi qua email. */
   needsKey = false;
   activationKey = '';
   loading = false;
   errorMessage = '';
   successMessage = '';
-  /** Reset screen opened without a token in the URL. */
+  /** Màn đặt lại mở mà không có token trong URL. */
   linkMissing = false;
-  /** One-time token from the email link (reset screen). */
+  /** Token dùng một lần từ link trong email (màn đặt lại). */
   private token = '';
   readonly quickAccounts = isDevMode() ? DEMO_ACCOUNTS : [];
 
@@ -143,7 +143,7 @@ export class LoginComponent implements OnInit {
         }
         if (code !== 'ACTIVATION_KEY_REQUIRED' && code !== 'ACTIVATION_KEY_INVALID') return;
         this.needsKey = true;
-        // First ask is guidance, not an error.
+        // Lần hỏi đầu là hướng dẫn, không phải lỗi.
         if (code === 'ACTIVATION_KEY_REQUIRED') {
           this.errorMessage = '';
           this.successMessage = err.error?.message ?? '';
@@ -179,7 +179,7 @@ export class LoginComponent implements OnInit {
           : { managerEmail: this.managerEmail.trim() }),
       }),
       (message, result) => {
-        // Trưởng phòng / PHT: on to PayOS; the account works once the payment is confirmed.
+        // Trưởng phòng / PHT: chuyển sang PayOS; tài khoản hoạt động khi thanh toán được xác nhận.
         if (result.checkoutUrl) {
           window.location.href = result.checkoutUrl;
           return;
@@ -190,7 +190,7 @@ export class LoginComponent implements OnInit {
     );
   }
 
-  /** Register screen: picking Trưởng phòng / PHT loads the plans to buy. */
+  /** Màn đăng ký: chọn Trưởng phòng / PHT sẽ nạp các gói để mua. */
   selectRole(role: 'staff' | 'teacher' | 'manager') {
     this.role = role;
     if (role === 'manager') this.loadPlans();
@@ -234,7 +234,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  /** PayOS return page: confirms the payment with the server. */
+  /** Trang quay về từ PayOS: xác nhận thanh toán với máy chủ. */
   checkPayment() {
     const orderCode = this.route.snapshot.queryParamMap.get('orderCode') || '';
     if (!orderCode) {
@@ -280,7 +280,7 @@ export class LoginComponent implements OnInit {
     return true;
   }
 
-  /** Runs a request with the shared loading / error / success handling. */
+  /** Chạy một request với cách xử lý đang tải / lỗi / thành công dùng chung. */
   private run<T>(
     request: Observable<T>,
     onSuccess: (message: string, result: T) => void,
@@ -292,7 +292,7 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.successMessage = '';
-    // The app is zoneless: async results only reach the screen after markForCheck().
+    // Ứng dụng zoneless: kết quả bất đồng bộ chỉ lên màn hình sau markForCheck().
     request
       .pipe(
         finalize(() => {
@@ -315,7 +315,7 @@ export class LoginComponent implements OnInit {
   }
 
   private redirectByUserRole() {
-    // Only same-app paths, so the query parameter cannot send the user to another site.
+    // Chỉ đường dẫn trong cùng ứng dụng, để tham số truy vấn không đưa người dùng sang trang khác.
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '';
     if (/^\/(?![/\\])/.test(returnUrl)) {
       this.router.navigateByUrl(returnUrl);

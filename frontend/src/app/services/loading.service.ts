@@ -7,15 +7,15 @@ import {
   Router,
 } from '@angular/router';
 
-/** Requests started this long after a navigation ends still count as the page's initial load. */
+/** Các request bắt đầu sau khi điều hướng kết thúc khoảng này vẫn tính là lần tải đầu của trang. */
 const PAGE_LOAD_WINDOW_MS = 800;
-/** Loader appears only if the page is still busy after this delay, so fast loads don't flash. */
+/** Loader chỉ hiện nếu trang vẫn bận sau khoảng trễ này, để các lần tải nhanh không nhấp nháy. */
 const SHOW_DELAY_MS = 200;
 
 /**
- * Drives the full-screen logo loader: busy while a navigation runs (lazy page download) or while
- * the API requests a page fires on open are pending. Background polling and user actions started
- * later are not counted, so they never block the screen.
+ * Điều khiển loader logo toàn màn hình: bận khi đang điều hướng (tải trang lazy) hoặc khi
+ * các request API mà trang bắn ra lúc mở còn đang chờ. Thăm dò nền và thao tác người dùng bắt đầu
+ * sau đó không được tính, nên không bao giờ chặn màn hình.
  */
 @Injectable({ providedIn: 'root' })
 export class LoadingService {
@@ -25,7 +25,7 @@ export class LoadingService {
   private showTimer?: ReturnType<typeof setTimeout>;
 
   private readonly busy = computed(() => this.navigating() || this.pending() > 0);
-  /** True once busy has lasted SHOW_DELAY_MS; read by the loader overlay. */
+  /** True khi busy đã kéo dài SHOW_DELAY_MS; được overlay loader đọc. */
   readonly visible = signal(false);
 
   constructor() {
@@ -44,7 +44,7 @@ export class LoadingService {
     });
   }
 
-  /** Whether a request starting now belongs to the current page load. */
+  /** Một request bắt đầu lúc này có thuộc lần tải trang hiện tại không. */
   isPageLoad(): boolean {
     return this.navigating() || Date.now() <= this.windowUntil;
   }

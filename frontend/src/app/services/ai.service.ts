@@ -9,7 +9,7 @@ export interface ChatMessage {
   content: string;
 }
 
-/** What AI Care helps the signed-in user with (depends on role and permissions). */
+/** AI Care giúp gì cho người dùng đang đăng nhập (tùy vai trò và quyền). */
 export interface AiCareProfile {
   name: string;
   role: string;
@@ -19,7 +19,7 @@ export interface AiCareProfile {
   suggestions: string[];
 }
 
-/** An operation AI Care prepared on the user's behalf; it only runs once they confirm it. */
+/** Một thao tác AI Care chuẩn bị thay mặt người dùng; nó chỉ chạy khi họ xác nhận. */
 export interface AiCareAction {
   id: string;
   title: string;
@@ -63,15 +63,15 @@ export class AiService {
   }
 
   /**
-   * AI Care: hỏi đáp theo vai trò; client gửi lại toàn bộ hội thoại mỗi lượt. `actions` are
-   * operations AI Care prepared (nothing changed yet — the user confirms each one), `navigate`
-   * a page it asked to open.
+   * AI Care: hỏi đáp theo vai trò; client gửi lại toàn bộ hội thoại mỗi lượt. `actions` là
+   * các thao tác AI Care đã chuẩn bị (chưa thay đổi gì — người dùng xác nhận từng cái), `navigate`
+   * một trang nó yêu cầu mở.
    */
   careChat(messages: ChatMessage[]): Observable<AiCareReply> {
     return this.http.post<AiCareReply>(`${this.apiUrl}/care`, { messages });
   }
 
-  /** Runs an action AI Care prepared, after the user pressed Xác nhận. */
+  /** Chạy một thao tác AI Care đã chuẩn bị, sau khi người dùng bấm Xác nhận. */
   confirmCareAction(id: string): Observable<{ message: string; navigate?: string }> {
     return this.http.post<{ message: string; navigate?: string }>(
       `${this.apiUrl}/care/actions/${encodeURIComponent(id)}/confirm`,

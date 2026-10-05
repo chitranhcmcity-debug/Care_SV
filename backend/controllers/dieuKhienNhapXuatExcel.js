@@ -10,7 +10,7 @@ function escapeRegex(str) {
 }
 
 function setupCourseSheetColumns(sheet, groupCode, courseName) {
-  // Title row
+  // Dòng tiêu đề
   sheet.mergeCells('A1:D1');
   const titleCell = sheet.getCell('A1');
   titleCell.value = `DANH SÁCH SINH VIÊN - ${groupCode}${courseName ? ' | ' + courseName : ''}`;
@@ -19,7 +19,7 @@ function setupCourseSheetColumns(sheet, groupCode, courseName) {
   titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
   sheet.getRow(1).height = 25;
 
-  // Header row 2
+  // Dòng tiêu đề cột (dòng 2)
   sheet.columns = [
     { key: 'studentCode', width: 16 },
     { key: 'fullName', width: 30 },
@@ -34,13 +34,13 @@ function setupCourseSheetColumns(sheet, groupCode, courseName) {
   headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
   headerRow.height = 22;
 
-  // Instruction row 3
+  // Dòng hướng dẫn (dòng 3)
   const instrRow = sheet.getRow(3);
   instrRow.values = ['← Bắt buộc (9 số)', '← Bắt buộc', '← Có thể để trống', '← Có thể để trống'];
   instrRow.font = { italic: true, size: 9, color: { argb: 'FF6B7280' } };
   instrRow.height = 16;
 
-  // Override columns to start data at row 4
+  // Ghi đè các cột để dữ liệu bắt đầu từ dòng 4
   sheet._headerRowCount = 3;
 }
 
@@ -83,7 +83,7 @@ async function exportCourseTemplate(req, res, next) {
       });
     } else {
       for (const group of courseGroups) {
-        // Excel worksheet name max 31 chars, clean special chars
+        // Tên sheet Excel tối đa 31 ký tự, bỏ ký tự đặc biệt
         const sheetName = (group.groupCode || 'HocPhan')
           .replace(/[*?:/\\[\]]/g, '_')
           .substring(0, 31);
@@ -168,7 +168,7 @@ async function importByCourse(req, res, next) {
 
       // Tìm header row (có chứa "MSSV" hoặc "mã")
       let headerRowIndex = -1;
-      let colMap = {}; // colNumber → fieldName
+      let colMap = {}; // số cột → tên trường
 
       worksheet.eachRow((row, rowNumber) => {
         if (headerRowIndex !== -1) return;
@@ -192,7 +192,7 @@ async function importByCourse(req, res, next) {
       });
 
       if (headerRowIndex === -1) {
-        // Fallback: assume row 2 is header (after title)
+        // Dự phòng: coi dòng 2 là tiêu đề (sau dòng tiêu đề lớn)
         headerRowIndex = 2;
         const headerRow = worksheet.getRow(2);
         headerRow.eachCell((cell, colNumber) => {
@@ -206,8 +206,8 @@ async function importByCourse(req, res, next) {
         });
       }
 
-      // Process data rows
-      // getRow() creates missing rows and grows rowCount, so fix the bound up front.
+      // Xử lý các dòng dữ liệu
+      // getRow() tạo các dòng còn thiếu và làm tăng rowCount, nên chốt giới hạn ngay từ đầu.
       const lastRow = worksheet.rowCount;
       for (let r = headerRowIndex + 1; r <= lastRow; r++) {
         const row = worksheet.getRow(r);
@@ -218,7 +218,7 @@ async function importByCourse(req, res, next) {
         let phone = '';
         let parentPhone = '';
 
-        // If no colMap found, use positional: col1=MSSV, col2=Name, col3=phone, col4=parentPhone
+        // Nếu không tìm thấy colMap, dùng theo vị trí: cột 1 = MSSV, cột 2 = tên, cột 3 = SĐT, cột 4 = SĐT phụ huynh
         if (Object.keys(colMap).length === 0) {
           const vals = row.values;
           studentCode = String(vals[1] || '').trim();
@@ -237,7 +237,7 @@ async function importByCourse(req, res, next) {
           });
         }
 
-        // Skip invalid/example rows
+        // Bỏ qua dòng không hợp lệ / dòng ví dụ
         if (!studentCode || studentCode.length < 5) continue;
         if (fullName.includes('Ví dụ') || fullName.includes('Example')) continue;
 
@@ -246,13 +246,13 @@ async function importByCourse(req, res, next) {
           const student = await SinhVien.findOneAndUpdate(
             { studentCode },
             {
-              // Blank cells must not wipe existing data.
+              // Ô trống không được xóa dữ liệu hiện có.
               $set: {
                 ...(fullName ? { fullName } : {}),
                 ...(phone ? { phone } : {}),
                 ...(parentPhone ? { parentPhone } : {}),
               },
-              // Only seed the home class for new students; never overwrite it afterwards.
+              // Chỉ gán lớp sinh hoạt cho sinh viên mới; không bao giờ ghi đè sau đó.
               $setOnInsert: {
                 classCode: normalizeClass(sheetName.split('_').pop() || sheetName),
               },
@@ -363,7 +363,10 @@ async function exportTemplate(req, res, next) {
     }
 
     res.setHeader('Content-Type', XLSX_MIME);
-    res.setHeader('Content-Disposition', 'attachment; filename="Danh_Sach_Sinh_Vien_Theo_Lop.xlsx"');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Danh_Sach_Sinh_Vien_Theo_Lop.xlsx"',
+    );
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
@@ -424,8 +427,7 @@ async function importData(req, res, next) {
           const cellVal =
             cell.value !== null && cell.value !== undefined ? String(cell.value).trim() : '';
           if (colHeader.includes('mã sv') || colHeader.includes('mssv')) studentCode = cellVal;
-          else if (colHeader.includes('họ và tên') || colHeader.includes('tên'))
-            fullName = cellVal;
+          else if (colHeader.includes('họ và tên') || colHeader.includes('tên')) fullName = cellVal;
           else if (colHeader.includes('ngày sinh')) dob = cellVal;
           else if (colHeader.includes('ngành')) major = cellVal;
           else if (colHeader.includes('sđt sinh viên') || colHeader.includes('sđt sv'))

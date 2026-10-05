@@ -37,7 +37,7 @@ export interface AnalyticsSummary {
     examBanRiskCount: number;
     warningCount: number;
   };
-  /** Configured levels (mildest first) with how many students reached each. */
+  /** Các mức đã cấu hình (nhẹ nhất trước) kèm số sinh viên đạt mỗi mức. */
   warningLevels: (WarningLevel & { count: number })[];
   warningList: WarningRow[];
   courseAbsenceStats: { courseCode: string; absentCount: number }[];

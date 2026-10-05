@@ -4,7 +4,7 @@ import { CareCase } from '../../services/care-case.service';
 import { CARE_SOURCE_LABELS, CARE_STATUS, CARE_STATUS_LABELS } from '../../models/types';
 import { CareIconComponent } from './bieu-tuong-cham-soc.component';
 
-/** Presentational header; editing and closing remain owned by the care page. */
+/** Tiêu đề chỉ hiển thị; việc sửa và đóng vẫn thuộc trang chăm sóc. */
 @Component({
   selector: 'app-care-header',
   standalone: true,

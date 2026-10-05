@@ -14,7 +14,7 @@ const {
 } = require('../utils/hangSo');
 
 const CACHE_MS = 30 * 1000;
-// Per unit: { [unitId]: { levels, expires } }.
+// Theo từng đơn vị: { [unitId]: { levels, expires } }.
 const cache = new Map();
 
 const plain = (level) => ({
@@ -25,7 +25,7 @@ const plain = (level) => ({
   examBan: Boolean(level.examBan),
 });
 
-/** The unit's warning levels, mildest first (defaults until its manager saves their own). */
+/** Các mức cảnh báo của đơn vị, nhẹ nhất trước (mặc định cho đến khi trưởng phòng lưu mức riêng). */
 async function getWarningLevels() {
   const key = String(await settingsUnit());
   const hit = cache.get(key);
@@ -42,14 +42,14 @@ function clearWarningCache() {
   cache.clear();
 }
 
-// ------------------------------- Timetable -------------------------------
+// ------------------------------- Thời khóa biểu -------------------------------
 
 const toMinutes = (hhmm) => {
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 };
 
-/** Class hours of a course group (its own, or the default of its shift). */
+/** Giờ học của một học phần (của riêng nó, hoặc mặc định theo ca). */
 function classHours(group) {
   const fallback = DEFAULT_SHIFT_TIMES[group.shift] || DEFAULT_SHIFT_TIMES.sang;
   return {
@@ -58,7 +58,7 @@ function classHours(group) {
   };
 }
 
-/** Every scheduled class date between startDate and endDate (empty when there is no startDate). */
+/** Mọi ngày học theo lịch giữa startDate và endDate (rỗng khi không có startDate). */
 function scheduledDates(group) {
   if (!group.startDate) return [];
   const days = (group.scheduleDays || [])
@@ -76,7 +76,7 @@ function scheduledDates(group) {
   return dates;
 }
 
-/** Whether the group has a class on `date` (weekday in the schedule, within start/end dates). */
+/** Học phần có buổi học vào `date` hay không (thứ nằm trong lịch, trong khoảng ngày bắt đầu/kết thúc). */
 function hasClassOn(group, date) {
   const weekday = date.getDay();
   if (!(group.scheduleDays || []).some((d) => WEEKDAY_INDEX[d] === weekday)) return false;
@@ -87,10 +87,10 @@ function hasClassOn(group, date) {
 }
 
 /**
- * When a teacher may take attendance for `group` right now:
- * - only on a scheduled class day;
- * - the first record from ATTENDANCE_EARLY_MINUTES before class until the class ends;
- * - after the class ends the session is final (locked), whether or not it was taken.
+ * Khi nào giảng viên được điểm danh cho `group` ngay lúc này:
+ * - chỉ vào ngày có lịch học;
+ * - bản ghi đầu tiên từ ATTENDANCE_EARLY_MINUTES trước giờ học đến khi hết giờ học;
+ * - sau khi hết giờ học, buổi đó được chốt (khóa), dù đã điểm danh hay chưa.
  */
 function attendanceWindow(group, { hasRecordToday = false, now = new Date() } = {}) {
   const { startTime, endTime } = classHours(group);
@@ -119,9 +119,9 @@ function attendanceWindow(group, { hasRecordToday = false, now = new Date() } = 
   };
 }
 
-// ------------------------------- Periods & warnings -------------------------------
+// ------------------------------- Số tiết & cảnh báo -------------------------------
 
-/** Periods per session and total periods of a group (totalPeriods null when unknown). */
+/** Số tiết mỗi buổi và tổng số tiết của một học phần (totalPeriods là null khi chưa biết). */
 function periodInfo(group) {
   const periodsPerSession = group.periodsPerSession || DEFAULT_PERIODS_PER_SESSION;
   const planned = scheduledDates(group).length * periodsPerSession;
@@ -129,7 +129,7 @@ function periodInfo(group) {
   return { periodsPerSession, totalPeriods };
 }
 
-/** Highest level reached (levels are ordered mildest → most severe), or null. */
+/** Mức cao nhất đạt được (các mức xếp từ nhẹ nhất → nặng nhất), hoặc null. */
 function levelFor(absentPeriods, percent, levels) {
   let reached = null;
   for (const level of levels) {
@@ -139,7 +139,7 @@ function levelFor(absentPeriods, percent, levels) {
   return reached;
 }
 
-/** Absence figures and warning level for `absentSessions` unexcused absences in `group`. */
+/** Số liệu vắng và mức cảnh báo cho `absentSessions` buổi vắng không phép trong `group`. */
 function evaluate(absentSessions, info, levels) {
   const absentPeriods = absentSessions * info.periodsPerSession;
   const percent = info.totalPeriods
@@ -154,7 +154,7 @@ function evaluate(absentSessions, info, levels) {
   };
 }
 
-/** Human-readable rule list for prompts and reports. */
+/** Danh sách quy tắc dễ đọc cho prompt và báo cáo. */
 const describeLevels = (levels) =>
   levels
     .map(

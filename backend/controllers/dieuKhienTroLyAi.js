@@ -14,14 +14,14 @@ const { can } = require('../services/dichVuPhanQuyen');
 const { assert, validateId, parseOptionalDate } = require('../utils/kiemTra');
 const { staffProgress } = require('../services/dichVuTienDoNhanVien');
 
-// [{ _id: status, count }] for every document matching `match`.
+// [{ _id: trạng thái, count }] cho mọi tài liệu khớp `match`.
 function countByStatus(Model, match = {}) {
   return Model.aggregate([{ $match: match }, { $group: { _id: '$status', count: { $sum: 1 } } }]);
 }
 const formatStatusCounts = (groups) =>
   groups.map((g) => `${toLabel(g._id)}: ${g.count}`).join(', ');
 
-// Text-only { role, content } history resent by the client each turn.
+// Lịch sử { role, content } chỉ gồm văn bản, client gửi lại mỗi lượt.
 function validateConversation(messages) {
   assert(Array.isArray(messages) && messages.length > 0, 'Cần ít nhất 1 tin nhắn');
   assert(messages.length <= 20, 'Cuộc trò chuyện quá dài, vui lòng bắt đầu lại');
@@ -46,7 +46,7 @@ async function careChat(req, res, next) {
   try {
     const messages = req.body?.messages;
     validateConversation(messages);
-    // Actions the model prepared this turn (shown as Confirm / Cancel cards) and a page to open.
+    // Các thao tác mô hình đã chuẩn bị trong lượt này (hiện thành thẻ Xác nhận / Hủy) và trang cần mở.
     const ctx = { actions: [], navigate: null };
     const reply = await aiService.chatWithTools({
       system: await aiCare.systemPromptFor(req.user),

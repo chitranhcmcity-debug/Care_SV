@@ -1,5 +1,5 @@
 <div class="mx-4 md:mx-6 my-5 space-y-5">
-  <!-- Filters -->
+  <!-- Bộ lọc -->
   <section class="card-3d filter-card p-5 pt-6 flex flex-wrap gap-3 items-end">
     <div class="flex-1 min-w-[220px] space-y-1.5">
       <label for="student-search" class="filter-label">🔎 Tìm kiếm</label>
@@ -43,7 +43,7 @@
     </button>
   </section>
 
-  <!-- List -->
+  <!-- Danh sách -->
   <section class="card-3d overflow-x-auto">
     <table class="student-table w-full text-sm">
       <thead>
@@ -150,7 +150,7 @@
   </section>
 </div>
 
-<!-- Profile drawer -->
+<!-- Ngăn hồ sơ -->
 <div
   *ngIf="selected() as s"
   class="profile-backdrop fixed inset-0 z-50 bg-slate-900/40 flex justify-end"
@@ -163,7 +163,7 @@
     aria-modal="true"
     [attr.aria-label]="'Hồ sơ ' + s.fullName"
   >
-    <!-- Cover -->
+    <!-- Ảnh bìa -->
     <div class="profile-cover">
       <svg viewBox="0 0 400 132" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <circle cx="340" cy="20" r="70" fill="#ffffff" fill-opacity="0.12" />
@@ -189,7 +189,7 @@
     </div>
 
     <div class="px-6 pb-8 space-y-6">
-      <!-- Identity -->
+      <!-- Nhận diện -->
       <div>
         <div
           class="profile-avatar"
@@ -216,7 +216,7 @@
         </div>
       </div>
 
-      <!-- Contacts -->
+      <!-- Liên hệ -->
       <div class="grid grid-cols-2 gap-3">
         <a *ngIf="s.phone; else noPhone" class="contact-card" [href]="'tel:' + s.phone">
           <span class="icon-bubble bg-sky-50">📱</span>
@@ -256,7 +256,7 @@
         </ng-template>
       </div>
 
-      <!-- Stats -->
+      <!-- Thống kê -->
       <div class="grid grid-cols-2 gap-3">
         <div class="stat-card stat-card--rose">
           <div class="text-2xl">🗓️</div>
@@ -283,7 +283,7 @@
         📞 Gọi sinh viên / phụ huynh
       </button>
 
-      <!-- Care case -->
+      <!-- Hồ sơ chăm sóc -->
       <section class="space-y-2">
         <h3 class="section-title">🗂️ Hồ sơ chăm sóc</h3>
         <button
@@ -342,7 +342,7 @@
         </div>
       </section>
 
-      <!-- Recent calls -->
+      <!-- Cuộc gọi gần đây -->
       <section class="space-y-3">
         <h3 class="section-title">☎️ Cuộc gọi gần đây</h3>
         <div *ngIf="!studentCalls().length" class="empty-state">
@@ -398,7 +398,7 @@
         </button>
       </section>
 
-      <!-- Timeline -->
+      <!-- Dòng thời gian -->
       <section class="space-y-3">
         <h3 class="section-title">✨ Dòng thời gian chăm sóc</h3>
         <div *ngIf="profile() && !profile()!.timeline.length" class="empty-state">
@@ -448,7 +448,7 @@
   </aside>
 </div>
 
-<!-- Add / edit form -->
+<!-- Form thêm / sửa -->
 <div
   *ngIf="form as f"
   class="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4"

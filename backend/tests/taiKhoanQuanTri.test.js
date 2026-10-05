@@ -21,7 +21,7 @@ test('first admin is created from the environment once, and only while no admin 
     assert.equal(first.user.role, 'admin');
     assert.equal(await bcrypt.compare(env.ADMIN_PASSWORD, first.user.password), true);
 
-    // Later restarts leave the existing admin (and its password) alone.
+    // Các lần khởi động lại sau để yên admin hiện có (và mật khẩu của nó).
     const again = await ensureInitialAdmin({ ...env, ADMIN_PASSWORD: 'another-long-password' });
     assert.equal(again.reason, 'exists');
     const stored = await mongoose.model('NguoiDung').findById(first.user._id);

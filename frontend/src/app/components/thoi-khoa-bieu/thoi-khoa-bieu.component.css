@@ -156,7 +156,7 @@
   box-shadow: 0 8px 16px -8px #9333ea;
 }
 
-/* ---------- List view ---------- */
+/* ---------- Chế độ danh sách ---------- */
 .tt-list {
   overflow-x: auto;
   border: 1.5px solid #ebe5fb;
@@ -264,7 +264,7 @@
   box-shadow: 0 14px 28px -16px rgb(30 27 75 / 0.6);
 }
 
-/* ---------- Week grid: separate day columns, one row per hour ---------- */
+/* ---------- Lưới tuần: mỗi ngày một cột riêng, mỗi giờ một dòng ---------- */
 .tt-scroll {
   overflow-x: auto;
   padding-bottom: 6px;
@@ -364,7 +364,7 @@
   box-shadow: 0 18px 28px -12px #7c3aed;
 }
 
-/* ---------- Class cards (colour per course) ---------- */
+/* ---------- Thẻ lớp học (mỗi học phần một màu) ---------- */
 [data-tone='0'] {
   --tone: #ea580c;
   --tone-2: #fb923c;
@@ -488,7 +488,7 @@
   font-weight: 700;
 }
 
-/* ---------- Session popup ---------- */
+/* ---------- Popup buổi học ---------- */
 .tt-overlay {
   position: fixed;
   inset: 0;
@@ -581,7 +581,7 @@
   }
 }
 
-/* ---------- Fit fixes: all 7 days visible, cards fill their hours ---------- */
+/* ---------- Chỉnh vừa khung: hiện đủ 7 ngày, thẻ lấp đầy các giờ của nó ---------- */
 .tt-grid {
   grid-template-columns: 76px repeat(7, minmax(0, 1fr));
   column-gap: 8px;

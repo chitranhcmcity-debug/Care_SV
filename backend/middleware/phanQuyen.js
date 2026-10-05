@@ -7,11 +7,11 @@ const { assert, validateId, normalizeClass } = require('../utils/kiemTra');
 const { can } = require('../services/dichVuPhanQuyen');
 
 /**
- * Whether a user may see (and call) a student:
- * - Roles granted 'students.view' (Trưởng phòng by default; admin read-only): every student.
- * - Giảng viên: students enrolled in a course group they teach.
- * - Nhân viên CSSV: students of the administrative classes currently assigned to them, and any
- *   student whose open care case they were directed to.
+ * Người dùng có được xem (và gọi) một sinh viên không:
+ * - Vai trò được cấp 'students.view' (mặc định là Trưởng phòng; admin chỉ đọc): mọi sinh viên.
+ * - Giảng viên: sinh viên đăng ký trong học phần họ dạy.
+ * - Nhân viên CSSV: sinh viên của các lớp sinh hoạt hiện được giao cho họ, và mọi
+ *   sinh viên có hồ sơ chăm sóc đang mở mà họ được chỉ đạo.
  */
 async function canAccessStudent(user, student) {
   if (can(user, 'students.view')) return true;
@@ -31,14 +31,14 @@ async function canAccessStudent(user, student) {
   return false;
 }
 
-/** Whether the user oversees attendance of every course group (read side). */
+/** Người dùng có giám sát điểm danh của mọi học phần không (phía đọc). */
 const seesAllCourses = (user) =>
   can(user, 'attendance.view') || can(user, 'reports.view') || can(user, 'students.view');
 /**
- * Loads the course group (from :courseGroupId, body.courseGroupId or :attendanceId) and checks access.
- * mode 'read': the teacher of the group, or anyone who oversees attendance.
- * mode 'write': only the teacher of the group (with attendance.take); overseers only look.
- * The teacher's time window is enforced by the attendance routes.
+ * Nạp học phần (từ :courseGroupId, body.courseGroupId hoặc :attendanceId) và kiểm tra quyền truy cập.
+ * chế độ 'read': giảng viên của học phần, hoặc người có quyền giám sát điểm danh.
+ * chế độ 'write': chỉ giảng viên của học phần (có attendance.take); bên giám sát chỉ xem.
+ * Khung giờ của giảng viên được các route điểm danh kiểm soát.
  */
 const courseAccess = (mode) => async (req, res, next) => {
   try {

@@ -24,11 +24,11 @@ const {
   sendPasswordResetEmail,
 } = require('../services/dichVuEmail');
 
-// Self sign-up: Trưởng phòng / PHT approve new accounts, then the applicant enters the key.
+// Tự đăng ký: Trưởng phòng / PHT duyệt tài khoản mới, rồi người đăng ký nhập key.
 const WAITING_APPROVAL = ['pending', 'unverified'];
 const REGISTRATION_STATUSES = [...WAITING_APPROVAL, 'awaiting_key'];
 const ACTIVATION_KEY_DAYS = 7;
-// Unambiguous characters (no 0/O, 1/I/L) so a key copied by hand still works.
+// Ký tự không gây nhầm lẫn (không có 0/O, 1/I/L) để key chép tay vẫn dùng được.
 const KEY_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function newActivationKey() {
   const chars = Array.from(
@@ -42,19 +42,19 @@ const normalizeKey = (value) =>
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, '');
 const RESET_MINUTES = 30;
-// Minimum gap between two emails to the same address, so the forms cannot be used to spam.
+// Khoảng cách tối thiểu giữa hai email gửi tới cùng một địa chỉ, tránh form bị lạm dụng để spam.
 const EMAIL_COOLDOWN_MS = 60 * 1000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SELF_REGISTER_ROLES = ['staff', 'teacher'];
-// A Trưởng phòng / PHT may also sign up, but only by paying for their own plan.
+// Trưởng phòng / PHT cũng có thể tự đăng ký, nhưng chỉ bằng cách mua gói riêng của mình.
 const PAID_REGISTER_ROLE = 'manager';
-// Roles an admin may give an account (admins are not created through the UI).
+// Các vai trò quản trị viên được gán cho tài khoản (admin không được tạo qua giao diện).
 const ASSIGNABLE_ROLES = ['staff', 'teacher', 'manager'];
 
 /**
- * Hands back the work tied to an account's current role before it changes role or is deleted:
- * a staff member's classes are released (history kept, open calls go to the manager's queue),
- * a teacher is taken off the course groups they teach.
+ * Trả lại công việc gắn với vai trò hiện tại của tài khoản trước khi đổi vai trò hoặc xóa:
+ * lớp của nhân viên được giải phóng (giữ lịch sử, cuộc gọi đang mở chuyển về hàng chờ của quản lý),
+ * giảng viên được gỡ khỏi các học phần đang dạy.
  */
 async function releaseRoleWork(user, by, reason) {
   if (user.role === 'staff') await releaseStaffClasses(user, by, reason);
@@ -67,7 +67,7 @@ function newToken() {
   const token = crypto.randomBytes(32).toString('base64url');
   return { token, hash: hashToken(token) };
 }
-// True when a token with this lifetime was issued less than EMAIL_COOLDOWN_MS ago.
+// Đúng khi token có thời hạn này được cấp cách đây chưa đến EMAIL_COOLDOWN_MS.
 const issuedRecently = (expires, lifetimeMs) =>
   Boolean(expires) && expires.getTime() - lifetimeMs + EMAIL_COOLDOWN_MS > Date.now();
 
@@ -75,7 +75,7 @@ function readEmail(value) {
   assert(typeof value === 'string' && EMAIL_PATTERN.test(value.trim()), 'Email không hợp lệ');
   return value.trim().toLowerCase();
 }
-// Optional phone (parents can call back on it).
+// SĐT tùy chọn (phụ huynh có thể gọi lại).
 function readPhone(value) {
   if (value === undefined || value === null) return undefined;
   assert(typeof value === 'string', 'Số điện thoại không hợp lệ');
@@ -89,24 +89,24 @@ function assertPassword(value) {
     'Mật khẩu phải có từ 8 đến 128 ký tự',
   );
 }
-// A password the admin typed (same rules as sign-up), or a random 16-character one.
+// Mật khẩu do admin nhập (cùng quy tắc với đăng ký), hoặc mật khẩu ngẫu nhiên 16 ký tự.
 function chosenOrRandomPassword(value) {
   assert(value === undefined || typeof value === 'string', 'Mật khẩu không hợp lệ');
   if (!value || !value.trim()) return crypto.randomBytes(12).toString('base64url');
   assertPassword(value.trim());
   return value.trim();
 }
-// Never sent to the browser: password hash and one-time token / key hashes.
+// Không bao giờ gửi về trình duyệt: mật khẩu băm và các token / key dùng một lần đã băm.
 const PRIVATE_FIELDS = '-password -verifyTokenHash -resetTokenHash -activationKeyHash';
 
-// Optional allow-list, e.g. SIGNUP_EMAIL_DOMAINS=itc.edu.vn — empty means any domain.
+// Danh sách tên miền cho phép (tùy chọn), vd SIGNUP_EMAIL_DOMAINS=itc.edu.vn — để trống là cho mọi tên miền.
 const signupDomains = () =>
   (process.env.SIGNUP_EMAIL_DOMAINS || '')
     .split(',')
     .map((d) => d.trim().toLowerCase())
     .filter(Boolean);
 
-// "ch***@gmail.com": enough for the holder to recognise, without exposing the address.
+// "ch***@gmail.com": đủ để chủ tài khoản nhận ra mà không lộ địa chỉ.
 const maskEmail = (email) => email.replace(/^(.{1,2})[^@]*/, '$1***');
 
 const renewalAccount = async (token) => {
@@ -125,7 +125,7 @@ const findRegistration = async (id) => {
   return user;
 };
 
-/** Active manager whose unit a staff member or teacher joins (admin picks one). */
+/** Trưởng phòng đang hoạt động mà nhân viên hoặc giảng viên sẽ thuộc đơn vị của họ (admin chọn). */
 async function findUnitManager(managerId) {
   assert(
     /^[a-f\d]{24}$/i.test(String(managerId || '')),
@@ -236,10 +236,10 @@ function me(req, res) {
   res.json({ user: { id, fullName, email, phone, role, status, accessExpiresAt }, permissions });
 }
 
-// Teachers and staff: the account stays 'pending' until a Trưởng phòng / PHT approves it; every
-// active manager is emailed. Approval emails the applicant an activation key for the login.
-// Trưởng phòng / PHT: must buy a plan (body.planCode). The account waits in 'awaiting_payment'
-// and is activated, with a receipt emailed, as soon as PayOS confirms the payment.
+// Giảng viên và nhân viên: tài khoản ở trạng thái 'pending' cho đến khi Trưởng phòng / PHT duyệt; mọi
+// trưởng phòng đang hoạt động đều nhận email. Duyệt xong sẽ gửi cho người đăng ký key kích hoạt để đăng nhập.
+// Trưởng phòng / PHT: phải mua gói (body.planCode). Tài khoản chờ ở trạng thái 'awaiting_payment'
+// và được kích hoạt, kèm biên lai qua email, ngay khi PayOS xác nhận thanh toán.
 async function register(req, res, next) {
   try {
     const { fullName, email, password, role, planCode, managerEmail } = req.body ?? {};
@@ -280,7 +280,7 @@ async function register(req, res, next) {
         .json({ message: 'Yêu cầu vừa được gửi. Vui lòng chờ 1 phút rồi thử lại.' });
     }
     if (isPaid) {
-      // Registering again before paying replaces the details and opens a new payment link.
+      // Đăng ký lại trước khi thanh toán sẽ thay thông tin và mở link thanh toán mới.
       const isNewAccount = !user;
       const fields = {
         fullName: fullName.trim(),
@@ -296,7 +296,7 @@ async function register(req, res, next) {
       };
       if (user) user.set(fields);
       else user = new NguoiDung({ email: normalizedEmail, ...fields });
-      user.unitId = user._id; // a new, empty unit of their own
+      user.unitId = user._id; // một đơn vị mới, trống, của riêng họ
       await user.save();
       let order;
       try {
@@ -311,7 +311,7 @@ async function register(req, res, next) {
       });
     }
 
-    // The applicant joins this manager's unit; only this manager can approve them.
+    // Người đăng ký vào đơn vị của trưởng phòng này; chỉ trưởng phòng này duyệt được.
     assert(
       typeof managerEmail === 'string' && EMAIL_PATTERN.test(managerEmail.trim()),
       'Vui lòng nhập email của Trưởng phòng / Phó hiệu trưởng quản lý bạn',
@@ -327,7 +327,7 @@ async function register(req, res, next) {
       404,
     );
 
-    // Registering again while waiting simply replaces the details and asks again.
+    // Đăng ký lại trong lúc chờ chỉ thay thông tin và gửi yêu cầu lại.
     const isNew = !user;
     const fields = {
       fullName: fullName.trim(),
@@ -372,7 +372,7 @@ async function register(req, res, next) {
   }
 }
 
-// ---- Own plans of self-registered Trưởng phòng / PHT accounts (public, no sign-in) ----
+// ---- Gói riêng của tài khoản Trưởng phòng / PHT tự đăng ký (công khai, không cần đăng nhập) ----
 
 async function getAccountPlans(req, res, next) {
   try {
@@ -406,8 +406,8 @@ async function createAccountOrder(req, res, next) {
   }
 }
 
-// Called by the PayOS return page. Asks PayOS directly (so it works where PayOS cannot reach the
-// webhook) and reports the result.
+// Gọi bởi trang quay về từ PayOS. Hỏi thẳng PayOS (nên chạy được cả khi PayOS không gọi tới
+// webhook) rồi trả kết quả.
 async function syncAccountOrder(req, res, next) {
   try {
     const code = Number(req.params.orderCode);
@@ -447,7 +447,7 @@ async function listRegistrations(req, res, next) {
   }
 }
 
-// Issues a fresh activation key and emails it; approving again re-sends a new key.
+// Cấp key kích hoạt mới và gửi email; duyệt lại sẽ gửi key mới.
 async function approveRegistration(req, res, next) {
   try {
     const user = await findRegistration(req.params.id);
@@ -470,8 +470,8 @@ async function approveRegistration(req, res, next) {
         ? `Đã xác nhận và gửi key kích hoạt tới ${user.email}.`
         : 'Đã xác nhận nhưng không gửi được email. Hãy gửi key bên dưới cho người đăng ký.',
       emailSent,
-      // Always returned: a provider can accept the email yet never deliver it, so the manager
-      // can hand the key over another way.
+      // Luôn trả về: nhà cung cấp có thể nhận email nhưng không bao giờ chuyển tới, nên trưởng phòng
+      // có thể chuyển key bằng cách khác.
       activationKey: key,
     });
   } catch (error) {
@@ -490,7 +490,7 @@ async function rejectRegistration(req, res, next) {
   }
 }
 
-// Always answers the same way so the form cannot be used to discover which emails exist.
+// Luôn trả lời giống nhau để form không bị dùng dò xem email nào tồn tại.
 async function forgotPassword(req, res, next) {
   try {
     const normalizedEmail = readEmail(req.body?.email);
@@ -532,7 +532,7 @@ async function resetPassword(req, res, next) {
       'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu liên kết mới.',
     );
     user.password = await bcrypt.hash(password, 10);
-    user.tokenVersion = (user.tokenVersion || 0) + 1; // sign out every existing session
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // đăng xuất mọi phiên hiện có
     user.resetTokenHash = null;
     user.resetTokenExpires = null;
     await user.save();
@@ -599,7 +599,7 @@ async function createStaff(req, res, next) {
 
 async function listStaff(req, res, next) {
   try {
-    // Admins see every unit, with the manager who owns each account's unit.
+    // Admin thấy mọi đơn vị, kèm trưởng phòng sở hữu đơn vị của từng tài khoản.
     const staffs = await NguoiDung.find({ role: { $ne: 'admin' } })
       .select(PRIVATE_FIELDS)
       .populate(req.user.role === 'admin' ? { path: 'unitId', select: 'fullName email' } : [])
@@ -610,7 +610,7 @@ async function listStaff(req, res, next) {
   }
 }
 
-// Update staff info & optional password/role.
+// Cập nhật thông tin nhân viên, kèm mật khẩu/vai trò (tùy chọn).
 async function updateStaff(req, res, next) {
   try {
     const { fullName, email, password, role } = req.body;
@@ -694,7 +694,7 @@ async function setStaffStatus(req, res, next) {
       return res.status(400).json({ message: 'Trạng thái không hợp lệ' });
     }
 
-    // Admin accounts are never locked from here, so the system always keeps an administrator.
+    // Tài khoản admin không bao giờ bị khóa từ đây, để hệ thống luôn còn một quản trị viên.
     const updated = await NguoiDung.findOneAndUpdate(
       { _id: req.params.id, role: { $ne: 'admin' } },
       { status, $inc: { tokenVersion: 1 } },

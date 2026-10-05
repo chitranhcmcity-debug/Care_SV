@@ -1,5 +1,5 @@
 <div class="space-y-5">
-  <!-- Welcome banner (replaces the generic page header on this tab) -->
+  <!-- Banner chào mừng (thay header trang chung ở tab này) -->
   <section class="ov-hero relative overflow-hidden rounded-[26px] text-white">
     <svg
       class="ov-hero-art"
@@ -16,7 +16,7 @@
         stroke-width="2"
         fill="none"
       />
-      <!-- campus skyline -->
+      <!-- đường chân trời khuôn viên -->
       <g fill="#fff" fill-opacity="0.13">
         <rect x="360" y="120" width="70" height="100" rx="4" />
         <rect x="440" y="90" width="90" height="130" rx="4" />
@@ -61,7 +61,7 @@
         </p>
       </div>
 
-      <!-- mascot with two speech bubbles built from live numbers -->
+      <!-- linh vật với hai bong bóng thoại dựng từ số liệu thật -->
       <div class="relative hidden lg:block w-[300px] h-[150px]" aria-hidden="true">
         <div *ngIf="data() as d" class="ov-bubble absolute left-0 top-0">
           <b>{{ d.warnings.count }}</b> sinh viên đang ở mức cảnh báo
@@ -105,7 +105,7 @@
         />
       </div>
 
-      <!-- date / time card -->
+      <!-- thẻ ngày / giờ -->
       <div class="ov-clock rounded-2xl px-5 py-4 flex items-center gap-4">
         <span
           class="w-12 h-12 rounded-2xl bg-amber-300/90 text-amber-700 grid place-items-center shrink-0"
@@ -175,7 +175,7 @@
   </div>
 
   <ng-container *ngIf="data() as d">
-    <!-- Headline numbers -->
+    <!-- Số liệu chính -->
     <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
       <div
         *ngFor="let s of stats()"
@@ -222,7 +222,7 @@
       </div>
     </div>
 
-    <!-- Needs attention strip -->
+    <!-- Dải cần chú ý -->
     <div
       *ngIf="attentionCount(d)"
       class="ov-attention flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-3.5 rounded-2xl text-sm text-amber-900"
@@ -265,9 +265,9 @@
       </span>
     </div>
 
-    <!-- Attendance · calls · warnings -->
+    <!-- Điểm danh · cuộc gọi · cảnh báo -->
     <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[1.45fr_1fr_1fr] gap-5">
-      <!-- Stacked attendance chart -->
+      <!-- Biểu đồ điểm danh dạng chồng -->
       <section class="ov-card p-5 space-y-4 lg:col-span-2 2xl:col-span-1">
         <div class="ov-card-head">
           <h4>
@@ -377,7 +377,7 @@
         </div>
       </section>
 
-      <!-- Call tasks donut -->
+      <!-- Donut nhiệm vụ gọi -->
       <section *ngIf="donut() as dn" class="ov-card p-5 space-y-4">
         <div class="ov-card-head">
           <h4>
@@ -430,7 +430,7 @@
         </div>
       </section>
 
-      <!-- Latest warnings -->
+      <!-- Cảnh báo mới nhất -->
       <section class="ov-card p-5 space-y-3">
         <div class="ov-card-head">
           <h4>
@@ -491,7 +491,7 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
-      <!-- Accounts by role + newest accounts -->
+      <!-- Tài khoản theo vai trò + tài khoản mới nhất -->
       <section class="ov-card p-5 space-y-4">
         <div class="ov-card-head">
           <h4>
@@ -556,7 +556,7 @@
         </div>
       </section>
 
-      <!-- Subscription: days left as a ring -->
+      <!-- Gói dịch vụ: số ngày còn lại dạng vòng -->
       <section class="ov-card p-5 space-y-4">
         <div class="ov-card-head">
           <h4>
@@ -625,7 +625,7 @@
         </div>
       </section>
 
-      <!-- Integrations -->
+      <!-- Tích hợp -->
       <section class="ov-card p-5 space-y-3">
         <div class="ov-card-head">
           <h4>

@@ -11,7 +11,7 @@
     </div>
   </div>
 
-  <!-- Add Staff Form -->
+  <!-- Form thêm nhân viên -->
   <form
     (ngSubmit)="createStaffAccount()"
     class="staff-form p-6 pt-7 grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
@@ -100,7 +100,7 @@
     </button>
   </form>
 
-  <!-- Prominent Persistent Generated Password Display Card with 1-Click Copy -->
+  <!-- Thẻ hiển thị mật khẩu vừa tạo nổi bật và giữ lại, kèm sao chép một chạm -->
   <div
     *ngIf="staffCreatedMsg || staffGeneratedPass"
     class="p-5 rounded-2xl bg-emerald-50 text-emerald-900 space-y-3 animate-fade-in border border-emerald-200"
@@ -139,7 +139,7 @@
     </div>
   </div>
 
-  <!-- Staff List Table -->
+  <!-- Bảng danh sách nhân viên -->
   <div
     class="staff-table-container card-3d"
     role="region"

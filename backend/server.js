@@ -1,6 +1,6 @@
 require('dotenv').config();
-// Attendance days and class-time windows use local time; default to Vietnam when the host
-// (e.g. a cloud container in UTC) does not set TZ.
+// Ngày điểm danh và khung giờ học dùng giờ địa phương; mặc định là giờ Việt Nam khi máy chủ
+// (vd container cloud dùng UTC) không đặt TZ.
 process.env.TZ ||= 'Asia/Ho_Chi_Minh';
 const mongoose = require('mongoose');
 const app = require('./app');
@@ -19,9 +19,9 @@ async function startServer() {
     }
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
     await require('./scripts/chuyenDoiDuLieu')();
-    // Class assignments made before assignment history existed get their history records.
+    // Các phân công lớp tạo trước khi có lịch sử phân công sẽ được bổ sung bản ghi lịch sử.
     await require('./services/dichVuPhanCongLop').syncLegacyAssignments();
-    // API keys an admin saved in the UI take precedence over .env.
+    // Khóa API admin lưu trên giao diện được ưu tiên hơn .env.
     await require('./services/dichVuCauHinhApi').migrateAiToTrikun();
     await require('./services/dichVuCauHinhApi').applyIntegrations();
     if (config.seedDemo) await require('./scripts/taoDuLieuMau')();
@@ -29,14 +29,14 @@ async function startServer() {
     if (admin.created) console.log('Created the first admin account:', admin.user.email);
     else if (admin.reason === 'not-configured')
       console.warn('No admin account yet: set ADMIN_EMAIL and ADMIN_PASSWORD, then restart.');
-    // Every account and record belongs to a unit (each Trưởng phòng / PHT owns one).
+    // Mọi tài khoản và bản ghi đều thuộc một đơn vị (mỗi Trưởng phòng / PHT sở hữu một đơn vị).
     await require('./scripts/ganDonVi').assignUnits();
     server = await new Promise((resolve, reject) => {
       const listener = app.listen(config.port, '0.0.0.0', () => resolve(listener));
       listener.on('error', reject);
     });
     console.log('Backend listening on port', config.port);
-    // Renewal reminders for Trưởng phòng / PHT accounts that pay for their own plan.
+    // Nhắc gia hạn cho các tài khoản Trưởng phòng / PHT tự trả tiền gói riêng.
     require('./services/dichVuGiaHanTaiKhoan').startRenewalReminders();
     let stopping = false;
     const stop = async () => {

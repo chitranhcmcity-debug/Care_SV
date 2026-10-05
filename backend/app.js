@@ -31,19 +31,19 @@ const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .filter(Boolean);
 app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : false }));
 app.disable('x-powered-by');
-// gzip/brotli for JSON and the Angular bundle; audio and images are skipped as incompressible.
+// nén gzip/brotli cho JSON và bundle Angular; bỏ qua âm thanh và ảnh vì không nén được thêm.
 app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Route Registration
-// Always reachable, so users can sign in and an admin can renew an expired subscription.
+// Đăng ký route
+// Luôn truy cập được, để người dùng đăng nhập và quản trị viên gia hạn gói đã hết hạn.
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/billing', billingRoutes);
 app.use('/api/overview', overviewRoutes);
-// Business features: locked with 402 once the subscription has expired.
+// Tính năng nghiệp vụ: bị khóa (mã 402) khi gói dịch vụ đã hết hạn.
 app.use('/api/excel', requireActiveSubscription, excelRoutes);
 app.use('/api/attendance', requireActiveSubscription, attendanceRoutes);
 app.use('/api/care-cases', requireActiveSubscription, careCaseRoutes);
@@ -64,9 +64,9 @@ app.get('/api/health', (req, res) =>
 app.use('/api', (req, res) => res.status(404).json({ message: 'API not found' }));
 const frontendDist = path.join(__dirname, '../frontend/dist/frontend/browser');
 if (fs.existsSync(frontendDist)) {
-  // Build output has content hashes in its names (main-AB12CD34.js), so it never changes and
-  // can be cached for a year; other public files (fonts, images) for a week. index.html is
-  // always revalidated so a new deploy is picked up at once.
+  // Thư mục build có mã băm trong tên file (main-AB12CD34.js) nên nội dung không bao giờ đổi,
+  // có thể cache một năm; các file public khác (font, ảnh) cache một tuần. index.html
+  // luôn được kiểm tra lại để bản deploy mới có hiệu lực ngay.
   app.use(
     express.static(frontendDist, {
       index: false,

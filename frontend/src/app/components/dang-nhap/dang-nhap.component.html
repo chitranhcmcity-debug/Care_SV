@@ -2,12 +2,12 @@
   <div
     class="lg-shell min-h-screen sm:min-h-[calc(100vh-2rem)] lg:h-[calc(100vh-2.5rem)] lg:min-h-[600px] grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]"
   >
-    <!-- Left: form -->
+    <!-- Trái: form -->
     <div
       class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20 lg:overflow-y-auto"
       [ngClass]="mode === 'login' || mode === 'register' ? 'py-6' : 'py-8'"
     >
-      <!-- Brand -->
+      <!-- Thương hiệu -->
       <a routerLink="/" class="relative flex items-center gap-3 w-fit">
         <img [src]="branding.logo()" alt="Logo ITC" width="48" height="48" class="object-contain" />
         <div class="leading-tight">
@@ -30,7 +30,7 @@
                 : 'max-w-[420px] space-y-7'
           "
         >
-          <!-- Heading -->
+          <!-- Tiêu đề -->
           <div class="space-y-2" [ngSwitch]="mode">
             <ng-container *ngSwitchCase="'register'">
               <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
@@ -90,7 +90,7 @@
             </ng-container>
           </div>
 
-          <!-- Error Alert -->
+          <!-- Cảnh báo lỗi -->
           <div
             *ngIf="errorMessage"
             role="alert"
@@ -117,7 +117,7 @@
             </span>
           </div>
 
-          <!-- Success Alert -->
+          <!-- Thông báo thành công -->
           <div
             *ngIf="successMessage"
             role="status"
@@ -138,7 +138,7 @@
             <span>{{ successMessage }}</span>
           </div>
 
-          <!-- Password field used by login / register / reset -->
+          <!-- Trường mật khẩu dùng cho đăng nhập / đăng ký / đặt lại -->
           <ng-template #passwordField let-id="id" let-label="label" let-autocomplete="autocomplete">
             <div class="space-y-1.5">
               <label [for]="id" class="block text-sm font-medium text-slate-700">{{ label }}</label>
@@ -171,7 +171,7 @@
                   [title]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                   class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                 >
-                  <!-- eye -->
+                  <!-- mắt -->
                   <svg
                     *ngIf="!showPassword"
                     class="w-5 h-5"
@@ -186,7 +186,7 @@
                     />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
-                  <!-- eye-off -->
+                  <!-- mắt gạch -->
                   <svg
                     *ngIf="showPassword"
                     class="w-5 h-5"
@@ -206,7 +206,7 @@
             </div>
           </ng-template>
 
-          <!-- Confirm-password field used by register / reset -->
+          <!-- Trường xác nhận mật khẩu dùng cho đăng ký / đặt lại -->
           <ng-template #confirmField>
             <div class="space-y-1.5">
               <label for="confirm-password" class="block text-sm font-medium text-slate-700"
@@ -225,7 +225,7 @@
             </div>
           </ng-template>
 
-          <!-- Plan picker (Trưởng phòng / PHT sign-up and renewal) -->
+          <!-- Chọn gói (đăng ký và gia hạn của Trưởng phòng / PHT) -->
           <ng-template #planPicker>
             <fieldset class="space-y-1.5">
               <legend class="block text-sm font-medium text-slate-700 mb-1.5">Gói dịch vụ</legend>
@@ -265,7 +265,7 @@
             </fieldset>
           </ng-template>
 
-          <!-- Submit button shared by every form -->
+          <!-- Nút gửi dùng chung cho mọi form -->
           <ng-template #submitButton let-label="label" let-busy="busy">
             <button
               type="submit"
@@ -316,7 +316,7 @@
             </button>
           </ng-template>
 
-          <!-- ============ LOGIN ============ -->
+          <!-- ============ ĐĂNG NHẬP ============ -->
           <ng-container *ngIf="mode === 'login'">
             <form (ngSubmit)="onLogin()" class="space-y-3" novalidate>
               <div class="space-y-1.5">
@@ -379,7 +379,7 @@
                 "
               ></ng-container>
 
-              <!-- Shown once the server asks for the key emailed after a manager's approval. -->
+              <!-- Hiện khi máy chủ yêu cầu key đã gửi qua email sau khi quản lý duyệt. -->
               <div *ngIf="needsKey" class="space-y-1.5">
                 <label for="login-key" class="block text-sm font-medium text-slate-700"
                   >Key kích hoạt</label
@@ -425,7 +425,7 @@
               >
             </p>
 
-            <!-- Quick login (dev builds only) -->
+            <!-- Đăng nhập nhanh (chỉ bản dev) -->
             <div *ngIf="quickAccounts.length" class="space-y-2">
               <div class="flex items-center gap-3 text-xs text-slate-400">
                 <span class="h-px flex-1 bg-slate-200"></span>
@@ -466,7 +466,7 @@
             </div>
           </ng-container>
 
-          <!-- ============ REGISTER ============ -->
+          <!-- ============ ĐĂNG KÝ ============ -->
           <ng-container *ngIf="mode === 'register'">
             <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-4" novalidate>
               <fieldset class="space-y-1.5">
@@ -506,7 +506,7 @@
                     </span>
                   </label>
 
-                  <!-- Leadership: full width, gold accents and a star badge -->
+                  <!-- Lãnh đạo: toàn chiều rộng, điểm nhấn vàng và huy hiệu ngôi sao -->
                   <label
                     class="lg-role lg-role--lead col-span-2"
                     [class.is-selected]="role === 'manager'"
@@ -537,12 +537,12 @@
                 </div>
               </fieldset>
 
-              <!-- Trưởng phòng / PHT: pick the plan to pay for -->
+              <!-- Trưởng phòng / PHT: chọn gói cần thanh toán -->
               <ng-container *ngIf="role === 'manager'">
                 <ng-container *ngTemplateOutlet="planPicker"></ng-container>
               </ng-container>
 
-              <!-- Teachers and staff join the unit of the leader they name; that leader approves. -->
+              <!-- Giảng viên và nhân viên vào đơn vị của lãnh đạo mà họ nêu tên; lãnh đạo đó duyệt. -->
               <div *ngIf="role !== 'manager'" class="lg-lead-field space-y-1.5">
                 <label for="register-manager" class="block text-sm font-medium text-slate-700"
                   >Email Trưởng phòng / Phó hiệu trưởng quản lý bạn</label
@@ -690,7 +690,7 @@
             </p>
           </ng-container>
 
-          <!-- ============ PAYMENT RESULT (PayOS return page) ============ -->
+          <!-- ============ KẾT QUẢ THANH TOÁN (trang quay về từ PayOS) ============ -->
           <ng-container *ngIf="mode === 'payment'">
             <div *ngIf="payment" class="space-y-4">
               <div
@@ -735,7 +735,7 @@
             >
           </ng-container>
 
-          <!-- ============ FORGOT PASSWORD ============ -->
+          <!-- ============ QUÊN MẬT KHẨU ============ -->
           <ng-container *ngIf="mode === 'forgot'">
             <form *ngIf="!successMessage" (ngSubmit)="onForgot()" class="space-y-5" novalidate>
               <div class="space-y-1.5">
@@ -769,7 +769,7 @@
             </p>
           </ng-container>
 
-          <!-- ============ RESET PASSWORD ============ -->
+          <!-- ============ ĐẶT LẠI MẬT KHẨU ============ -->
           <ng-container *ngIf="mode === 'reset'">
             <form
               *ngIf="!successMessage && !linkMissing"
@@ -817,7 +817,7 @@
       </p>
     </div>
 
-    <!-- Right: brand panel (illustrative preview, not live data) -->
+    <!-- Phải: khung thương hiệu (xem trước minh họa, không phải dữ liệu thật) -->
     <div class="lg-right hidden lg:flex relative overflow-hidden text-white" aria-hidden="true">
       <svg class="lg-right-art" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
         <circle cx="560" cy="560" r="230" fill="#fff" fill-opacity="0.08" />
@@ -841,7 +841,7 @@
       </svg>
 
       <div class="relative flex flex-col w-full min-h-0 px-10 py-8 xl:px-12">
-        <!-- Floating preview cards + mascot -->
+        <!-- Thẻ xem trước nổi + linh vật -->
         <div class="relative flex-1 min-h-[330px]">
           <p class="lg-script hidden xl:block absolute left-2 top-2">
             Your Future<br />&nbsp;&nbsp;&nbsp;Our Care ♡

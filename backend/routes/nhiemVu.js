@@ -12,11 +12,11 @@ const {
   requireRoles,
 } = require('../middleware/xacThuc');
 
-// Only the assigned staff member acts on a task (acknowledge / submit) — not admins.
+// Chỉ nhân viên được giao mới xử lý nhiệm vụ (xác nhận / nộp) — admin thì không.
 const requireStaff = requireRoles('staff');
 
-// ---- Evidence file upload (disk storage; served back through an authenticated route,
-// never express.static, so evidence isn't reachable by anyone who guesses the URL) ----
+// ---- Upload file minh chứng (lưu trên đĩa; trả lại qua route có xác thực,
+// không dùng express.static, để minh chứng không bị truy cập chỉ vì đoán được URL) ----
 const ALLOWED_MIME = new Set([
   'image/jpeg',
   'image/png',

@@ -25,7 +25,7 @@ const TONES: Record<ToastType, { icon: string; iconBox: string; bar: string }> =
   },
 };
 
-/** Renders NotificationService toasts and the confirm dialog. Mounted once in app.html. */
+/** Hiển thị toast của NotificationService và hộp thoại xác nhận. Gắn một lần trong app.html. */
 @Component({
   selector: 'app-notifications',
   standalone: true,
@@ -89,7 +89,7 @@ export class NotificationsComponent {
   readonly trackById = (_: number, toast: Toast) => toast.id;
 
   constructor() {
-    // Move keyboard focus into each dialog as it opens (input first, else the confirm button).
+    // Chuyển tiêu điểm bàn phím vào mỗi hộp thoại khi mở (ô nhập trước, không có thì nút xác nhận).
     effect(() => {
       if (!this.notify.pendingConfirm()) return;
       setTimeout(() => document.querySelector<HTMLElement>('[data-dialog-autofocus]')?.focus());

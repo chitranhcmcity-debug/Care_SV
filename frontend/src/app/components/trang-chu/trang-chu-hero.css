@@ -1,6 +1,6 @@
-/* Hero banner video. Desktop: the video fills the top of the hero, the copy sits on the left
-   on a light veil (the robot flies on the right side of the clip). Phones and tablets: the video
-   is a rounded card above the copy. */
+/* Video banner hero. Desktop: video phủ phần trên của hero, nội dung nằm bên trái
+   trên một lớp sương sáng (robot bay ở bên phải clip). Điện thoại và máy tính bảng: video
+   là một thẻ bo tròn phía trên nội dung. */
 .hero {
   --hero-h: clamp(560px, calc(100vh - 80px), 780px);
 }
@@ -34,7 +34,7 @@
     box-shadow: none;
   }
   .hero-video {
-    /* Keep the robot (right third of the clip) in frame on narrower desktops. */
+    /* Giữ robot (một phần ba bên phải của clip) trong khung trên desktop hẹp hơn. */
     object-position: 72% center;
   }
   .hero-veil {
@@ -56,7 +56,7 @@
   }
   .hero-copy {
     max-width: 680px;
-    /* Nudged in from the left edge, toward the middle of the banner. */
+    /* Đẩy vào từ mép trái, về phía giữa banner. */
     margin-left: clamp(0px, 4vw, 72px);
   }
 }

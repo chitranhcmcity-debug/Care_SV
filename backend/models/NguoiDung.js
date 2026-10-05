@@ -5,31 +5,31 @@ const NguoiDungSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    // Phone parents can call back on (shown to staff when calling).
+    // SĐT phụ huynh có thể gọi lại (hiển thị cho nhân viên khi gọi).
     phone: { type: String, default: '', trim: true },
     tokenVersion: { type: Number, default: 0 },
     password: { type: String, required: true },
     // manager = Trưởng phòng / Phó hiệu trưởng
     role: { type: String, enum: ['admin', 'manager', 'staff', 'teacher'], default: 'staff' },
-    // Self sign-up: 'pending' = waiting for a Trưởng phòng / PHT to approve,
-    // 'awaiting_key' = approved, the activation key was emailed and must be entered at login.
-    // 'unverified' is the old email-link state; such accounts are treated as 'pending'.
-    // 'awaiting_payment' = a self-registered Trưởng phòng / PHT who has not paid for a plan yet.
+    // Tự đăng ký: 'pending' = đang chờ Trưởng phòng / PHT duyệt,
+    // 'awaiting_key' = đã duyệt, key kích hoạt đã gửi email và phải nhập khi đăng nhập.
+    // 'unverified' là trạng thái cũ qua link email; các tài khoản này được xem như 'pending'.
+    // 'awaiting_payment' = Trưởng phòng / PHT tự đăng ký nhưng chưa thanh toán gói.
     status: {
       type: String,
       enum: ['active', 'inactive', 'pending', 'awaiting_key', 'unverified', 'awaiting_payment'],
       default: 'active',
     },
-    // One-time tokens and keys are stored as SHA-256 hashes, never in plain text.
+    // Token và key dùng một lần được lưu dạng băm SHA-256, không bao giờ lưu dạng thô.
     verifyTokenHash: { type: String, default: null },
     verifyTokenExpires: { type: Date, default: null },
     activationKeyHash: { type: String, default: null },
     activationKeyExpires: { type: Date, default: null },
-    // Own plan of a self-registered Trưởng phòng / PHT; null = no own plan (admin-created).
-    // Past this date the account cannot sign in until it is renewed.
+    // Gói riêng của Trưởng phòng / PHT tự đăng ký; null = không có gói riêng (do admin tạo).
+    // Quá ngày này tài khoản không đăng nhập được cho đến khi gia hạn.
     accessExpiresAt: { type: Date, default: null },
     accessPlan: { type: String, default: '' },
-    // The expiry date each reminder was last sent for, so every reminder goes out once.
+    // Ngày hết hạn mà mỗi lần nhắc đã gửi gần nhất, để mỗi lần nhắc chỉ gửi một lần.
     renewalReminderFor: { type: Date, default: null },
     expiredNoticeFor: { type: Date, default: null },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'NguoiDung', default: null },
@@ -37,7 +37,7 @@ const NguoiDungSchema = new mongoose.Schema(
     resetTokenExpires: { type: Date, default: null },
     // Lớp hành chính đang phụ trách (nhân viên CSSV); lịch sử ở LichSuPhanCong.
     managedClasses: [{ type: String }],
-    // When the user last looked at each kind of work (bell or its page); newer work is unseen.
+    // Lần gần nhất người dùng xem từng loại công việc (chuông hoặc trang của nó); việc mới hơn là chưa xem.
     notificationsSeen: {
       care: { type: Date, default: null },
       tasks: { type: Date, default: null },
@@ -60,7 +60,7 @@ NguoiDungSchema.set('toJSON', {
   },
 });
 
-// unitId: the unit an account works in (a manager owns their own; admins have none).
+// unitId: đơn vị mà tài khoản làm việc (trưởng phòng sở hữu đơn vị riêng; admin không có).
 NguoiDungSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('NguoiDung', NguoiDungSchema, 'nguoi_dung');

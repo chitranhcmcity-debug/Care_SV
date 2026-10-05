@@ -84,7 +84,7 @@
   transform: translateY(-50%);
 }
 
-/* ---------- Right panel ---------- */
+/* ---------- Panel bên phải ---------- */
 .lg-right {
   background: linear-gradient(160deg, #7c6cf6 0%, #8b5cf6 35%, #a855f7 70%, #c084fc 100%);
 }
@@ -196,13 +196,13 @@
   color: #fff;
   box-shadow: 0 12px 22px -12px rgb(30 27 75 / 0.6);
 }
-/* Keep browser autofill from painting the fields blue. */
+/* Không để trình duyệt tự điền tô xanh các trường. */
 .lg-input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 100px #f8f7fd inset;
   -webkit-text-fill-color: #0f172a;
 }
 
-/* ===== Register: compact role tiles; the leadership tile stands out with gold accents. ===== */
+/* ===== Đăng ký: ô vai trò gọn; ô lãnh đạo nổi bật với điểm nhấn vàng. ===== */
 .lg-register .lg-input {
   height: 44px;
 }

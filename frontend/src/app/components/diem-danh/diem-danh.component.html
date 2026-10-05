@@ -1,9 +1,9 @@
 <div class="font-sans text-slate-800">
   <!-- ========================================================= -->
-  <!-- MAIN CONTAINER: ADAPTIVE MOBILE & DESKTOP PC UI           -->
+  <!-- KHUNG CHÍNH: GIAO DIỆN THÍCH ỨNG DI ĐỘNG & MÁY TÍNH           -->
   <!-- ========================================================= -->
   <main class="mx-4 md:mx-6 my-5 space-y-5">
-    <!-- Mode switcher: a slim toolbar under the page title; pinned under the app bar on mobile -->
+    <!-- Chuyển chế độ: thanh công cụ mỏng dưới tiêu đề trang; ghim dưới thanh ứng dụng trên di động -->
     <div
       class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 md:static md:flex md:bg-white md:border md:border-slate-200 md:px-4 md:py-3 md:rounded-2xl md:shadow-sm items-center justify-between gap-4"
     >
@@ -11,7 +11,7 @@
         Xin chào <b class="text-slate-800">{{ currentUser?.fullName }}</b> — chọn chế độ làm việc:
       </p>
 
-      <!-- PC Quick Mode Selector Tabs -->
+      <!-- Tab chọn chế độ nhanh trên máy tính -->
       <div
         class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-sm md:shadow-none"
       >
@@ -58,7 +58,7 @@
     <!-- TAB 1: TRANG CHỦ DASHBOARD TỔNG QUAN      -->
     <!-- ========================================== -->
     <div *ngIf="activeTab === 'home'" class="space-y-5 animate-fade-in">
-      <!-- Welcome Hero Banner (Mobile) -->
+      <!-- Banner chào mừng (di động) -->
       <div
         class="md:hidden bg-violet-600 text-white p-5 rounded-3xl shadow-sm relative overflow-hidden"
       >
@@ -77,7 +77,7 @@
         </div>
       </div>
 
-      <!-- Quick Stats 4 Grid -->
+      <!-- Lưới 4 thống kê nhanh -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           (click)="activeTab = 'attendance'"
@@ -198,7 +198,7 @@
         </div>
       </div>
 
-      <!-- Fast Action Shortcuts Grid -->
+      <!-- Lưới phím tắt thao tác nhanh -->
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
         <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-500">
           Lối Tắt Thao Tác Nhanh Văn Phòng
@@ -240,7 +240,7 @@
     <!-- TAB 2: ĐIỂM DANH LỚP HỌC                   -->
     <!-- ========================================== -->
     <div *ngIf="activeTab === 'attendance'" class="space-y-5 animate-fade-in">
-      <!-- Class picker: compact, searchable, filtered by shift -->
+      <!-- Chọn lớp: gọn, tìm kiếm được, lọc theo ca -->
       <section class="at-card at-picker">
         <div class="at-picker-head">
           <h3 class="at-title">
@@ -318,7 +318,7 @@
         </div>
       </section>
 
-      <!-- Selected class: status of the book + view switch -->
+      <!-- Lớp đã chọn: trạng thái sổ + chuyển chế độ xem -->
       <section *ngIf="selectedGroup" class="at-card at-status">
         <div class="at-status-info">
           <div class="at-status-name">
@@ -405,7 +405,7 @@
           </button>
         </div>
 
-        <!-- Attendance book -->
+        <!-- Sổ điểm danh -->
         <section class="at-card at-book">
           <header class="at-book-head">
             <div class="at-book-title">
@@ -429,7 +429,7 @@
             </div>
           </header>
 
-          <!-- Filters -->
+          <!-- Bộ lọc -->
           <div *ngIf="selectedGroup && allSessions.length" class="at-filters">
             <label class="at-search">
               <svg
@@ -618,7 +618,7 @@
           </div>
         </section>
 
-        <!-- BOTTOM FLOATING ACTION BAR -->
+        <!-- THANH THAO TÁC NỔI Ở DƯỚI -->
         <div
           *ngIf="selectedGroup && activeSession && !isSessionLocked(activeSession)"
           class="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-auto md:min-w-[860px] lg:min-w-[940px]"
@@ -626,7 +626,7 @@
           <div
             class="bg-white/95 backdrop-blur-xl text-slate-800 px-4 sm:px-6 md:px-7 py-3.5 md:py-4 rounded-2xl md:rounded-[1.35rem] shadow-[0_18px_55px_-12px_rgba(76,29,149,0.38)] border border-violet-200/80 ring-1 ring-white/80 flex items-center gap-3 sm:gap-5 md:gap-6 flex-wrap md:flex-nowrap justify-center md:justify-between"
           >
-            <!-- Session Label & Counter -->
+            <!-- Nhãn buổi & bộ đếm -->
             <div class="flex items-center gap-3 pr-3 sm:pr-5 border-r border-slate-200">
               <div
                 class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-50 border border-violet-200 text-violet-700 flex items-center justify-center text-lg md:text-xl font-bold shadow-sm"
@@ -662,7 +662,7 @@
               </div>
             </div>
 
-            <!-- Quick Actions -->
+            <!-- Thao tác nhanh -->
             <div class="flex items-center gap-2 md:gap-3">
               <button
                 type="button"
@@ -682,7 +682,7 @@
               </button>
             </div>
 
-            <!-- Primary Save Button -->
+            <!-- Nút lưu chính -->
             <button
               type="button"
               (click)="submitMatrixSession(activeSession)"
@@ -703,7 +703,7 @@
         </div>
       </div>
 
-      <!-- Attendance Summary Tab -->
+      <!-- Tab tóm tắt điểm danh -->
       <div *ngIf="attendanceMode === 'summary'" class="space-y-4">
         <div
           class="bg-white/95 border border-slate-200/80 rounded-3xl shadow-xl shadow-slate-200/40 overflow-hidden backdrop-blur-sm"
@@ -973,7 +973,7 @@
         </div>
       </div>
 
-      <!-- Submit Result Toast (enhanced) -->
+      <!-- Toast kết quả gửi (nâng cấp) -->
       <div *ngIf="submitResult" class="fixed top-5 right-5 z-[9999] max-w-md w-full">
         <div
           class="bg-white border border-emerald-200 rounded-2xl shadow-2xl p-5 space-y-3 animate-fade-in"
@@ -1134,7 +1134,7 @@
   </main>
 
   <!-- ========================================================= -->
-  <!-- MODAL 2: INSTANT STUDENT LOOKUP MODAL                     -->
+  <!-- MODAL 2: TRA CỨU SINH VIÊN NHANH                     -->
   <!-- ========================================================= -->
   <div
     *ngIf="showLookupModal"
@@ -1171,7 +1171,7 @@
           </button>
         </div>
 
-        <!-- Lookup Result Detail Card -->
+        <!-- Thẻ chi tiết kết quả tra cứu -->
         <div
           *ngIf="lookupResult"
           class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs space-y-2 text-slate-800"
@@ -1209,7 +1209,7 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- MODAL 3: CHANGE PASSWORD MODAL                            -->
+  <!-- MODAL 3: ĐỔI MẬT KHẨU                            -->
   <!-- ========================================================= -->
   <div
     *ngIf="showPasswordModal"

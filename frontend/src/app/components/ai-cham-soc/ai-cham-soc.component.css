@@ -1,5 +1,5 @@
-/* AI Care robot launcher: wandering is driven by the component (transform + duration, and
-   which facing image is shown); bobbing and the shadow are pure CSS. */
+/* Nút mở robot AI Care: việc đi lang thang do component điều khiển (transform + thời lượng, và
+   ảnh hướng nhìn nào được hiển thị); nhấp nhô và bóng đổ chỉ dùng CSS. */
 .robot-launcher {
   --rb-accent-1: #6d5dfc;
   --rb-glow: rgba(99, 102, 241, 0.4);
@@ -13,7 +13,7 @@
   border: 0;
   background: none;
   cursor: grab;
-  /* The robot can be dragged with a finger without scrolling the page. */
+  /* Robot kéo được bằng ngón tay mà không cuộn trang. */
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
@@ -45,7 +45,7 @@
 .robot-launcher:hover .robot-float {
   animation-duration: 1.4s;
 }
-/* Both facings are stacked; switching direction cross-fades instead of popping. */
+/* Cả hai hướng nhìn được xếp chồng; đổi hướng thì chuyển mờ dần thay vì giật. */
 .robot-img {
   position: absolute;
   inset: 0;
@@ -61,7 +61,7 @@
   opacity: 1;
 }
 
-/* Picked up: a little bigger, no tooltip, and the shadow drops away. */
+/* Khi được nhấc lên: to hơn một chút, không tooltip, và bóng đổ biến mất. */
 .robot-launcher.is-dragging {
   cursor: grabbing;
 }
@@ -117,7 +117,7 @@
   transform: translate(-50%, -2px);
 }
 
-/* Chat panel: same brand gradient and pastel tone as the landing page and the sidebar. */
+/* Khung chat: cùng gradient thương hiệu và tông pastel với trang chủ và sidebar. */
 .ai-panel {
   background: #fff;
   border: 1.5px solid var(--card-border);
@@ -149,7 +149,7 @@ button.ai-grad:not(:disabled):hover {
   background-position: 100% 50%;
 }
 
-/* "AI Care is looking things up": three bouncing dots. */
+/* "AI Care đang tra cứu": ba chấm nhảy. */
 .ai-typing {
   display: inline-flex;
   gap: 3px;
@@ -179,7 +179,7 @@ button.ai-grad:not(:disabled):hover {
   }
 }
 
-/* Action proposal card in the chat. */
+/* Thẻ đề xuất thao tác trong chat. */
 .action-card {
   margin-left: 4px;
   max-width: 92%;

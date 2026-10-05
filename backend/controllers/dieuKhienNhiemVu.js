@@ -215,7 +215,7 @@ async function submit(req, res, next) {
         'Link minh chứng phải bắt đầu bằng http:// hoặc https://',
       );
     }
-    // A resubmission after rejection replaces the previous evidence set (deleted once saved).
+    // Nộp lại sau khi bị từ chối sẽ thay thế bộ minh chứng cũ (xóa sau khi lưu xong).
     const previousFiles = req.task.evidenceFiles.toObject();
     req.task.evidenceNote = note ? note.trim() : '';
     req.task.evidenceLink = link ? link.trim() : '';
@@ -234,7 +234,7 @@ async function submit(req, res, next) {
     await req.task.populate(taskPopulation);
     res.json({ message: 'Đã nộp minh chứng, chờ sếp duyệt!', task: req.task });
   } catch (error) {
-    // Files of a rejected submission must not stay on disk.
+    // File của lần nộp bị từ chối không được để lại trên đĩa.
     for (const file of files) fs.unlink(file.path, () => {});
     next(error);
   }

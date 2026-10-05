@@ -35,7 +35,7 @@ const round = (value, digits = 1) =>
 const average = (values) =>
   values.length ? values.reduce((sum, v) => sum + v, 0) / values.length : null;
 
-// The due date is a calendar day: work handed in any time that day is on time.
+// Hạn chót là một ngày dương lịch: việc nộp vào bất kỳ lúc nào trong ngày đó đều đúng hạn.
 const deadlineOf = (task) => new Date(task.dueDate).getTime() + DAY_MS;
 
 function isOverdue(task, now) {
@@ -44,7 +44,7 @@ function isOverdue(task, now) {
   );
 }
 
-/** Metrics for one staff member from their tasks and care cases (both already period-filtered). */
+/** Chỉ số của một nhân viên từ nhiệm vụ và hồ sơ chăm sóc của họ (cả hai đã lọc theo kỳ). */
 function summarize(tasks, cases, now = Date.now()) {
   const byStatus = Object.fromEntries(Object.values(TASK_STATUS).map((s) => [s, 0]));
   const byCategory = {};
@@ -61,7 +61,7 @@ function summarize(tasks, cases, now = Date.now()) {
   const inProgress = tasks.filter((t) =>
     [TASK_STATUS.ACKNOWLEDGED, TASK_STATUS.REJECTED].includes(t.status),
   );
-  // Handed in on time = the (last) submission reached the reviewer before the deadline passed.
+  // Nộp đúng hạn = lần nộp (cuối cùng) đến người duyệt trước khi quá hạn chót.
   const completedWithDue = completed.filter((t) => t.dueDate);
   const onTime = completedWithDue.filter(
     (t) => new Date(t.submittedAt ?? t.completedAt).getTime() <= deadlineOf(t),
@@ -126,13 +126,13 @@ function periodFilter(from, to) {
   if (!from && !to) return {};
   const range = {};
   if (from) range.$gte = from;
-  if (to) range.$lt = new Date(to.getTime() + DAY_MS); // `to` is inclusive (a calendar day)
+  if (to) range.$lt = new Date(to.getTime() + DAY_MS); // `to` là mốc bao gồm (một ngày dương lịch)
   return { createdAt: range };
 }
 
 /**
- * Progress of every staff member (or just `staffId`) over tasks created in [from, to].
- * Active staff are always listed; disabled ones only while they still have work in the period.
+ * Tiến độ của mọi nhân viên (hoặc chỉ `staffId`) trên các nhiệm vụ tạo trong [from, to].
+ * Nhân viên đang hoạt động luôn được liệt kê; nhân viên đã khóa chỉ khi còn việc trong kỳ.
  */
 async function staffProgress({ from = null, to = null, staffId = null } = {}) {
   const userFilter = { role: 'staff' };

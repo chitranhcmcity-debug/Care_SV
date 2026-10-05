@@ -13,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
 import { ROLE_LABELS } from '../../models/types';
 import { BrandingService } from '../../services/branding.service';
 
-// 24px stroke icon paths (Tabler-style).
+// Đường path icon nét 24px (kiểu Tabler).
 const ICONS = {
   users:
     'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85',
@@ -107,7 +107,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
-  /** The four roles as avatar initials next to the hero buttons. */
+  /** Bốn vai trò dưới dạng chữ cái đầu avatar cạnh các nút hero. */
   readonly avatars = [
     { letter: 'B', tone: 'from-violet-500 to-fuchsia-500' },
     { letter: 'C', tone: 'from-sky-400 to-indigo-500' },
@@ -115,7 +115,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     { letter: 'G', tone: 'from-amber-400 to-orange-500' },
   ];
 
-  // Feature cards: each `theme` sets the card tint, icon tile and arrow colours (see .f-* in the CSS).
+  // Thẻ tính năng: mỗi `theme` đặt màu nền thẻ, ô icon và mũi tên (xem .f-* trong CSS).
   readonly features = [
     {
       title: 'Điểm danh đúng giờ học',
@@ -241,7 +241,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
-  /** AI Care strengths listed next to the chat preview. */
+  /** Các điểm mạnh của AI Care liệt kê cạnh phần xem trước chat. */
   readonly aiPoints = [
     {
       text: 'Trả lời nhanh bằng tiếng Việt, đúng dữ liệu',
@@ -265,7 +265,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
-  /** Id of the section currently in view — drives the nav highlight. */
+  /** Id của mục đang trong tầm nhìn — điều khiển phần sáng của thanh điều hướng. */
   readonly activeSection = signal('');
   readonly roleLabels = ROLE_LABELS;
   private sectionObserver?: IntersectionObserver;
@@ -276,14 +276,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit() {
-    // Banner video: muted is set on the element itself (browsers only autoplay muted video);
-    // visitors who prefer reduced motion see the still poster instead.
+    // Video banner: muted được đặt trên chính phần tử (trình duyệt chỉ tự phát video tắt tiếng);
+    // khách thích giảm chuyển động sẽ thấy ảnh poster tĩnh thay vào đó.
     const video = this.heroVideo?.nativeElement;
     if (video) {
       video.muted = true;
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) video.play().catch(() => {});
     }
-    // A section counts as active while it crosses a band just below the sticky header.
+    // Một mục được tính là đang hoạt động khi nó cắt qua dải ngay dưới header dính.
     this.sectionObserver = new IntersectionObserver(
       (entries) => {
         const visible = entries.find((e) => e.isIntersecting);

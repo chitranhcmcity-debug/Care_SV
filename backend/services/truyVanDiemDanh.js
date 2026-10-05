@@ -16,7 +16,7 @@ async function listCourseGroups(query, user) {
   const { shift, search } = query;
   const filter = {};
 
-  // Teachers see the groups they teach; overseers (Trưởng phòng, admin read-only) see all.
+  // Giảng viên thấy các nhóm họ dạy; bên giám sát (Trưởng phòng, admin chỉ đọc) thấy tất cả.
   if (!seesAllCourses(user)) filter.teacherId = user.id;
 
   if (shift) {
@@ -152,7 +152,7 @@ async function getSummary(group) {
   const allAttendance = await DiemDanh.find({ courseGroupId }).sort({ date: 1 });
   const totalSessions = allAttendance.length;
 
-  // Count absences per student
+  // Đếm số buổi vắng theo sinh viên
   const absentCountMap = {};
   const excusedCountMap = {};
   for (const record of allAttendance) {
@@ -172,7 +172,7 @@ async function getSummary(group) {
     }
   }
 
-  // Latest care case of each student (open or closed).
+  // Hồ sơ chăm sóc gần nhất của mỗi sinh viên (đang mở hoặc đã đóng).
   const careCases = await HoSoChamSoc.find({
     studentId: { $in: (group.students || []).map((st) => st._id) },
   })
@@ -186,11 +186,11 @@ async function getSummary(group) {
     if (!latestCaseMap[sid]) latestCaseMap[sid] = c;
   }
 
-  // Absences are counted in periods (tiết) and ranked by the configured warning levels.
+  // Số buổi vắng được tính theo tiết và xếp hạng theo các mức cảnh báo đã cấu hình.
   const levels = await getWarningLevels();
   const info = periodInfo(group);
 
-  // Build summary per student
+  // Dựng tóm tắt theo từng sinh viên
   const students = Array.isArray(group.students) ? group.students : [];
   const summary = students.map((st) => {
     const sid = st._id.toString();
@@ -214,7 +214,7 @@ async function getSummary(group) {
     };
   });
 
-  // Sort: most severe warning level first, then by absent count desc
+  // Sắp xếp: mức cảnh báo nặng nhất trước, rồi theo số buổi vắng giảm dần
   const rank = (row) =>
     row.warningLevel ? levels.findIndex((l) => l.name === row.warningLevel.name) + 1 : 0;
   summary.sort((a, b) => rank(b) - rank(a) || b.absentCount - a.absentCount);

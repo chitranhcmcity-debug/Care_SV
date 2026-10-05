@@ -15,21 +15,21 @@ import { Router } from '@angular/router';
 import { AiCareAction, AiCareProfile, AiService, ChatMessage } from '../../services/ai.service';
 import { AuthService } from '../../services/auth.service';
 
-/** A prepared action shown as a card with Xác nhận / Hủy. */
+/** Một thao tác đã chuẩn bị, hiện thành thẻ có Xác nhận / Hủy. */
 type ActionCard = AiCareAction & {
   state: 'pending' | 'running' | 'done' | 'cancelled' | 'error';
   result?: string;
 };
 import { renderMarkdown } from '../../utils/markdown';
 
-const MAX_HISTORY = 20; // matches the backend limit
-// Robot launcher size in px (keep in sync with .robot-launcher in the CSS).
+const MAX_HISTORY = 20; // khớp giới hạn của backend
+// Kích thước nút robot theo px (giữ đồng bộ với .robot-launcher trong CSS).
 const ROBOT_W = 96;
 const ROBOT_H = 80;
-// How long the robot stays where the user dropped it before it wanders again.
+// Robot đứng nguyên chỗ người dùng thả bao lâu trước khi lại đi lang thang.
 const DROP_REST_MS = 8000;
 
-/** AI Care: floating assistant available on every signed-in page; what it can do depends on role. */
+/** AI Care: trợ lý nổi có ở mọi trang đã đăng nhập; việc nó làm được tùy theo vai trò. */
 @Component({
   selector: 'app-ai-care',
   standalone: true,
@@ -44,20 +44,20 @@ export class AiCareComponent {
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
 
-  // --- Robot wandering: flies to a random spot, hovers a moment, repeats. It parks in the
-  // bottom-right corner while the chat is open, pauses under the pointer, and stays parked
-  // for users who prefer reduced motion.
+  // --- Robot lang thang: bay tới một chỗ ngẫu nhiên, lơ lửng một lúc, lặp lại. Nó đậu ở
+  // góc dưới bên phải khi chat đang mở, dừng khi con trỏ ở dưới nó, và đứng yên
+  // với người dùng thích giảm chuyển động.
   readonly pos = signal(this.homePosition());
   readonly travelMs = signal(0);
   readonly tilt = signal(0);
   readonly flying = signal(false);
-  /** Which way the robot faces; it starts at its home spot, looking into the page. */
+  /** Robot quay mặt về hướng nào; ban đầu nó ở vị trí nhà, nhìn vào trang. */
   readonly facing = signal<'left' | 'right'>(
     typeof window !== 'undefined' && window.innerWidth >= 768 ? 'right' : 'left',
   );
   private wanderTimer?: ReturnType<typeof setTimeout>;
   private paused = false;
-  // Drag to move: the robot rests where it is dropped, then goes back to wandering.
+  // Kéo để di chuyển: robot nghỉ ở chỗ được thả, rồi quay lại đi lang thang.
   readonly dragging = signal(false);
   private drag: {
     pointerId: number;
@@ -80,8 +80,8 @@ export class AiCareComponent {
   draft = '';
 
   constructor() {
-    // A different account signing in on this tab must not see the previous conversation.
-    // Session refreshes re-set the same user, so only clear when the account actually changes.
+    // Tài khoản khác đăng nhập trên tab này không được thấy cuộc trò chuyện trước.
+    // Làm mới phiên đặt lại cùng một người dùng, nên chỉ xóa khi tài khoản thật sự đổi.
     const idOf = (u: { id?: string; _id?: string } | null) => u?.id ?? u?._id;
     let userId = idOf(this.auth.currentUser());
     effect(() => {
@@ -92,13 +92,13 @@ export class AiCareComponent {
       this.profile.set(null);
       this.error.set('');
     });
-    this.scheduleWander(8000); // rest at the home spot first
+    this.scheduleWander(8000); // nghỉ ở vị trí nhà trước
     inject(DestroyRef).onDestroy(() => clearTimeout(this.wanderTimer));
   }
 
   @HostListener('window:resize')
   onResize() {
-    // Keep the robot on screen when the window shrinks.
+    // Giữ robot trong màn hình khi cửa sổ thu nhỏ.
     const { maxX, maxY } = this.bounds();
     this.travelMs.set(0);
     if (this.open()) this.pos.set(this.dockPosition());
@@ -124,7 +124,7 @@ export class AiCareComponent {
     if (!drag || drag.pointerId !== event.pointerId) return;
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    // A few pixels of jitter is still a click.
+    // Vài pixel rung vẫn tính là một cú bấm.
     if (!drag.moved && Math.hypot(dx, dy) < 6) return;
     if (!drag.moved) {
       drag.moved = true;
@@ -146,10 +146,10 @@ export class AiCareComponent {
     const drag = this.drag;
     if (!drag || drag.pointerId !== event.pointerId) return;
     this.drag = null;
-    if (!drag.moved) return; // a plain click: (click) opens the chat
+    if (!drag.moved) return; // bấm thường: (click) mở chat
     this.dragging.set(false);
-    this.suppressClick = true; // the click fired after a drag must not open the chat
-    // Rest where it was dropped for a while, then carry on wandering.
+    this.suppressClick = true; // cú click phát sinh sau khi kéo không được mở chat
+    // Nghỉ ở chỗ được thả một lúc, rồi tiếp tục đi lang thang.
     this.restUntil = Date.now() + DROP_REST_MS;
     this.scheduleWander(DROP_REST_MS);
   }
@@ -187,13 +187,13 @@ export class AiCareComponent {
     const margin = 12;
     return {
       minX: margin,
-      minY: 72, // below the top header
+      minY: 72, // dưới header trên cùng
       maxX: Math.max(margin, window.innerWidth - ROBOT_W - margin),
       maxY: Math.max(72, window.innerHeight - ROBOT_H - margin - 10),
     };
   }
 
-  /** Default resting spot: bottom of the left sidebar on desktop, the dock on phones. */
+  /** Vị trí nghỉ mặc định: cuối sidebar trái trên desktop, thanh dock trên điện thoại. */
   private homePosition() {
     if (typeof window === 'undefined') return { x: 0, y: 0 };
     if (window.innerWidth < 768) return this.dockPosition();
@@ -213,7 +213,7 @@ export class AiCareComponent {
     const distance = Math.hypot(target.x - x, target.y - y);
     const ms = Math.round(Math.min(6000, Math.max(900, (distance / speed) * 1000)));
     const sideways = Math.abs(target.x - x) >= 20;
-    // Mostly vertical hops keep the current facing, so the robot does not flip back and forth.
+    // Các bước nhảy chủ yếu theo chiều dọc giữ nguyên hướng nhìn, để robot không lật qua lật lại.
     if (sideways) this.facing.set(target.x > x ? 'right' : 'left');
     this.tilt.set(sideways ? (target.x > x ? 6 : -6) : 0);
     this.flying.set(true);
@@ -235,7 +235,7 @@ export class AiCareComponent {
       this.wanderTimer = setTimeout(() => {
         this.flying.set(false);
         this.tilt.set(0);
-        this.scheduleWander(2500 + Math.random() * 3500); // hover in place for a while
+        this.scheduleWander(2500 + Math.random() * 3500); // lơ lửng tại chỗ một lúc
       }, ms);
     }, delay);
   }
@@ -244,14 +244,14 @@ export class AiCareComponent {
     this.open.update((v) => !v);
     clearTimeout(this.wanderTimer);
     if (this.open()) {
-      // Park next to the chat panel.
+      // Đậu cạnh khung chat.
       const ms = this.flyTo(this.dockPosition(), 900);
       this.wanderTimer = setTimeout(() => {
         this.flying.set(false);
         this.tilt.set(0);
       }, ms);
     } else {
-      // Go back to the resting spot, stay a while, then start wandering again.
+      // Quay về vị trí nghỉ, ở lại một lúc, rồi bắt đầu đi lang thang lại.
       const ms = this.flyTo(this.homePosition(), 900);
       this.wanderTimer = setTimeout(() => {
         this.flying.set(false);
@@ -283,7 +283,7 @@ export class AiCareComponent {
     const history = this.messages()
       .slice(-MAX_HISTORY)
       .map(({ role, content }) => ({ role, content }));
-    // The backend requires the history to start with a user turn.
+    // Backend yêu cầu lịch sử phải bắt đầu bằng lượt của người dùng.
     while (history.length && history[0].role !== 'user') history.shift();
     this.ai.careChat(history).subscribe({
       next: ({ reply, actions, navigate }) => {
@@ -302,7 +302,7 @@ export class AiCareComponent {
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
-        // Drop the unanswered question so the history keeps alternating user/assistant.
+        // Bỏ câu hỏi chưa được trả lời để lịch sử luôn xen kẽ người dùng/trợ lý.
         this.messages.update((m) => m.slice(0, -1));
         this.draft = content;
         this.error.set(err.error?.message || 'AI Care đang bận, vui lòng thử lại.');
@@ -310,7 +310,7 @@ export class AiCareComponent {
     });
   }
 
-  /** Runs a prepared action (the user pressed Xác nhận) and shows the result on its card. */
+  /** Chạy một thao tác đã chuẩn bị (người dùng bấm Xác nhận) và hiện kết quả trên thẻ của nó. */
   confirmAction(card: ActionCard) {
     if (card.state !== 'pending') return;
     this.setCard(card.id, { state: 'running' });
@@ -321,7 +321,7 @@ export class AiCareComponent {
           state: 'done',
           result: samePage ? `${message} Tải lại trang để thấy thay đổi.` : message,
         });
-        // Take the user to the page that shows the change.
+        // Đưa người dùng tới trang cho thấy thay đổi.
         if (navigate && !samePage) this.openPage(navigate);
       },
       error: (err: HttpErrorResponse) =>
@@ -348,7 +348,7 @@ export class AiCareComponent {
     );
   }
 
-  /** Opens a page AI Care pointed to, if this user may open it. */
+  /** Mở trang AI Care chỉ tới, nếu người dùng này được phép mở. */
   private openPage(url: string) {
     if (this.auth.canOpen(url.split('?')[0])) this.router.navigateByUrl(url);
   }

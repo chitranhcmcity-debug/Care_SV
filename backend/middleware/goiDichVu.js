@@ -1,7 +1,7 @@
 const { isSubscriptionActive } = require('../services/dichVuGoiDichVu');
 
-// Blocks business APIs once the subscription has expired. Sign-in, settings and billing
-// stay open (they are mounted without this) so a Trưởng phòng / PHT can always log in and renew.
+// Chặn các API nghiệp vụ khi gói dịch vụ đã hết hạn. Đăng nhập, cài đặt và thanh toán
+// vẫn mở (chúng được gắn không qua middleware này) để Trưởng phòng / PHT luôn đăng nhập và gia hạn được.
 async function requireActiveSubscription(req, res, next) {
   try {
     if (await isSubscriptionActive()) return next();

@@ -1,15 +1,15 @@
-<!-- ===== Header (full width) ===== -->
-<!-- Mobile: a compact app bar (menu lives in the bottom tab bar); safe-area pads the notch -->
+<!-- ===== Header (toàn chiều rộng) ===== -->
+<!-- Di động: thanh ứng dụng gọn (menu nằm ở thanh tab dưới); safe-area đệm phần tai thỏ -->
 <header
   class="sticky top-0 z-40 h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] md:h-20 md:pt-0 bg-white border-b border-slate-200 md:border-0 flex items-center gap-3 md:gap-4 px-4 md:px-6"
 >
-  <!-- Brand -->
+  <!-- Thương hiệu -->
   <a routerLink="/" class="hidden md:flex items-center gap-2.5 w-[228px] shrink-0">
     <img [src]="branding.logo()" alt="Logo ITC" width="40" height="40" class="object-contain" />
     <span class="font-bold text-lg text-slate-900 tracking-tight">{{ branding.title() }}</span>
   </a>
 
-  <!-- Mobile: logo + current page title -->
+  <!-- Di động: logo + tiêu đề trang hiện tại -->
   <div class="md:hidden flex items-center gap-2.5 min-w-0">
     <img
       [src]="branding.logo()"
@@ -21,7 +21,7 @@
     <span class="font-semibold text-base text-slate-900 truncate">{{ pageTitle }}</span>
   </div>
 
-  <!-- Menu toggle -->
+  <!-- Nút bật/tắt menu -->
   <button
     type="button"
     (click)="toggleSidebar()"
@@ -33,7 +33,7 @@
     </svg>
   </button>
 
-  <!-- Public website home -->
+  <!-- Trang chủ website công khai -->
   <a
     routerLink="/"
     title="Về trang chủ website"
@@ -53,7 +53,7 @@
     <span class="hidden lg:inline">Về trang chủ</span>
   </a>
 
-  <!-- Page search -->
+  <!-- Tìm trang -->
   <div class="relative hidden md:block w-full max-w-[380px]">
     <svg
       class="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
@@ -104,7 +104,7 @@
   </div>
 
   <div class="ml-auto flex items-center gap-3">
-    <!-- Notifications: open call tasks + assigned tasks waiting for the user -->
+    <!-- Thông báo: nhiệm vụ gọi đang mở + nhiệm vụ được giao đang chờ người dùng -->
     <div *ngIf="showNotifications" class="relative">
       <button
         type="button"
@@ -190,7 +190,7 @@
       </ng-container>
     </div>
 
-    <!-- Profile chip + menu -->
+    <!-- Chip hồ sơ + menu -->
     <div class="relative">
       <button
         type="button"
@@ -258,7 +258,7 @@
 </header>
 
 <div class="flex">
-  <!-- Mobile drawer backdrop -->
+  <!-- Nền mờ của ngăn kéo trên di động -->
   <div
     *ngIf="sidebarOpen"
     (click)="closeSidebar()"
@@ -274,7 +274,7 @@
       'md:hidden': sidebarCollapsed,
     }"
   >
-    <!-- Brand (mobile drawer only; desktop brand lives in the header) -->
+    <!-- Thương hiệu (chỉ ngăn kéo di động; thương hiệu desktop nằm ở header) -->
     <div class="md:hidden h-20 px-6 flex items-center gap-2.5">
       <img [src]="branding.logo()" alt="Logo ITC" width="36" height="36" class="object-contain" />
       <span class="font-bold text-base leading-tight text-slate-900 line-clamp-2">{{
@@ -324,16 +324,16 @@
       </div>
     </nav>
 
-    <!-- Resting spot for the AI Care robot (see AiCareComponent.homePosition). -->
+    <!-- Vị trí nghỉ của robot AI Care (xem AiCareComponent.homePosition). -->
     <div class="h-24 shrink-0" aria-hidden="true"></div>
   </aside>
 
-  <!-- ===== Content area ===== -->
+  <!-- ===== Vùng nội dung ===== -->
   <main
     class="app-main flex-1 min-w-0 min-h-[calc(100vh-80px)] md:rounded-t-3xl md:mr-5 transition-[margin] pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0"
     [ngClass]="sidebarCollapsed ? 'md:ml-5' : ''"
   >
-    <!-- Page banner (mobile shows the title in the app bar instead) -->
+    <!-- Banner trang (di động hiện tiêu đề ở thanh ứng dụng thay vào đó) -->
     <section
       *ngIf="showPageHero && heroInfo as hero"
       class="page-hero hidden md:block mx-4 md:mx-6 mt-5"
@@ -418,7 +418,7 @@
       </div>
     </section>
 
-    <!-- Subscription expiry banner -->
+    <!-- Banner sắp hết hạn gói dịch vụ -->
     <div
       *ngIf="subscriptionWarning as s"
       role="alert"
@@ -451,7 +451,7 @@
   </main>
 </div>
 
-<!-- ===== Mobile bottom tab bar (floating): main pages + "Menu" for everything else ===== -->
+<!-- ===== Thanh tab dưới trên di động (nổi): các trang chính + "Menu" cho mọi thứ còn lại ===== -->
 <nav
   class="md:hidden fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 rounded-3xl bg-white/90 backdrop-blur-xl ring-1 ring-slate-900/5 shadow-[0_10px_30px_-6px_rgba(76,29,149,0.28)] p-1.5"
   aria-label="Điều hướng nhanh"

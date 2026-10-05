@@ -16,7 +16,7 @@
   background: linear-gradient(135deg, #faf7ff, #fff6fb);
 }
 
-/* Panel: white card lifted off the lavender page. */
+/* Panel: thẻ trắng nổi trên nền trang màu oải hương. */
 .care-list-panel {
   position: relative;
   overflow: hidden;
@@ -105,7 +105,7 @@
   font-size: 12px;
 }
 
-/* Status filters as a segmented bar. */
+/* Bộ lọc trạng thái dạng thanh phân đoạn. */
 .care-list-filters {
   display: flex;
   flex-wrap: wrap;
@@ -154,7 +154,7 @@
   background: linear-gradient(120deg, #8b5cf6, #d946ef);
 }
 
-/* Case cards; wide panels lay them out as a grid. */
+/* Thẻ hồ sơ; panel rộng xếp chúng thành lưới. */
 .care-items {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));

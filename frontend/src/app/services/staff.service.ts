@@ -21,7 +21,7 @@ export class StaffService {
     email: string;
     customPassword?: string;
     role?: 'staff' | 'teacher' | 'manager';
-    /** Staff / teachers: the Trưởng phòng / PHT whose unit they join. */
+    /** Nhân viên / giảng viên: Trưởng phòng / PHT có đơn vị mà họ vào. */
     managerId?: string;
     phone?: string;
   }): Observable<{
@@ -68,5 +68,5 @@ export class StaffService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/staff/${id}`);
   }
 
-  // Class assignment moved to ClassAssignmentService (/api/class-assignments).
+  // Phân công lớp đã chuyển sang ClassAssignmentService (/api/class-assignments).
 }

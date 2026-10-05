@@ -14,7 +14,7 @@ export interface ConfirmOptions {
   message?: string;
   confirmText?: string;
   cancelText?: string;
-  /** Red confirm button for destructive actions (delete, reset…). */
+  /** Nút xác nhận màu đỏ cho thao tác phá hủy (xóa, đặt lại…). */
   danger?: boolean;
 }
 
@@ -25,7 +25,7 @@ export interface PromptOptions extends ConfirmOptions {
 
 interface ConfirmRequest extends Required<Omit<ConfirmOptions, 'message'>> {
   message: string;
-  /** Present when the dialog asks for a value (prompt). */
+  /** Có khi hộp thoại yêu cầu nhập giá trị (prompt). */
   input?: { placeholder: string; type: 'text' | 'password' };
   resolve: (ok: boolean) => void;
 }
@@ -38,20 +38,20 @@ const DEFAULT_TITLES: Record<ToastType, string> = {
 };
 
 /**
- * App-wide replacement for window.alert / window.confirm, rendered by
- * <app-notifications> (mounted once in app.html).
+ * Thay thế toàn ứng dụng cho window.alert / window.confirm, được render bởi
+ * <app-notifications> (gắn một lần trong app.html).
  */
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   readonly toasts = signal<Toast[]>([]);
   readonly pendingConfirm = signal<ConfirmRequest | null>(null);
-  /** Value typed into a prompt dialog. */
+  /** Giá trị nhập vào hộp thoại prompt. */
   readonly promptValue = signal('');
   private nextId = 0;
 
   show(type: ToastType, message: string, title = DEFAULT_TITLES[type]) {
     const toast: Toast = { id: ++this.nextId, type, title, message };
-    // Keep at most 4 on screen; newest at the top.
+    // Giữ tối đa 4 cái trên màn hình; mới nhất ở trên cùng.
     this.toasts.update((list) => [toast, ...list].slice(0, 4));
     setTimeout(() => this.dismiss(toast.id), type === 'error' ? 7000 : 4500);
   }
@@ -76,12 +76,12 @@ export class NotificationService {
     this.toasts.update((list) => list.filter((t) => t.id !== id));
   }
 
-  /** Styled confirm dialog; resolves true when the user confirms. */
+  /** Hộp thoại xác nhận có style; trả true khi người dùng xác nhận. */
   confirm(options: ConfirmOptions): Promise<boolean> {
     return this.open(options);
   }
 
-  /** Styled prompt dialog; resolves the typed value, or null when cancelled. */
+  /** Hộp thoại prompt có style; trả giá trị đã nhập, hoặc null khi hủy. */
   async prompt(options: PromptOptions): Promise<string | null> {
     const { placeholder = '', inputType = 'text', ...rest } = options;
     this.promptValue.set('');
@@ -90,7 +90,7 @@ export class NotificationService {
   }
 
   private open(options: ConfirmOptions, input?: ConfirmRequest['input']): Promise<boolean> {
-    // A newer dialog replaces (and cancels) any dialog still open.
+    // Hộp thoại mới hơn thay thế (và hủy) mọi hộp thoại còn đang mở.
     this.pendingConfirm()?.resolve(false);
     return new Promise((resolve) =>
       this.pendingConfirm.set({

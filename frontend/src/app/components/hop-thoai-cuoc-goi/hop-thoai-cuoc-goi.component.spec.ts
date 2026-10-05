@@ -42,7 +42,7 @@ describe('Call dialog access', () => {
     expect(dialog.method()).toBe('stringee');
     dialog.calls.close();
     fixture.detectChanges();
-    // Second open: the cached config answers synchronously.
+    // Lần mở thứ hai: cấu hình đã cache trả lời đồng bộ.
     dialog.calls.open({ student });
     fixture.detectChanges();
     http.expectNone('/api/calls/config');
@@ -67,7 +67,7 @@ describe('Call dialog access', () => {
     });
     fixture.detectChanges();
     http.expectOne('/api/calls/config').flush({ stringee: false, hotline: '' });
-    // No answer yet: nothing is started.
+    // Chưa có người nghe: chưa bắt đầu gì.
     dialog.start();
     http.expectNone('/api/calls');
     dialog.record.set(false);

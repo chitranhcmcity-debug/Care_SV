@@ -16,12 +16,12 @@ const SinhVienSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Students are listed and counted by administrative class.
+// Sinh viên được liệt kê và đếm theo lớp sinh hoạt.
 SinhVienSchema.index({ classCode: 1 });
-// Student codes are unique within a unit.
+// Mã sinh viên là duy nhất trong một đơn vị.
 SinhVienSchema.index({ unitId: 1, studentCode: 1 }, { unique: true });
 
-// Belongs to one unit (đơn vị); see utils/donVi.js.
+// Thuộc về một đơn vị; xem utils/donVi.js.
 SinhVienSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('SinhVien', SinhVienSchema, 'sinh_vien');

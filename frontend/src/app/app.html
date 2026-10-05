@@ -1,34 +1,34 @@
-<!-- Signed-in app shell (sidebar + header); the routed page is projected into its <main> -->
+<!-- Khung ứng dụng đã đăng nhập (sidebar + header); trang theo route được chiếu vào <main> của nó -->
 <app-navbar *ngIf="showDashboard; else publicShell">
   <router-outlet></router-outlet>
 </app-navbar>
 
-<!-- AI Care assistant (signed-in pages only; tools depend on role). Loaded once the page is idle,
-     so its code is not part of the first download. -->
+<!-- Trợ lý AI Care (chỉ ở các trang đã đăng nhập; công cụ tùy theo vai trò). Nạp khi trang rảnh,
+     để mã của nó không nằm trong lần tải đầu tiên. -->
 @if (showDashboard) {
   @defer (on idle) {
     <app-ai-care></app-ai-care>
   }
 }
 
-<!-- Public pages (home, login): full-width, no app shell -->
+<!-- Trang công khai (trang chủ, đăng nhập): toàn chiều rộng, không có khung ứng dụng -->
 <ng-template #publicShell>
   <div class="min-h-screen bg-slate-50 text-slate-900 font-sans">
     <router-outlet></router-outlet>
   </div>
 </ng-template>
 
-<!-- App-wide toasts + confirm dialog (NotificationService) -->
+<!-- Toast toàn ứng dụng + hộp thoại xác nhận (NotificationService) -->
 <app-notifications></app-notifications>
 
-<!-- App-wide call dialog (CallService.open); only signed-in pages place calls. -->
+<!-- Hộp thoại gọi điện toàn ứng dụng (CallService.open); chỉ trang đã đăng nhập mới gọi điện. -->
 @if (showDashboard) {
   @defer (on idle) {
     <app-call-dialog></app-call-dialog>
   }
 }
 
-<!-- Logo loader while a page (code or its opening data) is loading; see LoadingService -->
+<!-- Logo loading khi một trang (mã hoặc dữ liệu mở đầu) đang tải; xem LoadingService -->
 @if (loading.visible()) {
   <div class="logo-loader" role="status" aria-live="polite">
     <div class="logo-loader__ring">

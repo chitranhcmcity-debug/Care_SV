@@ -9,7 +9,7 @@ const { classHours } = require('../services/dichVuCanhBao');
 const STUDENT_FIELDS = 'studentCode fullName classCode major phone parentPhone';
 const TEACHER_FIELDS = 'fullName email role status';
 
-/** The teacher account behind `teacherId`; only an active teacher can be put in charge. */
+/** Tài khoản giảng viên ứng với `teacherId`; chỉ giảng viên đang hoạt động mới được phụ trách. */
 async function findTeacher(teacherId) {
   validateId(teacherId);
   const teacher = await NguoiDung.findById(teacherId);
@@ -22,7 +22,7 @@ async function findTeacher(teacherId) {
 
 const TIMETABLE_FIELDS = ['startTime', 'endTime', 'periodsPerSession', 'totalPeriods'];
 
-/** Class hours and periods from the request body; the class must end after it starts. */
+/** Giờ học và số tiết từ body request; giờ tan học phải sau giờ vào học. */
 function applyTimetable(group, body) {
   for (const field of TIMETABLE_FIELDS) {
     if (body[field] === undefined) continue;
@@ -184,7 +184,7 @@ async function update(req, res, next) {
     applyTimetable(group, req.body);
 
     if (teacherId !== undefined) {
-      // Re-saving with the current teacher is fine even if that account was locked since.
+      // Lưu lại với giảng viên hiện tại vẫn được, kể cả khi tài khoản đó đã bị khóa sau đó.
       if (teacherId && String(teacherId) !== String(group.teacherId)) {
         const teacher = await findTeacher(teacherId);
         group.teacherId = teacher._id;
@@ -215,9 +215,9 @@ async function remove(req, res, next) {
       return res.status(404).json({ message: 'Không tìm thấy nhóm học phần' });
     }
 
-    // Every route that reads DiemDanh for a group first loads the group
-    // (requireCourseAccess), so once it's gone those records become permanently
-    // unreachable orphans. Remove them, and drop the group from its students' list.
+    // Mọi route đọc DiemDanh của một nhóm đều nạp nhóm trước
+    // (requireCourseAccess), nên khi nhóm đã xóa các bản ghi này trở thành
+    // bản ghi mồ côi không truy cập được nữa. Xóa chúng và gỡ nhóm khỏi danh sách của sinh viên.
     await Promise.all([
       DiemDanh.deleteMany({ courseGroupId: deleted._id }),
       deleted.students?.length &&
@@ -253,22 +253,19 @@ async function assignStudent(req, res, next) {
       return res.status(404).json({ message: 'Không tìm thấy sinh viên với MSSV này' });
     }
 
-    // Add to group.students if not present
+    // Thêm vào group.students nếu chưa có
     if (!group.students.includes(student._id)) {
       group.students.push(student._id);
       await group.save();
     }
 
-    // Add groupCode to student.courseGroups if not present
+    // Thêm groupCode vào student.courseGroups nếu chưa có
     if (!student.courseGroups.includes(group.groupCode)) {
       student.courseGroups.push(group.groupCode);
       await student.save();
     }
 
-    const updatedGroup = await NhomHocPhan.findById(group._id).populate(
-      'students',
-      STUDENT_FIELDS,
-    );
+    const updatedGroup = await NhomHocPhan.findById(group._id).populate('students', STUDENT_FIELDS);
 
     res.json({
       message: `Đã đăng ký thành công SV ${student.fullName} (${student.studentCode}) vào học phần!`,
@@ -290,17 +287,14 @@ async function removeStudent(req, res, next) {
     group.students = group.students.filter((st) => st.toString() !== studentId);
     await group.save();
 
-    // Remove groupCode from SinhVien's courseGroups array
+    // Gỡ groupCode khỏi mảng courseGroups của SinhVien
     const student = await SinhVien.findById(studentId);
     if (student) {
       student.courseGroups = student.courseGroups.filter((g) => g !== group.groupCode);
       await student.save();
     }
 
-    const updatedGroup = await NhomHocPhan.findById(group._id).populate(
-      'students',
-      STUDENT_FIELDS,
-    );
+    const updatedGroup = await NhomHocPhan.findById(group._id).populate('students', STUDENT_FIELDS);
 
     res.json({ message: 'Đã rút tên sinh viên khỏi học phần!', group: updatedGroup });
   } catch (error) {
@@ -342,10 +336,7 @@ async function assignClass(req, res, next) {
 
     await group.save();
 
-    const updatedGroup = await NhomHocPhan.findById(group._id).populate(
-      'students',
-      STUDENT_FIELDS,
-    );
+    const updatedGroup = await NhomHocPhan.findById(group._id).populate('students', STUDENT_FIELDS);
 
     res.json({
       message: `Đã đăng ký thành công toàn bộ ${addedCount} sinh viên của lớp ${classCode} vào học phần!`,

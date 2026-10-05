@@ -20,7 +20,7 @@ export class TaskService {
   private readonly http = inject(HttpClient);
   private readonly notify = inject(NotificationService);
 
-  /** Admin: assign a new task to a staff member. */
+  /** Admin: giao nhiệm vụ mới cho một nhân viên. */
   createTask(payload: {
     title: string;
     description: string;
@@ -32,7 +32,7 @@ export class TaskService {
     return this.http.post<{ message: string; task: WorkTask }>(this.apiUrl, payload);
   }
 
-  /** Manager: progress & KPI of every staff member over tasks created in [from, to]. */
+  /** Quản lý: tiến độ & KPI của mọi nhân viên trên các nhiệm vụ tạo trong [from, to]. */
   getStaffProgress(period: {
     from?: string;
     to?: string;
@@ -46,7 +46,7 @@ export class TaskService {
     );
   }
 
-  /** Staff: report how far along a task is (0–99%; submitting evidence completes it). */
+  /** Nhân viên: báo đã làm tới đâu (0–99%; nộp minh chứng thì hoàn thành). */
   updateProgress(
     id: string,
     percent: number,
@@ -58,12 +58,12 @@ export class TaskService {
     });
   }
 
-  /** Admin: cancel/delete a task. */
+  /** Admin: hủy/xóa một nhiệm vụ. */
   deleteTask(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
 
-  /** Admin: every task in the system, optionally filtered. */
+  /** Admin: mọi nhiệm vụ trong hệ thống, có thể lọc. */
   getAllTasks(filters?: { status?: TaskStatus; assignedTo?: string }): Observable<WorkTask[]> {
     let params = new HttpParams();
     if (filters?.status) params = params.set('status', filters.status);
@@ -71,19 +71,19 @@ export class TaskService {
     return this.http.get<WorkTask[]>(`${this.apiUrl}/admin-all`, { params });
   }
 
-  /** Staff: tasks assigned to me. */
+  /** Nhân viên: các nhiệm vụ giao cho tôi. */
   getMyTasks(status?: TaskStatus): Observable<WorkTask[]> {
     let params = new HttpParams();
     if (status) params = params.set('status', status);
     return this.http.get<WorkTask[]>(`${this.apiUrl}/my-tasks`, { params });
   }
 
-  /** Staff: badge count of tasks needing action (new or rejected). */
+  /** Nhân viên: số huy hiệu các nhiệm vụ cần xử lý (mới hoặc bị từ chối). */
   getPendingCount(): Observable<{ pendingCount: number }> {
     return this.http.get<{ pendingCount: number }>(`${this.apiUrl}/pending-count`);
   }
 
-  /** Staff: confirm receipt of a newly assigned task. */
+  /** Nhân viên: xác nhận đã nhận nhiệm vụ mới giao. */
   acknowledgeTask(id: string): Observable<{ message: string; task: WorkTask }> {
     return this.http.put<{ message: string; task: WorkTask }>(
       `${this.apiUrl}/${id}/acknowledge`,
@@ -91,7 +91,7 @@ export class TaskService {
     );
   }
 
-  /** Staff: submit completion evidence — any mix of note, link and files. */
+  /** Nhân viên: nộp minh chứng hoàn thành — kết hợp tùy ý ghi chú, link và file. */
   submitEvidence(
     id: string,
     evidence: { note?: string; link?: string; files?: File[] },
@@ -103,7 +103,7 @@ export class TaskService {
     return this.http.put<{ message: string; task: WorkTask }>(`${this.apiUrl}/${id}/submit`, form);
   }
 
-  /** Admin: approve (close) or reject (send back) a submitted task. */
+  /** Admin: duyệt (đóng) hoặc từ chối (trả lại) một nhiệm vụ đã nộp. */
   reviewTask(
     id: string,
     approve: boolean,
@@ -117,8 +117,8 @@ export class TaskService {
     });
   }
 
-  /** Open one evidence file in a new tab. It's fetched as a blob because the auth header is
-   *  only added by the interceptor for XHR/fetch, not for plain <a>/<img> navigation. */
+  /** Mở một file minh chứng trong tab mới. Nó được tải dạng blob vì header xác thực
+   *  chỉ được interceptor thêm cho XHR/fetch, không cho điều hướng <a>/<img> thường. */
   openEvidence(taskId: string, fileId: string): void {
     this.http
       .get(`${this.apiUrl}/${taskId}/evidence/${fileId}`, { responseType: 'blob' })

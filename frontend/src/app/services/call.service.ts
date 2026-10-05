@@ -14,7 +14,7 @@ export const CALL_OUTCOME_LABELS: Record<Exclude<CallOutcome, ''>, string> = {
   sai_so: 'Sai số / không liên lạc được',
 };
 
-/** Who to call; opened from attendance, a care case or the student records page. */
+/** Gọi ai; mở từ điểm danh, hồ sơ chăm sóc hoặc trang hồ sơ sinh viên. */
 export interface CallRequest {
   student: {
     _id: string;
@@ -43,11 +43,11 @@ export interface CallLog {
   endedAt?: string | null;
   durationSec: number;
   stringeeCallId?: string;
-  /** The caller chose to record this call. */
+  /** Người gọi đã chọn ghi âm cuộc gọi này. */
   record?: boolean;
   recording?: { mimeType: string; size: number; source: 'tai_len' | 'stringee' } | null;
   careCaseId?: { _id: string; status: string } | string | null;
-  /** The viewer may play this call's recording (their own call, or recordings.viewAll). */
+  /** Người xem được phát bản ghi âm của cuộc gọi này (cuộc gọi của họ, hoặc recordings.viewAll). */
   canPlay?: boolean;
   createdAt: string;
 }
@@ -58,15 +58,15 @@ export interface StartCallResponse {
   stringee: { accessToken: string; from: string; to: string } | null;
 }
 
-/** In-app calling: every call is logged, and can carry a recording. */
+/** Gọi ngay trong ứng dụng: mọi cuộc gọi đều được ghi nhật ký, và có thể kèm ghi âm. */
 @Injectable({ providedIn: 'root' })
 export class CallService {
   private readonly apiUrl = inject(API_BASE_URL) + '/calls';
   private readonly http = inject(HttpClient);
 
-  /** The call the global dialog is showing; null when closed. */
+  /** Cuộc gọi mà hộp thoại toàn cục đang hiển thị; null khi đóng. */
   readonly request = signal<CallRequest | null>(null);
-  /** Bumped whenever a call is saved, so history lists can refresh. */
+  /** Tăng lên mỗi khi một cuộc gọi được lưu, để các danh sách lịch sử làm mới. */
   readonly savedVersion = signal(0);
 
   private config$?: Observable<{ stringee: boolean; hotline: string }>;
@@ -110,12 +110,12 @@ export class CallService {
     return this.http.post<{ call: CallLog }>(`${this.apiUrl}/${id}/recording`, form);
   }
 
-  /** Recording as a Blob (the audio element cannot send our auth header itself). */
+  /** Bản ghi âm dạng Blob (phần tử audio không tự gửi được header xác thực của ta). */
   recording(id: string): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/${id}/recording`, { responseType: 'blob' });
   }
 
-  /** scope 'all' lists everyone's calls (recordings.viewAll); otherwise the user's own. */
+  /** scope 'all' liệt kê cuộc gọi của mọi người (recordings.viewAll); nếu không thì của chính người dùng. */
   list(
     query: { studentId?: string; scope?: 'all'; page?: number; limit?: number } = {},
   ): Observable<{

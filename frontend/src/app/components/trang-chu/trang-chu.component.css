@@ -1,4 +1,4 @@
-/* ---------- Landing page: soft mesh background, gradient text, gentle motion ---------- */
+/* ---------- Trang giới thiệu: nền mesh mềm, chữ gradient, chuyển động nhẹ ---------- */
 :host {
   display: block;
   --grad: linear-gradient(110deg, rgb(var(--brand-600)) 0%, #c026d3 50%, #db2777 75%, #f59e0b 110%);
@@ -28,7 +28,7 @@
   box-shadow: 0 18px 32px -14px rgb(219 39 119 / 0.85);
 }
 
-/* Mobile section links scroll sideways without showing a scrollbar. */
+/* Link mục trên di động cuộn ngang mà không hiện thanh cuộn. */
 .no-scrollbar {
   scrollbar-width: none;
 }
@@ -36,7 +36,7 @@
   display: none;
 }
 
-/* Hero backdrop: blurred colour blobs + a faint dotted grid. */
+/* Nền hero: các đốm màu mờ + lưới chấm nhạt. */
 .hero {
   position: relative;
   overflow: hidden;
@@ -83,7 +83,7 @@
   opacity: 0.6;
 }
 
-/* Floating bits around the product mock-up. */
+/* Các chi tiết nổi quanh mock-up sản phẩm. */
 .float {
   animation: float 5s ease-in-out infinite;
 }
@@ -104,7 +104,7 @@
   box-shadow: 0 18px 40px -22px rgb(76 29 149 / 0.45);
 }
 
-/* Soft light wave sweeping behind the lower hero. */
+/* Làn sóng ánh sáng mềm quét sau phần hero dưới. */
 .hero-wave {
   position: absolute;
   inset: auto 0 0 0;
@@ -115,7 +115,7 @@
     radial-gradient(90% 80% at 90% 100%, rgb(251 207 232 / 0.55), transparent 60%);
 }
 
-/* Hero mock-up: the desk calendar (see demo-calendar). */
+/* Mock-up hero: lịch để bàn (xem demo-calendar). */
 .mock-stage {
   perspective: 1800px;
 }
@@ -134,9 +134,9 @@
   transform: rotate(-8deg);
 }
 
-/* Highlight cards under the hero. */
+/* Thẻ nổi bật dưới hero. */
 
-/* Features section: pale lavender wash with soft shapes and a dotted patch. */
+/* Mục tính năng: nền oải hương nhạt với hình khối mềm và một mảng chấm. */
 .features-bg {
   background:
     radial-gradient(600px 360px at 0% 20%, rgb(var(--brand-200) / 0.45), transparent 70%),
@@ -154,7 +154,7 @@
   background-size: 16px 16px;
   opacity: 0.7;
 }
-/* Three little "shine" dashes next to headings and icon tiles. */
+/* Ba nét "lấp lánh" nhỏ cạnh tiêu đề và ô icon. */
 .spark path {
   fill: none;
   stroke: currentColor;
@@ -162,8 +162,8 @@
   stroke-linecap: round;
 }
 
-/* Feature cards: tinted glass card, raised gradient icon tile, arrow bubble and a faded
-   watermark. Each .f-* theme only sets the colours. */
+/* Thẻ tính năng: thẻ kính có màu, ô icon gradient nổi, bong bóng mũi tên và hình mờ
+   dạng watermark. Mỗi theme .f-* chỉ đặt màu. */
 .fcard {
   --c1: #8b5cf6;
   --c2: #7c3aed;
@@ -241,7 +241,7 @@
   --tint: #eeefff;
 }
 
-/* Role cards: gradient ring on hover. */
+/* Thẻ vai trò: viền gradient khi rê chuột. */
 
 @keyframes drift {
   to {
@@ -287,7 +287,7 @@
   }
 }
 
-/* ---------- Highlight cards (under the hero) ---------- */
+/* ---------- Thẻ nổi bật (dưới hero) ---------- */
 .hl {
   --a: #7c3aed;
   --soft: #f3edff;
@@ -358,7 +358,7 @@
   transform: translateX(4px);
 }
 
-/* ---------- Shared section kicker ---------- */
+/* ---------- Tiêu đề phụ dùng chung cho mục ---------- */
 .sec-kicker {
   display: inline-flex;
   align-items: center;
@@ -378,7 +378,7 @@
     radial-gradient(600px 300px at 100% 80%, rgb(167 243 208 / 0.35), transparent 70%);
 }
 
-/* ---------- AI Care spotlight ---------- */
+/* ---------- Điểm nhấn AI Care ---------- */
 .ai-panel {
   border: 1.5px solid var(--card-border);
   background:
@@ -461,7 +461,7 @@
   box-shadow: 0 30px 60px -30px rgb(76 29 149 / 0.5);
 }
 
-/* ---------- Process ---------- */
+/* ---------- Quy trình ---------- */
 .step {
   --a: #9333ea;
   --b: #c026d3;
@@ -539,7 +539,7 @@
   box-shadow: 0 6px 12px -4px var(--a);
 }
 
-/* ---------- Roles ---------- */
+/* ---------- Vai trò ---------- */
 .role {
   --a: #9333ea;
   --b: #c084fc;
@@ -654,7 +654,7 @@
   transform: translateX(4px);
 }
 
-/* ---------- CTA ---------- */
+/* ---------- Kêu gọi hành động ---------- */
 .cta {
   background:
     radial-gradient(420px 300px at 70% 60%, rgb(255 255 255 / 0.14), transparent 70%),
@@ -747,7 +747,7 @@
   transform: translateY(-2px);
 }
 
-/* ---------- Footer ---------- */
+/* ---------- Chân trang ---------- */
 .site-footer {
   background:
     radial-gradient(600px 300px at 90% 60%, rgb(124 58 237 / 0.35), transparent 70%),

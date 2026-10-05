@@ -7,7 +7,7 @@ import type { SubscriptionPlan } from './billing.service';
 
 export interface AccountRenewal {
   fullName: string;
-  email: string; // masked
+  email: string; // đã che
   status: 'active' | 'awaiting_payment';
   accessExpiresAt: string | null;
 }
@@ -17,7 +17,7 @@ export interface AccountPaymentResult {
   planName: string;
   months: number;
   amount: number;
-  email: string; // masked
+  email: string; // đã che
   accessExpiresAt: string | null;
 }
 
@@ -32,7 +32,7 @@ export interface Registration {
   createdAt: string;
 }
 
-/** Dashboard tabs a non-admin can be granted; holding any of them opens /management. */
+/** Các tab bảng điều khiển có thể cấp cho người không phải admin; giữ bất kỳ tab nào sẽ mở /management. */
 export const DASHBOARD_PERMISSIONS: Permission[] = [
   'tasks.manage',
   'classes.assign',
@@ -42,7 +42,7 @@ export const DASHBOARD_PERMISSIONS: Permission[] = [
   'excel.import',
 ];
 
-/** Who may open each signed-in page. Guards, the sidebar and the landing page all read this. */
+/** Ai được mở từng trang đã đăng nhập. Guard, sidebar và trang đầu đều đọc cái này. */
 const PAGE_ACCESS: Record<string, (auth: AuthService) => boolean> = {
   '/admin': (a) => a.isAdmin(),
   '/management': (a) => !a.isAdmin() && a.canAny(...DASHBOARD_PERMISSIONS),
@@ -55,7 +55,7 @@ const PAGE_ACCESS: Record<string, (auth: AuthService) => boolean> = {
   '/billing': (a) => a.isAdmin() || a.isManager(),
   '/account-approvals': (a) => a.isManager(),
 };
-/** Preferred landing page per role; if it is not accessible, the first page that is. */
+/** Trang đầu ưa thích theo vai trò; nếu không truy cập được thì trang đầu tiên truy cập được. */
 const ROLE_HOME: Record<Role, string> = {
   admin: '/admin',
   manager: '/management',
@@ -71,7 +71,7 @@ export class AuthService {
 
   currentUser = signal<User | null>(this.readStored<User>('itc_user'));
   token = signal<string | null>(localStorage.getItem('itc_token'));
-  /** null until known (e.g. a session from before permissions existed); see refreshSession. */
+  /** null cho đến khi biết (vd phiên từ trước khi có quyền); xem refreshSession. */
   permissions = signal<Permission[] | null>(this.readStored<Permission[]>('itc_permissions'));
 
   private readonly http = inject(HttpClient);
@@ -93,7 +93,7 @@ export class AuthService {
     this.permissions.set(permissions);
   }
 
-  /** activationKey: required once, on the first sign-in after a manager approved the sign-up. */
+  /** activationKey: bắt buộc một lần, ở lần đăng nhập đầu tiên sau khi quản lý duyệt đăng ký. */
   login(credentials: {
     email: string;
     password: string;
@@ -113,8 +113,8 @@ export class AuthService {
       );
   }
 
-  /** Re-reads the user and permissions, picking up changes the admin made since sign-in.
-   *  Emits whether the session is still valid. */
+  /** Đọc lại người dùng và quyền, nhận các thay đổi admin thực hiện từ khi đăng nhập.
+   *  Phát ra việc phiên còn hợp lệ hay không. */
   refreshSession(): Observable<boolean> {
     if (!this.isLoggedIn()) return of(false);
     return this.http.get<{ user: User; permissions: Permission[] }>(`${this.apiUrl}/me`).pipe(
@@ -124,17 +124,17 @@ export class AuthService {
     );
   }
 
-  /** Self sign-up. Teachers and staff wait for a Trưởng phòng / PHT to approve; a Trưởng
-   *  phòng / PHT picks a plan and gets a PayOS checkout link to pay before the account works. */
+  /** Tự đăng ký. Giảng viên và nhân viên chờ Trưởng phòng / PHT duyệt; Trưởng
+   *  phòng / PHT chọn một gói và nhận link thanh toán PayOS để trả tiền trước khi tài khoản hoạt động. */
   register(payload: {
     fullName: string;
     email: string;
     password: string;
     role: 'staff' | 'teacher' | 'manager';
     planCode?: string;
-    /** Teachers and staff: the Trưởng phòng / PHT whose unit they join and who approves them. */
+    /** Giảng viên và nhân viên: Trưởng phòng / PHT có đơn vị mà họ vào và là người duyệt họ. */
     managerEmail?: string;
-    /** Phone parents can call back on (parents can call back on it). */
+    /** SĐT phụ huynh có thể gọi lại (phụ huynh có thể gọi lại số này). */
     phone?: string;
   }): Observable<{ message: string; checkoutUrl?: string }> {
     return this.http.post<{ message: string; checkoutUrl?: string }>(
@@ -143,21 +143,21 @@ export class AuthService {
     );
   }
 
-  /** Price list for a Trưởng phòng / PHT account's own plan (public). */
+  /** Bảng giá gói riêng của tài khoản Trưởng phòng / PHT (công khai). */
   getAccountPlans(): Observable<{ plans: SubscriptionPlan[]; payosConfigured: boolean }> {
     return this.http.get<{ plans: SubscriptionPlan[]; payosConfigured: boolean }>(
       `${this.apiUrl}/account-plans`,
     );
   }
 
-  /** Who a renewal link belongs to. */
+  /** Link gia hạn thuộc về ai. */
   getAccountRenewal(token: string): Observable<AccountRenewal> {
     return this.http.get<AccountRenewal>(`${this.apiUrl}/account-renewal`, {
       params: { token },
     });
   }
 
-  /** Opens a PayOS payment for a renewal link. */
+  /** Mở thanh toán PayOS cho một link gia hạn. */
   createAccountOrder(
     token: string,
     planCode: string,
@@ -168,7 +168,7 @@ export class AuthService {
     );
   }
 
-  /** Asks the server (and through it PayOS) whether an account payment went through. */
+  /** Hỏi máy chủ (và qua đó PayOS) xem một khoản thanh toán tài khoản đã thành công chưa. */
   syncAccountOrder(orderCode: string): Observable<AccountPaymentResult> {
     return this.http.post<AccountPaymentResult>(
       `${this.apiUrl}/account-orders/${encodeURIComponent(orderCode)}/sync`,
@@ -176,7 +176,7 @@ export class AuthService {
     );
   }
 
-  /** Trưởng phòng / PHT: sign-ups waiting for approval or for their activation key. */
+  /** Trưởng phòng / PHT: các đăng ký đang chờ duyệt hoặc chờ key kích hoạt. */
   getRegistrations(): Observable<Registration[]> {
     return this.http.get<Registration[]>(`${this.apiUrl}/registrations`);
   }
@@ -225,8 +225,8 @@ export class AuthService {
     }
   }
 
-  /** The admin holds every permission; other roles hold what the permission matrix grants. */
-  /** Permissions come from the server: the admin holds a fixed, view-only set. */
+  /** Admin giữ mọi quyền; các vai trò khác giữ những gì ma trận phân quyền cấp. */
+  /** Quyền đến từ máy chủ: admin giữ bộ cố định chỉ xem. */
   can(permission: Permission): boolean {
     return Boolean(this.permissions()?.includes(permission));
   }
@@ -239,7 +239,7 @@ export class AuthService {
     return this.isLoggedIn() && Boolean(PAGE_ACCESS[path]?.(this));
   }
 
-  /** Landing page after sign-in, or when a guard turns the user away. */
+  /** Trang đầu sau khi đăng nhập, hoặc khi guard từ chối người dùng. */
   homePath(): string {
     const role = this.currentUser()?.role;
     if (!role || !this.isLoggedIn()) return '/login';

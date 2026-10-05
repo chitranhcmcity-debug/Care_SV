@@ -1,4 +1,4 @@
-<!-- Toast stack -->
+<!-- Chồng toast -->
 <div
   class="fixed top-4 right-4 left-4 sm:left-auto z-[10002] flex flex-col gap-3 sm:w-[380px] pointer-events-none"
   aria-live="polite"
@@ -38,7 +38,7 @@
         <path d="M6 6l12 12M18 6 6 18" stroke-linecap="round" />
       </svg>
     </button>
-    <!-- auto-dismiss timer -->
+    <!-- bộ đếm tự đóng -->
     <span
       class="toast-timer absolute left-0 bottom-0 h-[3px] w-full opacity-70"
       [ngClass]="tones[toast.type].bar"
@@ -47,7 +47,7 @@
   </div>
 </div>
 
-<!-- Confirm dialog -->
+<!-- Hộp thoại xác nhận -->
 <ng-container *ngIf="notify.pendingConfirm() as request">
   <div
     class="fade-enter fixed inset-0 z-[10001] bg-slate-900/50 backdrop-blur-[2px] flex items-center justify-center p-4"

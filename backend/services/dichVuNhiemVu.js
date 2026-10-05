@@ -5,7 +5,7 @@ const NguoiDung = require('../models/NguoiDung');
 const { TASK_STATUS, TASK_CATEGORIES, TASK_PRIORITIES } = require('../utils/hangSo');
 const { assert, validateId, parseOptionalDate } = require('../utils/kiemTra');
 
-// Keep the log bounded: a long-running task can be reported on many times.
+// Giữ nhật ký trong giới hạn: một nhiệm vụ chạy lâu có thể được báo cáo nhiều lần.
 const MAX_PROGRESS_LOG = 50;
 function logProgress(task, percent, note = '') {
   task.progress = percent;
@@ -14,7 +14,7 @@ function logProgress(task, percent, note = '') {
     task.progressLog.splice(0, task.progressLog.length - MAX_PROGRESS_LOG);
 }
 
-// Optional category / priority from a create or edit body; undefined = leave unchanged.
+// Phân loại / mức ưu tiên tùy chọn từ body tạo hoặc sửa; undefined = giữ nguyên.
 function readClassification(body, task) {
   const { category, priority } = body;
   if (category !== undefined) {
@@ -27,7 +27,7 @@ function readClassification(body, task) {
   }
 }
 
-/** Active CSSV staff member a task can be given to. */
+/** Nhân viên CSSV đang hoạt động có thể được giao nhiệm vụ. */
 async function findAssignableStaff(staffId) {
   validateId(staffId);
   const staff = await NguoiDung.findById(staffId);
@@ -38,7 +38,7 @@ async function findAssignableStaff(staffId) {
   return staff;
 }
 
-/** Creates and assigns a task; returns { task, staff }. */
+/** Tạo và giao một nhiệm vụ; trả về { task, staff }. */
 async function createTask(body, assignedBy) {
   const { title, description, assignedTo, dueDate } = body;
   assert(typeof title === 'string' && title.trim(), 'Tiêu đề là bắt buộc');
@@ -63,7 +63,7 @@ function acknowledgeTask(task) {
   return task.save();
 }
 
-/** Approves (optionally scored 1–5) or rejects a submitted task. */
+/** Duyệt (có thể chấm 1–5) hoặc từ chối nhiệm vụ đã nộp. */
 function reviewTask(task, { approve, reviewNote, score }, reviewerId) {
   assert(task.status === TASK_STATUS.SUBMITTED, 'Nhiệm vụ chưa được nộp minh chứng để duyệt');
   assert(typeof approve === 'boolean', 'Vui lòng chọn Duyệt hoặc Từ chối');
@@ -76,7 +76,7 @@ function reviewTask(task, { approve, reviewNote, score }, reviewerId) {
   task.reviewScore = approve ? (score ?? null) : null;
   if (!approve) {
     task.reworkCount += 1;
-    // Back to work: the progress bar drops so it no longer reads "100% done".
+    // Quay lại làm việc: thanh tiến độ giảm xuống để không còn hiện "xong 100%".
     logProgress(task, Math.min(task.progress, 90), 'Bị yêu cầu làm lại');
   }
   task.reviewNote = reviewNote ? reviewNote.trim() : '';

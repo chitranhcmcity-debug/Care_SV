@@ -1,4 +1,4 @@
-// Own plans of self-registered Trưởng phòng / PHT accounts: renewal links and expiry reminders.
+// Gói riêng của tài khoản Trưởng phòng / PHT tự đăng ký: link gia hạn và nhắc hết hạn.
 const jwt = require('jsonwebtoken');
 const NguoiDung = require('../models/NguoiDung');
 const { sendRenewalEmail } = require('./dichVuEmail');
@@ -9,10 +9,10 @@ const REMIND_DAYS_BEFORE = 3;
 const RENEW_LINK_DAYS = 30;
 const CHECK_EVERY_MS = 60 * 60 * 1000;
 
-// A separate secret, so a renewal link can never be used as a sign-in token (and vice versa).
+// Một bí mật riêng, để link gia hạn không bao giờ dùng được làm token đăng nhập (và ngược lại).
 const renewSecret = () => `${getJwtSecret()}:account-renewal`;
 
-/** Link that lets the account holder pick a plan and pay without signing in. */
+/** Link cho phép chủ tài khoản chọn gói và thanh toán mà không cần đăng nhập. */
 function renewUrl(user) {
   const token = jwt.sign({ id: String(user._id), purpose: 'renew' }, renewSecret(), {
     algorithm: 'HS256',
@@ -21,7 +21,7 @@ function renewUrl(user) {
   return `${getAppUrl()}/renew?token=${encodeURIComponent(token)}`;
 }
 
-/** The account a renewal link belongs to, or null when the link is invalid or expired. */
+/** Tài khoản mà link gia hạn thuộc về, hoặc null khi link không hợp lệ hay đã hết hạn. */
 async function accountFromRenewToken(token) {
   if (typeof token !== 'string' || !token) return null;
   try {
@@ -36,13 +36,13 @@ async function accountFromRenewToken(token) {
   }
 }
 
-/** True when this account has its own plan and that plan has run out. */
+/** Đúng khi tài khoản này có gói riêng và gói đó đã hết. */
 const accountExpired = (user) =>
   Boolean(user?.accessExpiresAt) && new Date(user.accessExpiresAt).getTime() <= Date.now();
 
 /**
- * Sends each reminder once per expiry date: one a few days before the plan ends, one when it
- * has ended. Renewing moves the expiry date, which arms both reminders again.
+ * Gửi mỗi lời nhắc một lần cho mỗi ngày hết hạn: một lần vài ngày trước khi gói kết thúc, một lần khi
+ * đã kết thúc. Gia hạn làm dời ngày hết hạn, nên cả hai lời nhắc được kích hoạt lại.
  */
 async function sendDueReminders() {
   const now = new Date();
@@ -70,13 +70,13 @@ async function sendDueReminders() {
         renewUrl: renewUrl(user),
         expired: isExpired,
       });
-      // Retried on the next check when the email could not be sent.
+      // Thử lại ở lần kiểm tra sau khi email không gửi được.
       if (sent) await NguoiDung.updateOne({ _id: user._id }, { [field]: user.accessExpiresAt });
     }
   }
 }
 
-/** Checks for due reminders now and then every hour. */
+/** Kiểm tra lời nhắc đến hạn ngay bây giờ và sau đó mỗi giờ. */
 function startRenewalReminders() {
   const run = () =>
     sendDueReminders().catch((error) =>

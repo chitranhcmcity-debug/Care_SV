@@ -36,11 +36,11 @@ const optionalDate = (value) => {
 };
 
 const isManager = (user) => can(user, 'care.manage');
-/** Id of a ref that may already be populated. */
+/** Id của một tham chiếu, có thể đã được populate. */
 const idOf = (ref) => String(ref?._id ?? ref);
 const isOwner = (user, careCase) =>
   can(user, 'care.work') && idOf(careCase.assignedStaffId) === user.id;
-/** Business actions are for managers and the assigned staff member; the admin only reads. */
+/** Thao tác nghiệp vụ dành cho quản lý và nhân viên được giao; quản trị viên chỉ xem. */
 const canWork = (user, careCase) =>
   user.role !== 'admin' && (isManager(user) || isOwner(user, careCase));
 const canRead = (user, careCase) =>
@@ -90,9 +90,9 @@ function requireManageRead(req, res, next) {
     : res.status(403).json({ message: 'Bạn không có quyền xem mục này' });
 }
 
-// ---- Helpers ----
+// ---- Hàm hỗ trợ ----
 
-/** Full case for the detail view, with its calls and which recordings the viewer may play. */
+/** Hồ sơ đầy đủ cho màn chi tiết, kèm các cuộc gọi và bản ghi âm mà người xem được phép nghe. */
 async function detail(careCase, user) {
   const [populated, calls] = await Promise.all([
     careCase.populate(detailPopulation),
@@ -134,10 +134,10 @@ async function activeStaff(id) {
   return staff;
 }
 
-// ---- Handlers ----
+// ---- Handler ----
 
-// ?status=open|closed|<code>&q=&mine=1 — managers see every case, staff their own, proposers
-// the cases they proposed.
+// ?status=open|closed|<code>&q=&mine=1 — quản lý thấy mọi hồ sơ, nhân viên thấy hồ sơ của mình, người đề xuất
+// thấy các hồ sơ họ đã đề xuất.
 async function list(req, res, next) {
   try {
     const { status = 'open', q, mine } = req.query;
@@ -232,8 +232,8 @@ async function listForStudent(req, res, next) {
   }
 }
 
-// body { studentId, reason, assignedStaffId?, directive?, dueDate? }. A manager naming a staff
-// member opens it directed; everyone else proposes it.
+// body { studentId, reason, assignedStaffId?, directive?, dueDate? }. Quản lý nêu tên nhân viên thì
+// hồ sơ được mở dưới dạng có chỉ đạo; người khác thì chỉ đề xuất.
 async function create(req, res, next) {
   try {
     assert(req.user.role !== 'admin', 'Quản trị viên chỉ được xem hồ sơ', 403);
@@ -288,8 +288,8 @@ async function getOne(req, res, next) {
   }
 }
 
-// body { assignedStaffId, directive?, dueDate? }: a manager directs (or re-directs) a staff
-// member to care for the student.
+// body { assignedStaffId, directive?, dueDate? }: quản lý chỉ đạo (hoặc chỉ đạo lại) một nhân viên
+// chăm sóc sinh viên.
 async function direct(req, res, next) {
   try {
     const c = req.careCase;
@@ -363,7 +363,7 @@ async function removeStep(req, res, next) {
   }
 }
 
-// body { cause?, solution? }: what was found and agreed.
+// body { cause?, solution? }: những gì đã tìm hiểu và thống nhất.
 async function updateFindings(req, res, next) {
   try {
     const c = req.careCase;
@@ -386,8 +386,8 @@ async function updateFindings(req, res, next) {
   }
 }
 
-// body { kind: 'trao_doi' | 'kho_khan' | 'chi_dao', text }. Staff report difficulties, managers
-// give directions; both can simply reply.
+// body { kind: 'trao_doi' | 'kho_khan' | 'chi_dao', text }. Nhân viên báo khó khăn, quản lý
+// đưa chỉ đạo; cả hai đều có thể trả lời bình thường.
 async function addNote(req, res, next) {
   try {
     const kind = req.body?.kind || 'trao_doi';
@@ -403,7 +403,7 @@ async function addNote(req, res, next) {
   }
 }
 
-// AI Care suggests care steps (not saved; the user picks).
+// AI Care gợi ý các bước chăm sóc (chưa lưu; người dùng tự chọn).
 async function suggestSteps(req, res, next) {
   try {
     const c = await req.careCase.populate('studentId', 'studentCode fullName classCode major');
@@ -449,8 +449,8 @@ Trả về đúng mỗi bước một dòng, không đánh số, không giải t
   }
 }
 
-// body { result, summary, early? }: the staff member reports the outcome and asks a manager to
-// close the case.
+// body { result, summary, early? }: nhân viên báo cáo kết quả và đề nghị quản lý
+// kết thúc hồ sơ.
 async function requestClose(req, res, next) {
   try {
     const c = req.careCase;
@@ -483,9 +483,9 @@ async function requestClose(req, res, next) {
   }
 }
 
-// body { approve?: boolean, result?, summary?, note? }. A manager approves the staff member's
-// request (approve true), sends it back (approve false, with a note), or closes the case
-// directly with their own result and summary.
+// body { approve?: boolean, result?, summary?, note? }. Quản lý duyệt đề nghị của nhân viên
+// (approve true), trả lại (approve false, kèm ghi chú), hoặc tự kết thúc hồ sơ
+// với kết quả và báo cáo của mình.
 async function close(req, res, next) {
   try {
     const c = req.careCase;

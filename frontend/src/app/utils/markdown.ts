@@ -1,7 +1,7 @@
 const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** Minimal, safe markdown: escapes everything first, then bold, inline code, lists and tables. */
+/** Markdown tối giản, an toàn: thoát mọi ký tự trước, rồi in đậm, mã inline, danh sách và bảng. */
 export function renderMarkdown(text: string): string {
   const inline = (s: string) =>
     escapeHtml(s)
@@ -31,7 +31,7 @@ export function renderMarkdown(text: string): string {
     const line = raw.trim();
     if (/^\|.*\|$/.test(line)) {
       closeList();
-      if (/^\|[\s:|-]+\|$/.test(line)) continue; // separator row
+      if (/^\|[\s:|-]+\|$/.test(line)) continue; // dòng phân cách
       (table ??= []).push(
         line
           .slice(1, -1)

@@ -23,7 +23,7 @@ const PATHS = {
 
 export type CareIcon = keyof typeof PATHS;
 
-/** Same inline SVG approach as the app shell, shared by the care panels. */
+/** Cùng cách dùng SVG inline như khung ứng dụng, dùng chung cho các panel chăm sóc. */
 @Component({
   selector: 'app-care-icon',
   standalone: true,

@@ -4,14 +4,14 @@ const { requireCourseRead, requireCourseWrite } = require('../middleware/phanQuy
 const ctrl = require('../controllers/dieuKhienDiemDanh');
 
 const router = express.Router();
-// Teachers take attendance; overseers (Trưởng phòng / PHT, admin, report viewers) only look.
+// Giảng viên điểm danh; bên giám sát (Trưởng phòng / PHT, admin, người xem báo cáo) chỉ xem.
 router.use(
   verifyToken,
   requirePermission('attendance.take', 'attendance.view', 'reports.view', 'students.view'),
 );
 
 router.get('/course-groups', ctrl.listCourseGroups);
-// GET /api/attendance/window/:courseGroupId — whether attendance can be taken right now.
+// GET /api/attendance/window/:courseGroupId — hiện có điểm danh được không.
 router.get('/window/:courseGroupId', requireCourseRead, ctrl.getWindow);
 router.get('/history/:courseGroupId', requireCourseRead, ctrl.getHistory);
 router.get('/today/:courseGroupId', requireCourseRead, ctrl.getToday);

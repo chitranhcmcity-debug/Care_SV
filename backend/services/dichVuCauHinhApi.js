@@ -9,7 +9,7 @@ const CaiDatHeThong = require('../models/CaiDatHeThong');
 const { assert } = require('../utils/kiemTra');
 
 const CATALOG = Object.freeze([
-  // AI: one group; `provider` tags the fields shown only when that provider is selected.
+  // AI: một nhóm; `provider` gắn nhãn các trường chỉ hiện khi chọn nhà cung cấp đó.
   {
     key: 'AI_PROVIDER',
     group: 'Trợ lý AI',
@@ -56,12 +56,12 @@ const CATALOG = Object.freeze([
 ]);
 const KEYS = CATALOG.map((c) => c.key);
 
-// Values from .env captured before any database overlay, so clearing restores them.
+// Giá trị từ .env chụp lại trước khi phủ dữ liệu từ cơ sở dữ liệu, để xóa thì khôi phục được.
 const envDefaults = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 let applied = {};
 
-// Apply the requested provider change once on deployment, including settings saved before it.
-// Keep credentials out of source control and preserve future explicit admin changes.
+// Áp dụng thay đổi nhà cung cấp được yêu cầu một lần khi triển khai, kể cả các cài đặt đã lưu trước đó.
+// Giữ thông tin xác thực ngoài kho mã nguồn và giữ nguyên các thay đổi rõ ràng của admin sau này.
 async function migrateAiToTrikun() {
   if (!process.env.RAILWAY_ENVIRONMENT_ID && process.env.AI_DEPLOYMENT_PRESET !== 'trikun') return;
   const version = 'trikun-gemini-3.7-v1';
@@ -73,7 +73,7 @@ async function migrateAiToTrikun() {
     OPENAI_BASE_URL: 'https://api-trikun.up.railway.app/v1',
     OPENAI_MODEL: 'ag/gemini-3.7-flash-low',
   };
-  // An explicitly supplied deployment key replaces an old OpenAI key; never reuse a Google key.
+  // Khóa triển khai được cung cấp rõ ràng sẽ thay khóa OpenAI cũ; không bao giờ dùng lại khóa Google.
   if (envDefaults.OPENAI_API_KEY?.trim()) {
     values.OPENAI_API_KEY = envDefaults.OPENAI_API_KEY.trim();
   }
@@ -106,7 +106,7 @@ function decrypt(payload) {
     decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
   } catch {
-    return null; // secret changed or data corrupted: fall back to .env
+    return null; // bí mật đã đổi hoặc dữ liệu hỏng: quay về .env
   }
 }
 
@@ -122,7 +122,7 @@ async function storedValues() {
   );
 }
 
-/** Loads database values over process.env (called at startup and after every save). */
+/** Nạp giá trị từ cơ sở dữ liệu đè lên process.env (gọi lúc khởi động và sau mỗi lần lưu). */
 async function applyIntegrations() {
   const values = await storedValues();
   for (const key of KEYS) {
@@ -133,7 +133,7 @@ async function applyIntegrations() {
   applied = values;
 }
 
-/** Catalog with each value's source; secrets are masked, never returned in clear. */
+/** Danh mục kèm nguồn của từng giá trị; bí mật được che, không bao giờ trả về dạng rõ. */
 function describeIntegrations() {
   return CATALOG.map((item) => {
     const fromDb = applied[item.key];
@@ -148,8 +148,8 @@ function describeIntegrations() {
 }
 
 /**
- * values: { KEY: string | null }. A non-empty string sets the key, '' or null removes the
- * database value (falls back to .env), keys left out are unchanged.
+ * values: { KEY: string | null }. Chuỗi không rỗng thì đặt khóa, '' hoặc null thì xóa
+ * giá trị trong cơ sở dữ liệu (quay về .env), khóa không có thì giữ nguyên.
  */
 async function updateIntegrations(values) {
   assert(values && typeof values === 'object' && !Array.isArray(values), 'Dữ liệu không hợp lệ');

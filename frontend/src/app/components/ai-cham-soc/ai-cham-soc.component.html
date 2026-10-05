@@ -1,4 +1,4 @@
-<!-- Launcher: the AI Care robot wanders around the screen; clicking it opens the chat -->
+<!-- Nút mở: robot AI Care đi lang thang quanh màn hình; bấm vào sẽ mở chat -->
 <button
   type="button"
   class="robot-launcher"
@@ -22,7 +22,7 @@
     open() ? 'Đóng AI Care' : 'Hỏi AI Care · giữ & kéo để dời chỗ'
   }}</span>
   <span class="robot-body" [style.--tilt]="tilt() + 'deg'">
-    <!-- Two drawings of the wizard robot; the one facing the flight direction is shown. -->
+    <!-- Hai bản vẽ robot phù thủy; bản quay về hướng bay được hiển thị. -->
     <span class="robot-float">
       <img
         src="robot-ai-left.webp"
@@ -43,7 +43,7 @@
   <span class="robot-shadow"></span>
 </button>
 
-<!-- Panel -->
+<!-- Khung -->
 <section
   *ngIf="open()"
   class="fixed z-50 bottom-32 right-4 left-4 sm:left-auto sm:right-5 sm:w-[420px] h-[min(640px,calc(100vh-8rem))] ai-panel rounded-3xl flex flex-col overflow-hidden"
@@ -94,7 +94,7 @@
   </header>
 
   <div #scroller class="flex-1 overflow-y-auto px-4 py-4 space-y-3 ai-body text-sm">
-    <!-- Welcome: what AI Care does for this role -->
+    <!-- Chào mừng: AI Care làm gì cho vai trò này -->
     <div *ngIf="!messages().length" class="space-y-3">
       <div class="ai-bubble rounded-2xl rounded-bl-md p-3.5">
         <p class="text-slate-800">
@@ -137,7 +137,7 @@
         ></div>
       </div>
 
-      <!-- Actions AI Care prepared: nothing has changed until the user confirms -->
+      <!-- Các thao tác AI Care đã chuẩn bị: chưa có gì thay đổi cho đến khi người dùng xác nhận -->
       <div
         *ngFor="let a of m.actions"
         class="action-card"

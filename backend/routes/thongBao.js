@@ -8,8 +8,8 @@ router.use(verifyToken, requireSignedIn);
 // GET /api/notifications
 router.get('/', ctrl.getSummary);
 
-// PUT /api/notifications/seen — body { scope?: 'care' | 'tasks' }; no scope = the bell,
-// which marks every kind as seen.
+// PUT /api/notifications/seen — body { scope?: 'care' | 'tasks' }; không có scope = chuông thông báo,
+// đánh dấu mọi loại là đã xem.
 router.put('/seen', ctrl.markSeen);
 
 module.exports = router;

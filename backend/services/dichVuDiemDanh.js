@@ -3,8 +3,8 @@ const SinhVien = require('../models/SinhVien');
 const { openCasesForWarnings } = require('./dichVuHoSoChamSoc');
 const { validateAttendance, dayBounds, dateKey } = require('../utils/kiemTra');
 
-// Serialize edits to the same session in this process. The unique session index
-// additionally prevents duplicate records across multiple server processes.
+// Tuần tự hóa các thay đổi trên cùng một buổi trong tiến trình này. Unique index của buổi
+// còn ngăn bản ghi trùng giữa nhiều tiến trình máy chủ.
 const pending = new Map();
 
 async function withSessionLock(key, operation) {
@@ -40,9 +40,9 @@ async function saveAttendance({
       recordedBy: user.id,
     });
     await attendance.save();
-    // Students who now reach a warning level get a care case (default: their class's staff).
+    // Sinh viên vừa đạt mức cảnh báo sẽ có hồ sơ chăm sóc (mặc định: nhân viên của lớp đó).
     const openedCases = await openCasesForWarnings(group, absentStudentIds);
-    // The absent students, so the lecturer can choose to call them right away.
+    // Các sinh viên vắng, để giảng viên có thể chọn gọi ngay.
     const absent = await SinhVien.find({ _id: { $in: absentStudentIds } })
       .select('studentCode fullName classCode phone parentPhone')
       .lean();

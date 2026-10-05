@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { finalize } from 'rxjs';
 import { LoadingService } from '../services/loading.service';
 
-/** Counts the GET requests a page fires while opening, so the logo loader covers slow data loads. */
+/** Đếm các request GET mà một trang bắn ra khi mở, để loader logo bao phủ các lần tải dữ liệu chậm. */
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loading = inject(LoadingService);
   if (req.method !== 'GET' || !loading.isPageLoad()) return next(req);

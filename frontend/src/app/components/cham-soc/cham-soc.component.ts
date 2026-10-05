@@ -41,8 +41,8 @@ const NOTE_KIND_LABELS: Record<CareNote['kind'], string> = {
 };
 
 /**
- * Hồ sơ chăm sóc sinh viên: the list (by status) and the open case with its steps, findings,
- * calls, the exchange between staff and managers, and closing.
+ * Hồ sơ chăm sóc sinh viên: danh sách (theo trạng thái) và hồ sơ đang mở với các bước, kết quả tìm hiểu,
+ * cuộc gọi, trao đổi giữa nhân viên và quản lý, và đóng hồ sơ.
  */
 @Component({
   selector: 'app-care',
@@ -70,9 +70,9 @@ export class CareComponent implements OnInit, OnDestroy {
 
   readonly isManager = computed(() => this.auth.can('care.manage'));
   readonly canWorkRole = computed(() => this.auth.can('care.work'));
-  /** Managers other than the admin act on cases; the admin only reads. */
+  /** Quản lý (trừ admin) thao tác trên hồ sơ; admin chỉ đọc. */
   readonly canAct = computed(() => this.isManager() && !this.auth.isAdmin());
-  /** Opening a case from here needs the student list. */
+  /** Mở hồ sơ từ đây cần có danh sách sinh viên. */
   readonly canViewStudents = computed(() => this.auth.can('students.view'));
 
   readonly tabs = computed<{ id: Tab; label: string }[]>(() =>
@@ -99,7 +99,7 @@ export class CareComponent implements OnInit, OnDestroy {
   readonly detailLoading = signal(false);
   readonly busy = signal(false);
 
-  // Presentation state only; all mutations still use the existing case actions.
+  // Chỉ là trạng thái hiển thị; mọi thay đổi vẫn dùng các thao tác hồ sơ hiện có.
   readonly detailTab = signal<DetailTab>('process');
   readonly editingFindings = signal(false);
   readonly pendingSuggestion = signal<string | null>(null);
@@ -148,12 +148,12 @@ export class CareComponent implements OnInit, OnDestroy {
     return descriptions[step.title] || '';
   }
 
-  // Direct form
+  // Form chỉ đạo
   readonly staffOptions = signal<CareStaffOption[]>([]);
   directStaffId = '';
   directive = '';
   dueDate = '';
-  // Step / findings / exchange / closing forms
+  // Form bước / kết quả tìm hiểu / trao đổi / đóng hồ sơ
   newStep = '';
   readonly aiSuggestions = signal<string[] | null>(null);
   readonly aiLoading = signal(false);
@@ -168,7 +168,7 @@ export class CareComponent implements OnInit, OnDestroy {
   readonly advice = signal<{ loading: boolean; text?: string; error?: string } | null>(null);
   readonly playing = signal<Record<string, string>>({});
 
-  // New case (manager) / proposal
+  // Hồ sơ mới (quản lý) / đề xuất
   readonly showNew = signal(false);
   studentQuery = '';
   readonly studentResults = signal<Student[]>([]);
@@ -205,7 +205,7 @@ export class CareComponent implements OnInit, OnDestroy {
   private savedVersion = 0;
 
   constructor() {
-    // A call saved from the dialog shows up in the open case right away.
+    // Cuộc gọi lưu từ hộp thoại hiện ngay trong hồ sơ đang mở.
     effect(() => {
       const version = this.calls.savedVersion();
       if (version !== this.savedVersion) {
@@ -237,7 +237,7 @@ export class CareComponent implements OnInit, OnDestroy {
     this.stopAudio();
   }
 
-  // ---------------- List ----------------
+  // ---------------- Danh sách ----------------
 
   setTab(tab: Tab) {
     this.tab.set(tab);
@@ -282,7 +282,7 @@ export class CareComponent implements OnInit, OnDestroy {
     return !!c.dueDate && c.status === CARE_STATUS.IN_PROGRESS && new Date(c.dueDate) < new Date();
   }
 
-  // ---------------- Detail ----------------
+  // ---------------- Chi tiết ----------------
 
   openCase(id: string, showLoading = true) {
     if (showLoading) this.detailLoading.set(true);
@@ -321,7 +321,7 @@ export class CareComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** The staff member responsible for the student's class, as the default choice. */
+  /** Nhân viên phụ trách lớp của sinh viên, làm lựa chọn mặc định. */
   suggestedStaff(c: CareCase | null): CareStaffOption | undefined {
     const code = c?.studentId?.classCode?.toUpperCase();
     return this.staffOptions().find((s) => code && s.managedClasses.includes(code));
@@ -339,7 +339,7 @@ export class CareComponent implements OnInit, OnDestroy {
     return [...c.notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
-  /** Runs a case action, then shows the updated case and refreshes the list. */
+  /** Chạy một thao tác hồ sơ, rồi hiện hồ sơ đã cập nhật và làm mới danh sách. */
   private act(request: ReturnType<CareCaseService['get']>, message?: string) {
     this.busy.set(true);
     request.subscribe({
@@ -455,7 +455,7 @@ export class CareComponent implements OnInit, OnDestroy {
     );
   }
 
-  // ---------------- Calls ----------------
+  // ---------------- Cuộc gọi ----------------
 
   call(c: CareCase, target: CallTarget) {
     this.calls.open({ student: c.studentId, target, careCaseId: c._id });
@@ -484,7 +484,7 @@ export class CareComponent implements OnInit, OnDestroy {
     this.playing.set({});
   }
 
-  // ---------------- New case / proposal ----------------
+  // ---------------- Hồ sơ mới / đề xuất ----------------
 
   openNew() {
     this.showNew.set(true);

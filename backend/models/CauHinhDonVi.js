@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const { unitPlugin } = require('../utils/donVi');
 
-// Care settings of one unit, set by its Trưởng phòng / PHT: warning levels, absence reasons and
-// student tags. A unit without a document uses the defaults.
+// Cấu hình chăm sóc của một đơn vị, do Trưởng phòng / PHT của đơn vị đặt: mức cảnh báo, lý do vắng và
+// nhãn sinh viên. Đơn vị chưa có tài liệu thì dùng giá trị mặc định.
 const CauHinhDonViSchema = new mongoose.Schema(
   {
     // null = DEFAULT_WARNING_LEVELS.

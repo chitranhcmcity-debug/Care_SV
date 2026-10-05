@@ -23,10 +23,10 @@ DiemDanhSchema.index(
   { unique: true, partialFilterExpression: { sessionDay: { $type: 'string' } } },
 );
 
-// Attendance history and summaries load every session of a course group.
+// Lịch sử và thống kê điểm danh nạp mọi buổi của một học phần.
 DiemDanhSchema.index({ courseGroupId: 1 });
 
-// Belongs to one unit (đơn vị); see utils/donVi.js.
+// Thuộc về một đơn vị; xem utils/donVi.js.
 DiemDanhSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('DiemDanh', DiemDanhSchema, 'diem_danh');

@@ -6,7 +6,7 @@
   aria-labelledby="call-dialog-title call-dialog-student"
 >
   <div class="call-panel">
-    <!-- Gradient header -->
+    <!-- Tiêu đề gradient -->
     <header class="call-head">
       <span class="call-head-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24"><path d="M8 3 4 4C1 12 12 23 20 20l1-4-5-3-2 3-6-6 3-2Z" /></svg>
@@ -20,7 +20,7 @@
     </header>
 
     <div class="call-body">
-      <!-- Student -->
+      <!-- Sinh viên -->
       <div class="call-student">
         <span class="call-avatar" aria-hidden="true">{{ initials() }}</span>
         <div class="min-w-0">
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <!-- ===== Step 1: who & how ===== -->
+      <!-- ===== Bước 1: gọi ai & bằng cách nào ===== -->
       <ng-container *ngIf="step() === 'setup'">
         <fieldset class="call-group">
           <legend class="call-legend">Gọi cho</legend>
@@ -183,7 +183,7 @@
         </button>
       </ng-container>
 
-      <!-- ===== Step 2: in the call ===== -->
+      <!-- ===== Bước 2: trong cuộc gọi ===== -->
       <ng-container *ngIf="step() === 'calling'">
         <div class="call-live">
           <div class="call-live-label">
@@ -207,7 +207,7 @@
         </button>
       </ng-container>
 
-      <!-- ===== Step 3: outcome ===== -->
+      <!-- ===== Bước 3: kết quả ===== -->
       <form *ngIf="step() === 'result'" (ngSubmit)="save()" class="call-form">
         <div class="call-field">
           <label for="call-outcome" class="call-legend">Kết quả cuộc gọi</label>

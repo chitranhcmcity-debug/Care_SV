@@ -15,7 +15,7 @@
 
   <div *ngIf="loading() && !items().length" class="aa-empty" role="status">Đang tải...</div>
 
-  <!-- Waiting for a decision -->
+  <!-- Chờ quyết định -->
   <section class="aa-section">
     <h3>
       <span class="aa-tile is-amber" aria-hidden="true">⏳</span>
@@ -58,7 +58,7 @@
     </div>
   </section>
 
-  <!-- Approved, key not used yet -->
+  <!-- Đã duyệt, chưa dùng key -->
   <section *ngIf="awaitingKey().length" class="aa-section">
     <h3>
       <span class="aa-tile is-violet" aria-hidden="true">🔑</span>

@@ -7,13 +7,13 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'isolated-test-secret-with-at-least-32-characters';
-// AI routes must fail gracefully (503) rather than call a real API in tests.
+// Các route AI phải lỗi nhẹ nhàng (503) thay vì gọi API thật trong test.
 delete process.env.OPENAI_API_KEY;
-// Account emails must never reach a real SMTP server from tests.
+// Email tài khoản không bao giờ được tới máy chủ SMTP thật từ test.
 delete process.env.SMTP_USER;
 delete process.env.SMTP_PASS;
 delete process.env.BREVO_API_KEY;
-// Tests that need email switch SMTP "on" and read what would have been sent from here.
+// Test cần email thì bật SMTP "on" và đọc những gì sẽ được gửi từ đây.
 const sentMails = [];
 require('nodemailer').createTransport = () => ({
   sendMail: async (mail) => {
@@ -32,7 +32,7 @@ function withFakeSmtp(fn) {
     }
   };
 }
-// The one-time token inside the most recent email sent to `to`.
+// Token dùng một lần trong email gần nhất gửi tới `to`.
 function tokenFromMail(to) {
   const mail = sentMails.findLast((m) => m.to === to);
   assert.ok(mail, `no email was sent to ${to}`);
@@ -57,8 +57,8 @@ const { dateKey } = require('../utils/kiemTra');
 const { CARE_STATUS, TASK_STATUS } = require('../utils/hangSo');
 const { escapeHtml } = require('../services/dichVuEmail');
 const { saveAttendance, deleteAttendance } = require('../services/dichVuDiemDanh');
-// Past sessions can no longer be written through the API (they are final once the class ends),
-// so fixtures record them through the service, as the lecturer.
+// Các buổi đã qua không còn ghi được qua API (chúng được chốt khi hết giờ học),
+// nên fixture ghi chúng qua service, với tư cách giảng viên.
 const recordPast = (courseGroup, absentStudentIds, date) =>
   saveAttendance({
     group: courseGroup,
@@ -79,9 +79,9 @@ async function request(path, token, method = 'GET', body) {
   });
   return { status: response.status, body: await response.json() };
 }
-// One absent session (4 periods) reaches this level, so tests can open care cases quickly.
+// Một buổi vắng (4 tiết) đạt mức này, để test mở hồ sơ chăm sóc nhanh.
 async function useQuickWarningLevel() {
-  // Care settings live per unit; the fixture accounts are not in a unit (unitId null).
+  // Cấu hình chăm sóc theo từng đơn vị; các tài khoản fixture không thuộc đơn vị nào (unitId null).
   await UnitConfig.updateOne(
     { unitId: null },
     { warningLevels: [{ name: 'Nhắc nhở', unit: 'periods', threshold: 4, color: '#eab308' }] },
@@ -128,7 +128,7 @@ before(async () => {
     { studentCode: 'TEST001', fullName: 'Student A', classCode: 'TEST' },
     { studentCode: 'TEST002', fullName: 'Student B', classCode: 'OTHER' },
   ]);
-  // Scheduled every day, all day, so the teacher's attendance window is open whenever tests run.
+  // Xếp lịch mỗi ngày, cả ngày, để khung giờ điểm danh của giảng viên luôn mở bất cứ lúc nào chạy test.
   group = await NhomHocPhan.create({
     groupCode: 'TEST-GROUP',
     teacherId: users.teacher._id,
@@ -137,7 +137,7 @@ before(async () => {
     startTime: '00:00',
     endTime: '23:59',
   });
-  // Class TEST is cared for by users.staff; class OTHER has nobody (manager queue).
+  // Lớp TEST do users.staff chăm sóc; lớp OTHER không có ai (hàng chờ quản lý).
   await require('../services/dichVuPhanCongLop').assignClass({
     classCode: 'TEST',
     staffId: users.staff._id,
@@ -164,7 +164,7 @@ test('staff cannot use global administrative APIs', async () => {
   for (const path of ['/care-cases/staff', '/course-groups', '/class-assignments']) {
     assert.equal((await request(path, tokens.staff)).status, 403, path);
   }
-  // Staff may read reports (their own classes); teachers may not.
+  // Nhân viên được đọc báo cáo (lớp của mình); giảng viên thì không.
   assert.equal((await request('/analytics/summary', tokens.staff)).status, 200);
   assert.equal((await request('/analytics/summary', tokens.teacher)).status, 403);
 });
@@ -202,7 +202,7 @@ test('attendance rejects nonmembers, duplicates, overlap and invalid dates', asy
         .status,
       400,
     );
-  // Trưởng phòng / PHT only look: they cannot write attendance, even for today.
+  // Trưởng phòng / PHT chỉ xem: không ghi được điểm danh, kể cả hôm nay.
   assert.equal((await request('/attendance/submit', tokens.manager, 'POST', valid)).status, 403);
   assert.equal(await DiemDanh.countDocuments(), 0);
 });
@@ -212,7 +212,7 @@ test('past attendance preserves date and recorder; a warning opens one care case
   const result = await recordPast(group, [students[0]._id], date);
   assert.equal(result.isUpdate, false);
   assert.equal(String(result.attendance.recordedBy), String(users.teacher._id));
-  // The absent students come back so the lecturer can choose to call them.
+  // Các sinh viên vắng được trả về để giảng viên có thể chọn gọi.
   assert.equal(result.absentStudents[0].studentCode, 'TEST001');
   assert.equal(result.openedCases.length, 1);
   for (const again of await Promise.all([
@@ -225,7 +225,7 @@ test('past attendance preserves date and recorder; a warning opens one care case
   const careCase = await HoSoChamSoc.findOne();
   assert.equal(careCase.source, 'canh_bao');
   assert.equal(careCase.warning.level, 'Nhắc nhở');
-  // Student A's class TEST is assigned to users.staff, so the case goes straight to them.
+  // Lớp TEST của sinh viên A được giao cho users.staff, nên hồ sơ đi thẳng tới họ.
   assert.equal(careCase.status, CARE_STATUS.IN_PROGRESS);
   assert.equal(String(careCase.assignedStaffId), String(users.staff._id));
   assert.ok(careCase.steps.length >= 4);
@@ -246,7 +246,7 @@ test('care case ownership prevents working another staff case or student profile
       (await request(`/students/${students[0]._id}/tags`, token, 'PUT', { tags: ['x'] })).status,
       403,
     );
-  // The admin may look at the case, not work on it.
+  // Admin được xem hồ sơ, không được xử lý.
   assert.equal((await request(`/care-cases/${careCase._id}`, tokens.admin)).status, 200);
   const bad = await request(`/care-cases/${careCase._id}/notes`, tokens.staff, 'POST', {
     kind: 'chi_dao',
@@ -277,7 +277,7 @@ test('attendance history edits enforce ownership; the care case outlives a corre
     (await request(`/attendance/history/${record._id}`, tokens.other, 'DELETE')).status,
     403,
   );
-  // A past record is outside the teacher's same-day window.
+  // Bản ghi đã qua nằm ngoài khung giờ cùng ngày của giảng viên.
   assert.equal(
     (
       await request(`/attendance/history/${record._id}`, tokens.teacher, 'PUT', {
@@ -286,7 +286,7 @@ test('attendance history edits enforce ownership; the care case outlives a corre
     ).status,
     403,
   );
-  // The admin cannot write attendance either.
+  // Admin cũng không ghi được điểm danh.
   assert.equal(
     (
       await request(`/attendance/history/${record._id}`, tokens.admin, 'PUT', {
@@ -295,7 +295,7 @@ test('attendance history edits enforce ownership; the care case outlives a corre
     ).status,
     403,
   );
-  // Nor can the Trưởng phòng / PHT: a finished session is final for everyone.
+  // Trưởng phòng / PHT cũng không: buổi đã kết thúc là chốt với mọi người.
   assert.equal(
     (
       await request(`/attendance/history/${record._id}`, tokens.manager, 'PUT', {
@@ -305,7 +305,7 @@ test('attendance history edits enforce ownership; the care case outlives a corre
     403,
   );
   await recordPast(group, [], record.date);
-  // Care is a human process: correcting attendance does not delete the case.
+  // Chăm sóc là quá trình của con người: sửa điểm danh không xóa hồ sơ.
   assert.equal(await HoSoChamSoc.countDocuments(), 1);
 });
 test('a warning in a class without staff waits for a directive; the manager directs someone', async () => {
@@ -319,7 +319,7 @@ test('a warning in a class without staff waits for a directive; the manager dire
     [String(careCase._id)],
   );
   const { staff: carer, token: carerToken } = await createTaskStaff('directed');
-  // Only a manager directs, and only to active CSSV staff.
+  // Chỉ quản lý được chỉ đạo, và chỉ cho nhân viên CSSV đang hoạt động.
   for (const [token, staffId, status] of [
     [carerToken, carer._id, 403],
     [tokens.admin, carer._id, 403],
@@ -333,7 +333,7 @@ test('a warning in a class without staff waits for a directive; the manager dire
       ).status,
       status,
     );
-  // The carer cannot see a student outside their classes before being directed.
+  // Người chăm sóc không xem được sinh viên ngoài lớp của mình trước khi được chỉ đạo.
   assert.equal((await request(`/students/${students[1]._id}/profile`, carerToken)).status, 403);
   const directed = await request(`/care-cases/${careCase._id}/direct`, tokens.manager, 'PUT', {
     assignedStaffId: String(carer._id),
@@ -364,7 +364,7 @@ test('care case work: steps, findings, exchange, AI steps, then close request an
   });
   assert.equal(done.status, 200);
   assert.equal(done.body.steps[1].done, true);
-  // The assignee sees the case as theirs to work on (checked after the refs are populated).
+  // Người được giao thấy hồ sơ là của mình để xử lý (kiểm tra sau khi populate các tham chiếu).
   assert.deepEqual(done.body.permissions, { manage: false, work: true });
   const added = await request(`/care-cases/${id}/steps`, tokens.manager, 'POST', {
     title: 'Gặp trực tiếp sinh viên',
@@ -390,10 +390,10 @@ test('care case work: steps, findings, exchange, AI steps, then close request an
     text: 'Nhờ giảng viên chủ nhiệm hỗ trợ',
   });
   assert.equal(replied.status, 201);
-  // AI suggestions need an API key.
+  // Gợi ý của AI cần khóa API.
   assert.equal((await request(`/care-cases/${id}/ai-steps`, token, 'POST', {})).status, 503);
 
-  // Close request: needs a result and a report; the manager may send it back, then approve.
+  // Đề nghị đóng: cần kết quả và báo cáo; quản lý có thể trả lại, rồi duyệt.
   assert.equal(
     (await request(`/care-cases/${id}/close-request`, token, 'POST', { result: 'x', summary: 'a' }))
       .status,
@@ -420,7 +420,7 @@ test('care case work: steps, findings, exchange, AI steps, then close request an
   });
   assert.equal(closed.body.status, CARE_STATUS.CLOSED);
   assert.equal(closed.body.closing.approvedBy.fullName, 'manager');
-  // Closed cases are history: no more work, and a new case can be opened for the student.
+  // Hồ sơ đã đóng là lịch sử: không xử lý thêm, và có thể mở hồ sơ mới cho sinh viên.
   assert.equal(
     (await request(`/care-cases/${id}/steps`, token, 'POST', { title: 'x' })).status,
     400,
@@ -433,7 +433,7 @@ test('care case work: steps, findings, exchange, AI steps, then close request an
 test('lecturers propose care; a manager can open a directed case; one open case per student', async () => {
   const teacherCases = await request('/care-cases', tokens.teacher);
   assert.equal(teacherCases.status, 200);
-  // The teacher only proposes for students of their own course groups.
+  // Giảng viên chỉ đề xuất cho sinh viên thuộc các học phần của mình.
   assert.equal(
     (
       await request('/care-cases', tokens.teacher, 'POST', {
@@ -452,13 +452,13 @@ test('lecturers propose care; a manager can open a directed case; one open case 
     ).status,
     403,
   );
-  // Student A already has an open case (from the warning).
+  // Sinh viên A đã có hồ sơ đang mở (từ cảnh báo).
   const dup = await request('/care-cases', tokens.teacher, 'POST', {
     studentId: String(students[0]._id),
     reason: 'Có dấu hiệu bỏ học',
   });
   assert.equal(dup.status, 409);
-  // Student B's case is closed, so a new one can be opened, here directed by the manager.
+  // Hồ sơ của sinh viên B đã đóng, nên mở được hồ sơ mới, ở đây do quản lý chỉ đạo.
   const { staff: carer } = await createTaskStaff('manager-opened');
   const opened = await request('/care-cases', tokens.manager, 'POST', {
     studentId: String(students[1]._id),
@@ -498,7 +498,7 @@ test('warning levels are configured by the manager and validated', async () => {
   assert.equal(saved.status, 200);
   assert.equal(saved.body.settings.warningLevels.length, 2);
   assert.equal((await request('/settings', tokens.teacher)).body.warningLevels[1].examBan, true);
-  // System settings stay with the admin; bad values are rejected, not silently defaulted.
+  // Cài đặt hệ thống thuộc về admin; giá trị sai bị từ chối, không âm thầm đặt mặc định.
   assert.equal(
     (await request('/settings', tokens.manager, 'PUT', { systemTitle: 'X' })).status,
     403,
@@ -507,13 +507,13 @@ test('warning levels are configured by the manager and validated', async () => {
     (await request('/settings', tokens.admin, 'PUT', { primaryColor: 'blue' })).status,
     400,
   );
-  // Restore defaults for the following tests.
+  // Khôi phục mặc định cho các test sau.
   await UnitConfig.updateOne({ unitId: null }, { $unset: { warningLevels: 1 } });
   require('../services/dichVuCanhBao').clearWarningCache();
 });
 test('attendance window: only on class days, from class time, editable until end of day', () => {
   const { attendanceWindow, periodInfo, evaluate } = require('../services/dichVuCanhBao');
-  // Mondays 07:00–11:30, 1 Jun – 31 Jul 2026.
+  // Các thứ Hai 07:00–11:30, 1/6 – 31/7/2026.
   const g = {
     shift: 'sang',
     scheduleDays: ['thu_2'],
@@ -524,12 +524,12 @@ test('attendance window: only on class days, from class time, editable until end
     periodsPerSession: 5,
   };
   const at = (d, h, m) => new Date(2026, 5, d, h, m);
-  assert.equal(attendanceWindow(g, { now: at(2, 8, 0) }).open, false); // Tuesday: no class
-  assert.equal(attendanceWindow(g, { now: at(1, 6, 40) }).open, false); // too early
-  assert.equal(attendanceWindow(g, { now: at(1, 6, 50) }).open, true); // 10 minutes early
+  assert.equal(attendanceWindow(g, { now: at(2, 8, 0) }).open, false); // Thứ Ba: không có buổi học
+  assert.equal(attendanceWindow(g, { now: at(1, 6, 40) }).open, false); // quá sớm
+  assert.equal(attendanceWindow(g, { now: at(1, 6, 50) }).open, true); // sớm 10 phút
   assert.equal(attendanceWindow(g, { now: at(1, 9, 0) }).open, true);
-  assert.equal(attendanceWindow(g, { now: at(1, 13, 0) }).open, false); // class over, never taken
-  // Once the class ends the session is final, even if it was taken.
+  assert.equal(attendanceWindow(g, { now: at(1, 13, 0) }).open, false); // đã hết giờ, chưa từng điểm danh
+  // Khi hết giờ học, buổi đó được chốt, dù đã điểm danh.
   const over = attendanceWindow(g, { now: at(1, 22, 0), hasRecordToday: true });
   assert.equal(over.open, false);
   assert.equal(over.locked, true);
@@ -538,7 +538,7 @@ test('attendance window: only on class days, from class time, editable until end
     false,
   );
 
-  // 9 Mondays x 5 periods = 45 periods; each absence is 5 periods.
+  // 9 thứ Hai x 5 tiết = 45 tiết; mỗi buổi vắng là 5 tiết.
   const info = periodInfo(g);
   assert.deepEqual(info, { periodsPerSession: 5, totalPeriods: 45 });
   const levels = [
@@ -547,7 +547,7 @@ test('attendance window: only on class days, from class time, editable until end
   ];
   assert.equal(evaluate(0, info, levels).warningLevel, null);
   assert.equal(evaluate(1, info, levels).warningLevel.name, 'Nhắc nhở');
-  const banned = evaluate(2, info, levels); // 10 periods = 22.2 %
+  const banned = evaluate(2, info, levels); // 10 tiết = 22,2 %
   assert.equal(banned.absentPeriods, 10);
   assert.equal(banned.absentPercent, 22.2);
   assert.equal(banned.warningLevel.name, 'Cấm thi');
@@ -572,7 +572,7 @@ test('teachers cannot take attendance outside the timetable', async () => {
   });
   assert.equal(denied.status, 403);
   assert.match(denied.body.message, /lịch học/);
-  // The Trưởng phòng / PHT can look at the book but never write it.
+  // Trưởng phòng / PHT xem được sổ nhưng không bao giờ ghi được.
   const managerView = await request(`/attendance/window/${closed._id}`, tokens.manager);
   assert.equal(managerView.status, 200);
   assert.equal(managerView.body.open, false);
@@ -593,19 +593,19 @@ test('API keys are admin-only, stored encrypted and never returned in clear', as
   assert.equal(process.env.STRINGEE_KEY_SECRET, 'super-secret-value-123');
   const stored = (await Settings.findOne().lean()).integrations.STRINGEE_KEY_SECRET;
   assert.ok(!stored.includes('super-secret'));
-  // Settings never leak the encrypted blob either.
+  // Cài đặt cũng không bao giờ làm lộ khối đã mã hóa.
   assert.equal((await request('/settings', tokens.admin)).body.integrations, undefined);
   assert.equal(
     (await request('/settings/integrations', tokens.admin, 'PUT', { values: { NOPE: 'x' } }))
       .status,
     400,
   );
-  // Clearing falls back to .env (unset in tests).
+  // Xóa thì quay về .env (không đặt trong test).
   await request('/settings/integrations', tokens.admin, 'PUT', {
     values: { STRINGEE_KEY_SECRET: '', STRINGEE_HOTLINE: '' },
   });
   assert.equal(process.env.STRINGEE_KEY_SECRET, undefined);
-  // Branding is public (login page) and admin-editable.
+  // Thương hiệu là công khai (trang đăng nhập) và admin sửa được.
   assert.equal(
     (
       await request('/settings', tokens.admin, 'PUT', {
@@ -688,17 +688,17 @@ test(
     const pending = await NguoiDung.findOne({ email });
     assert.equal(pending.status, 'pending');
     assert.equal(pending.role, 'teacher');
-    // Every active manager is asked; the applicant gets nothing until approval.
+    // Mọi quản lý đang hoạt động đều được hỏi; người đăng ký không nhận được gì cho đến khi được duyệt.
     assert.ok(sentMails.findLast((m) => m.to === users.manager.email).text.includes(email));
     assert.ok(!sentMails.some((m) => m.to === email));
 
-    // Cannot log in while waiting, and a repeat request inside the cooldown is refused.
+    // Không đăng nhập được khi đang chờ, và yêu cầu lặp lại trong thời gian chờ bị từ chối.
     const early = await request('/auth/login', null, 'POST', credentials);
     assert.equal(early.status, 403);
     assert.equal(early.body.code, 'PENDING_APPROVAL');
     assert.equal((await request('/auth/register', null, 'POST', payload)).status, 429);
 
-    // Only a Trưởng phòng / PHT sees and approves sign-ups.
+    // Chỉ Trưởng phòng / PHT thấy và duyệt các đăng ký.
     const path = `/auth/registrations/${pending._id}/approve`;
     assert.equal((await request('/auth/registrations', tokens.admin)).status, 403);
     assert.equal((await request(path, tokens.staff, 'POST')).status, 403);
@@ -714,7 +714,7 @@ test(
     assert.equal(approved.body.activationKey, key);
     assert.match(key, /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/);
 
-    // Password alone is not enough; a wrong key is refused; the right key (any case) works once.
+    // Chỉ mật khẩu là chưa đủ; key sai bị từ chối; key đúng (không phân biệt hoa thường) dùng được một lần.
     const needsKey = await request('/auth/login', null, 'POST', credentials);
     assert.equal(needsKey.body.code, 'ACTIVATION_KEY_REQUIRED');
     const wrongKey = await request('/auth/login', null, 'POST', {
@@ -730,7 +730,7 @@ test(
     assert.equal((await NguoiDung.findOne({ email })).activationKeyHash, null);
     assert.equal((await request('/auth/login', null, 'POST', credentials)).status, 200);
     assert.equal(login.body.user.role, 'teacher');
-    // A fresh teacher is assigned no classes, so sees none.
+    // Giảng viên mới không được giao lớp nào nên không thấy lớp nào.
     const groups = await request('/attendance/course-groups', login.body.token);
     assert.equal(groups.status, 200);
     assert.deepEqual(groups.body, []);
@@ -757,7 +757,7 @@ test(
     assert.equal(rejected.status, 200);
     assert.equal(await NguoiDung.findOne({ email }), null);
     assert.match(sentMails.findLast((m) => m.to === email).subject, /không được chấp nhận/);
-    // Already handled: a second decision finds nothing.
+    // Đã xử lý rồi: quyết định lần hai không tìm thấy gì.
     assert.equal(
       (await request(`/auth/registrations/${_id}/approve`, tokens.manager, 'POST')).status,
       404,
@@ -898,7 +898,7 @@ test('attendance read endpoints preserve schedules, off-schedule records and sum
     ).status,
     403,
   );
-  // History shows who recorded each session, never their secrets.
+  // Lịch sử cho biết ai ghi từng buổi, không bao giờ lộ bí mật của họ.
   const managerHistory = await request(`/attendance/history/${course._id}`, tokens.manager);
   assert.equal(managerHistory.status, 200);
   const recorder = managerHistory.body.find((r) => r.recordedBy).recordedBy;
@@ -978,7 +978,7 @@ test('care cases follow the administrative class; transfers move open cases and 
   ccGroup.students = ccStudents.map((s) => s._id);
   await ccGroup.save();
 
-  // Only the manager assigns classes.
+  // Chỉ quản lý được phân công lớp.
   assert.equal(
     (await request('/class-assignments/CCCLS', tokens.admin, 'PUT', { staffId: String(first._id) }))
       .status,
@@ -1000,7 +1000,7 @@ test('care cases follow the administrative class; transfers move open cases and 
     }),
     2,
   );
-  // The second staff member cannot see this class yet.
+  // Nhân viên thứ hai chưa thấy được lớp này.
   assert.equal((await request(`/students/${ccStudents[0]._id}/profile`, secondToken)).status, 403);
 
   const transfer = await request('/class-assignments/transfer', tokens.manager, 'POST', {
@@ -1020,7 +1020,7 @@ test('care cases follow the administrative class; transfers move open cases and 
   await UnitConfig.updateOne({ unitId: null }, { $unset: { warningLevels: 1 } });
   require('../services/dichVuCanhBao').clearWarningCache();
 
-  // History keeps both periods; exactly one assignment is active.
+  // Lịch sử giữ cả hai giai đoạn; đúng một phân công đang hiệu lực.
   const history = await request('/class-assignments/history?classCode=cccls', tokens.manager);
   assert.equal(history.status, 200);
   assert.equal(history.body.length, 2);
@@ -1033,7 +1033,7 @@ test('care cases follow the administrative class; transfers move open cases and 
     overview.body.classes.find((c) => c.classCode === 'CCCLS').staff.fullName,
     second.fullName,
   );
-  // The admin may look but not change.
+  // Admin được xem nhưng không được thay đổi.
   assert.equal((await request('/class-assignments', tokens.admin)).status, 200);
 });
 
@@ -1065,7 +1065,7 @@ test('deleting staff releases their classes (history kept) and sends open cases 
   const reopened = await HoSoChamSoc.findById(openCase._id);
   assert.equal(reopened.assignedStaffId, null);
   assert.equal(reopened.status, CARE_STATUS.AWAITING);
-  // Closed cases are history: left pointing at the deleted user, not reassigned.
+  // Hồ sơ đã đóng là lịch sử: giữ nguyên trỏ vào người dùng đã xóa, không giao lại.
   assert.equal(
     (await HoSoChamSoc.findById(doneCase._id)).assignedStaffId.toString(),
     doomedStaff.id,
@@ -1112,9 +1112,9 @@ test('deleting a course group cascades to its attendance and student enrollment'
   assert.ok(!(await SinhVien.findById(doomedStudent._id)).courseGroups.includes('DOOM_GROUP'));
 });
 
-// Earlier tests exercise password-reset and status-toggle on users.staff/users.other,
-// which bumps tokenVersion and revokes tokens.staff/tokens.other. The task tests need
-// their own freshly-signed, never-revoked staff accounts.
+// Các test trước thực hiện đặt lại mật khẩu và bật/tắt trạng thái trên users.staff/users.other,
+// làm tăng tokenVersion và thu hồi tokens.staff/tokens.other. Test nhiệm vụ cần
+// tài khoản nhân viên riêng, mới ký, chưa bị thu hồi.
 async function createTaskStaff(suffix) {
   const password = await bcrypt.hash('task-staff-password', 4);
   const staff = await NguoiDung.create({
@@ -1153,7 +1153,7 @@ test('task creation is admin-only and requires an active staff assignee', async 
       await request('/tasks', tokens.manager, 'POST', {
         title: 'x',
         description: 'y',
-        assignedTo: String(users.teacher._id), // not a 'staff' role
+        assignedTo: String(users.teacher._id), // không phải vai trò 'staff'
       })
     ).status,
     400,
@@ -1174,10 +1174,10 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(create.body.task.status, TASK_STATUS.PENDING);
   const taskId = create.body.task._id;
 
-  // Another staff member cannot act on someone else's task.
+  // Nhân viên khác không thể thao tác trên nhiệm vụ của người khác.
   assert.equal((await request(`/tasks/${taskId}/acknowledge`, bystanderToken, 'PUT')).status, 403);
-  // The manager who assigned it cannot acknowledge on the assignee's behalf either, and the
-  // admin (system administration only) cannot manage tasks at all.
+  // Quản lý đã giao việc cũng không thể xác nhận thay người được giao, và
+  // admin (chỉ quản trị hệ thống) hoàn toàn không quản lý được nhiệm vụ.
   assert.equal((await request(`/tasks/${taskId}/acknowledge`, tokens.manager, 'PUT')).status, 403);
   assert.equal(
     (await request(`/tasks/${taskId}/review`, tokens.admin, 'PUT', { approve: true })).status,
@@ -1188,7 +1188,7 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(ack.status, 200);
   assert.equal(ack.body.task.status, TASK_STATUS.ACKNOWLEDGED);
 
-  // Submitting with no note, link or file is rejected.
+  // Nộp mà không có ghi chú, link hay file thì bị từ chối.
   assert.equal(
     (
       await fetch(`${base}/tasks/${taskId}/submit`, {
@@ -1215,7 +1215,7 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(submitted.task.evidenceFiles.length, 1);
   const fileId = submitted.task.evidenceFiles[0]._id;
 
-  // Evidence is only reachable by the admin or the assignee.
+  // Minh chứng chỉ admin hoặc người được giao truy cập được.
   assert.equal((await request(`/tasks/${taskId}/evidence/${fileId}`, bystanderToken)).status, 403);
   const fileRes = await fetch(`${base}/tasks/${taskId}/evidence/${fileId}`, {
     headers: { Authorization: `Bearer ${assigneeToken}` },
@@ -1223,7 +1223,7 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(fileRes.status, 200);
   assert.equal(fileRes.headers.get('content-type'), 'image/png');
 
-  // Reject once: the task bounces back for rework.
+  // Từ chối một lần: nhiệm vụ bị trả lại để làm lại.
   const reject = await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', {
     approve: false,
     reviewNote: 'Thiếu ảnh chụp danh sách đã gọi.',
@@ -1248,7 +1248,7 @@ test('full task lifecycle: assign -> acknowledge -> submit evidence -> approve',
   assert.equal(approve.body.task.status, TASK_STATUS.COMPLETED);
   assert.ok(approve.body.task.completedAt);
 
-  // Closed tasks no longer count toward the staff member's pending badge.
+  // Nhiệm vụ đã đóng không còn tính vào huy hiệu chờ xử lý của nhân viên.
   const pending = await request('/tasks/pending-count', assigneeToken);
   assert.equal(pending.status, 200);
   assert.equal(pending.body.pendingCount, 0);
@@ -1280,7 +1280,7 @@ test('task progress: category/priority, % reports, rework and quality score', as
   assert.equal(create.body.task.progress, 0);
   const taskId = create.body.task._id;
 
-  // Progress can only be reported once the task is acknowledged, by its assignee, below 100%.
+  // Chỉ báo cáo tiến độ được khi nhiệm vụ đã được xác nhận, bởi người được giao, dưới 100%.
   const report = (tok, body) => request(`/tasks/${taskId}/progress`, tok, 'PUT', body);
   assert.equal((await report(token, { percent: 30 })).status, 400);
   await request(`/tasks/${taskId}/acknowledge`, token, 'PUT');
@@ -1306,7 +1306,7 @@ test('task progress: category/priority, % reports, rework and quality score', as
 
   const reject = await request(`/tasks/${taskId}/review`, tokens.manager, 'PUT', {
     approve: false,
-    score: 5, // ignored on rejection
+    score: 5, // bị bỏ qua khi từ chối
   });
   assert.equal(reject.body.task.reworkCount, 1);
   assert.equal(reject.body.task.reviewScore, null);
@@ -1325,7 +1325,7 @@ test('task progress: category/priority, % reports, rework and quality score', as
   assert.equal(approve.status, 200);
   assert.equal(approve.body.task.reviewScore, 4);
 
-  // An overdue open task in another category.
+  // Một nhiệm vụ đang mở đã quá hạn ở phân loại khác.
   await NhiemVu.create({
     title: 'Báo cáo tháng',
     description: 'Tổng hợp báo cáo tháng trước.',
@@ -1335,7 +1335,7 @@ test('task progress: category/priority, % reports, rework and quality score', as
     dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
   });
 
-  // Only task managers see the progress board.
+  // Chỉ người quản lý nhiệm vụ mới thấy bảng tiến độ.
   assert.equal((await request('/tasks/staff-progress', token)).status, 403);
   assert.equal((await request('/tasks/staff-progress', tokens.admin)).status, 403);
   assert.equal((await request('/tasks/staff-progress?from=abc', tokens.manager)).status, 400);
@@ -1352,12 +1352,12 @@ test('task progress: category/priority, % reports, rework and quality score', as
   assert.equal(row.rates.completion, 50);
   assert.equal(row.rates.onTime, 100);
   assert.equal(row.rates.quality, 75);
-  assert.equal(row.rates.care, null); // no care cases: left out of the KPI, not counted as 0
+  assert.equal(row.rates.care, null); // không có hồ sơ chăm sóc: không tính vào KPI, không tính là 0
   // (0.5*0.3 + 1*0.25 + 0.75*0.25) / 0.8 = 73.4 → 73
   assert.equal(row.kpiScore, 73);
   assert.equal(row.kpiRating, 'Tốt');
 
-  // A period that excludes both tasks leaves the staff member listed with empty metrics.
+  // Kỳ loại trừ cả hai nhiệm vụ vẫn liệt kê nhân viên với chỉ số rỗng.
   const empty = await request(
     '/tasks/staff-progress?from=2000-01-01&to=2000-01-31',
     tokens.manager,
@@ -1366,7 +1366,7 @@ test('task progress: category/priority, % reports, rework and quality score', as
   assert.equal(emptyRow.tasks.total, 0);
   assert.equal(emptyRow.kpiScore, null);
 
-  // AI assessment: manager only, and a clean 503 without an API key.
+  // Đánh giá AI: chỉ quản lý, và 503 gọn gàng khi không có khóa API.
   assert.equal(
     (await request('/ai/staff-performance', token, 'POST', { staffId: String(staff._id) })).status,
     403,
@@ -1457,7 +1457,7 @@ test('AI review-task-evidence is admin-only and requires submitted evidence', as
         taskId: String(workTask._id),
       })
     ).status,
-    400, // still TASK_STATUS.PENDING — no evidence submitted yet
+    400, // vẫn là TASK_STATUS.PENDING — chưa nộp minh chứng
   );
 
   workTask.status = TASK_STATUS.SUBMITTED;
@@ -1530,16 +1530,16 @@ test('AI Care: every role gets its own tools, and each tool stays within the cal
   assert.ok(!managerTools.includes('cau_hinh_ket_noi'));
   assert.ok(managerTools.includes('phan_cong_lop'));
   assert.ok(staffTools.includes('lop_phu_trach_cua_toi'));
-  // The system prompt carries the manager-configured warning levels.
+  // System prompt mang các mức cảnh báo do quản lý cấu hình.
   const prompt = await aiCare.systemPromptFor(await asUser('cskh'));
   assert.match(prompt, /Cấm thi/);
   assert.match(prompt, /tiết/);
 
-  // A tool outside the caller's set is refused even if the model asks for it.
+  // Công cụ ngoài bộ của người gọi bị từ chối dù mô hình có yêu cầu.
   const refused = await aiCare.executeTool(await asUser('teacher'), 'khoi_luong_nhan_vien', {});
   assert.ok(refused.loi);
 
-  // A teacher only sees their own course groups and students.
+  // Giảng viên chỉ thấy học phần và sinh viên của mình.
   const teacher = await asUser('teacher');
   const mine = await aiCare.executeTool(teacher, 'hoc_phan_cua_toi', {});
   const mineCodes = mine.hocPhan.map((g) => g.maNhom);
@@ -1552,14 +1552,14 @@ test('AI Care: every role gets its own tools, and each tool stays within the cal
   const foundCodes = found.ketQua.map((s) => s.mssv);
   assert.ok(foundCodes.includes('TEST001'));
   assert.ok(!foundCodes.includes('TEST002'));
-  // The manager can look up every student.
+  // Quản lý tra cứu được mọi sinh viên.
   const all = await aiCare.executeTool(await asUser('manager'), 'tra_cuu_sinh_vien', {
     keyword: 'Student',
   });
   const allCodes = all.ketQua.map((s) => s.mssv);
   assert.ok(allCodes.includes('TEST001') && allCodes.includes('TEST002'));
 
-  // Chat validation, then 503 without an API key.
+  // Kiểm tra trò chuyện, rồi 503 khi không có khóa API.
   assert.equal((await request('/ai/care', tokens.teacher, 'POST', { messages: [] })).status, 400);
   assert.equal(
     (
@@ -1586,14 +1586,14 @@ test('AI Care actions: only prepared by the model, run when the same user confir
   const names = async (user) => aiCare.toolDefinitions(await asUser(user)).map((t) => t.name);
   const { staff, token: staffToken } = await createTaskStaff('ai-action');
 
-  // Each role only gets the actions its permissions allow; everyone may open a page.
+  // Mỗi vai trò chỉ nhận các thao tác mà quyền của nó cho phép; ai cũng được mở trang.
   assert.ok((await names(users.manager)).includes('giao_viec'));
   assert.ok((await names(staff)).includes('cap_nhat_ho_so_cham_soc'));
   assert.ok(!(await names(staff)).includes('giao_viec'));
   const adminTools = await names(users.admin);
   assert.ok(adminTools.includes('mo_trang') && !adminTools.includes('giao_viec'));
 
-  // Preparing changes nothing and hands the UI a card to confirm.
+  // Chuẩn bị không thay đổi gì và trao cho giao diện một thẻ để xác nhận.
   const manager = await asUser(users.manager);
   const ctx = { actions: [], navigate: null };
   const prepared = await aiCare.executeTool(
@@ -1606,7 +1606,7 @@ test('AI Care actions: only prepared by the model, run when the same user confir
   assert.equal(ctx.actions.length, 1);
   assert.equal(await NhiemVu.countDocuments({ title: 'Tổng hợp SV cấm thi' }), 0);
 
-  // Another user cannot confirm it; the owner can, exactly once.
+  // Người dùng khác không xác nhận được; chủ sở hữu xác nhận được, đúng một lần.
   const id = ctx.actions[0].id;
   assert.equal((await request(`/ai/care/actions/${id}/confirm`, staffToken, 'POST')).status, 404);
   const done = await request(`/ai/care/actions/${id}/confirm`, tokens.manager, 'POST');
@@ -1620,7 +1620,7 @@ test('AI Care actions: only prepared by the model, run when the same user confir
     404,
   );
 
-  // Unknown staff: the tool reports it instead of preparing anything.
+  // Nhân viên không tồn tại: công cụ báo lại thay vì chuẩn bị gì.
   await assert.rejects(
     aiCare.executeTool(
       manager,
@@ -1630,7 +1630,7 @@ test('AI Care actions: only prepared by the model, run when the same user confir
     ),
     /Không tìm thấy nhân viên/,
   );
-  // Opening a page needs no confirmation.
+  // Mở trang không cần xác nhận.
   await aiCare.executeTool(manager, 'mo_trang', { trang: '/students' }, ctx);
   assert.equal(ctx.navigate, '/students');
   await NhiemVu.deleteMany({ assignedTo: staff._id });
@@ -1653,7 +1653,7 @@ test('AI staff-performance is admin-only', async () => {
   assert.equal(ok.status, 503);
 });
 
-// Runs `fn` with PayOS "configured" and its HTTP API faked; other fetches (our own server) pass through.
+// Chạy `fn` với PayOS "đã cấu hình" và HTTP API giả lập; các fetch khác (máy chủ của ta) đi qua bình thường.
 async function withFakePayOS(paymentStatus, fn) {
   const realFetch = globalThis.fetch;
   const payosCalls = [];
@@ -1701,7 +1701,7 @@ test('PayOS: a manager buys a plan, signed webhook extends the subscription exac
         .status,
       403,
     );
-    // The admin only sets prices; buying is for Trưởng phòng / PHT.
+    // Admin chỉ đặt giá; việc mua thuộc về Trưởng phòng / PHT.
     assert.equal(
       (await request('/billing/orders', tokens.admin, 'POST', { planCode: 'goi_1_thang' })).status,
       403,
@@ -1718,7 +1718,7 @@ test('PayOS: a manager buys a plan, signed webhook extends the subscription exac
     assert.equal(created.status, 201);
     assert.match(created.body.checkoutUrl, /^https:\/\/pay\.payos\.vn\//);
 
-    // The create request is signed over exactly these five fields, in this order.
+    // Request tạo được ký trên đúng năm trường này, theo thứ tự này.
     const sent = payosCalls.find((c) => c.method === 'POST').body;
     assert.equal(sent.amount, 499000);
     assert.ok(sent.description.length <= 25);
@@ -1732,7 +1732,7 @@ test('PayOS: a manager buys a plan, signed webhook extends the subscription exac
 
     const orderCode = created.body.orderCode;
     const paid = { orderCode, amount: 499000, code: '00', desc: 'ok', reference: 'FT123' };
-    // Forged (wrong key) and tampered webhooks are rejected and change nothing.
+    // Webhook giả mạo (sai khóa) và bị can thiệp đều bị từ chối và không thay đổi gì.
     assert.equal(
       (await request('/billing/payos-webhook', null, 'POST', signedWebhook(paid, 'wrong'))).status,
       400,
@@ -1742,7 +1742,7 @@ test('PayOS: a manager buys a plan, signed webhook extends the subscription exac
     assert.equal((await request('/billing/payos-webhook', null, 'POST', tampered)).status, 400);
     assert.equal((await DonThanhToan.findOne({ orderCode })).status, 'cho_thanh_toan');
 
-    // Genuine webhook, delivered twice (PayOS retries): extends by one month only once.
+    // Webhook thật, giao hai lần (PayOS thử lại): chỉ gia hạn thêm một tháng một lần.
     for (let i = 0; i < 2; i++)
       assert.equal(
         (await request('/billing/payos-webhook', null, 'POST', signedWebhook(paid))).status,
@@ -1756,14 +1756,14 @@ test('PayOS: a manager buys a plan, signed webhook extends the subscription exac
     assert.ok(gainedDays >= 28 && gainedDays <= 31, `extended by ${gainedDays} days`);
     assert.equal(after.plan, 'goi_1_thang');
 
-    // A later sync of the same order must not extend again.
+    // Lần đồng bộ sau của cùng đơn không được gia hạn thêm.
     status.value = 'PAID';
     status.amount = 499000;
     const synced = await request(`/billing/orders/${orderCode}/sync`, tokens.admin, 'POST');
     assert.equal(synced.status, 200);
     assert.equal(synced.body.subscription.expiresAt, after.expiresAt);
 
-    // PayOS's "confirm webhook" test call references an unknown order: acknowledged, ignored.
+    // Lần gọi thử "confirm webhook" của PayOS tham chiếu một đơn không rõ: được xác nhận, bỏ qua.
     const ping = signedWebhook({ orderCode: 123, amount: 3000, code: '00', desc: 'ok' });
     assert.equal((await request('/billing/payos-webhook', null, 'POST', ping)).status, 200);
   });
@@ -1823,7 +1823,7 @@ test('expired subscription locks business APIs but keeps login and billing open'
   const original = settings.subscriptionExpiresAt;
   await Settings.updateOne({}, { subscriptionExpiresAt: new Date(Date.now() - 1000) });
   try {
-    const status = await request('/billing/status', tokens.teacher); // also refreshes the cache
+    const status = await request('/billing/status', tokens.teacher); // đồng thời làm mới cache
     assert.equal(status.status, 200);
     assert.equal(status.body.active, false);
     const locked = await request('/attendance/course-groups', tokens.teacher);
@@ -1838,7 +1838,7 @@ test('expired subscription locks business APIs but keeps login and billing open'
   assert.equal((await request('/attendance/course-groups', tokens.teacher)).status, 200);
 });
 
-// A staff account of our own: earlier tests delete/revoke the shared 'staff' and 'other' ones.
+// Một tài khoản nhân viên riêng: các test trước xóa/thu hồi 'staff' và 'other' dùng chung.
 async function ensureCskh() {
   if (users.cskh) return;
   users.cskh = await NguoiDung.create({
@@ -1877,10 +1877,10 @@ test('manager (Trưởng phòng/PHT): student records, call overview and task as
   );
   await NhiemVu.deleteOne({ _id: task.body.task._id });
 
-  // The manager runs the business side: courses, class assignment, warning levels.
+  // Quản lý chạy phần nghiệp vụ: học phần, phân công lớp, mức cảnh báo.
   assert.equal((await request('/course-groups', token)).status, 200);
   assert.equal((await request('/class-assignments', token)).status, 200);
-  // System administration stays with the admin.
+  // Quản trị hệ thống thuộc về admin.
   for (const [path, method] of [
     ['/billing/plans', 'PUT'],
     ['/permissions', 'GET'],
@@ -1893,14 +1893,14 @@ test('manager (Trưởng phòng/PHT): student records, call overview and task as
       403,
       path,
     );
-  // Teachers and staff cannot browse every student.
+  // Giảng viên và nhân viên không xem được mọi sinh viên.
   assert.equal((await request('/students', tokens.teacher)).status, 403);
   assert.equal((await request('/students', tokens.cskh)).status, 403);
 });
 
 test('permission matrix: admin grants and revokes role permissions, taking effect immediately', async () => {
   await ensureCskh();
-  // Only the admin may read or change the matrix.
+  // Chỉ admin được đọc hoặc đổi ma trận.
   for (const key of ['manager', 'cskh', 'teacher']) {
     assert.equal((await request('/permissions', tokens[key])).status, 403, key);
     assert.equal((await request('/permissions', tokens[key], 'PUT', { matrix: {} })).status, 403);
@@ -1910,11 +1910,11 @@ test('permission matrix: admin grants and revokes role permissions, taking effec
   assert.deepEqual(initial.body.matrix, initial.body.defaults);
   assert.ok(initial.body.matrix.manager.includes('students.view'));
 
-  // Unknown roles or keys are rejected; the admin role itself is not configurable.
+  // Vai trò hoặc khóa không rõ bị từ chối; chính vai trò admin không cấu hình được.
   for (const matrix of [{ admin: [] }, { staff: ['accounts.manage'] }, { staff: 'reports.view' }])
     assert.equal((await request('/permissions', tokens.admin, 'PUT', { matrix })).status, 400);
 
-  // /auth/me reports the live permissions; the admin has a fixed, view-only set.
+  // /auth/me báo quyền hiện hành; admin có bộ cố định, chỉ xem.
   const me = await request('/auth/me', tokens.cskh);
   assert.equal(me.status, 200);
   assert.equal(me.body.user.role, 'staff');
@@ -1928,14 +1928,14 @@ test('permission matrix: admin grants and revokes role permissions, taking effec
   ]);
 
   try {
-    // Grant staff the student list and course management; revoke reports; manager untouched.
+    // Cấp cho nhân viên danh sách sinh viên và quản lý học phần; thu hồi báo cáo; quản lý giữ nguyên.
     const saved = await request('/permissions', tokens.admin, 'PUT', {
       matrix: { staff: ['students.view', 'courses.manage', 'care.work'] },
     });
     assert.equal(saved.status, 200);
     assert.deepEqual(saved.body.matrix.manager, initial.body.matrix.manager);
 
-    // Rights that only work for one role are dropped for the others instead of stored as no-ops.
+    // Quyền chỉ hoạt động với một vai trò sẽ bị bỏ ở các vai trò khác thay vì lưu thành vô tác dụng.
     const onlyRoles = Object.fromEntries(saved.body.permissions.map((p) => [p.key, p.onlyRoles]));
     assert.deepEqual(onlyRoles['attendance.take'], ['teacher']);
     assert.deepEqual(onlyRoles['care.work'], ['staff']);
@@ -1946,16 +1946,16 @@ test('permission matrix: admin grants and revokes role permissions, taking effec
     assert.equal((await request('/students', tokens.cskh)).status, 200);
     assert.equal((await request('/course-groups', tokens.cskh)).status, 200);
     assert.equal((await request('/analytics/summary', tokens.cskh)).status, 403);
-    // Admin-only areas stay admin-only whatever the matrix says.
+    // Các khu vực chỉ dành cho admin vẫn chỉ dành cho admin dù ma trận nói gì.
     assert.equal((await request('/permissions', tokens.cskh)).status, 403);
     assert.equal((await request('/settings', tokens.cskh, 'PUT', {})).status, 403);
 
-    // Revoking the manager's student access applies on their next request.
+    // Thu hồi quyền xem sinh viên của quản lý có hiệu lực ở request kế tiếp của họ.
     await request('/permissions', tokens.admin, 'PUT', { matrix: { manager: [] } });
     assert.equal((await request('/students', tokens.manager)).status, 403);
     assert.equal((await request('/tasks/admin-all', tokens.manager)).status, 403);
     assert.equal((await request('/auth/me', tokens.manager)).body.permissions.length, 0);
-    // The admin keeps its read-only view whatever the matrix says.
+    // Admin giữ chế độ chỉ xem dù ma trận nói gì.
     assert.equal((await request('/students', tokens.admin)).status, 200);
   } finally {
     await request('/permissions', tokens.admin, 'PUT', { matrix: initial.body.defaults });
@@ -1979,7 +1979,7 @@ test('admin can create a manager account; timetable is readable by every role wi
     const timetable = await request('/course-groups/timetable', tokens[role]);
     assert.equal(timetable.status, 200, role);
     assert.ok(timetable.body.length >= 2);
-    assert.equal(timetable.body[0].students, undefined); // no personal data
+    assert.equal(timetable.body[0].students, undefined); // không có dữ liệu cá nhân
   }
   const mine = (await request('/course-groups/timetable', tokens.teacher)).body.filter(
     (g) => g.isMine,
@@ -1987,7 +1987,7 @@ test('admin can create a manager account; timetable is readable by every role wi
   const mineCodes = mine.map((g) => g.groupCode);
   assert.ok(mineCodes.includes('TEST-GROUP'));
   assert.ok(!mineCodes.includes('OTHER-GROUP'));
-  // Staff cannot take attendance.
+  // Nhân viên không điểm danh được.
   assert.equal(
     (
       await request('/attendance/submit', tokens.cskh, 'POST', {
@@ -2013,7 +2013,7 @@ test('calls: teacher calls own students, the call is logged, a recording can be 
     { phone: '0912345678', parentPhone: '0987654321' },
   );
 
-  // Teacher may only call students of the course group they teach.
+  // Giảng viên chỉ gọi được sinh viên của học phần mình dạy.
   assert.equal(
     (
       await request('/calls', tokens.teacher, 'POST', {
@@ -2032,9 +2032,9 @@ test('calls: teacher calls own students, the call is logged, a recording can be 
         method: 'stringee',
       })
     ).status,
-    503, // switchboard not configured in tests
+    503, // tổng đài chưa cấu hình trong test
   );
-  // Declining to record: no recording can be attached afterwards.
+  // Từ chối ghi âm: sau đó không đính kèm được bản ghi âm nào.
   const unrecorded = await request('/calls', tokens.teacher, 'POST', {
     studentId: String(students[0]._id),
     target: 'sinh_vien',
@@ -2053,7 +2053,7 @@ test('calls: teacher calls own students, the call is logged, a recording can be 
   assert.equal(started.body.phoneNumber, '0987654321');
   const callId = started.body.call._id;
 
-  // Only the caller may finish it.
+  // Chỉ người gọi mới kết thúc được.
   assert.equal(
     (await request(`/calls/${callId}/end`, tokens.manager, 'PUT', { outcome: 'nghe_may' })).status,
     403,
@@ -2096,12 +2096,12 @@ test('calls: teacher calls own students, the call is logged, a recording can be 
   assert.equal(asTeacher.status, 200);
   assert.equal(asTeacher.headers.get('content-type'), 'audio/mpeg');
   assert.equal(await asTeacher.text(), 'ID3fake-mp3-bytes');
-  // Trưởng phòng / PHT hear every recording; staff and the admin only their own calls.
+  // Trưởng phòng / PHT nghe được mọi bản ghi âm; nhân viên và admin chỉ nghe cuộc gọi của mình.
   assert.equal((await play(tokens.manager)).status, 200);
   assert.equal((await play(tokens.admin)).status, 403);
   assert.equal((await play(tokens.cskh)).status, 403);
 
-  // History: your own calls; scope=all lists everyone's for those who may hear them all.
+  // Lịch sử: cuộc gọi của bạn; scope=all liệt kê của mọi người cho những ai được nghe tất cả.
   const own = await request(`/calls?studentId=${students[0]._id}`, tokens.teacher);
   assert.equal(own.body.items[0]._id, callId);
   assert.equal(own.body.items[0].callerId.fullName, 'teacher');
@@ -2150,7 +2150,7 @@ test('calls via Stringee: client token, and answer_url only connects a matching 
     const answer = (params) =>
       fetch(`${base}/calls/stringee/answer?${new URLSearchParams(params)}`).then((r) => r.json());
     const custom = JSON.stringify({ callLogId: started.body.call._id });
-    // Wrong user or wrong number → empty SCCO (Stringee hangs up).
+    // Sai người dùng hoặc sai số → SCCO rỗng (Stringee cúp máy).
     assert.deepEqual(
       await answer({ userId: String(users.teacher._id), to: to, custom, callId: 'c1' }),
       [],
@@ -2249,12 +2249,12 @@ test('notifications: the bell marks everything seen, a page marks its own kind; 
   assert.deepEqual(before.body.tasks, { pending: 1, new: 1 });
   assert.equal(before.body.unseen, 1);
 
-  // Opening the bell: nothing unseen, but the work is still pending.
+  // Mở chuông thông báo: không còn gì chưa xem, nhưng công việc vẫn đang chờ.
   const seen = await request('/notifications/seen', token, 'PUT');
   assert.equal(seen.body.unseen, 0);
   assert.deepEqual(seen.body.tasks, { pending: 1, new: 0 });
 
-  // New work appears again; opening the care page does not clear it, the tasks page does.
+  // Việc mới lại xuất hiện; mở trang chăm sóc không xóa nó, mở trang nhiệm vụ thì xóa.
   await new Promise((resolve) => setTimeout(resolve, 5));
   await newTask('Việc thứ hai');
   assert.equal((await request('/notifications', token)).body.tasks.new, 1);
@@ -2355,14 +2355,14 @@ test(
       const order = await DonThanhToan.findOne({ account: user._id });
       assert.equal(order.kind, 'account');
 
-      // Not paid yet: login points to the payment page instead of signing in.
+      // Chưa thanh toán: đăng nhập chuyển tới trang thanh toán thay vì đăng nhập.
       const credentials = { email, password: 'matkhau123' };
       const unpaid = await request('/auth/login', null, 'POST', credentials);
       assert.equal(unpaid.status, 403);
       assert.equal(unpaid.body.code, 'PAYMENT_REQUIRED');
       assert.match(unpaid.body.renewUrl, /\/renew\?token=/);
 
-      // PayOS confirms the payment: the account is active and the receipt is emailed.
+      // PayOS xác nhận thanh toán: tài khoản được kích hoạt và biên lai gửi qua email.
       status.value = 'PAID';
       const synced = await request(`/auth/account-orders/${order.orderCode}/sync`, null, 'POST');
       assert.equal(synced.body.status, 'da_thanh_toan');
@@ -2371,11 +2371,11 @@ test(
       assert.ok(sentMails.some((m) => m.to === email && /Hóa đơn/.test(m.subject)));
       const signedIn = await request('/auth/login', null, 'POST', credentials);
       assert.equal(signedIn.status, 200);
-      // Own-plan orders stay out of the shared plan's history.
+      // Đơn gói riêng không nằm trong lịch sử của gói dùng chung.
       const history = await request('/billing/orders', tokens.manager);
       assert.ok(!history.body.some((o) => o.orderCode === order.orderCode));
 
-      // The plan runs out: the session stops working and login offers the renewal link.
+      // Gói hết hạn: phiên ngừng hoạt động và đăng nhập đưa ra link gia hạn.
       await NguoiDung.updateOne({ email }, { accessExpiresAt: new Date(Date.now() - 1000) });
       const me = await request('/auth/me', signedIn.body.token);
       assert.equal(me.status, 401);
@@ -2383,10 +2383,10 @@ test(
       const expired = await request('/auth/login', null, 'POST', credentials);
       assert.equal(expired.body.code, 'ACCOUNT_EXPIRED');
       const token = new URL(expired.body.renewUrl).searchParams.get('token');
-      // A renewal link is not a sign-in token.
+      // Link gia hạn không phải token đăng nhập.
       assert.equal((await request('/auth/me', token)).status, 401);
 
-      // The expiry email goes out once per expiry date, with a working renewal link.
+      // Email hết hạn gửi một lần cho mỗi ngày hết hạn, kèm link gia hạn dùng được.
       const { sendDueReminders } = require('../services/dichVuGiaHanTaiKhoan');
       await sendDueReminders();
       await sendDueReminders();
@@ -2431,7 +2431,7 @@ test(
     const tokenA = sign(leadA);
     const tokenB = sign(leadB);
 
-    // Students are created inside the manager's unit; the same code may exist in another unit.
+    // Sinh viên được tạo trong đơn vị của quản lý; cùng mã có thể tồn tại ở đơn vị khác.
     const student = { studentCode: 'UNIT001', fullName: 'SV Đơn Vị A', classCode: 'U1' };
     const createdA = await request('/students', tokenA, 'POST', student);
     assert.equal(createdA.status, 201);
@@ -2444,16 +2444,16 @@ test(
     assert.equal(listA.body.total, 1);
     assert.equal(listB.body.total, 1);
     assert.notEqual(listA.body.items[0]._id, listB.body.items[0]._id);
-    // Another unit's student cannot be opened, edited or deleted by id.
+    // Sinh viên của đơn vị khác không mở, sửa hay xóa được theo id.
     assert.notEqual(
       (await request(`/students/${createdA.body._id}`, tokenB, 'DELETE')).status,
       200,
     );
     assert.ok(await SinhVien.exists({ _id: createdA.body._id }));
-    // The admin sees every unit.
+    // Admin thấy mọi đơn vị.
     assert.equal((await request('/students?search=UNIT001', tokens.admin)).body.total, 2);
 
-    // Care settings are per unit: A's warning levels do not change B's.
+    // Cấu hình chăm sóc theo từng đơn vị: mức cảnh báo của A không đổi của B.
     const levels = [{ name: 'Riêng A', unit: 'periods', threshold: 9, color: '#123456' }];
     assert.equal(
       (await request('/settings/care', tokenA, 'PUT', { warningLevels: levels })).status,
@@ -2462,7 +2462,7 @@ test(
     assert.equal((await request('/settings', tokenA)).body.warningLevels[0].name, 'Riêng A');
     assert.notEqual((await request('/settings', tokenB)).body.warningLevels[0].name, 'Riêng A');
 
-    // Sign-up names the manager; only that manager is asked and can approve.
+    // Đăng ký nêu tên quản lý; chỉ quản lý đó được hỏi và duyệt được.
     const signup = {
       fullName: 'NV Đơn Vị B',
       email: 'staff-b@unit.test',
@@ -2501,7 +2501,7 @@ test(
       200,
     );
 
-    // Admin-created staff must name a manager and join that unit; a new manager gets a new unit.
+    // Nhân viên do admin tạo phải nêu một quản lý và vào đơn vị đó; quản lý mới có đơn vị mới.
     assert.equal(
       (
         await request('/auth/create-staff', tokens.admin, 'POST', {
@@ -2531,7 +2531,7 @@ test(
     const leadC = await NguoiDung.findById(lead.body.staff.id);
     assert.equal(String(leadC.unitId), String(leadC._id));
     assert.equal((await request('/students?search=UNIT001', sign(leadC))).body.total, 0);
-    // A manager's staff list holds only their unit.
+    // Danh sách nhân viên của một quản lý chỉ có đơn vị của họ.
     const staffA = (await request('/auth/staff-list', tokenA)).body.map((u) => u.email);
     assert.ok(staffA.includes('admin-made@unit.test'));
     assert.ok(!staffA.includes(signup.email));
@@ -2570,12 +2570,12 @@ test('startup conversion puts existing data in the legacy unit and gives other m
     assert.equal(String(defaultUnitId), String(legacy._id));
     assert.equal(String((await NguoiDung.findById(other._id)).unitId), String(other._id));
     assert.equal(String((await SinhVien.findById(orphan._id)).unitId), String(legacy._id));
-    // Running again changes nothing.
+    // Chạy lại không thay đổi gì.
     assert.equal(String((await assignUnits()).defaultUnitId), String(legacy._id));
   } finally {
     delete process.env.LEGACY_UNIT_EMAIL;
     await Settings.updateOne({}, { defaultUnitId: previous });
-    // Leave the shared fixtures as the other tests expect them: outside any unit.
+    // Để các fixture dùng chung đúng như các test khác mong đợi: ngoài mọi đơn vị.
     for (const model of [SinhVien, NhomHocPhan, DiemDanh, HoSoChamSoc, CuocGoi, NhiemVu])
       await model.updateMany({}, { unitId: null });
     await NguoiDung.updateMany({ email: { $not: /@unit\.test$/ } }, { unitId: null });

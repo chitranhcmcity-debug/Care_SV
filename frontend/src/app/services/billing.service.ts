@@ -49,7 +49,7 @@ export class BillingService {
   private readonly apiUrl = inject(API_BASE_URL) + '/billing';
   private readonly http = inject(HttpClient);
 
-  /** Latest known status, shared by the sidebar banner and the billing page. */
+  /** Trạng thái mới nhất đã biết, dùng chung cho banner sidebar và trang thanh toán. */
   readonly status = signal<SubscriptionStatus | null>(null);
 
   refreshStatus(): Observable<SubscriptionStatus> {
@@ -62,7 +62,7 @@ export class BillingService {
     return this.http.get<SubscriptionPlan[]>(`${this.apiUrl}/plans`);
   }
 
-  /** Admin: replaces the price list; plan codes follow the number of months. */
+  /** Admin: thay bảng giá; mã gói theo số tháng. */
   savePlans(plans: Omit<SubscriptionPlan, 'code'>[]): Observable<SubscriptionPlan[]> {
     return this.http.put<SubscriptionPlan[]>(`${this.apiUrl}/plans`, { plans });
   }
@@ -71,7 +71,7 @@ export class BillingService {
     return this.http.get<BillingOrder[]>(`${this.apiUrl}/orders`);
   }
 
-  /** Admin: revenue from all paid orders. */
+  /** Admin: doanh thu từ mọi đơn đã thanh toán. */
   getRevenue(): Observable<RevenueReport> {
     return this.http.get<RevenueReport>(`${this.apiUrl}/revenue`);
   }

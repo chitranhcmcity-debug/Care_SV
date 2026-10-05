@@ -1,4 +1,4 @@
-/* ---------- Welcome banner ---------- */
+/* ---------- Banner chào mừng ---------- */
 .ov-hero {
   background: linear-gradient(
     110deg,
@@ -47,7 +47,7 @@
   }
 }
 
-/* ---------- Headline cards: icon tile, number, 7-day sparkline ---------- */
+/* ---------- Thẻ số liệu chính: ô icon, con số, sparkline 7 ngày ---------- */
 .st-card {
   --tone: #7c3aed;
   --tone-2: #a855f7;
@@ -122,7 +122,7 @@
   background: linear-gradient(180deg, var(--tone-2), var(--tone));
 }
 
-/* ---------- Needs attention strip ---------- */
+/* ---------- Dải cần chú ý ---------- */
 .ov-attention {
   border: 1.5px solid #fde68a;
   background: linear-gradient(90deg, #fffbeb, #fff7ed);
@@ -142,7 +142,7 @@
   content: '';
 }
 
-/* ---------- Chart / donut / warning cards ---------- */
+/* ---------- Thẻ biểu đồ / donut / cảnh báo ---------- */
 .ov-card {
   border-radius: 22px;
   border: 1.5px solid var(--card-border);
@@ -258,7 +258,7 @@
   }
 }
 
-/* ---------- Bottom cards: accounts, subscription, integrations ---------- */
+/* ---------- Thẻ dưới: tài khoản, gói dịch vụ, tích hợp ---------- */
 .ov-link {
   color: rgb(var(--brand-600));
   font-size: 12px;
@@ -270,7 +270,7 @@
   color: #c026d3;
 }
 
-/* Colour slots used by roles, recent users and integrations. */
+/* Các ô màu dùng cho vai trò, người dùng gần đây và tích hợp. */
 [data-tone='0'] {
   --c: #7c3aed;
   --c2: #a855f7;
@@ -288,7 +288,7 @@
   --c2: #fbbf24;
 }
 
-/* One list row: tinted icon tile, text, value. */
+/* Một dòng danh sách: ô icon có màu, văn bản, giá trị. */
 .ov-row {
   display: flex;
   align-items: center;

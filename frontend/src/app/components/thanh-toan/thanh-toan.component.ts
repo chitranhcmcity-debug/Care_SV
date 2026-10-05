@@ -22,8 +22,8 @@ type PlanDraft = { name: string; months: number | null; amount: number | null };
 const MAX_PLANS = 6;
 
 /**
- * Subscription page. The admin sets the price list; a Trưởng phòng / PHT buys a plan through
- * PayOS, which extends the subscription for the whole system. Both see the payment history.
+ * Trang gói dịch vụ. Admin đặt bảng giá; Trưởng phòng / PHT mua một gói qua
+ * PayOS, gia hạn gói cho toàn hệ thống. Cả hai đều xem được lịch sử thanh toán.
  */
 @Component({
   selector: 'app-billing',
@@ -42,7 +42,7 @@ export class BillingComponent implements OnInit {
   readonly isAdmin = this.auth.isAdmin();
   readonly canBuy = this.auth.isManager();
   readonly maxPlans = MAX_PLANS;
-  /** Admin's editable copy of the price list. */
+  /** Bản sao có thể sửa của bảng giá cho admin. */
   readonly drafts = signal<PlanDraft[]>([]);
   readonly savingPlans = signal(false);
 
@@ -57,7 +57,7 @@ export class BillingComponent implements OnInit {
   readonly syncingOrder = signal<number | null>(null);
   readonly statusLabel = ORDER_STATUS_LABEL;
 
-  /** Price of the 1-month plan, the baseline for the savings badge. */
+  /** Giá gói 1 tháng, mốc để tính huy hiệu tiết kiệm. */
   private readonly baseMonthly = computed(
     () => this.plans().find((p) => p.months === 1)?.amount ?? 0,
   );
@@ -77,8 +77,8 @@ export class BillingComponent implements OnInit {
       return;
     }
 
-    // PayOS sends the buyer back here with ?orderCode=…; never trust its status param —
-    // ask our backend, which asks PayOS directly.
+    // PayOS đưa người mua về đây kèm ?orderCode=…; không bao giờ tin tham số status của nó —
+    // hỏi backend của ta, backend hỏi thẳng PayOS.
     const orderCode = this.route.snapshot.queryParamMap.get('orderCode');
     if (orderCode) {
       this.router.navigate([], { queryParams: {}, replaceUrl: true });
@@ -152,7 +152,7 @@ export class BillingComponent implements OnInit {
   buy(plan: SubscriptionPlan) {
     this.buyingPlan.set(plan.code);
     this.billing.createOrder(plan.code).subscribe({
-      next: (res) => (window.location.href = res.checkoutUrl), // PayOS hosted page with QR
+      next: (res) => (window.location.href = res.checkoutUrl), // Trang PayOS có mã QR
       error: (err) => {
         this.buyingPlan.set('');
         this.notify.error(err.error?.message || 'Không tạo được liên kết thanh toán');
@@ -184,7 +184,7 @@ export class BillingComponent implements OnInit {
     });
   }
 
-  /** "Tiết kiệm 10%" compared with paying month by month. */
+  /** "Tiết kiệm 10%" so với trả theo từng tháng. */
   savingPercent(plan: SubscriptionPlan): number {
     const full = this.baseMonthly() * plan.months;
     return full > plan.amount ? Math.round((1 - plan.amount / full) * 100) : 0;

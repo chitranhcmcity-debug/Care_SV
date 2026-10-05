@@ -16,15 +16,15 @@ const defaultSteps = () => DEFAULT_CARE_STEPS.map((title) => ({ title, source: '
 
 const event = (text, authorId = null) => ({ kind: 'su_kien', text, authorId });
 
-/** The student's open case, if any. */
+/** Hồ sơ đang mở của sinh viên, nếu có. */
 const openCaseOf = (studentId) =>
   HoSoChamSoc.findOne({ studentId, status: { $in: OPEN_CARE_STATUSES } });
 
 /**
- * Opens a case for `student` unless one is already open (then returns it with created: false).
- * With `assignedStaff` given the case starts in progress under that person. Otherwise a warning
- * goes to the staff member responsible for the student's class, and a proposal (or a class with
- * nobody responsible) waits for a manager's directive.
+ * Mở hồ sơ cho `student` trừ khi đã có hồ sơ đang mở (khi đó trả về hồ sơ đó với created: false).
+ * Khi có `assignedStaff`, hồ sơ bắt đầu ở trạng thái đang chăm sóc dưới người đó. Nếu không, cảnh báo
+ * được gửi tới nhân viên phụ trách lớp của sinh viên, còn đề xuất (hoặc lớp chưa có
+ * người phụ trách) sẽ chờ chỉ đạo của quản lý.
  */
 async function openCase({
   student,
@@ -73,15 +73,15 @@ async function openCase({
     });
     return { careCase, created: true };
   } catch (error) {
-    // Another request opened one at the same moment (unique open case per student).
+    // Request khác vừa mở một hồ sơ cùng lúc (mỗi sinh viên chỉ một hồ sơ đang mở).
     if (error?.code === 11000) return { careCase: await openCaseOf(student._id), created: false };
     throw error;
   }
 }
 
 /**
- * After attendance is saved: every absent student who now reaches a warning level in that
- * course group gets a care case (if they have no open one yet).
+ * Sau khi lưu điểm danh: mọi sinh viên vắng vừa đạt mức cảnh báo trong
+ * học phần đó sẽ có hồ sơ chăm sóc (nếu chưa có hồ sơ đang mở).
  */
 async function openCasesForWarnings(group, absentStudentIds) {
   if (!absentStudentIds.length) return [];
@@ -129,8 +129,8 @@ async function openCasesForWarnings(group, absentStudentIds) {
 }
 
 /**
- * When a class changes hands, open cases still held by the previous owner follow the class;
- * with nobody taking over they go back to waiting for a directive.
+ * Khi một lớp đổi người phụ trách, các hồ sơ đang mở của người cũ chuyển theo lớp;
+ * nếu không ai nhận thì quay về trạng thái chờ chỉ đạo.
  */
 async function moveClassCases(studentIds, fromStaffId, toStaff) {
   if (!studentIds.length || !fromStaffId) return 0;
@@ -144,7 +144,7 @@ async function moveClassCases(studentIds, fromStaffId, toStaff) {
   return cases.length;
 }
 
-/** Every open case of a staff member (account locked / deleted) goes back to the manager. */
+/** Mọi hồ sơ đang mở của một nhân viên (tài khoản bị khóa / xóa) quay về quản lý. */
 async function releaseStaffCases(staffId) {
   const cases = await HoSoChamSoc.find({
     assignedStaffId: staffId,

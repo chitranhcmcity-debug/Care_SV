@@ -30,7 +30,7 @@ export class AttendanceService {
 
   private readonly http = inject(HttpClient);
 
-  /** A lecturer's own groups, or every group for overseers (the server decides). */
+  /** Các nhóm của chính giảng viên, hoặc mọi nhóm cho bên giám sát (máy chủ quyết định). */
   getCourseGroups(): Observable<CourseGroup[]> {
     return this.http.get<CourseGroup[]>(`${this.apiUrl}/course-groups`);
   }
@@ -66,7 +66,7 @@ export class AttendanceService {
     return this.http.get<AttendanceHistoryItem | null>(`${this.apiUrl}/today/${courseGroupId}`);
   }
 
-  /** Whether attendance can be taken right now (timetable window, or override). */
+  /** Hiện có điểm danh được không (khung giờ thời khóa biểu, hoặc ghi đè). */
   getWindow(courseGroupId: string): Observable<AttendanceWindow> {
     return this.http.get<AttendanceWindow>(`${this.apiUrl}/window/${courseGroupId}`);
   }

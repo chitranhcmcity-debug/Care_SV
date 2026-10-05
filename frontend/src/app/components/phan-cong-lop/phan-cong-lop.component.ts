@@ -19,8 +19,8 @@ import { ClassAssignmentOverview, ClassAssignmentRecord, User } from '../../mode
 type StaffRow = ClassAssignmentOverview['staffs'][number];
 
 /**
- * Trưởng phòng: gives each administrative class to one CSSV staff member. Changes keep a
- * history; open calls follow the class, and classes without anyone feed the manager's queue.
+ * Trưởng phòng: giao mỗi lớp sinh hoạt cho một nhân viên CSSV. Các thay đổi được giữ
+ * lịch sử; cuộc gọi đang mở đi theo lớp, và các lớp không có ai phụ trách chuyển vào hàng chờ của quản lý.
  */
 @Component({
   selector: 'app-class-assignment-panel',
@@ -35,11 +35,11 @@ export class ClassAssignmentPanelComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  /** Show the per-staff "AI assessment" button (needs tasks.manage). */
+  /** Hiện nút "Đánh giá AI" cho từng nhân viên (cần tasks.manage). */
   @Input() canAssessStaff = false;
   @Output() assessStaff = new EventEmitter<User>();
 
-  /** Colour slots cycled over class chips and staff cards. */
+  /** Các ô màu xoay vòng cho chip lớp và thẻ nhân viên. */
   readonly tones = ['violet', 'pink', 'blue', 'green'];
 
   /** "Trần Thị Mai" → "TM". */
@@ -54,11 +54,11 @@ export class ClassAssignmentPanelComponent implements OnInit {
   search = '';
   onlyUnassigned = false;
 
-  // History modal
+  // Modal lịch sử
   readonly history = signal<ClassAssignmentRecord[] | null>(null);
   historyTitle = '';
 
-  // Transfer modal
+  // Modal bàn giao
   showTransfer = false;
   transferFrom = '';
   transferTo = '';
@@ -103,7 +103,7 @@ export class ClassAssignmentPanelComponent implements OnInit {
       danger: !staff,
     });
     if (!ok) {
-      this.reload(); // reset the select
+      this.reload(); // đặt lại ô chọn
       return;
     }
     this.service.assign(classCode, staffId || null).subscribe({

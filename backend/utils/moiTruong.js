@@ -18,11 +18,11 @@ function getConfig() {
   if (!useMemoryDatabase && !process.env.MONGO_URI) throw new Error('MONGO_URI is required.');
   return { port, useMemoryDatabase, seedDemo, mongoUri: process.env.MONGO_URI };
 }
-// Base URL of the web app, used for links in emails and PayOS return pages. Never derived
-// from request headers: a spoofed Origin would let an attacker receive someone else's token.
+// URL gốc của ứng dụng web, dùng cho link trong email và trang quay về của PayOS. Không bao giờ suy ra
+// từ header của request: Origin giả mạo sẽ cho kẻ tấn công nhận được token của người khác.
 const getAppUrl = () => (process.env.APP_URL || 'http://localhost:4201').replace(/\/+$/, '');
-// Uploaded files (call recordings, task evidence). On Railway, attach a Volume: its mount path is
-// picked up automatically so files survive redeploys; UPLOAD_DIR overrides everything.
+// File tải lên (ghi âm cuộc gọi, minh chứng nhiệm vụ). Trên Railway, gắn một Volume: đường dẫn mount của nó được
+// tự nhận để file tồn tại qua các lần deploy lại; UPLOAD_DIR ghi đè tất cả.
 function getUploadDir() {
   if (process.env.UPLOAD_DIR) return path.resolve(process.env.UPLOAD_DIR);
   if (process.env.RAILWAY_VOLUME_MOUNT_PATH)

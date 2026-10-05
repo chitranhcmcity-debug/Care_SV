@@ -8,64 +8,64 @@ const {
 } = require('../middleware/xacThuc');
 const ctrl = require('../controllers/dieuKhienXacThuc');
 
-// Self sign-up: Trưởng phòng / PHT approve new accounts, then the applicant enters the key.
+// Tự đăng ký: Trưởng phòng / PHT duyệt tài khoản mới, rồi người đăng ký nhập key.
 const requireApprover = requireRoles('manager');
 
 // POST /api/auth/login
 router.post('/login', ctrl.login);
 
-// GET /api/auth/me — the signed-in user and their current permissions, so the UI picks up
-// changes an admin makes to the permission matrix without signing in again.
+// GET /api/auth/me — người dùng đang đăng nhập và quyền hiện tại, để giao diện nhận
+// thay đổi admin sửa trong ma trận phân quyền mà không cần đăng nhập lại.
 router.get('/me', verifyToken, requireSignedIn, ctrl.me);
 
-// POST /api/auth/register (Public) — self sign-up.
+// POST /api/auth/register (công khai) — tự đăng ký.
 router.post('/register', ctrl.register);
 
-// ---- Own plans of self-registered Trưởng phòng / PHT accounts (public, no sign-in) ----
+// ---- Gói riêng của tài khoản Trưởng phòng / PHT tự đăng ký (công khai, không cần đăng nhập) ----
 
-// GET /api/auth/account-plans — price list for the sign-up and renewal pages.
+// GET /api/auth/account-plans — bảng giá cho trang đăng ký và gia hạn.
 router.get('/account-plans', ctrl.getAccountPlans);
 
-// GET /api/auth/account-renewal?token= — who the renewal link (from email or login) is for.
+// GET /api/auth/account-renewal?token= — link gia hạn (từ email hoặc đăng nhập) dành cho ai.
 router.get('/account-renewal', ctrl.getAccountRenewal);
 
-// POST /api/auth/account-orders — body: { token, planCode }; returns the PayOS checkout link.
+// POST /api/auth/account-orders — body: { token, planCode }; trả về link thanh toán PayOS.
 router.post('/account-orders', ctrl.createAccountOrder);
 
-// POST /api/auth/account-orders/:orderCode/sync — called by the PayOS return page.
+// POST /api/auth/account-orders/:orderCode/sync — gọi bởi trang quay về từ PayOS.
 router.post('/account-orders/:orderCode/sync', ctrl.syncAccountOrder);
 
-// GET /api/auth/registrations (Trưởng phòng / PHT) — sign-ups waiting for approval or a key.
+// GET /api/auth/registrations (Trưởng phòng / PHT) — các đăng ký đang chờ duyệt hoặc chờ key.
 router.get('/registrations', verifyToken, requireApprover, ctrl.listRegistrations);
 
 // POST /api/auth/registrations/:id/approve (Trưởng phòng / PHT)
 router.post('/registrations/:id/approve', verifyToken, requireApprover, ctrl.approveRegistration);
 
-// POST /api/auth/registrations/:id/reject (Trưởng phòng / PHT) — removes the sign-up.
+// POST /api/auth/registrations/:id/reject (Trưởng phòng / PHT) — xóa đăng ký.
 router.post('/registrations/:id/reject', verifyToken, requireApprover, ctrl.rejectRegistration);
 
-// POST /api/auth/forgot-password (Public)
+// POST /api/auth/forgot-password (công khai)
 router.post('/forgot-password', ctrl.forgotPassword);
 
-// POST /api/auth/reset-password (Public) — completes the forgot-password flow.
+// POST /api/auth/reset-password (công khai) — hoàn tất luồng quên mật khẩu.
 router.post('/reset-password', ctrl.resetPassword);
 
-// POST /api/auth/create-staff (Admin only)
+// POST /api/auth/create-staff (chỉ Admin)
 router.post('/create-staff', verifyToken, requireAdmin, ctrl.createStaff);
 
-// GET /api/auth/staff-list (Admin or Staff)
+// GET /api/auth/staff-list (Admin hoặc Nhân viên)
 router.get('/staff-list', verifyToken, requireSignedIn, ctrl.listStaff);
 
-// PUT /api/auth/staff/:id (Admin only - Update staff info & optional password/role)
+// PUT /api/auth/staff/:id (chỉ Admin - cập nhật thông tin nhân viên, mật khẩu/vai trò tùy chọn)
 router.put('/staff/:id', verifyToken, requireAdmin, ctrl.updateStaff);
 
-// POST /api/auth/staff/:id/reset-password (Admin only - Reset Staff Password)
+// POST /api/auth/staff/:id/reset-password (chỉ Admin - đặt lại mật khẩu nhân viên)
 router.post('/staff/:id/reset-password', verifyToken, requireAdmin, ctrl.resetStaffPassword);
 
-// PUT /api/auth/staff/:id/status (Admin only)
+// PUT /api/auth/staff/:id/status (chỉ Admin)
 router.put('/staff/:id/status', verifyToken, requireAdmin, ctrl.setStaffStatus);
 
-// DELETE /api/auth/staff/:id (Admin only - Delete Staff Account)
+// DELETE /api/auth/staff/:id (chỉ Admin - xóa tài khoản nhân viên)
 router.delete('/staff/:id', verifyToken, requireAdmin, ctrl.deleteStaff);
 
 // Phân lớp phụ trách cho nhân viên CSSV: xem routes/phanCongLop.js (/api/class-assignments).

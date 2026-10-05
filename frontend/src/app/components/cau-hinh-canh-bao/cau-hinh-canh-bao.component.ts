@@ -8,8 +8,8 @@ import { SystemSettings, WarningLevel } from '../../models/types';
 const PALETTE = ['#eab308', '#f97316', '#ef4444', '#dc2626', '#9333ea', '#2563eb'];
 
 /**
- * Trưởng phòng / PHT: absence warning levels (name, threshold in periods or % of total
- * periods, colour, exam ban) plus the absence-reason and student-tag lists used by CSSV.
+ * Trưởng phòng / PHT: các mức cảnh báo vắng (tên, ngưỡng theo số tiết hoặc % tổng
+ * số tiết, màu, cấm thi) cùng danh sách lý do vắng và nhãn sinh viên cho CSSV dùng.
  */
 @Component({
   selector: 'app-warning-config',
@@ -66,7 +66,7 @@ export class WarningConfigComponent implements OnInit {
     [this.levels[i], this.levels[j]] = [this.levels[j], this.levels[i]];
   }
 
-  /** Human-readable rule for one level, e.g. "Nghỉ từ 20% tổng số tiết → cấm thi". */
+  /** Quy tắc dễ đọc cho một mức, vd "Nghỉ từ 20% tổng số tiết → cấm thi". */
   describe(level: WarningLevel): string {
     const amount =
       level.unit === 'percent' ? `${level.threshold}% tổng số tiết` : `${level.threshold} tiết`;

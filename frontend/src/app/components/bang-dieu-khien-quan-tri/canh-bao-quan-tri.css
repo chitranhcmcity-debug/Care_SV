@@ -1,4 +1,4 @@
-/* ===== Absence warning table: level colour (--level) drives chips, avatar, badge and meter. ===== */
+/* ===== Bảng cảnh báo vắng: màu mức (--level) điều khiển chip, avatar, huy hiệu và thanh đo. ===== */
 .warn-title-icon {
   display: grid;
   place-items: center;

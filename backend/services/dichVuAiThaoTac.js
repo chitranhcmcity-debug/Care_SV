@@ -30,7 +30,7 @@ const text = (value, name, max = 500) => {
 const optionalText = (value, max = 1000) =>
   typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : undefined;
 
-/** One active CSSV staff member by (part of) name or email; asks to be more specific if ambiguous. */
+/** Một nhân viên CSSV đang hoạt động theo (một phần) tên hoặc email; yêu cầu nói rõ hơn nếu mơ hồ. */
 async function findStaff(query) {
   const q = text(query, 'tên nhân viên', 100);
   const pattern = new RegExp(escapeRegex(q), 'i');
@@ -50,7 +50,7 @@ async function findStaff(query) {
   return exact || matches[0];
 }
 
-/** The caller's task (or one they may review) whose title contains `title`. */
+/** Nhiệm vụ của người gọi (hoặc nhiệm vụ họ được duyệt) có tiêu đề chứa `title`. */
 async function findTaskByTitle(filter, title) {
   const q = text(title, 'tên nhiệm vụ', 200);
   const matches = await NhiemVu.find({ ...filter, title: new RegExp(escapeRegex(q), 'i') })
@@ -66,8 +66,8 @@ async function findTaskByTitle(filter, title) {
   return matches[0];
 }
 
-// Every action: allowed(user); prepare(user, input) → { title, details[], payload };
-// run(user, payload) → { message, navigate? }. Both steps re-validate everything.
+// Mỗi thao tác: allowed(user); prepare(user, input) → { title, details[], payload };
+// run(user, payload) → { message, navigate? }. Cả hai bước đều kiểm tra lại mọi thứ.
 const ACTIONS = [
   {
     name: 'cap_nhat_ho_so_cham_soc',
@@ -308,7 +308,7 @@ const ACTIONS = [
   },
 ];
 
-// Pages AI Care may open for the user (the app still checks the user may open them).
+// Các trang AI Care có thể mở cho người dùng (ứng dụng vẫn kiểm tra người dùng có được mở không).
 const PAGES = {
   '/students': 'Hồ sơ sinh viên',
   '/attendance': 'Điểm danh',
@@ -337,8 +337,8 @@ const OPEN_PAGE = {
   allowed: () => true,
 };
 
-// ------------------------- Pending proposals -------------------------
-// Kept in memory for PENDING_TTL_MS; a proposal can only be confirmed by the user it was made for.
+// ------------------------- Đề xuất đang chờ -------------------------
+// Giữ trong bộ nhớ trong PENDING_TTL_MS; đề xuất chỉ được xác nhận bởi đúng người dùng mà nó được tạo cho.
 const pending = new Map();
 function sweep() {
   const now = Date.now();
@@ -348,8 +348,8 @@ function sweep() {
 const actionTools = (user) => [...ACTIONS.filter((a) => a.allowed(user)), OPEN_PAGE];
 
 /**
- * Runs an action tool the model called: prepares a proposal (nothing changes yet) and records it
- * in ctx.actions for the UI, or records a page to open in ctx.navigate.
+ * Chạy một công cụ thao tác mô hình đã gọi: chuẩn bị đề xuất (chưa thay đổi gì) và ghi nó
+ * vào ctx.actions cho giao diện, hoặc ghi trang cần mở vào ctx.navigate.
  */
 async function handleActionTool(user, name, input, ctx) {
   if (name === OPEN_PAGE.name) {
@@ -372,7 +372,7 @@ async function handleActionTool(user, name, input, ctx) {
   };
 }
 
-/** Executes a proposal the user confirmed, re-checking that they may still do it. */
+/** Thực thi đề xuất người dùng đã xác nhận, kiểm tra lại họ vẫn được phép làm. */
 async function confirmAction(user, id) {
   sweep();
   const proposal = pending.get(id);
@@ -381,7 +381,7 @@ async function confirmAction(user, id) {
     'Thao tác đã hết hạn hoặc không tồn tại. Hãy yêu cầu AI Care soạn lại.',
     404,
   );
-  pending.delete(id); // one shot, even if it fails below
+  pending.delete(id); // chỉ dùng một lần, kể cả khi bước sau bị lỗi
   const action = ACTIONS.find((a) => a.name === proposal.name);
   assert(action && action.allowed(user), 'Bạn không còn quyền thực hiện thao tác này', 403);
   return action.run(user, proposal.payload);

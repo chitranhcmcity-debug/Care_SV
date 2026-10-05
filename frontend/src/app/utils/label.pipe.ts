@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { VI_LABELS } from '../models/types';
 
-/** Stored code(s) → Vietnamese display text; arrays are joined, unknown values pass through. */
+/** Mã đã lưu → chữ hiển thị tiếng Việt; mảng được nối, giá trị không rõ được giữ nguyên. */
 export function viLabel(value: string | null | undefined): string {
   return value ? (VI_LABELS[value] ?? value) : '';
 }

@@ -28,7 +28,7 @@
   color: #8a82a6;
 }
 
-/* Current subscription */
+/* Gói dịch vụ hiện tại */
 .bl-current {
   display: flex;
   flex-wrap: wrap;
@@ -97,7 +97,7 @@
   font-size: 13.5px;
 }
 
-/* Plans */
+/* Các gói */
 .bl-plans {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
@@ -147,7 +147,7 @@
   margin-top: auto;
 }
 
-/* Buttons */
+/* Nút */
 .bl-btn-primary,
 .bl-btn-soft,
 .bl-btn-ghost {
@@ -188,7 +188,7 @@ button:disabled {
   transform: none;
 }
 
-/* Sections */
+/* Các mục */
 .bl-section {
   display: grid;
   gap: 14px;
@@ -272,7 +272,7 @@ button:disabled {
   background: linear-gradient(135deg, #faf7ff, #fff6fb);
 }
 
-/* History */
+/* Lịch sử */
 .bl-table-wrap {
   overflow-x: auto;
 }
@@ -362,7 +362,7 @@ button:disabled {
   }
 }
 
-/* Revenue report */
+/* Báo cáo doanh thu */
 .bl-kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

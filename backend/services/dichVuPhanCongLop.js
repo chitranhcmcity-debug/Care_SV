@@ -7,8 +7,8 @@ const SinhVien = require('../models/SinhVien');
 const { assert, normalizeClass } = require('../utils/kiemTra');
 
 /**
- * Brings history in line with managedClasses for data created before history existed:
- * every class a staff member manages gets an active record (first holder wins on conflicts).
+ * Đồng bộ lịch sử với managedClasses cho dữ liệu tạo trước khi có lịch sử:
+ * mỗi lớp một nhân viên phụ trách đều có một bản ghi đang hiệu lực (xung đột thì người đầu tiên thắng).
  */
 async function syncLegacyAssignments() {
   const staffs = await NguoiDung.find({ role: 'staff', managedClasses: { $ne: [] } }).sort({
@@ -26,7 +26,7 @@ async function syncLegacyAssignments() {
     for (const raw of staff.managedClasses) {
       const code = normalizeClass(raw);
       const holder = active.get(code);
-      if (holder && holder !== String(staff._id)) continue; // someone else holds it
+      if (holder && holder !== String(staff._id)) continue; // người khác đang giữ lớp
       if (!holder) {
         await LichSuPhanCong.create({
           classCode: code,
@@ -45,7 +45,7 @@ async function syncLegacyAssignments() {
   }
 }
 
-/** Active staff member responsible for a class, or null. */
+/** Nhân viên đang hoạt động phụ trách một lớp, hoặc null. */
 async function staffForClass(classCode) {
   const record = await LichSuPhanCong.findOne({
     classCode: normalizeClass(classCode),
@@ -56,9 +56,9 @@ async function staffForClass(classCode) {
 }
 
 /**
- * Gives `classCode` to `staffId` (or to nobody when staffId is null), closing the previous
- * assignment. Open care cases the previous owner held for the class's students follow the class;
- * with nobody assigned they wait for a manager's directive.
+ * Giao `classCode` cho `staffId` (hoặc cho không ai khi staffId là null), đóng
+ * phân công trước đó. Các hồ sơ chăm sóc đang mở của sinh viên lớp mà người cũ giữ sẽ chuyển theo lớp;
+ * nếu không ai được giao thì chờ chỉ đạo của quản lý.
  */
 async function assignClass({ classCode, staffId, by, reason = '' }) {
   const code = normalizeClass(classCode);
@@ -96,14 +96,14 @@ async function assignClass({ classCode, staffId, by, reason = '' }) {
   }
 
   const studentIds = (await SinhVien.find({ classCode: code }).select('_id')).map((s) => s._id);
-  // Required here: the care-case service itself needs staffForClass from this module.
+  // Bắt buộc ở đây: chính service hồ sơ chăm sóc cần staffForClass từ module này.
   const { moveClassCases } = require('./dichVuHoSoChamSoc');
   const movedCases = await moveClassCases(studentIds, current?.staffId, staff);
   return { classCode: code, staff, movedCases };
 }
 
-/** Releases every class of a staff member (account locked / deleted); their cases go back to
- *  the managers. */
+/** Giải phóng mọi lớp của một nhân viên (tài khoản bị khóa / xóa); hồ sơ của họ quay về
+ *  quản lý. */
 async function releaseStaffClasses(staff, by, reason) {
   const records = await LichSuPhanCong.find({ staffId: staff._id, active: true });
   let movedCases = 0;
@@ -111,7 +111,7 @@ async function releaseStaffClasses(staff, by, reason) {
     movedCases += (await assignClass({ classCode: record.classCode, staffId: null, by, reason }))
       .movedCases;
   }
-  // Cases outside any class of theirs (directed to them by a manager) also go back.
+  // Các hồ sơ ngoài mọi lớp của họ (quản lý chỉ đạo riêng cho họ) cũng quay về.
   const { releaseStaffCases } = require('./dichVuHoSoChamSoc');
   movedCases += await releaseStaffCases(staff._id);
   return { releasedClasses: records.length, movedCases };

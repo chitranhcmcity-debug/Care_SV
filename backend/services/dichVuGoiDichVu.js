@@ -1,4 +1,4 @@
-// Subscription ("gói sử dụng") state and PayOS order handling.
+// Trạng thái gói dịch vụ ("gói sử dụng") và xử lý đơn PayOS.
 const crypto = require('crypto');
 const CaiDatHeThong = require('../models/CaiDatHeThong');
 const DonThanhToan = require('../models/DonThanhToan');
@@ -18,17 +18,17 @@ const trialDays = () => {
   return Number.isFinite(days) && days >= 0 ? days : 30;
 };
 
-let cached = null; // { value, at } — the access check runs on every business request
+let cached = null; // { value, at } — việc kiểm tra quyền truy cập chạy ở mọi request nghiệp vụ
 
 async function loadSettings() {
   return (await CaiDatHeThong.findOne()) || CaiDatHeThong.create({});
 }
 
-/** Current subscription; the first call on a new install starts the free trial. */
+/** Gói dịch vụ hiện tại; lần gọi đầu tiên trên bản cài mới sẽ bắt đầu dùng thử miễn phí. */
 async function getSubscription() {
   let settings = await loadSettings();
   if (!settings.subscriptionExpiresAt) {
-    // Conditional update so two concurrent first requests cannot both start a trial.
+    // Cập nhật có điều kiện để hai request đầu tiên đồng thời không cùng bắt đầu dùng thử.
     settings =
       (await CaiDatHeThong.findOneAndUpdate(
         { _id: settings._id, subscriptionExpiresAt: null },
@@ -54,7 +54,7 @@ async function getSubscription() {
   return value;
 }
 
-/** Cached variant for the per-request access check. */
+/** Phiên bản có cache cho việc kiểm tra quyền truy cập ở mỗi request. */
 async function isSubscriptionActive() {
   if (cached && Date.now() - cached.at < CACHE_MS)
     return cached.value.expiresAt.getTime() > Date.now();
@@ -72,13 +72,13 @@ function addMonths(date, months) {
   return result;
 }
 
-// Subscription extensions run one at a time so two payments landing together both count.
+// Việc gia hạn chạy lần lượt để hai khoản thanh toán đến cùng lúc đều được tính.
 let extendQueue = Promise.resolve();
 function extendSubscription(months, planCode) {
   const run = extendQueue.then(async () => {
     const settings = await loadSettings();
     const current = settings.subscriptionExpiresAt?.getTime() || 0;
-    // Renewing early stacks on the remaining time; renewing late starts from today.
+    // Gia hạn sớm thì cộng dồn vào thời gian còn lại; gia hạn muộn thì tính từ hôm nay.
     const newExpiry = addMonths(new Date(Math.max(Date.now(), current)), months);
     settings.subscriptionExpiresAt = newExpiry;
     settings.subscriptionPlan = planCode;
@@ -91,8 +91,8 @@ function extendSubscription(months, planCode) {
 }
 
 /**
- * Extends one Trưởng phòng / PHT account's own plan, activates it if it was waiting for its
- * first payment, and emails the receipt.
+ * Gia hạn gói riêng của một tài khoản Trưởng phòng / PHT, kích hoạt nó nếu đang chờ
+ * lần thanh toán đầu, và gửi biên lai qua email.
  */
 function extendAccount(order) {
   const run = extendQueue.then(async () => {
@@ -112,8 +112,8 @@ function extendAccount(order) {
 }
 
 /**
- * Marks an order paid and extends the subscription — exactly once per order, however
- * many times the webhook and the return-page sync report the same payment.
+ * Đánh dấu đơn đã thanh toán và gia hạn gói — đúng một lần cho mỗi đơn, dù
+ * webhook và đồng bộ ở trang quay về báo cùng một khoản thanh toán bao nhiêu lần.
  */
 async function applyPaidOrder(orderCode, { amount, reference, paidAt } = {}) {
   const order = await DonThanhToan.findOne({ orderCode });
@@ -135,7 +135,7 @@ async function applyPaidOrder(orderCode, { amount, reference, paidAt } = {}) {
     },
     { new: true },
   );
-  if (!claimed) return DonThanhToan.findById(order._id); // another request applied it first
+  if (!claimed) return DonThanhToan.findById(order._id); // request khác đã áp dụng trước
   claimed.extendedTo =
     claimed.kind === 'account'
       ? await extendAccount(claimed)
@@ -147,13 +147,13 @@ async function applyPaidOrder(orderCode, { amount, reference, paidAt } = {}) {
   return claimed;
 }
 
-// Order codes are positive integers PayOS keeps unique per channel.
+// Mã đơn là số nguyên dương mà PayOS giữ duy nhất theo từng kênh.
 const newOrderCode = () => Number(`${Date.now() % 1e10}${crypto.randomInt(100, 1000)}`);
 
 const MAX_PLANS = 6;
 const MAX_AMOUNT = 1e9;
 
-/** Price list set by the admin, or the built-in defaults. */
+/** Bảng giá do admin đặt, hoặc mặc định có sẵn. */
 async function getPlans() {
   const settings = await loadSettings();
   const saved = settings.subscriptionPlans;
@@ -162,7 +162,7 @@ async function getPlans() {
     : SUBSCRIPTION_PLANS.map((p) => ({ ...p }));
 }
 
-/** Admin: replaces the price list. Codes derive from the duration, so it must be unique. */
+/** Admin: thay bảng giá. Mã suy ra từ thời hạn nên phải duy nhất. */
 async function savePlans(input) {
   assert(Array.isArray(input) && input.length >= 1, 'Cần ít nhất một gói');
   assert(input.length <= MAX_PLANS, `Tối đa ${MAX_PLANS} gói`);
@@ -190,8 +190,8 @@ async function savePlans(input) {
 }
 
 /**
- * Creates a pending order plus its PayOS payment link. With `account`, the order pays for that
- * Trưởng phòng / PHT account's own plan instead of the shared system plan.
+ * Tạo đơn chờ thanh toán cùng link thanh toán PayOS. Với `account`, đơn thanh toán cho
+ * gói riêng của tài khoản Trưởng phòng / PHT thay vì gói hệ thống dùng chung.
  */
 async function createOrder(planCode, user, { account = null } = {}) {
   const plan = (await getPlans()).find((p) => p.code === planCode);
@@ -213,7 +213,7 @@ async function createOrder(planCode, user, { account = null } = {}) {
     const link = await payos.createPaymentLink({
       orderCode: order.orderCode,
       amount: order.amount,
-      // PayOS: ≤ 25 chars, no accents
+      // PayOS: ≤ 25 ký tự, không dấu
       description: `ITC Care ${account ? 'TK ' : ''}${plan.months} thang`,
       returnUrl,
       cancelUrl: returnUrl,
@@ -232,7 +232,7 @@ async function createOrder(planCode, user, { account = null } = {}) {
 
 const PAYOS_FINAL_STATUS = { CANCELLED: ORDER_STATUS.CANCELLED, EXPIRED: ORDER_STATUS.EXPIRED };
 
-/** Asks PayOS for the real state of a pending order and records it. */
+/** Hỏi PayOS trạng thái thật của một đơn đang chờ và ghi lại. */
 async function syncOrder(order) {
   if (order.status !== ORDER_STATUS.PENDING) return order;
   const info = await payos.getPaymentInfo(order.orderCode);

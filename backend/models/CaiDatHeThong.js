@@ -36,7 +36,7 @@ const CaiDatHeThongSchema = new mongoose.Schema(
       default: undefined,
     },
 
-    // Custom Absence Reasons for staff selection
+    // Lý do vắng tùy chỉnh để nhân viên chọn
     absenceReasons: {
       type: [String],
       default: ['Bệnh/Sức khỏe', 'Việc gia đình', 'Bận đi làm', 'Lý do cá nhân', 'Khác'],
@@ -63,7 +63,7 @@ const CaiDatHeThongSchema = new mongoose.Schema(
     // dùng DEFAULT_ROLE_PERMISSIONS (xem services/dichVuPhanQuyen.js).
     rolePermissions: { type: mongoose.Schema.Types.Mixed, default: null },
 
-    // SinhVien Tags list
+    // Danh sách nhãn của SinhVien
     tags: {
       type: [String],
       default: ['#KhóKhănHọcPhí', '#HọcBổng', '#ĐiLàmĐêm', '#CảnhBáoVắng', '#CầnHỗTrợĐặcBiệt'],

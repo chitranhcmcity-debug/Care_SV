@@ -8,7 +8,7 @@ import { User } from '../../models/types';
 
 type AccountRole = 'staff' | 'teacher' | 'manager';
 
-/** Admin: create, edit, reset, lock and delete staff / teacher / manager accounts. */
+/** Admin: tạo, sửa, đặt lại, khóa và xóa tài khoản nhân viên / giảng viên / quản lý. */
 @Component({
   selector: 'app-staff-management',
   standalone: true,
@@ -24,7 +24,7 @@ export class StaffManagementComponent {
 
   @Input() staffList: User[] = [];
   @Input() canAssessStaff = false;
-  /** Asks the parent to reload the shared staff list after any change. */
+  /** Yêu cầu component cha nạp lại danh sách nhân viên dùng chung sau mọi thay đổi. */
   @Output() reload = new EventEmitter<void>();
   @Output() assessStaff = new EventEmitter<User>();
 
@@ -33,7 +33,7 @@ export class StaffManagementComponent {
   newStaffPass = '';
   newStaffPhone = '';
   newStaffRole: AccountRole = 'staff';
-  /** Staff / teachers join the unit of this Trưởng phòng / PHT. */
+  /** Nhân viên / giảng viên vào đơn vị của Trưởng phòng / PHT này. */
   newStaffManagerId = '';
   isCreatingStaff = false;
   staffCreatedMsg = '';
@@ -48,12 +48,12 @@ export class StaffManagementComponent {
   editStaffRole: AccountRole = 'staff';
   isUpdatingStaff = false;
 
-  /** Active Trưởng phòng / PHT accounts: each owns a unit staff and teachers can join. */
+  /** Các tài khoản Trưởng phòng / PHT đang hoạt động: mỗi người sở hữu một đơn vị mà nhân viên và giảng viên có thể vào. */
   get activeManagers(): User[] {
     return this.staffList.filter((s) => s.role === 'manager' && s.status === 'active');
   }
 
-  /** "Đơn vị của …" label for the admin's account list. */
+  /** Nhãn "Đơn vị của …" cho danh sách tài khoản của admin. */
   unitLabel(user: User): string {
     const unit = user.unitId;
     if (!unit || typeof unit === 'string') return '';
@@ -136,7 +136,7 @@ export class StaffManagementComponent {
       });
   }
 
-  /** "Trần Thị Mai" → "TM", for the avatar in the staff list. */
+  /** "Trần Thị Mai" → "TM", cho avatar trong danh sách nhân viên. */
   staffInitials(name = ''): string {
     const words = name.trim().split(/\s+/).filter(Boolean);
     if (!words.length) return '?';
@@ -211,7 +211,7 @@ export class StaffManagementComponent {
       placeholder: 'Mật khẩu mới (không bắt buộc)',
       confirmText: 'Đặt lại',
     });
-    if (customPass === null) return; // User cancelled
+    if (customPass === null) return; // Người dùng đã hủy
 
     const targetId = staff.id || (staff as any)._id || '';
     this.staffService.resetStaffPassword(targetId, customPass).subscribe({

@@ -1,5 +1,5 @@
 <div class="mx-4 md:mx-6 my-5 space-y-5">
-  <!-- Toolbar: the page title is already in the header above -->
+  <!-- Thanh công cụ: tiêu đề trang đã có ở header phía trên -->
   <div
     class="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3"
   >
@@ -14,7 +14,7 @@
     </button>
   </div>
 
-  <!-- Overview Metric Cards -->
+  <!-- Thẻ chỉ số tổng quan -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
     <div *ngFor="let f of statCards" class="task-stat" [attr.data-tone]="f.tone">
       <span class="task-stat-icon">
@@ -54,7 +54,7 @@
     </div>
   </div>
 
-  <!-- Filter: status pills with line icons -->
+  <!-- Bộ lọc: nút trạng thái kèm icon nét -->
   <div class="card-3d p-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Lọc theo trạng thái">
     <button
       *ngFor="let f of statusFilters"
@@ -98,7 +98,7 @@
     </button>
   </div>
 
-  <!-- Task Cards -->
+  <!-- Thẻ nhiệm vụ -->
   <div class="space-y-4">
     <div
       *ngFor="let task of tasks"
@@ -111,7 +111,7 @@
         'border-emerald-300 bg-emerald-50/20': task.status === 'hoan_thanh',
       }"
     >
-      <!-- Header -->
+      <!-- Tiêu đề -->
       <div class="flex items-start justify-between flex-wrap gap-3 border-b border-slate-200 pb-3">
         <div class="space-y-1">
           <div class="flex items-center gap-2 flex-wrap">
@@ -163,10 +163,10 @@
         </div>
       </div>
 
-      <!-- Description -->
+      <!-- Mô tả -->
       <p class="text-sm text-slate-700 font-medium whitespace-pre-wrap">{{ task.description }}</p>
 
-      <!-- Progress -->
+      <!-- Tiến độ -->
       <div class="space-y-1">
         <div class="flex items-center gap-2">
           <div class="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
@@ -188,7 +188,7 @@
         </ul>
       </div>
 
-      <!-- Action: report progress while working -->
+      <!-- Thao tác: báo tiến độ trong lúc làm -->
       <div
         *ngIf="task.status === 'da_xac_nhan' || task.status === 'bi_tu_choi'"
         class="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-2"
@@ -229,7 +229,7 @@
         </p>
       </div>
 
-      <!-- Rejection reason -->
+      <!-- Lý do từ chối -->
       <div
         *ngIf="task.status === 'bi_tu_choi' && task.reviewNote"
         class="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold"
@@ -237,7 +237,7 @@
         ↩️ Sếp yêu cầu làm lại: {{ task.reviewNote }}
       </div>
 
-      <!-- Approved note -->
+      <!-- Ghi chú khi duyệt -->
       <div
         *ngIf="task.status === 'hoan_thanh' && task.reviewNote"
         class="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold"
@@ -245,7 +245,7 @@
         ✅ Nhận xét của sếp: {{ task.reviewNote }}
       </div>
 
-      <!-- Submitted / completed evidence (read-only) -->
+      <!-- Minh chứng đã nộp / hoàn thành (chỉ đọc) -->
       <div
         *ngIf="task.status === 'cho_duyet' || task.status === 'hoan_thanh'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2"
@@ -275,7 +275,7 @@
         </div>
       </div>
 
-      <!-- Action: acknowledge -->
+      <!-- Thao tác: xác nhận -->
       <div *ngIf="task.status === 'moi_giao'" class="flex justify-end">
         <button
           (click)="acknowledge(task)"
@@ -285,7 +285,7 @@
         </button>
       </div>
 
-      <!-- Action: submit evidence -->
+      <!-- Thao tác: nộp minh chứng -->
       <div
         *ngIf="task.status === 'da_xac_nhan' || task.status === 'bi_tu_choi'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3"

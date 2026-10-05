@@ -1,5 +1,5 @@
-/* Call dialog: gradient header, student card, option tiles with icons. The overlay keeps the
-   app-wide pop-up backdrop from styles.css; the panel is styled here. */
+/* Hộp thoại gọi: header gradient, thẻ sinh viên, các ô lựa chọn kèm icon. Lớp phủ giữ
+   nền popup toàn ứng dụng từ styles.css; khung hộp thoại được tạo kiểu ở đây. */
 .call-panel {
   --call-violet: #7c3aed;
   --call-border: #e7e1f7;
@@ -24,7 +24,7 @@
   }
 }
 
-/* ---- Header ---- */
+/* ---- Tiêu đề ---- */
 .call-head {
   position: relative;
   display: flex;
@@ -95,7 +95,7 @@
   height: 18px;
 }
 
-/* ---- Body ---- */
+/* ---- Nội dung ---- */
 .call-body {
   position: relative;
   margin-top: -22px;
@@ -151,7 +151,7 @@
   gap: 10px;
 }
 
-/* ---- Option tiles ---- */
+/* ---- Ô lựa chọn ---- */
 .call-option {
   display: flex;
   align-items: center;
@@ -243,7 +243,7 @@
   color: #64748b;
 }
 
-/* Tick badge on the selected "Gọi cho" tile. */
+/* Dấu tick trên ô "Gọi cho" đang chọn. */
 .call-check {
   display: grid;
   place-items: center;
@@ -269,7 +269,7 @@
   transform: none;
 }
 
-/* Round radio on the right of each "Cách gọi" tile, and the matching dot for recording. */
+/* Nút radio tròn bên phải mỗi ô "Cách gọi", và chấm tương ứng cho ghi âm. */
 .call-radio,
 .call-dot {
   appearance: none;
@@ -312,7 +312,7 @@
   padding: 12px;
 }
 
-/* ---- Main button ---- */
+/* ---- Nút chính ---- */
 .call-primary {
   display: flex;
   align-items: center;
@@ -348,7 +348,7 @@
   transform: rotate(135deg);
 }
 
-/* ---- In the call ---- */
+/* ---- Trong cuộc gọi ---- */
 .call-live {
   display: grid;
   gap: 6px;
@@ -378,7 +378,7 @@
   color: #475569;
 }
 
-/* ---- Outcome form ---- */
+/* ---- Form kết quả ---- */
 .call-form,
 .call-field {
   display: grid;

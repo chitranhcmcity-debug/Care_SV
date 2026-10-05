@@ -1,5 +1,5 @@
 <div class="mx-4 md:mx-6 my-5 space-y-4">
-  <!-- Page banner (replaces the generic page header on this route) -->
+  <!-- Banner trang (thay header trang chung ở route này) -->
   <section class="tt-hero relative overflow-hidden text-white hidden md:block">
     <svg
       class="tt-hero-art"
@@ -308,7 +308,7 @@
       class="tt-grid"
       [style.grid-template-rows]="'auto repeat(' + layout().hours.length + ', minmax(58px, auto))'"
     >
-      <!-- Column cards -->
+      <!-- Thẻ cột -->
       <div
         class="tt-col tt-col--time"
         [style.grid-row]="'1 / span ' + (layout().hours.length + 1)"
@@ -320,7 +320,7 @@
         [style.grid-row]="'1 / span ' + (layout().hours.length + 1)"
       ></div>
 
-      <!-- Header row -->
+      <!-- Dòng tiêu đề -->
       <div class="tt-head tt-head--time" style="grid-column: 1; grid-row: 1">Thời gian</div>
       <div
         *ngFor="let day of week; let i = index"
@@ -337,7 +337,7 @@
         </span>
       </div>
 
-      <!-- Hour labels -->
+      <!-- Nhãn giờ -->
       <div
         *ngFor="let h of layout().hours; let r = index"
         class="tt-time"
@@ -348,7 +348,7 @@
         <span>{{ hourLabel(h + 1) }}</span>
       </div>
 
-      <!-- Whole-day empty state -->
+      <!-- Trạng thái trống cả ngày -->
       <ng-container *ngFor="let day of week; let i = index">
         <div
           *ngIf="!layout().counts[day]"
@@ -380,7 +380,7 @@
         </div>
       </ng-container>
 
-      <!-- Free hours -->
+      <!-- Giờ trống -->
       <div
         *ngFor="let e of layout().empties"
         class="tt-cell"
@@ -390,7 +390,7 @@
         <div class="tt-slot" aria-hidden="true"></div>
       </div>
 
-      <!-- Class blocks -->
+      <!-- Các khối lớp -->
       <div
         *ngFor="let b of layout().blocks"
         class="tt-cell flex flex-col gap-2"
@@ -446,7 +446,7 @@
     </section>
   </div>
 
-  <!-- Session detail popup -->
+  <!-- Popup chi tiết buổi học -->
   <div *ngIf="selected() as sel" class="tt-overlay" (click)="close()">
     <div
       class="tt-modal"

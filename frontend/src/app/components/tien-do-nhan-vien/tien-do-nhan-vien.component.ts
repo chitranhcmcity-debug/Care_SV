@@ -15,8 +15,8 @@ const ymd = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /**
- * Trưởng phòng / PHT: how every staff member is doing on the work assigned to them — progress,
- * overdue items, on-time rate, quality scores, student-care results — plus an AI assessment.
+ * Trưởng phòng / PHT: mỗi nhân viên đang làm việc được giao thế nào — tiến độ,
+ * các mục quá hạn, tỷ lệ đúng hạn, điểm chất lượng, kết quả chăm sóc sinh viên — kèm đánh giá của AI.
  */
 @Component({
   selector: 'app-staff-progress',
@@ -125,7 +125,7 @@ export class StaffProgressComponent implements OnInit {
     this.detailTasks.set([]);
     this.taskService.getAllTasks({ assignedTo: staffId }).subscribe({
       next: (list) => {
-        // Same period as the board: tasks created in [from, to].
+        // Cùng kỳ với bảng tổng: nhiệm vụ tạo trong [from, to].
         const inPeriod = list.filter((t) => {
           const day = t.createdAt ? ymd(new Date(t.createdAt)) : '';
           return (!this.from || day >= this.from) && (!this.to || day <= this.to);

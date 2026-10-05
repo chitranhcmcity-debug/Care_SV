@@ -1,4 +1,4 @@
-/* ---------- Student profile drawer ---------- */
+/* ---------- Ngăn hồ sơ sinh viên ---------- */
 .profile-backdrop {
   animation: fade-in 180ms ease-out;
 }
@@ -161,7 +161,7 @@ a.contact-card:hover {
   color: #0f172a;
 }
 
-/* Care timeline: a line with one dot per event. */
+/* Dòng thời gian chăm sóc: một đường với mỗi sự kiện một chấm. */
 .timeline {
   position: relative;
   padding-left: 26px;
@@ -222,7 +222,7 @@ a.contact-card:hover {
   }
 }
 
-/* ---------- Student list: colourful rows ---------- */
+/* ---------- Danh sách sinh viên: các dòng nhiều màu ---------- */
 .student-table thead tr {
   background: linear-gradient(90deg, #ede9fe, #fce7f3 60%, #fef3c7);
 }
@@ -336,7 +336,7 @@ a.contact-card:hover {
   background: #ec4899;
 }
 
-/* ---------- Student search bar ---------- */
+/* ---------- Thanh tìm kiếm sinh viên ---------- */
 .filter-card {
   position: relative;
   overflow: hidden;
@@ -412,7 +412,7 @@ a.contact-card:hover {
   color: #7c3aed;
 }
 
-/* ---------- Profile: compact recent calls ---------- */
+/* ---------- Hồ sơ: các cuộc gọi gần đây gọn ---------- */
 .call-list {
   overflow: hidden;
   border: 1.5px solid #e9e4f8;

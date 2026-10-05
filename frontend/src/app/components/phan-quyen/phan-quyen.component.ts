@@ -10,7 +10,7 @@ import {
   PermissionMatrix,
 } from '../../models/types';
 
-/** Admin: role permission matrix (Phân quyền). */
+/** Admin: ma trận phân quyền theo vai trò (Phân quyền). */
 @Component({
   selector: 'app-permissions-panel',
   standalone: true,
@@ -25,7 +25,7 @@ export class PermissionsPanelComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
   permissionConfig: PermissionConfig | null = null;
-  /** Working copy edited by the checkboxes; saved with savePermissions(). */
+  /** Bản sao đang làm việc được chỉnh bởi các ô tick; lưu bằng savePermissions(). */
   permissionDraft: PermissionMatrix | null = null;
   isSavingPermissions = false;
 
@@ -50,7 +50,7 @@ export class PermissionsPanelComponent implements OnInit {
     };
   }
 
-  /** Permissions grouped for display: one block per group name, groups in first-seen order. */
+  /** Quyền được nhóm để hiển thị: mỗi tên nhóm một khối, các nhóm theo thứ tự xuất hiện đầu tiên. */
   get permissionGroups(): { group: string; items: PermissionConfig['permissions'] }[] {
     const groups: { group: string; items: PermissionConfig['permissions'] }[] = [];
     for (const item of this.permissionConfig?.permissions ?? []) {
@@ -65,7 +65,7 @@ export class PermissionsPanelComponent implements OnInit {
     return Boolean(this.permissionDraft?.[role].includes(key));
   }
 
-  /** False when the permission cannot work for that role (e.g. attendance for CSSV staff). */
+  /** False khi quyền không dùng được cho vai trò đó (vd điểm danh với nhân viên CSSV). */
   permissionApplies(role: ConfigurableRole, key: Permission): boolean {
     const item = this.permissionConfig?.permissions.find((p) => p.key === key);
     return !item?.onlyRoles || item.onlyRoles.includes(role);

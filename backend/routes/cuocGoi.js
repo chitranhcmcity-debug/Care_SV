@@ -47,32 +47,32 @@ const uploadRecording = (req, res, next) => {
   );
 };
 
-// ======================= Stringee callbacks (public, called by Stringee) =======================
+// ======================= Callback của Stringee (công khai, do Stringee gọi) =======================
 router.all('/stringee/answer', ctrl.stringeeAnswer);
 router.post('/stringee/event', ctrl.stringeeEvent);
 
-// ============================== App endpoints (signed in) ==============================
+// ============================== Endpoint của ứng dụng (đã đăng nhập) ==============================
 router.use(verifyToken, requireSignedIn);
 
-// GET /api/calls/config — which call methods this server supports.
+// GET /api/calls/config — các phương thức gọi mà máy chủ này hỗ trợ.
 router.get('/config', ctrl.getConfig);
 
-// POST /api/calls — start a call to a student or their parent; returns the number to dial
-// (and a Stringee client token when calling through the switchboard). body.record: the caller
-// agreed to record the call (asked every time).
+// POST /api/calls — bắt đầu cuộc gọi tới sinh viên hoặc phụ huynh; trả về số cần gọi
+// (và token client Stringee khi gọi qua tổng đài). body.record: người gọi
+// đồng ý ghi âm cuộc gọi (hỏi mỗi lần).
 router.post('/', ctrl.requireCaller, ctrl.startCall);
 
-// PUT /api/calls/:id/end — outcome, note and duration once the call is over.
+// PUT /api/calls/:id/end — kết quả, ghi chú và thời lượng khi cuộc gọi kết thúc.
 router.put('/:id/end', ctrl.loadCall, ctrl.endCall);
 
-// POST /api/calls/:id/recording — attach a recording made on the phone (multipart "file").
+// POST /api/calls/:id/recording — đính kèm bản ghi âm thực hiện trên điện thoại (multipart "file").
 router.post('/:id/recording', ctrl.loadCall, uploadRecording, ctrl.attachRecording);
 
-// GET /api/calls/:id/recording — stream the recording (fetched from Stringee on first use).
-// The caller hears their own calls; recordings.viewAll hears everyone's.
+// GET /api/calls/:id/recording — phát bản ghi âm (lấy từ Stringee ở lần dùng đầu tiên).
+// Người gọi nghe được cuộc gọi của mình; recordings.viewAll nghe được của mọi người.
 router.get('/:id/recording', ctrl.loadCallToHear, ctrl.streamRecording);
 
-// GET /api/calls — the signed-in user's own calls; with scope=all (recordings.viewAll) everyone's.
+// GET /api/calls — cuộc gọi của chính người dùng; với scope=all (recordings.viewAll) là của mọi người.
 router.get('/', ctrl.listCalls);
 
 module.exports = router;

@@ -6,7 +6,7 @@ import { AuthService } from '../../services/auth.service';
 
 const PAGE_SIZE = 20;
 
-/** The signed-in user's call log with recordings; Trưởng phòng / PHT can switch to everyone's. */
+/** Nhật ký cuộc gọi của người dùng đang đăng nhập kèm ghi âm; Trưởng phòng / PHT có thể chuyển sang xem của mọi người. */
 @Component({
   selector: 'app-call-history',
   standalone: true,
@@ -22,17 +22,17 @@ export class CallHistoryComponent implements OnDestroy {
   readonly total = signal(0);
   readonly page = signal(1);
   readonly loading = signal(false);
-  /** Call whose recording is loaded into the player, and its object URL. */
+  /** Cuộc gọi có bản ghi âm đang nạp vào trình phát, và object URL của nó. */
   readonly playing = signal<{ id: string; url: string } | null>(null);
   readonly loadingRecording = signal<string | null>(null);
   readonly uploading = signal<string | null>(null);
   readonly outcomeLabels: Record<string, string> = CALL_OUTCOME_LABELS;
-  /** recordings.viewAll: may list and hear every call. */
+  /** recordings.viewAll: được liệt kê và nghe mọi cuộc gọi. */
   readonly canViewAll = inject(AuthService).can('recordings.viewAll');
   readonly showAll = signal(false);
 
   constructor() {
-    // First load, and again whenever a call is saved from the dialog.
+    // Lần nạp đầu, và nạp lại mỗi khi một cuộc gọi được lưu từ hộp thoại.
     effect(() => {
       this.calls.savedVersion();
       untracked(() => this.load(this.page()));
@@ -86,7 +86,7 @@ export class CallHistoryComponent implements OnDestroy {
     return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
   }
 
-  /** Recordings need our auth header, so fetch as a Blob and play it from an object URL. */
+  /** Bản ghi âm cần header xác thực của ta, nên tải dạng Blob và phát từ object URL. */
   play(call: CallLog) {
     this.loadingRecording.set(call._id);
     this.calls.recording(call._id).subscribe({
@@ -94,11 +94,11 @@ export class CallHistoryComponent implements OnDestroy {
         this.releasePlayer();
         this.playing.set({ id: call._id, url: URL.createObjectURL(blob) });
         this.loadingRecording.set(null);
-        if (!call.recording) this.load(this.page()); // Stringee recording just got fetched
+        if (!call.recording) this.load(this.page()); // Bản ghi âm Stringee vừa được tải về
       },
       error: (err) => {
         this.loadingRecording.set(null);
-        // Blob responses carry the JSON error as a Blob; show a sensible message either way.
+        // Phản hồi Blob mang lỗi JSON dưới dạng Blob; hiện thông báo hợp lý trong cả hai trường hợp.
         this.notify.info(
           err.status === 404
             ? 'Cuộc gọi chưa có bản ghi âm (bản ghi của tổng đài có thể cần thêm ít phút).'

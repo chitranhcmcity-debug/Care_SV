@@ -4,7 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Student, Student360Profile } from '../models/types';
 
-/** Fields an operator can edit on a student record. */
+/** Các trường người vận hành có thể sửa trên hồ sơ sinh viên. */
 export type StudentInput = Pick<
   Student,
   'studentCode' | 'fullName' | 'classCode' | 'dob' | 'major' | 'phone' | 'parentPhone'
@@ -27,7 +27,7 @@ export interface TimetableEntry {
   isMine: boolean;
 }
 
-/** Student records (management) and the shared timetable (every role). */
+/** Hồ sơ sinh viên (quản lý) và thời khóa biểu dùng chung (mọi vai trò). */
 @Injectable({ providedIn: 'root' })
 export class StudentService {
   private readonly baseUrl = inject(API_BASE_URL);
@@ -60,7 +60,7 @@ export class StudentService {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/students/${id}`);
   }
 
-  /** 360° timeline: absences, care cases and calls. */
+  /** Dòng thời gian 360°: vắng học, hồ sơ chăm sóc và cuộc gọi. */
   profile(id: string): Observable<Student360Profile> {
     return this.http.get<Student360Profile>(`${this.baseUrl}/students/${id}/profile`);
   }

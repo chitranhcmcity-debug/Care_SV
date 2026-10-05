@@ -1,4 +1,4 @@
-/* ---------- Analytics bar charts ---------- */
+/* ---------- Biểu đồ cột thống kê ---------- */
 .bar-panel {
   --p: #7c3aed;
   --p2: #a855f7;
@@ -144,7 +144,7 @@
   transition: width 0.5s ease;
 }
 
-/* ---------- Analytics toolbar + metric cards ---------- */
+/* ---------- Thanh công cụ thống kê + thẻ chỉ số ---------- */
 .an-bar {
   border: 1.5px solid #ede9fe;
   border-radius: 20px;
@@ -252,7 +252,7 @@
   background: linear-gradient(180deg, var(--tone-2), var(--tone));
 }
 
-/* ---------- Tasks tab: toolbar, list title and the "Giao việc mới" popup ---------- */
+/* ---------- Tab nhiệm vụ: thanh công cụ, tiêu đề danh sách và popup "Giao việc mới" ---------- */
 .tk-bar {
   display: flex;
   flex-wrap: wrap;
@@ -411,7 +411,7 @@
   width: 32px;
   height: 32px;
 }
-/* Decorative checklist illustration, CSS only. */
+/* Hình minh họa danh sách kiểm trang trí, chỉ dùng CSS. */
 .tk-modal-art {
   position: relative;
   flex: 0 0 150px;

@@ -14,7 +14,7 @@ const DAYS = 7;
 const TIMEZONE = 'Asia/Ho_Chi_Minh';
 const dayKey = (date) => date.toLocaleDateString('en-CA', { timeZone: TIMEZONE }); // YYYY-MM-DD
 
-/** Documents created per day since `since`, as { 'YYYY-MM-DD': count }. */
+/** Số tài liệu tạo mỗi ngày kể từ `since`, dạng { 'YYYY-MM-DD': số lượng }. */
 async function perDay(Model, since) {
   const rows = await Model.aggregate([
     { $match: { createdAt: { $gte: since } } },
@@ -28,7 +28,7 @@ async function perDay(Model, since) {
   return Object.fromEntries(rows.map((r) => [r._id, r.count]));
 }
 
-/** Present / excused / absent student counts per day of the sessions recorded since `since`. */
+/** Số sinh viên có mặt / vắng có phép / vắng mỗi ngày của các buổi điểm danh ghi từ `since`. */
 async function attendancePerDay(since) {
   const sessions = await DiemDanh.find({ createdAt: { $gte: since } })
     .select('courseGroupId absentStudents excusedStudents createdAt')
@@ -49,7 +49,7 @@ async function attendancePerDay(since) {
   return days;
 }
 
-/** Calls made since `since`, by how they went. */
+/** Các cuộc gọi thực hiện từ `since`, theo kết quả. */
 async function callOutcomes(since) {
   const rows = await CuocGoi.aggregate([
     { $match: { createdAt: { $gte: since } } },
@@ -64,7 +64,7 @@ async function callOutcomes(since) {
   };
 }
 
-/** The most severe (then most recent) students at a warning level, plus how many there are. */
+/** Sinh viên ở mức cảnh báo nặng nhất (rồi đến gần nhất), cùng tổng số. */
 async function latestWarnings(limit = 4) {
   const sessions = await DiemDanh.find({ 'absentStudents.0': { $exists: true } })
     .select('courseGroupId absentStudents date createdAt')
@@ -127,7 +127,7 @@ const countBy = async (field) =>
     ]),
   );
 
-/** An integration group is ready when every key without a built-in default has a value. */
+/** Một nhóm tích hợp sẵn sàng khi mọi khóa không có giá trị mặc định đều đã có giá trị. */
 function integrationStatus() {
   const groups = new Map();
   for (const item of describeIntegrations()) {

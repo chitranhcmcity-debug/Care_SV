@@ -16,7 +16,7 @@
     0 12px 30px -16px #6d28d952;
 }
 
-/* Header */
+/* Tiêu đề */
 .wc-hero {
   display: flex;
   flex-wrap: wrap;
@@ -61,7 +61,7 @@
   color: #5e6784;
 }
 
-/* Buttons */
+/* Nút */
 .wc-btn-primary,
 .wc-btn-outline,
 .wc-add button {
@@ -106,7 +106,7 @@ button:disabled {
   transform: none;
 }
 
-/* Sections */
+/* Các mục */
 .wc-section {
   display: grid;
   gap: 12px;
@@ -159,7 +159,7 @@ button:disabled {
   background: linear-gradient(120deg, #8b5cf6, #d946ef);
 }
 
-/* Level cards */
+/* Thẻ mức cảnh báo */
 .wc-levels {
   display: grid;
   gap: 12px;
@@ -275,7 +275,7 @@ button:disabled {
   border-radius: 8px;
 }
 
-/* Exam-ban toggle */
+/* Công tắc cấm thi */
 .wc-switch {
   display: inline-flex;
   align-items: center;
@@ -368,7 +368,7 @@ button:disabled {
   box-shadow: 0 4px 10px -6px var(--lv);
 }
 
-/* Reason / tag lists */
+/* Danh sách lý do / nhãn */
 .wc-lists {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));

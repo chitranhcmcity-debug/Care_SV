@@ -6,8 +6,8 @@ import { renderMarkdown } from '../../utils/markdown';
 import { kpiTone, RATE_PARTS } from '../tien-do-nhan-vien/tien-do-nhan-vien-utils';
 
 /**
- * Trưởng phòng / PHT: AI assessment of one staff member — the objective metrics the system
- * computed (KPI, on-time rate, quality, student care) followed by the AI's written review.
+ * Trưởng phòng / PHT: AI đánh giá một nhân viên — các số liệu khách quan mà hệ thống
+ * đã tính (KPI, tỷ lệ đúng hạn, chất lượng, chăm sóc sinh viên) kèm nhận xét bằng văn bản của AI.
  */
 @Component({
   selector: 'app-staff-ai-modal',
@@ -20,7 +20,7 @@ export class StaffAiModalComponent implements OnInit {
 
   @Input({ required: true }) staffId!: string;
   @Input() staffName = '';
-  /** Optional period (YYYY-MM-DD); empty = all time. */
+  /** Kỳ tùy chọn (YYYY-MM-DD); rỗng = toàn thời gian. */
   @Input() from = '';
   @Input() to = '';
   @Output() closed = new EventEmitter<void>();

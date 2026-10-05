@@ -25,7 +25,7 @@ LichSuPhanCongSchema.index(
   { unique: true, partialFilterExpression: { active: true } },
 );
 
-// Belongs to one unit (đơn vị); see utils/donVi.js.
+// Thuộc về một đơn vị; xem utils/donVi.js.
 LichSuPhanCongSchema.plugin(unitPlugin);
 
 module.exports = mongoose.model('LichSuPhanCong', LichSuPhanCongSchema, 'lich_su_phan_cong');

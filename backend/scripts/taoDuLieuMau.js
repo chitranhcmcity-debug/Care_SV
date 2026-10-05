@@ -48,7 +48,7 @@ async function seedInitialUsers() {
       });
     }
 
-    // Seed Sample Students & Course Groups if empty
+    // Gieo sinh viên & học phần mẫu nếu chưa có
     const studentCount = await SinhVien.countDocuments();
     if (studentCount === 0 && staff1User) {
       console.log('🌱 Đang khởi tạo danh sách sinh viên & nhóm học phần mẫu...');
@@ -108,7 +108,7 @@ async function seedInitialUsers() {
         students: [st1._id],
       });
 
-      // DiemDanh history 1
+      // Lịch sử điểm danh 1
       await DiemDanh.create({
         courseGroupId: cg1._id,
         date: new Date(Date.now() - 86400000 * 3),
@@ -116,7 +116,7 @@ async function seedInitialUsers() {
         recordedBy: adminUser._id,
       });
 
-      // DiemDanh history 2 (st3 absent 2nd time -> triggering Exam Ban Risk!)
+      // Lịch sử điểm danh 2 (sv3 vắng lần 2 -> kích hoạt nguy cơ cấm thi!)
       await DiemDanh.create({
         courseGroupId: cg1._id,
         date: new Date(Date.now() - 86400000 * 1),
@@ -124,7 +124,7 @@ async function seedInitialUsers() {
         recordedBy: adminUser._id,
       });
 
-      // Seed care cases: one directed to staff1, one proposal waiting for a directive.
+      // Gieo hồ sơ chăm sóc: một hồ sơ chỉ đạo cho staff1, một đề xuất đang chờ chỉ đạo.
       const steps = (done) =>
         DEFAULT_CARE_STEPS.map((title, i) => ({ title, source: 'mac_dinh', done: i < done }));
       await HoSoChamSoc.create([

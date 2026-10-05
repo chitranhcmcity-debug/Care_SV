@@ -47,7 +47,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   selectedGroupId = '';
   selectedGroup: CourseGroup | null = null;
 
-  /** Open care cases the user proposed or is working on (home card and tab badge). */
+  /** Hồ sơ chăm sóc đang mở mà người dùng đã đề xuất hoặc đang xử lý (thẻ trang chủ và huy hiệu tab). */
   myOpenCases = 0;
   get canOpenCare(): boolean {
     return this.authService.canOpen('/care');
@@ -59,7 +59,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   attendanceMode: 'new' | 'history' | 'summary' = 'history';
   activeSession: ScheduleSession | null = null;
 
-  // Absent student map: { [studentId]: boolean }
+  // Bản đồ sinh viên vắng: { [studentId]: boolean }
   historyList: AttendanceHistoryItem[] = [];
   scheduleData: ScheduleData | null = null; // tất cả buổi theo lịch
   attendanceSummary: AttendanceSummary | null = null;
@@ -68,7 +68,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   // ─── Lock state: kiểm tra buổi hôm nay đã điểm danh chưa ───
 
-  /** Whether attendance can be written now (timetable window, or the manager's override). */
+  /** Hiện có ghi được điểm danh không (khung giờ thời khóa biểu, hoặc quyền ghi đè của quản lý). */
   attendanceWindow: AttendanceWindow | null = null;
 
   private pollTimer?: ReturnType<typeof setInterval>;
@@ -83,7 +83,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     private calls: CallService,
   ) {}
 
-  /** Every "Gọi" link goes through the app's call dialog, so the call is logged (and can be recorded). */
+  /** Mọi link "Gọi" đều đi qua hộp thoại gọi của ứng dụng, nên cuộc gọi được ghi nhật ký (và có thể ghi âm). */
   callStudent(
     event: Event,
     student:
@@ -167,7 +167,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Class picker search (code, course name, teacher). */
+  /** Tìm lớp (mã, tên học phần, giảng viên). */
   courseSearch = '';
 
   get displayCourseGroups(): CourseGroup[] {
@@ -180,17 +180,17 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Read-only book: only the group's lecturer writes, and only during class hours. */
+  /** Sổ chỉ đọc: chỉ giảng viên của học phần được ghi, và chỉ trong giờ học. */
   get readOnly(): boolean {
     return !this.attendanceWindow?.canWrite;
   }
 
-  // ---- Attendance book filters ----
+  // ---- Bộ lọc sổ điểm danh ----
   matrixSearch = '';
   matrixStatus: 'all' | 'absent' | 'warning' | 'full' = 'all';
   matrixSessions: 'all' | 'past' | 'recent' = 'past';
 
-  /** Students shown in the book after the search and status filters. */
+  /** Sinh viên hiển thị trong sổ sau khi tìm kiếm và lọc theo trạng thái. */
   get matrixStudents(): Student[] {
     const term = this.matrixSearch.trim().toLowerCase();
     return (this.selectedGroup?.students ?? []).filter((s) => {
@@ -204,13 +204,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Session columns: every session, only held ones, or the last 5 held. */
+  /** Cột buổi học: mọi buổi, chỉ các buổi đã diễn ra, hoặc 5 buổi diễn ra gần nhất. */
   get visibleSessions(): ScheduleSession[] {
     const all = this.allSessions;
     if (this.matrixSessions === 'all') return all;
     const held = all.filter((s) => s.status !== 'future');
     const list = this.matrixSessions === 'recent' ? held.slice(-5) : held;
-    // Nothing held yet: still show the upcoming sessions rather than an empty book.
+    // Chưa có buổi nào diễn ra: vẫn hiện các buổi sắp tới thay vì sổ trống.
     return list.length ? list : all;
   }
 
@@ -244,7 +244,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   readonly cellMark = { present: '✓', absent: 'V', excused: 'P', missing: '–', future: '·' };
 
-  /** What one cell shows; a past session nobody recorded shows "–" rather than "present". */
+  /** Một ô hiển thị gì; buổi đã qua không ai ghi hiện "–" thay vì "có mặt". */
   cellStatus(studentId: string, session: ScheduleSession): keyof AttendanceComponent['cellMark'] {
     if (session.status === 'future') return 'future';
     if (
@@ -266,7 +266,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Right-click on an excused cell edits its reason (editable sessions only). */
+  /** Chuột phải vào ô vắng có phép để sửa lý do (chỉ các buổi sửa được). */
   onCellContextMenu(event: Event, studentId: string, name: string, session: ScheduleSession) {
     event.preventDefault();
     if (
@@ -334,7 +334,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     return this.attendanceSummary?.periodsPerSession || 4;
   }
 
-  /** Highest configured warning level the student reached (periods / % of total periods). */
+  /** Mức cảnh báo cao nhất đã cấu hình mà sinh viên đạt (số tiết / % tổng số tiết). */
   warningFor(studentId: string): WarningLevel | null {
     const summary = this.attendanceSummary;
     if (!summary?.warningLevels?.length) return null;
@@ -367,7 +367,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Load history error:', err),
     });
-    // Load full schedule (all sessions per timetable)
+    // Nạp toàn bộ lịch (mọi buổi theo thời khóa biểu)
     this.loadScheduleSessions();
   }
 
@@ -465,7 +465,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Lecturer / staff proposes a care case for a student who seems to be dropping out. */
+  /** Giảng viên / nhân viên đề xuất hồ sơ chăm sóc cho sinh viên có dấu hiệu bỏ học. */
   proposeCare(student: { _id: string; fullName: string }) {
     const reason = prompt(
       `Lý do đề xuất chăm sóc ${student.fullName}:`,
@@ -581,8 +581,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Whether a session is closed for editing. Only the lecturer writes, only today's session and
-   * only during class hours (the server decides the window); once the class ends it is final.
+   * Buổi học có bị khóa không cho sửa. Chỉ giảng viên được ghi, chỉ buổi hôm nay và
+   * chỉ trong giờ học (máy chủ quyết định khung giờ); khi hết giờ học thì buổi được chốt.
    */
   isSessionLocked(session: ScheduleSession): boolean {
     if (!session) return false;

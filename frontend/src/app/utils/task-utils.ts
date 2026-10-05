@@ -2,7 +2,7 @@ import { TASK_STATUS, TaskStatus, WorkTask } from '../models/types';
 
 type TaskUser = { fullName: string; email: string } | string | null | undefined;
 
-/** Display name for a task's assignee/assigner (populated object or bare id). */
+/** Tên hiển thị của người được giao/người giao nhiệm vụ (object đã populate hoặc id trần). */
 export function taskUserName(user: TaskUser): string {
   if (!user) return '—';
   return typeof user === 'string' ? user : user.fullName;
@@ -13,13 +13,13 @@ export function isTaskOverdue(task: WorkTask): boolean {
   return new Date(task.dueDate).getTime() < Date.now();
 }
 
-/** Percent done; handed-in work counts as 100% (tasks created before progress tracking have none). */
+/** Phần trăm hoàn thành; việc đã nộp tính là 100% (nhiệm vụ tạo trước khi có theo dõi tiến độ thì không có). */
 export function taskProgress(task: WorkTask): number {
   if (task.status === TASK_STATUS.SUBMITTED || task.status === TASK_STATUS.COMPLETED) return 100;
   return task.progress ?? 0;
 }
 
-/** The latest progress report that carries a note, if any. */
+/** Báo cáo tiến độ mới nhất có ghi chú, nếu có. */
 export function lastProgressNote(task: WorkTask) {
   return [...(task.progressLog ?? [])].reverse().find((entry) => entry.note) ?? null;
 }

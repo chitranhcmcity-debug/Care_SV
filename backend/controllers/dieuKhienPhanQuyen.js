@@ -42,7 +42,7 @@ async function updateMatrix(req, res, next) {
         `Danh sách quyền của vai trò ${ROLE_LABEL[role]} không hợp lệ`,
       );
     }
-    // Roles left out of the body keep their current permissions.
+    // Vai trò không có trong body giữ nguyên quyền hiện tại.
     const saved = await setRolePermissions({ ...(await getRolePermissions()), ...matrix });
     res.json({ message: 'Đã cập nhật phân quyền theo vai trò!', ...catalog(), matrix: saved });
   } catch (error) {

@@ -1,18 +1,18 @@
 const OpenAI = require('openai');
 const { assert } = require('../utils/kiemTra');
 
-// OpenAI supports Responses or compatible Chat Completions proxies; Google's Gemini endpoint
-// uses Chat Completions through the same SDK. Read configuration per call for live admin changes.
+// OpenAI hỗ trợ Responses hoặc proxy Chat Completions tương thích; endpoint Gemini của Google
+// dùng Chat Completions qua cùng SDK. Đọc cấu hình ở mỗi lần gọi để nhận thay đổi của admin ngay.
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
 const openaiModel = () => process.env.OPENAI_MODEL?.trim() || 'ag/gemini-3.7-flash-low';
 const geminiModel = () => process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
-// Gemini 2.5 counts thinking tokens in max_tokens; keep thinking small and budget it on top.
+// Gemini 2.5 tính token suy nghĩ vào max_tokens; giữ phần suy nghĩ nhỏ và cộng ngân sách thêm bên ngoài.
 const GEMINI_THINKING_TOKENS = 1024;
 const usesChatCompletions = () =>
   provider() === 'gemini' ||
   (process.env.OPENAI_API_MODE?.trim().toLowerCase() || 'chat') === 'chat';
 
-/** Default to Trikun; Gemini must be selected explicitly. */
+/** Mặc định là Trikun; Gemini phải được chọn rõ ràng. */
 function provider() {
   const chosen = process.env.AI_PROVIDER?.trim().toLowerCase();
   if (chosen === 'openai' || chosen === 'gemini') return chosen;
@@ -78,8 +78,8 @@ const incomplete = () =>
     new Error('Trợ lý AI chưa hoàn tất câu trả lời. Vui lòng thử lại với câu hỏi ngắn hơn.'),
     { status: 502 },
   );
-// The provider's HTTP status says what went wrong; tell the user that (never the key or the
-// request itself) and log it so the cause shows up in the server logs.
+// Mã HTTP của nhà cung cấp cho biết điều gì sai; báo cho người dùng biết (không bao giờ kèm khóa hay
+// chính request) và ghi log để nguyên nhân hiện trong log máy chủ.
 function callFailed(name, error, model) {
   const status = error?.status;
   console.error(
@@ -123,7 +123,7 @@ async function createResponse(options) {
 
 const responseText = (response) => ensureText(response.output_text?.trim());
 
-// ---------------- Gemini / compatible proxies (Chat Completions) ----------------
+// ---------------- Gemini / proxy tương thích (Chat Completions) ----------------
 
 async function createCompletion({ maxTokens, ...options }) {
   const gemini = provider() === 'gemini';
@@ -133,8 +133,8 @@ async function createCompletion({ maxTokens, ...options }) {
   try {
     completion = await api.chat.completions.create({
       model,
-      // Some compatible proxies (e.g. Trikun) stream by default unless told otherwise, and the
-      // SDK then cannot parse the reply as one JSON object.
+      // Một số proxy tương thích (vd Trikun) mặc định stream trừ khi được dặn khác, và
+      // SDK khi đó không parse được phản hồi thành một object JSON.
       stream: false,
       ...(gemini ? { reasoning_effort: 'low' } : {}),
       max_tokens: maxTokens + (gemini ? GEMINI_THINKING_TOKENS : 0),
@@ -153,7 +153,7 @@ async function createCompletion({ maxTokens, ...options }) {
 const messageText = (message) =>
   ensureText(typeof message.content === 'string' ? message.content.trim() : '');
 
-// ---------------- Public API ----------------
+// ---------------- API công khai ----------------
 
 async function chat({ system, messages, maxTokens = 1024 }) {
   if (usesChatCompletions()) {
@@ -169,7 +169,7 @@ async function chat({ system, messages, maxTokens = 1024 }) {
   );
 }
 
-// execute(name, input) continues to enforce the caller's data permissions.
+// execute(name, input) tiếp tục áp dụng quyền dữ liệu của người gọi.
 async function runTool(names, execute, name, argumentsText) {
   try {
     assert(names.has(name), 'Công cụ không được phép', 403);
@@ -186,7 +186,7 @@ async function chatWithTools({ system, messages, tools, execute, maxTurns = 6 })
   const functions = tools.map(({ name, description, input_schema }) =>
     completions
       ? { type: 'function', function: { name, description, parameters: input_schema } }
-      : // Existing tools have optional filters; preserve those schemas.
+      : // Các công cụ hiện có có bộ lọc tùy chọn; giữ nguyên các schema đó.
         { type: 'function', name, description, parameters: input_schema, strict: false },
   );
   for (let turn = 0; turn < maxTurns; turn++) {
@@ -198,7 +198,7 @@ async function chatWithTools({ system, messages, tools, execute, maxTurns = 6 })
       });
       const calls = message.tool_calls || [];
       if (!calls.length) return messageText(message);
-      // Send the assistant turn back as-is (it carries Gemini's thought signatures).
+      // Gửi lại lượt của trợ lý nguyên trạng (nó mang chữ ký suy nghĩ của Gemini).
       history.push(message);
       const results = await Promise.all(
         calls.map(async (call) => ({
@@ -218,7 +218,7 @@ async function chatWithTools({ system, messages, tools, execute, maxTurns = 6 })
     });
     const calls = response.output.filter((item) => item.type === 'function_call');
     if (!calls.length) return responseText(response);
-    // Preserve all output items, including reasoning, before sending tool results.
+    // Giữ mọi mục đầu ra, kể cả phần suy luận, trước khi gửi kết quả công cụ.
     history.push(...response.output);
     const results = await Promise.all(
       calls.map(async (call) => ({

@@ -10,25 +10,27 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./components/trang-chu/trang-chu.component').then((m) => m.HomeComponent),
+    loadComponent: () =>
+      import('./components/trang-chu/trang-chu.component').then((m) => m.HomeComponent),
   },
-  // One component renders every auth screen; `data.mode` picks which.
+  // Một component hiển thị mọi màn xác thực; `data.mode` chọn màn nào.
   ...(
     [
       ['login', 'login'],
       ['register', 'register'],
       ['forgot-password', 'forgot'],
       ['reset-password', 'reset'],
-      // Trưởng phòng / PHT own plan: renewal link from email or login, and PayOS return page.
+      // Gói riêng của Trưởng phòng / PHT: link gia hạn từ email hoặc đăng nhập, và trang quay về từ PayOS.
       ['renew', 'renew'],
       ['account-payment', 'payment'],
     ] as const
   ).map(([path, mode]) => ({
     path,
     data: { mode },
-    loadComponent: () => import('./components/dang-nhap/dang-nhap.component').then((m) => m.LoginComponent),
+    loadComponent: () =>
+      import('./components/dang-nhap/dang-nhap.component').then((m) => m.LoginComponent),
   })),
-  // One dashboard; tabs are filtered by permission (see AdminDashboardComponent.visibleTabs).
+  // Một bảng điều khiển; các tab được lọc theo quyền (xem AdminDashboardComponent.visibleTabs).
   { path: 'admin', loadComponent: dashboard, canActivate: [pageGuard] },
   { path: 'management', loadComponent: dashboard, canActivate: [pageGuard] },
   { path: 'reports', redirectTo: 'management' },
@@ -49,7 +51,9 @@ export const routes: Routes = [
   {
     path: 'timetable',
     loadComponent: () =>
-      import('./components/thoi-khoa-bieu/thoi-khoa-bieu.component').then((m) => m.TimetableComponent),
+      import('./components/thoi-khoa-bieu/thoi-khoa-bieu.component').then(
+        (m) => m.TimetableComponent,
+      ),
     canActivate: [pageGuard],
   },
   {
@@ -60,7 +64,8 @@ export const routes: Routes = [
   },
   {
     path: 'care',
-    loadComponent: () => import('./components/cham-soc/cham-soc.component').then((m) => m.CareComponent),
+    loadComponent: () =>
+      import('./components/cham-soc/cham-soc.component').then((m) => m.CareComponent),
     canActivate: [pageGuard],
   },
   { path: 'call-tasks', redirectTo: 'care' },
@@ -80,7 +85,8 @@ export const routes: Routes = [
   },
   {
     path: 'tasks',
-    loadComponent: () => import('./components/nhiem-vu/nhiem-vu.component').then((m) => m.TaskComponent),
+    loadComponent: () =>
+      import('./components/nhiem-vu/nhiem-vu.component').then((m) => m.TaskComponent),
     canActivate: [pageGuard],
   },
   { path: '**', redirectTo: '' },
