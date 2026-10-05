@@ -345,23 +345,6 @@ const ORDER_STATUS_LABEL = Object.freeze({
 });
 const ORDER_STATUSES = Object.freeze(Object.values(ORDER_STATUS));
 
-// Tin Zalo cảnh báo vắng gửi phụ huynh: gửi khi sinh viên vắng (không phép) quá
-// PARENT_ALERT_WEEKLY_LIMIT buổi trong một tuần, cộng mọi học phần.
-const PARENT_ALERT_WEEKLY_LIMIT = 2;
-const PARENT_ALERT_STATUS = Object.freeze({
-  SENT: 'da_gui',
-  FAILED: 'gui_loi',
-  NOT_CONFIGURED: 'chua_cau_hinh',
-  NO_PHONE: 'thieu_sdt',
-});
-const PARENT_ALERT_STATUS_LABEL = Object.freeze({
-  [PARENT_ALERT_STATUS.SENT]: 'Đã gửi',
-  [PARENT_ALERT_STATUS.FAILED]: 'Gửi lỗi',
-  [PARENT_ALERT_STATUS.NOT_CONFIGURED]: 'Chưa cấu hình Zalo',
-  [PARENT_ALERT_STATUS.NO_PHONE]: 'Thiếu SĐT phụ huynh',
-});
-const PARENT_ALERT_STATUSES = Object.freeze(Object.values(PARENT_ALERT_STATUS));
-
 // --- Nhãn hiển thị
 // Every stored code is unique across these sets, so one lookup covers them all.
 const LABELS = Object.freeze({
@@ -374,7 +357,6 @@ const LABELS = Object.freeze({
   ...SHIFT_LABEL,
   ...WEEKDAY_LABEL,
   ...ORDER_STATUS_LABEL,
-  ...PARENT_ALERT_STATUS_LABEL,
 });
 
 // Vietnamese display text for a stored code; unknown values pass through unchanged.
@@ -424,10 +406,6 @@ module.exports = {
   ORDER_STATUS,
   ORDER_STATUS_LABEL,
   ORDER_STATUSES,
-  PARENT_ALERT_WEEKLY_LIMIT,
-  PARENT_ALERT_STATUS,
-  PARENT_ALERT_STATUS_LABEL,
-  PARENT_ALERT_STATUSES,
   LABELS,
   toLabel,
 };

@@ -48,7 +48,7 @@ export interface User {
   role: Role;
   status: 'active' | 'inactive' | 'pending' | 'awaiting_key' | 'unverified' | 'awaiting_payment';
   managedClasses?: string[];
-  /** Phone parents can call back on (sent in the absence-warning Zalo message). */
+  /** Phone parents can call back on (shown to staff when calling). */
   phone?: string;
   /** Unit the account works in (a manager's own id). The admin's staff list fills in the
    *  owning manager. */
@@ -104,8 +104,6 @@ export interface SystemSettings {
   warningLevels: WarningLevel[];
   absenceReasons: string[];
   tags: string[];
-  /** The unit's Zalo message to parents of students absent too often in one week. */
-  parentAlertsEnabled?: boolean;
 }
 
 /** Absence warning level configured by the manager; levels are ordered mildest first. */

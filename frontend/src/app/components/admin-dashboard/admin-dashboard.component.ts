@@ -13,7 +13,6 @@ import { TaskService } from '../../services/task.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService, ToastType } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
-import { ParentAlertsPanelComponent } from '../parent-alerts-panel/parent-alerts-panel.component';
 import { ClassAssignmentPanelComponent } from '../class-assignment-panel/class-assignment-panel.component';
 import { WarningConfigComponent } from '../warning-config/warning-config.component';
 import { IntegrationsPanelComponent } from '../integrations-panel/integrations-panel.component';
@@ -64,7 +63,6 @@ const emptyTaskForm = () => ({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
-    ParentAlertsPanelComponent,
     CommonModule,
     FormsModule,
     ViLabelPipe,
@@ -177,8 +175,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   private readonly auth = inject(AuthService);
-  /** Report of Zalo messages to parents: Trưởng phòng / PHT and admins. */
-  readonly showParentAlerts = this.auth.isManager() || this.auth.isAdmin();
   readonly visibleTabs = visibleDashboardTabs(this.auth);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

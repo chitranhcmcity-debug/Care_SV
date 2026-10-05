@@ -35,7 +35,6 @@ async function publicSettings(settings) {
     warningLevels: await getWarningLevels(),
     absenceReasons: unit.absenceReasons,
     tags: unit.tags,
-    parentAlertsEnabled: unit.parentAlertsEnabled !== false,
   };
 }
 
@@ -118,7 +117,7 @@ router.put(
     try {
       // Saved for the manager's own unit only.
       const settings = await loadUnitConfig();
-      const { warningLevels, absenceReasons, tags, parentAlertsEnabled } = req.body ?? {};
+      const { warningLevels, absenceReasons, tags } = req.body ?? {};
       if (warningLevels !== undefined) {
         assert(
           Array.isArray(warningLevels) && warningLevels.length >= 1 && warningLevels.length <= 10,
@@ -151,13 +150,6 @@ router.put(
       if (absenceReasons !== undefined)
         settings.absenceReasons = stringList(absenceReasons, 'lý do vắng');
       if (tags !== undefined) settings.tags = stringList(tags, 'nhãn');
-      if (parentAlertsEnabled !== undefined) {
-        assert(
-          typeof parentAlertsEnabled === 'boolean',
-          'Giá trị bật/tắt tin phụ huynh không hợp lệ',
-        );
-        settings.parentAlertsEnabled = parentAlertsEnabled;
-      }
       await settings.save();
       clearWarningCache();
       res.json({

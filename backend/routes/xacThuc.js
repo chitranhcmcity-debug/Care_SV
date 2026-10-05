@@ -84,7 +84,7 @@ function readEmail(value) {
   assert(typeof value === 'string' && EMAIL_PATTERN.test(value.trim()), 'Email không hợp lệ');
   return value.trim().toLowerCase();
 }
-// Optional phone (parents call it back from the absence-warning Zalo message).
+// Optional phone (parents can call back on it).
 function readPhone(value) {
   if (value === undefined || value === null) return undefined;
   assert(typeof value === 'string', 'Số điện thoại không hợp lệ');

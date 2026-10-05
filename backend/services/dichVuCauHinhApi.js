@@ -1,4 +1,4 @@
-// Khóa API tích hợp do Admin cấu hình trên giao diện (ChatGPT (OpenAI), Gemini, Stringee, Zalo ZNS,
+// Khóa API tích hợp do Admin cấu hình trên giao diện (ChatGPT (OpenAI), Gemini, Stringee,
 // SMTP).
 // Giá trị lưu trong CaiDatHeThong.integrations, mã hóa AES-256-GCM bằng khóa suy ra từ
 // CONFIG_SECRET (hoặc JWT_SECRET). Khi nạp, giá trị trong database được phủ lên process.env nên
@@ -49,26 +49,6 @@ const CATALOG = Object.freeze([
   { key: 'STRINGEE_KEY_SID', group: 'Tổng đài Stringee', label: 'Key SID' },
   { key: 'STRINGEE_KEY_SECRET', group: 'Tổng đài Stringee', label: 'Key Secret', secret: true },
   { key: 'STRINGEE_HOTLINE', group: 'Tổng đài Stringee', label: 'Số hotline' },
-  // Zalo ZNS: tin cảnh báo vắng gửi phụ huynh (xem services/dichVuZaloZns.js).
-  { key: 'ZALO_APP_ID', group: 'Zalo ZNS (tin phụ huynh)', label: 'App ID' },
-  { key: 'ZALO_APP_SECRET', group: 'Zalo ZNS (tin phụ huynh)', label: 'Secret key', secret: true },
-  {
-    key: 'ZALO_OA_REFRESH_TOKEN',
-    group: 'Zalo ZNS (tin phụ huynh)',
-    label: 'Refresh token của OA',
-    secret: true,
-  },
-  {
-    key: 'ZALO_ZNS_TEMPLATE_ID',
-    group: 'Zalo ZNS (tin phụ huynh)',
-    label: 'Template ID cảnh báo vắng',
-  },
-  {
-    key: 'ZALO_ZNS_MODE',
-    group: 'Zalo ZNS (tin phụ huynh)',
-    label: 'Chế độ gửi',
-    allowed: ['production', 'development'],
-  },
   { key: 'SMTP_HOST', group: 'Email (SMTP)', label: 'Máy chủ', placeholder: 'smtp.gmail.com' },
   { key: 'SMTP_PORT', group: 'Email (SMTP)', label: 'Cổng', placeholder: '587' },
   { key: 'SMTP_USER', group: 'Email (SMTP)', label: 'Tài khoản' },
@@ -195,23 +175,9 @@ async function updateIntegrations(values) {
   return describeIntegrations();
 }
 
-/**
- * Saves one value the system itself received (e.g. the rotating Zalo refresh token), skipping
- * the admin form's checks.
- */
-async function saveIntegrationValue(key, value) {
-  assert(KEYS.includes(key), `Khóa cấu hình không hợp lệ: ${key}`);
-  const settings = (await CaiDatHeThong.findOne()) || new CaiDatHeThong();
-  settings.integrations = { ...(settings.integrations || {}), [key]: encrypt(String(value)) };
-  settings.markModified('integrations');
-  await settings.save();
-  await applyIntegrations();
-}
-
 module.exports = {
   applyIntegrations,
   describeIntegrations,
   updateIntegrations,
-  saveIntegrationValue,
   migrateAiToTrikun,
 };

@@ -26,8 +26,6 @@ export class WarningConfigComponent implements OnInit {
   levels: WarningLevel[] = [];
   absenceReasons: string[] = [];
   tags: string[] = [];
-  /** Zalo message to parents of students absent more than 2 sessions in a week. */
-  parentAlertsEnabled = true;
   newReason = '';
   newTag = '';
   readonly saving = signal(false);
@@ -43,7 +41,6 @@ export class WarningConfigComponent implements OnInit {
     this.levels = (s.warningLevels || []).map((l) => ({ ...l }));
     this.absenceReasons = [...(s.absenceReasons || [])];
     this.tags = [...(s.tags || [])];
-    this.parentAlertsEnabled = s.parentAlertsEnabled !== false;
     this.cdr.markForCheck();
   }
 
@@ -95,7 +92,6 @@ export class WarningConfigComponent implements OnInit {
         warningLevels: this.levels.map((l) => ({ ...l, threshold: Number(l.threshold) })),
         absenceReasons: this.absenceReasons,
         tags: this.tags,
-        parentAlertsEnabled: this.parentAlertsEnabled,
       })
       .subscribe({
         next: (res) => {

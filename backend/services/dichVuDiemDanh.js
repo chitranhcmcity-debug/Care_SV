@@ -1,7 +1,6 @@
 const DiemDanh = require('../models/DiemDanh');
 const SinhVien = require('../models/SinhVien');
 const { openCasesForWarnings } = require('./dichVuHoSoChamSoc');
-const { checkWeeklyAbsences } = require('./dichVuCanhBaoPhuHuynh');
 const { validateAttendance, dayBounds, dateKey } = require('../utils/kiemTra');
 
 // Serialize edits to the same session in this process. The unique session index
@@ -43,11 +42,6 @@ async function saveAttendance({
     await attendance.save();
     // Students who now reach a warning level get a care case (default: their class's staff).
     const openedCases = await openCasesForWarnings(group, absentStudentIds);
-    // Parents of students absent too often this week get a Zalo message. Runs in the background
-    // so the lecturer is not kept waiting on Zalo; the outcome is kept for the report.
-    checkWeeklyAbsences(absentStudentIds, sessionDay).catch((error) =>
-      console.warn('[Zalo] Không xử lý được tin cảnh báo phụ huynh:', error.message),
-    );
     // The absent students, so the lecturer can choose to call them right away.
     const absent = await SinhVien.find({ _id: { $in: absentStudentIds } })
       .select('studentCode fullName classCode phone parentPhone')

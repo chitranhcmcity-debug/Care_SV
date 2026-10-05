@@ -60,7 +60,7 @@ export class LoginComponent implements OnInit {
   role: 'staff' | 'teacher' | 'manager' = 'teacher';
   /** Teachers and staff: email of the Trưởng phòng / PHT they work under. */
   managerEmail = '';
-  /** Phone parents can call back on (sent in the absence-warning Zalo message). */
+  /** Phone parents can call back on (parents can call back on it). */
   phone = '';
   /** Plans a Trưởng phòng / PHT buys for their own account (register and renew screens). */
   plans: SubscriptionPlan[] | null = null;

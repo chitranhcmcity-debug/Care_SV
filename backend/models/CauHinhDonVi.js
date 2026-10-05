@@ -27,8 +27,6 @@ const CauHinhDonViSchema = new mongoose.Schema(
       type: [String],
       default: ['#KhóKhănHọcPhí', '#HọcBổng', '#ĐiLàmĐêm', '#CảnhBáoVắng', '#CầnHỗTrợĐặcBiệt'],
     },
-    // Zalo message to parents when a student is absent too often in one week.
-    parentAlertsEnabled: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

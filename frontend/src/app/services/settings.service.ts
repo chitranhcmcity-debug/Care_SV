@@ -39,7 +39,6 @@ export class SettingsService {
     warningLevels?: WarningLevel[];
     absenceReasons?: string[];
     tags?: string[];
-    parentAlertsEnabled?: boolean;
   }): Observable<{ message: string; settings: SystemSettings }> {
     return this.http.put<{ message: string; settings: SystemSettings }>(
       `${this.apiUrl}/care`,

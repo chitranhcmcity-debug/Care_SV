@@ -472,35 +472,3 @@ button:disabled {
     transform: none !important;
   }
 }
-
-/* Zalo message to parents: one switch for the unit. */
-.wc-zalo {
-  padding: 16px 18px;
-  border: 1.5px solid #bae6fd;
-  border-radius: 18px;
-  background: linear-gradient(110deg, #f0f9ff, #fff 60%);
-}
-.wc-zalo-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  cursor: pointer;
-}
-.wc-zalo-check {
-  width: 20px;
-  height: 20px;
-  margin-top: 6px;
-  flex: none;
-  accent-color: #0284c7;
-}
-.wc-zalo-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  color: #0c4a6e;
-}
-.wc-zalo .wc-hint {
-  display: block;
-  margin-top: 4px;
-}
