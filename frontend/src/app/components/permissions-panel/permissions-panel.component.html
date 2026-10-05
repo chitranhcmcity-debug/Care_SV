@@ -1,0 +1,121 @@
+<div class="card-3d perm-card p-6 md:p-8 pt-7 md:pt-9 space-y-6">
+  <div class="border-b border-slate-200 pb-4 flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h3 class="text-lg md:text-xl font-bold text-slate-900">Phân quyền theo vai trò</h3>
+      <p class="text-xs text-slate-500 font-medium mt-0.5">
+        Chọn chức năng mà từng vai trò được sử dụng. Thay đổi có hiệu lực ngay, người dùng không cần
+        đăng nhập lại.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        (click)="resetPermissionsToDefault()"
+        [disabled]="!permissionDraft || isSavingPermissions"
+        class="px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm rounded-xl transition-all disabled:opacity-50"
+      >
+        Khôi phục mặc định
+      </button>
+      <button
+        type="button"
+        *ngIf="permissionsChanged"
+        (click)="discardPermissionChanges()"
+        [disabled]="isSavingPermissions"
+        class="px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm rounded-xl transition-all disabled:opacity-50"
+      >
+        Hủy thay đổi
+      </button>
+      <button
+        type="button"
+        (click)="savePermissions()"
+        [disabled]="!permissionsChanged || isSavingPermissions"
+        class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all disabled:opacity-50"
+      >
+        {{ isSavingPermissions ? 'Đang lưu...' : 'Lưu phân quyền' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!permissionConfig" class="py-10 text-center text-sm text-slate-500">
+    Đang tải bảng phân quyền...
+  </div>
+
+  <div *ngIf="permissionConfig && permissionDraft" class="overflow-x-auto">
+    <table class="perm-table w-full min-w-[720px] text-sm">
+      <thead>
+        <tr class="text-left">
+          <th class="py-3 pl-4 pr-4">🧩 Chức năng</th>
+          <th class="py-3 px-3 text-center w-32">
+            <span class="perm-role" data-tone="0">👑 Quản trị viên</span>
+          </th>
+          <th
+            *ngFor="let r of permissionConfig.roles; let ri = index"
+            class="py-3 px-3 text-center w-36"
+          >
+            <span class="perm-role" [attr.data-tone]="ri + 1">{{ r.label }}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let g of permissionGroups">
+          <tr>
+            <td [attr.colspan]="permissionConfig.roles.length + 2" class="pt-5 pb-2">
+              <span class="perm-group">{{ g.group }}</span>
+            </td>
+          </tr>
+          <tr *ngFor="let p of g.items" class="perm-row">
+            <td class="py-3 pl-4 pr-4">
+              <div class="font-semibold text-slate-800">{{ p.label }}</div>
+              <div class="text-xs text-slate-500 mt-0.5">{{ p.description }}</div>
+            </td>
+            <td class="perm-cell py-3 px-3 text-center" data-tone="0">
+              <input
+                type="checkbox"
+                checked
+                disabled
+                class="perm-check"
+                title="Quản trị viên luôn có toàn quyền"
+                [attr.aria-label]="p.label + ' — Quản trị viên (luôn có)'"
+              />
+            </td>
+            <td
+              *ngFor="let r of permissionConfig.roles; let ri = index"
+              class="perm-cell py-3 px-3 text-center"
+              [attr.data-tone]="ri + 1"
+            >
+              <span
+                *ngIf="!permissionApplies(r.role, p.key)"
+                class="perm-na"
+                title="Quyền này chỉ dùng được cho vai trò khác"
+                >Không áp dụng</span
+              >
+              <label
+                *ngIf="permissionApplies(r.role, p.key)"
+                class="inline-flex flex-col items-center gap-1 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="hasPermission(r.role, p.key)"
+                  (change)="togglePermission(r.role, p.key)"
+                  class="perm-check cursor-pointer"
+                  [attr.aria-label]="p.label + ' — ' + r.label"
+                />
+                <span
+                  *ngIf="hasPermission(r.role, p.key) !== isDefaultPermission(r.role, p.key)"
+                  class="perm-changed"
+                  >khác mặc định</span
+                >
+              </label>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="text-xs text-slate-500">
+    Quản lý tài khoản, phân công phụ trách, cấu hình hệ thống, gói dịch vụ và bảng phân quyền luôn
+    chỉ dành cho Quản trị viên. Phạm vi dữ liệu vẫn được giữ: giảng viên chỉ điểm danh học phần mình
+    dạy, nhân viên chỉ làm các hồ sơ chăm sóc được giao.
+  </p>
+</div>
