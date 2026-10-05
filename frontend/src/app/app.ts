@@ -12,7 +12,15 @@ import { BrandingService } from './services/branding.service';
 import { LoadingService } from './services/loading.service';
 
 // Pages rendered full-width without the signed-in sidebar shell.
-const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/renew', '/account-payment'];
+const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/renew',
+  '/account-payment',
+];
 
 @Component({
   selector: 'app-root',

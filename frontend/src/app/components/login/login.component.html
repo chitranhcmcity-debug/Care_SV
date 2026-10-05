@@ -507,7 +507,10 @@
                   </label>
 
                   <!-- Leadership: full width, gold accents and a star badge -->
-                  <label class="lg-role lg-role--lead col-span-2" [class.is-selected]="role === 'manager'">
+                  <label
+                    class="lg-role lg-role--lead col-span-2"
+                    [class.is-selected]="role === 'manager'"
+                  >
                     <input
                       type="radio"
                       name="role"
@@ -563,8 +566,8 @@
                   />
                 </div>
                 <p id="register-manager-hint" class="text-xs text-slate-500">
-                  Yêu cầu chỉ gửi tới người này; bạn chỉ làm việc với sinh viên và dữ liệu của đơn vị
-                  họ quản lý.
+                  Yêu cầu chỉ gửi tới người này; bạn chỉ làm việc với sinh viên và dữ liệu của đơn
+                  vị họ quản lý.
                 </p>
               </div>
 
@@ -613,8 +616,10 @@
                 <ng-container *ngTemplateOutlet="confirmField"></ng-container>
                 <div *ngIf="role !== 'manager'" class="space-y-1.5 sm:col-span-2">
                   <label for="register-phone" class="block text-sm font-medium text-slate-700"
-                    >Số điện thoại <span class="text-slate-400 font-normal">(phụ huynh gọi lại số
-                    này)</span></label
+                    >Số điện thoại
+                    <span class="text-slate-400 font-normal"
+                      >(phụ huynh gọi lại số này)</span
+                    ></label
                   >
                   <input
                     id="register-phone"
@@ -635,10 +640,9 @@
               <ng-container
                 *ngTemplateOutlet="
                   submitButton;
-                  context:
-                    role === 'manager'
-                      ? { label: 'Thanh toán & hoàn tất đăng ký', busy: 'Đang tạo thanh toán...' }
-                      : { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
+                  context: role === 'manager'
+                    ? { label: 'Thanh toán & hoàn tất đăng ký', busy: 'Đang tạo thanh toán...' }
+                    : { label: 'Đăng ký', busy: 'Đang gửi email xác thực...' }
                 "
               ></ng-container>
             </form>
@@ -696,7 +700,8 @@
                 <div class="font-bold">Thanh toán thành công — tài khoản đã được kích hoạt.</div>
                 <div>
                   {{ payment.planName }} · {{ formatVnd(payment.amount) }}. Hạn sử dụng đến
-                  <b>{{ payment.accessExpiresAt | date: 'dd/MM/yyyy' }}</b>.
+                  <b>{{ payment.accessExpiresAt | date: 'dd/MM/yyyy' }}</b
+                  >.
                 </div>
                 <div>Hóa đơn đã được gửi tới {{ payment.email }}.</div>
               </div>

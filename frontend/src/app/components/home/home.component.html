@@ -288,7 +288,15 @@
           >
             <!-- corner illustration: a soft blob with a faded large icon -->
             <span class="hl-art" aria-hidden="true">
-              <svg class="w-16 h-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                class="w-16 h-16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path [attr.d]="stat.icon" />
               </svg>
             </span>
@@ -296,18 +304,38 @@
               class="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shrink-0 shadow-xl"
               [ngClass]="stat.tone"
             >
-              <svg class="w-7 h-7 md:w-8 md:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                class="w-7 h-7 md:w-8 md:h-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path [attr.d]="stat.icon" />
               </svg>
             </span>
-            <div class="relative mt-5 text-lg md:text-xl font-extrabold text-slate-900 leading-tight">
+            <div
+              class="relative mt-5 text-lg md:text-xl font-extrabold text-slate-900 leading-tight"
+            >
               {{ stat.title }}
             </div>
             <div class="relative mt-2 pr-12 text-sm md:text-[15px] text-slate-500 leading-relaxed">
               {{ stat.text }}
             </div>
             <span class="hl-arrow" aria-hidden="true">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.arrow" /></svg>
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="icons.arrow" />
+              </svg>
             </span>
           </a>
         </div>
@@ -426,14 +454,22 @@
     <section id="ai-care" class="px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20">
       <div class="ai-panel relative overflow-hidden max-w-[1440px] mx-auto rounded-[36px]">
         <div class="ai-glow" aria-hidden="true"></div>
-        <div class="relative grid lg:grid-cols-[1.05fr_0.8fr_1.25fr] gap-8 items-center p-6 sm:p-8 md:p-12">
+        <div
+          class="relative grid lg:grid-cols-[1.05fr_0.8fr_1.25fr] gap-8 items-center p-6 sm:p-8 md:p-12"
+        >
           <!-- copy -->
           <div class="space-y-5">
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white ring-1 ring-violet-100 text-xs font-bold text-violet-600 shadow-sm">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path [attr.d]="icons.sparkles" /></svg>
+            <span
+              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white ring-1 ring-violet-100 text-xs font-bold text-violet-600 shadow-sm"
+            >
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path [attr.d]="icons.sparkles" />
+              </svg>
               AI CARE
             </span>
-            <h2 class="text-3xl md:text-[46px] font-extrabold tracking-tight leading-[1.1] text-slate-900 text-balance">
+            <h2
+              class="text-3xl md:text-[46px] font-extrabold tracking-tight leading-[1.1] text-slate-900 text-balance"
+            >
               Trợ lý phù thủy
               <span class="block text-grad ai-underline">làm việc cùng bạn</span>
             </h2>
@@ -444,8 +480,21 @@
             </p>
             <ul class="space-y-2.5">
               <li *ngFor="let p of aiPoints" class="flex items-center gap-3">
-                <span class="w-10 h-10 rounded-xl bg-gradient-to-br text-white grid place-items-center shrink-0 shadow-lg" [ngClass]="p.tone">
-                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="p.icon" /></svg>
+                <span
+                  class="w-10 h-10 rounded-xl bg-gradient-to-br text-white grid place-items-center shrink-0 shadow-lg"
+                  [ngClass]="p.tone"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path [attr.d]="p.icon" />
+                  </svg>
                 </span>
                 <span class="ai-pill">{{ p.text }}</span>
               </li>
@@ -457,29 +506,77 @@
             <span class="ai-orbit"></span>
             <span class="ai-orbit ai-orbit--2"></span>
             <span class="ai-float-tile left-2 top-4 -rotate-12">
-              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.book" /></svg>
+              <svg
+                class="w-8 h-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="icons.book" />
+              </svg>
             </span>
             <span class="ai-float-tile left-0 bottom-10 rotate-6 text-rose-500">
-              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path [attr.d]="icons.chart" /></svg>
+              <svg
+                class="w-8 h-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <path [attr.d]="icons.chart" />
+              </svg>
             </span>
-            <img src="robot-ai-right.webp" alt="" width="300" height="250" class="mascot relative w-[260px] h-auto" />
+            <img
+              src="robot-ai-right.webp"
+              alt=""
+              width="300"
+              height="250"
+              class="mascot relative w-[260px] h-auto"
+            />
           </div>
 
           <!-- chat preview (illustrative) -->
           <div class="relative" aria-hidden="true">
             <div class="ai-chat rounded-[28px] p-4 sm:p-6 space-y-4">
               <div class="flex items-start justify-end gap-3">
-                <div class="px-4 py-3 rounded-2xl rounded-tr-md btn-grad text-sm font-semibold flex items-center gap-2 shadow-lg">
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path [attr.d]="icons.sparkles" /></svg>
+                <div
+                  class="px-4 py-3 rounded-2xl rounded-tr-md btn-grad text-sm font-semibold flex items-center gap-2 shadow-lg"
+                >
+                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path [attr.d]="icons.sparkles" />
+                  </svg>
                   Giao việc tổng hợp SV nguy cơ cấm thi cho Mai, hạn thứ 6
                 </div>
-                <span class="w-10 h-10 rounded-full bg-violet-100 text-violet-600 grid place-items-center shrink-0">
-                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path [attr.d]="icons.user" /></svg>
+                <span
+                  class="w-10 h-10 rounded-full bg-violet-100 text-violet-600 grid place-items-center shrink-0"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <path [attr.d]="icons.user" />
+                  </svg>
                 </span>
               </div>
               <div class="flex items-start gap-3">
-                <img src="robot-ai-left.webp" alt="" width="40" height="34" class="w-10 h-auto shrink-0" />
-                <div class="px-4 py-3 rounded-2xl rounded-tl-md bg-slate-50 text-sm text-slate-700 leading-relaxed">
+                <img
+                  src="robot-ai-left.webp"
+                  alt=""
+                  width="40"
+                  height="34"
+                  class="w-10 h-auto shrink-0"
+                />
+                <div
+                  class="px-4 py-3 rounded-2xl rounded-tl-md bg-slate-50 text-sm text-slate-700 leading-relaxed"
+                >
                   Mình đã soạn sẵn nhiệm vụ cho <b>Trần Thị Mai</b>, hạn thứ 6. Bạn kiểm tra rồi bấm
                   Xác nhận nhé!
                 </div>
@@ -487,36 +584,100 @@
               <div class="rounded-2xl bg-white border border-violet-100 p-4 sm:p-5 shadow-sm">
                 <div class="flex items-start justify-between gap-3">
                   <div>
-                    <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-violet-600">
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path [attr.d]="icons.sparkles" /></svg>
+                    <div
+                      class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-violet-600"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path [attr.d]="icons.sparkles" />
+                      </svg>
                       AI Care đề xuất thao tác
                     </div>
-                    <div class="mt-1 text-lg font-extrabold text-slate-900">Giao việc cho Trần Thị Mai</div>
+                    <div class="mt-1 text-lg font-extrabold text-slate-900">
+                      Giao việc cho Trần Thị Mai
+                    </div>
                   </div>
-                  <span class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 grid place-items-center shrink-0 rotate-6">
-                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.clipboard" /></svg>
+                  <span
+                    class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 grid place-items-center shrink-0 rotate-6"
+                  >
+                    <svg
+                      class="w-7 h-7"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path [attr.d]="icons.clipboard" />
+                    </svg>
                   </span>
                 </div>
                 <dl class="mt-3 space-y-2 text-sm">
                   <div class="flex items-center gap-2.5 text-slate-600">
-                    <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.clipboard" /></svg>
-                    <dt class="font-semibold text-slate-800">Nhiệm vụ:</dt><dd>Tổng hợp SV nguy cơ cấm thi</dd>
+                    <svg
+                      class="w-4 h-4 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path [attr.d]="icons.clipboard" />
+                    </svg>
+                    <dt class="font-semibold text-slate-800">Nhiệm vụ:</dt>
+                    <dd>Tổng hợp SV nguy cơ cấm thi</dd>
                   </div>
                   <div class="flex items-center gap-2.5 text-slate-600">
-                    <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path [attr.d]="icons.user" /></svg>
-                    <dt class="font-semibold text-slate-800">Người nhận:</dt><dd>Trần Thị Mai</dd>
+                    <svg
+                      class="w-4 h-4 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    >
+                      <path [attr.d]="icons.user" />
+                    </svg>
+                    <dt class="font-semibold text-slate-800">Người nhận:</dt>
+                    <dd>Trần Thị Mai</dd>
                   </div>
                   <div class="flex items-center gap-2.5 text-slate-600">
-                    <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.calendarCheck" /></svg>
-                    <dt class="font-semibold text-slate-800">Hạn hoàn thành:</dt><dd>Thứ 6</dd>
+                    <svg
+                      class="w-4 h-4 text-slate-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path [attr.d]="icons.calendarCheck" />
+                    </svg>
+                    <dt class="font-semibold text-slate-800">Hạn hoàn thành:</dt>
+                    <dd>Thứ 6</dd>
                   </div>
                 </dl>
                 <div class="mt-4 grid grid-cols-[1.4fr_1fr] gap-2.5">
-                  <span class="btn-grad h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7" /></svg>
+                  <span
+                    class="btn-grad h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M5 12l5 5L20 7" />
+                    </svg>
                     Xác nhận giao việc
                   </span>
-                  <span class="h-11 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 flex items-center justify-center">
+                  <span
+                    class="h-11 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 flex items-center justify-center"
+                  >
                     Chỉnh sửa
                   </span>
                 </div>
@@ -528,31 +689,72 @@
     </section>
 
     <!-- ============ PROCESS ============ -->
-    <section id="quy-trinh" class="sec-soft relative px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20">
+    <section
+      id="quy-trinh"
+      class="sec-soft relative px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20"
+    >
       <div class="relative max-w-[1440px] mx-auto space-y-10">
         <div class="text-center space-y-3 max-w-3xl mx-auto">
           <span class="sec-kicker">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icons.flow" /></svg>
+            <svg
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path [attr.d]="icons.flow" />
+            </svg>
             QUY TRÌNH
           </span>
-          <h2 class="text-3xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance">
+          <h2
+            class="text-3xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
+          >
             4 bước, <span class="text-grad">khép kín toàn trình</span>
           </h2>
           <p class="text-slate-500 md:text-lg">
-            Từ buổi học đến khi hồ sơ được chốt — mỗi bước đều có người phụ trách và lịch sử rõ ràng.
+            Từ buổi học đến khi hồ sơ được chốt — mỗi bước đều có người phụ trách và lịch sử rõ
+            ràng.
           </p>
         </div>
         <div class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div class="step-line hidden lg:block" aria-hidden="true"></div>
-          <div *ngFor="let step of steps; let i = index; let last = last" class="step relative" [ngClass]="step.theme">
+          <div
+            *ngFor="let step of steps; let i = index; let last = last"
+            class="step relative"
+            [ngClass]="step.theme"
+          >
             <div class="flex items-start justify-between">
               <span class="step-no">0{{ i + 1 }}</span>
               <span class="step-art" aria-hidden="true">
-                <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="step.icon" /></svg>
+                <svg
+                  class="w-10 h-10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="step.icon" />
+                </svg>
               </span>
             </div>
             <span *ngIf="!last" class="step-chev hidden lg:grid" aria-hidden="true">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6" /></svg>
+              <svg
+                class="w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m9 6 6 6-6 6" />
+              </svg>
             </span>
             <h3 class="mt-5 text-lg md:text-xl font-extrabold text-slate-900">{{ step.title }}</h3>
             <p class="mt-2 text-[15px] text-slate-500 leading-relaxed">{{ step.text }}</p>
@@ -562,52 +764,142 @@
     </section>
 
     <!-- ============ ROLES ============ -->
-    <section id="danh-cho-ai" class="relative px-5 md:px-6 pb-12 md:pb-16 pt-4 scroll-mt-28 xl:scroll-mt-20">
+    <section
+      id="danh-cho-ai"
+      class="relative px-5 md:px-6 pb-12 md:pb-16 pt-4 scroll-mt-28 xl:scroll-mt-20"
+    >
       <div class="max-w-[1440px] mx-auto space-y-10">
         <div class="text-center space-y-3 max-w-3xl mx-auto">
           <span class="sec-kicker">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icons.users" /></svg>
+            <svg
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path [attr.d]="icons.users" />
+            </svg>
             DÀNH CHO AI
           </span>
-          <h2 class="text-3xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance">
+          <h2
+            class="text-3xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
+          >
             Mỗi vai trò, <span class="text-grad">một không gian riêng</span>
           </h2>
           <p class="text-slate-500 md:text-lg">
-            Hệ thống được thiết kế phù hợp với từng vai trò, giúp mọi người dễ dàng quản lý, theo dõi
-            và phối hợp hiệu quả hơn.
+            Hệ thống được thiết kế phù hợp với từng vai trò, giúp mọi người dễ dàng quản lý, theo
+            dõi và phối hợp hiệu quả hơn.
           </p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <article *ngFor="let role of roles" class="role group relative overflow-hidden flex flex-col" [ngClass]="role.theme">
+          <article
+            *ngFor="let role of roles"
+            class="role group relative overflow-hidden flex flex-col"
+            [ngClass]="role.theme"
+          >
             <!-- illustrated header -->
             <div class="role-head relative h-40" aria-hidden="true">
               <span class="role-glass role-glass--main">
-                <svg class="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="role.art[0]" /></svg>
+                <svg
+                  class="w-12 h-12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="role.art[0]" />
+                </svg>
               </span>
               <span class="role-glass role-glass--a">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="role.art[1]" /></svg>
+                <svg
+                  class="w-7 h-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="role.art[1]" />
+                </svg>
               </span>
               <span class="role-glass role-glass--b">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="role.art[2]" /></svg>
+                <svg
+                  class="w-6 h-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="role.art[2]" />
+                </svg>
               </span>
-              <svg class="role-wave" viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0 22 C 80 4, 160 40, 240 20 S 360 6, 400 18 V40 H0z" fill="#fff" /></svg>
+              <svg class="role-wave" viewBox="0 0 400 40" preserveAspectRatio="none">
+                <path d="M0 22 C 80 4, 160 40, 240 20 S 360 6, 400 18 V40 H0z" fill="#fff" />
+              </svg>
             </div>
             <div class="relative flex-1 flex flex-col px-6 pb-6 -mt-9">
               <span class="role-icon">
-                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="role.icon" /></svg>
+                <svg
+                  class="w-7 h-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="role.icon" />
+                </svg>
               </span>
               <h3 class="mt-4 text-xl font-extrabold text-slate-900">{{ role.title }}</h3>
               <p class="mt-1.5 text-sm leading-relaxed text-slate-500">{{ role.text }}</p>
               <ul class="mt-4 space-y-2.5 flex-1">
-                <li *ngFor="let pt of role.points" class="flex items-start gap-2.5 text-sm text-slate-700">
+                <li
+                  *ngFor="let pt of role.points"
+                  class="flex items-start gap-2.5 text-sm text-slate-700"
+                >
                   <span class="role-check">
-                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7" /></svg>
+                    <svg
+                      class="w-3 h-3"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M5 12l5 5L20 7" />
+                    </svg>
                   </span>
                   {{ pt }}
                 </li>
               </ul>
-              <button type="button" class="role-go self-end mt-4" (click)="enterSystem()" [attr.aria-label]="'Vào hệ thống — ' + role.title">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.arrow" /></svg>
+              <button
+                type="button"
+                class="role-go self-end mt-4"
+                (click)="enterSystem()"
+                [attr.aria-label]="'Vào hệ thống — ' + role.title"
+              >
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="icons.arrow" />
+                </svg>
               </button>
             </div>
           </article>
@@ -616,29 +908,54 @@
     </section>
 
     <!-- ============ CTA ============ -->
-    <section id="lien-he" class="relative z-10 px-5 md:px-6 scroll-mt-28 xl:scroll-mt-20 -mb-20 md:-mb-24">
+    <section
+      id="lien-he"
+      class="relative z-10 px-5 md:px-6 scroll-mt-28 xl:scroll-mt-20 -mb-20 md:-mb-24"
+    >
       <div class="cta relative overflow-hidden max-w-[1440px] mx-auto rounded-[32px] text-white">
         <div class="cta-dots" aria-hidden="true"></div>
-        <div class="relative grid lg:grid-cols-[1.25fr_0.9fr_auto] items-center gap-8 p-7 md:p-10 xl:px-14">
+        <div
+          class="relative grid lg:grid-cols-[1.25fr_0.9fr_auto] items-center gap-8 p-7 md:p-10 xl:px-14"
+        >
           <div class="space-y-4 text-center lg:text-left">
-            <span class="inline-block px-3.5 py-1.5 rounded-full bg-white/15 ring-1 ring-white/25 text-xs font-bold tracking-wide">
+            <span
+              class="inline-block px-3.5 py-1.5 rounded-full bg-white/15 ring-1 ring-white/25 text-xs font-bold tracking-wide"
+            >
               CẦN HỖ TRỢ?
             </span>
             <h2 class="text-3xl md:text-[44px] font-extrabold leading-tight text-balance">
               Cần hỗ trợ sử dụng <span class="cta-accent">hệ thống?</span>
             </h2>
             <p class="text-white/85 md:text-lg">
-              {{ branding.departmentName() }} luôn sẵn sàng hỗ trợ bạn. Liên hệ để được tư vấn, giải đáp
-              và xử lý nhanh chóng!
+              {{ branding.departmentName() }} luôn sẵn sàng hỗ trợ bạn. Liên hệ để được tư vấn, giải
+              đáp và xử lý nhanh chóng!
             </p>
             <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
               <a [href]="'tel:' + branding.supportHotline()" class="cta-pill">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path [attr.d]="icons.phone" /></svg>
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="icons.phone" />
+                </svg>
                 {{ branding.supportHotline() }}
               </a>
               <a [href]="'mailto:' + branding.supportEmail()" class="cta-pill">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" />
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
                 </svg>
                 {{ branding.supportEmail() }}
               </a>
@@ -652,14 +969,37 @@
               <span class="block h-2 w-10 rounded-full bg-violet-200"></span>
             </span>
             <span class="cta-headset left-1/2 top-2 -translate-x-1/2">
-              <svg class="w-20 h-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.headset" /></svg>
+              <svg
+                class="w-20 h-20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="icons.headset" />
+              </svg>
             </span>
             <span class="cta-bubble right-4 top-4 rotate-6">
-              <span class="flex gap-1.5"><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i></span>
+              <span class="flex gap-1.5"
+                ><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i
+                ><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i
+                ><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i
+              ></span>
             </span>
             <span class="cta-card right-0 bottom-2 rotate-3">
               <span class="w-10 h-10 rounded-xl bg-violet-500 text-white grid place-items-center">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path [attr.d]="icons.user" /></svg>
+                <svg
+                  class="w-5 h-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                >
+                  <path [attr.d]="icons.user" />
+                </svg>
               </span>
               <span class="space-y-1.5">
                 <span class="block h-2 w-20 rounded-full bg-violet-300"></span>
@@ -671,7 +1011,17 @@
           <div class="flex justify-center">
             <button type="button" (click)="enterSystem()" class="cta-btn">
               {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Đăng nhập hệ thống' }}
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="icons.arrow" /></svg>
+              <svg
+                class="w-5 h-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path [attr.d]="icons.arrow" />
+              </svg>
             </button>
           </div>
         </div>
@@ -690,22 +1040,52 @@
       <rect x="40" y="70" width="80" height="90" rx="6" fill="#6d5ce8" fill-opacity="0.55" />
       <rect x="110" y="40" width="110" height="120" rx="6" fill="#8b7cf6" fill-opacity="0.6" />
       <g fill="#fff" fill-opacity="0.5">
-        <rect x="52" y="84" width="14" height="12" rx="2" /><rect x="74" y="84" width="14" height="12" rx="2" /><rect x="96" y="84" width="14" height="12" rx="2" />
-        <rect x="52" y="106" width="14" height="12" rx="2" /><rect x="74" y="106" width="14" height="12" rx="2" /><rect x="96" y="106" width="14" height="12" rx="2" />
-        <rect x="124" y="80" width="16" height="14" rx="2" /><rect x="148" y="80" width="16" height="14" rx="2" /><rect x="172" y="80" width="16" height="14" rx="2" /><rect x="196" y="80" width="16" height="14" rx="2" />
-        <rect x="124" y="104" width="16" height="14" rx="2" /><rect x="148" y="104" width="16" height="14" rx="2" /><rect x="172" y="104" width="16" height="14" rx="2" /><rect x="196" y="104" width="16" height="14" rx="2" />
+        <rect x="52" y="84" width="14" height="12" rx="2" />
+        <rect x="74" y="84" width="14" height="12" rx="2" />
+        <rect x="96" y="84" width="14" height="12" rx="2" />
+        <rect x="52" y="106" width="14" height="12" rx="2" />
+        <rect x="74" y="106" width="14" height="12" rx="2" />
+        <rect x="96" y="106" width="14" height="12" rx="2" />
+        <rect x="124" y="80" width="16" height="14" rx="2" />
+        <rect x="148" y="80" width="16" height="14" rx="2" />
+        <rect x="172" y="80" width="16" height="14" rx="2" />
+        <rect x="196" y="80" width="16" height="14" rx="2" />
+        <rect x="124" y="104" width="16" height="14" rx="2" />
+        <rect x="148" y="104" width="16" height="14" rx="2" />
+        <rect x="172" y="104" width="16" height="14" rx="2" />
+        <rect x="196" y="104" width="16" height="14" rx="2" />
       </g>
-      <text x="165" y="68" text-anchor="middle" font-size="18" font-weight="800" fill="#fff" fill-opacity="0.85">ITC</text>
+      <text
+        x="165"
+        y="68"
+        text-anchor="middle"
+        font-size="18"
+        font-weight="800"
+        fill="#fff"
+        fill-opacity="0.85"
+      >
+        ITC
+      </text>
       <rect x="150" y="128" width="30" height="32" rx="3" fill="#c4b5fd" fill-opacity="0.8" />
       <g fill="#34d399" fill-opacity="0.7">
-        <circle cx="22" cy="140" r="14" /><circle cx="236" cy="138" r="16" /><circle cx="250" cy="150" r="10" />
+        <circle cx="22" cy="140" r="14" />
+        <circle cx="236" cy="138" r="16" />
+        <circle cx="250" cy="150" r="10" />
       </g>
     </svg>
 
-    <div class="relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pb-10 grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.1fr] gap-10 xl:pr-[300px]">
+    <div
+      class="relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pb-10 grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.1fr] gap-10 xl:pr-[300px]"
+    >
       <div class="space-y-4">
         <div class="flex items-center gap-3">
-          <img [src]="branding.logo()" alt="Logo ITC" width="56" height="56" class="w-14 h-14 object-contain bg-white rounded-full ring-4 ring-white/10" />
+          <img
+            [src]="branding.logo()"
+            alt="Logo ITC"
+            width="56"
+            height="56"
+            class="w-14 h-14 object-contain bg-white rounded-full ring-4 ring-white/10"
+          />
           <span class="text-lg font-extrabold text-white">{{ branding.title() }}</span>
         </div>
         <p class="text-sm leading-relaxed max-w-sm text-slate-400">
@@ -715,19 +1095,54 @@
 
       <div class="space-y-4">
         <h4 class="flex items-center gap-2 font-bold text-white">
-          <svg class="w-5 h-5 text-violet-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1" /></svg>
+          <svg
+            class="w-5 h-5 text-violet-300"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"
+            />
+          </svg>
           Liên kết nhanh
         </h4>
         <ul class="space-y-2.5 text-sm">
           <li *ngFor="let link of navLinks.slice(0, 4)">
             <a [href]="'#' + link.id" (click)="scrollTo(link.id, $event)" class="footer-link">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+              <svg
+                class="w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m9 6 6 6-6 6" />
+              </svg>
               {{ link.label }}
             </a>
           </li>
           <li>
             <button type="button" (click)="enterSystem()" class="footer-link">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+              <svg
+                class="w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m9 6 6 6-6 6" />
+              </svg>
               Đăng nhập hệ thống
             </button>
           </li>
@@ -736,27 +1151,69 @@
 
       <div class="space-y-4">
         <h4 class="flex items-center gap-2 font-bold text-white">
-          <svg class="w-5 h-5 text-violet-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icons.phone" /></svg>
+          <svg
+            class="w-5 h-5 text-violet-300"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path [attr.d]="icons.phone" />
+          </svg>
           Liên hệ
         </h4>
         <ul class="space-y-3 text-sm">
           <li class="flex items-start gap-3">
             <span class="footer-ico">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5" /></svg>
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path
+                  d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"
+                />
+              </svg>
             </span>
-            <span class="pt-1.5 leading-relaxed">{{ branding.schoolName() }}<br />{{ branding.departmentName() }}</span>
+            <span class="pt-1.5 leading-relaxed"
+              >{{ branding.schoolName() }}<br />{{ branding.departmentName() }}</span
+            >
           </li>
           <li class="flex items-center gap-3">
             <span class="footer-ico">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icons.phone" /></svg>
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path [attr.d]="icons.phone" />
+              </svg>
             </span>
-            <a [href]="'tel:' + branding.supportHotline()" class="hover:text-white">{{ branding.supportHotline() }}</a>
+            <a [href]="'tel:' + branding.supportHotline()" class="hover:text-white">{{
+              branding.supportHotline()
+            }}</a>
           </li>
           <li class="flex items-center gap-3">
             <span class="footer-ico">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="m3 7 9 6 9-6" />
+              </svg>
             </span>
-            <a [href]="'mailto:' + branding.supportEmail()" class="hover:text-white break-all">{{ branding.supportEmail() }}</a>
+            <a [href]="'mailto:' + branding.supportEmail()" class="hover:text-white break-all">{{
+              branding.supportEmail()
+            }}</a>
           </li>
         </ul>
       </div>

@@ -1,8 +1,7 @@
 .lg-page {
   background:
     radial-gradient(700px 400px at 0% 0%, #f3edff, transparent 70%),
-    radial-gradient(600px 400px at 100% 100%, #fae8ff, transparent 70%),
-    #f6f4fc;
+    radial-gradient(600px 400px at 100% 100%, #fae8ff, transparent 70%), #f6f4fc;
 }
 .lg-shell {
   overflow: hidden;
@@ -17,8 +16,7 @@
 .lg-left {
   background:
     radial-gradient(260px 260px at -40px 18%, #f1ecfd 60%, transparent 61%),
-    radial-gradient(160px 160px at 100% 72%, #f6f2ff 60%, transparent 61%),
-    #fff;
+    radial-gradient(160px 160px at 100% 72%, #f6f2ff 60%, transparent 61%), #fff;
 }
 
 .lg-kicker {
@@ -221,7 +219,10 @@
   border-radius: 14px;
   background: #fff;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .lg-role:hover {
   border-color: #c4b5fd;

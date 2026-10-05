@@ -1315,7 +1315,9 @@
     </div>
 
     <!-- WARNING LEVEL TABLE (levels and colours configured by the manager) -->
-    <div class="warn-card bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
+    <div
+      class="warn-card bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6"
+    >
       <div class="flex items-start justify-between flex-wrap gap-4 border-b border-slate-200 pb-5">
         <div class="flex items-start gap-3.5">
           <span class="warn-title-icon" aria-hidden="true">
@@ -1341,7 +1343,8 @@
             [class.is-active]="warningFilter === ''"
             style="--level: #7c3aed"
           >
-            Tất cả <span class="warn-chip-count">{{ analyticsData?.metrics?.warningCount || 0 }}</span>
+            Tất cả
+            <span class="warn-chip-count">{{ analyticsData?.metrics?.warningCount || 0 }}</span>
           </button>
           <button
             *ngFor="let level of analyticsData?.warningLevels"
@@ -1399,7 +1402,9 @@
                   >
                 </div>
                 <div *ngIf="item.absentPercent !== null" class="warn-meter" aria-hidden="true">
-                  <span [style.width.%]="item.absentPercent > 100 ? 100 : item.absentPercent"></span>
+                  <span
+                    [style.width.%]="item.absentPercent > 100 ? 100 : item.absentPercent"
+                  ></span>
                 </div>
               </td>
               <td class="p-4">

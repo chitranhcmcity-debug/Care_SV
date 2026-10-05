@@ -18,7 +18,8 @@ const currentUnit = () => storage.getStore()?.unitId ?? null;
  * Unit a user works in (a manager's unitId is their own _id). Admins have none; an account not
  * yet in a unit (only before the startup conversion has run) is not scoped either.
  */
-const unitOf = (user) => (user && user.role !== 'admin' && user.unitId ? String(user.unitId) : null);
+const unitOf = (user) =>
+  user && user.role !== 'admin' && user.unitId ? String(user.unitId) : null;
 
 /**
  * Wraps a middleware that resumes from stream callbacks (multer), where the request's unit

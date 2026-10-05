@@ -243,10 +243,26 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   /** AI Care strengths listed next to the chat preview. */
   readonly aiPoints = [
-    { text: 'Trả lời nhanh bằng tiếng Việt, đúng dữ liệu', icon: ICONS.message, tone: 'from-violet-500 to-fuchsia-500' },
-    { text: 'Soạn sẵn thao tác: giao việc, ghi kết quả, phân lớp', icon: ICONS.clipboard, tone: 'from-pink-500 to-rose-500' },
-    { text: 'Kiểm tra thông tin và đề xuất hành động', icon: ICONS.shieldCheck, tone: 'from-amber-400 to-orange-500' },
-    { text: 'Tiết kiệm thời gian, tăng hiệu quả công việc', icon: ICONS.bolt, tone: 'from-emerald-400 to-green-500' },
+    {
+      text: 'Trả lời nhanh bằng tiếng Việt, đúng dữ liệu',
+      icon: ICONS.message,
+      tone: 'from-violet-500 to-fuchsia-500',
+    },
+    {
+      text: 'Soạn sẵn thao tác: giao việc, ghi kết quả, phân lớp',
+      icon: ICONS.clipboard,
+      tone: 'from-pink-500 to-rose-500',
+    },
+    {
+      text: 'Kiểm tra thông tin và đề xuất hành động',
+      icon: ICONS.shieldCheck,
+      tone: 'from-amber-400 to-orange-500',
+    },
+    {
+      text: 'Tiết kiệm thời gian, tăng hiệu quả công việc',
+      icon: ICONS.bolt,
+      tone: 'from-emerald-400 to-green-500',
+    },
   ];
 
   /** Id of the section currently in view — drives the nav highlight. */

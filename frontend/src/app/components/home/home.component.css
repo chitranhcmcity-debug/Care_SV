@@ -243,7 +243,6 @@
 
 /* Role cards: gradient ring on hover. */
 
-
 @keyframes drift {
   to {
     transform: translate(40px, 30px) scale(1.08);
@@ -294,7 +293,11 @@
   --soft: #f3edff;
   border: 1.5px solid color-mix(in srgb, var(--a) 14%, white);
   background:
-    radial-gradient(260px 160px at 100% 100%, color-mix(in srgb, var(--a) 10%, transparent), transparent 70%),
+    radial-gradient(
+      260px 160px at 100% 100%,
+      color-mix(in srgb, var(--a) 10%, transparent),
+      transparent 70%
+    ),
     linear-gradient(160deg, #fff 40%, var(--soft));
   box-shadow: 0 24px 50px -32px color-mix(in srgb, var(--a) 70%, transparent);
   transition:
@@ -393,7 +396,12 @@
   height: 420px;
   border-radius: 999px;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgb(236 72 153 / 0.18), rgb(139 92 246 / 0.12) 45%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgb(236 72 153 / 0.18),
+    rgb(139 92 246 / 0.12) 45%,
+    transparent 70%
+  );
   pointer-events: none;
 }
 .ai-underline {
@@ -460,7 +468,11 @@
   padding: 24px;
   border-radius: 28px;
   background:
-    radial-gradient(220px 140px at 80% 20%, color-mix(in srgb, var(--a) 10%, transparent), transparent 70%),
+    radial-gradient(
+      220px 140px at 80% 20%,
+      color-mix(in srgb, var(--a) 10%, transparent),
+      transparent 70%
+    ),
     #fff;
   border: 1.5px solid color-mix(in srgb, var(--a) 12%, white);
   box-shadow: 0 24px 44px -30px color-mix(in srgb, var(--a) 70%, transparent);
@@ -646,7 +658,14 @@
 .cta {
   background:
     radial-gradient(420px 300px at 70% 60%, rgb(255 255 255 / 0.14), transparent 70%),
-    linear-gradient(110deg, rgb(var(--brand-600)) 0%, #7c3aed 30%, #c026d3 62%, #f472b6 85%, #fb923c 110%);
+    linear-gradient(
+      110deg,
+      rgb(var(--brand-600)) 0%,
+      #7c3aed 30%,
+      #c026d3 62%,
+      #f472b6 85%,
+      #fb923c 110%
+    );
   box-shadow: 0 40px 70px -40px rgb(124 58 237 / 0.8);
 }
 .cta-dots {

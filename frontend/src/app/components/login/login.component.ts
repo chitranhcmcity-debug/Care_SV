@@ -284,7 +284,10 @@ export class LoginComponent implements OnInit {
   private run<T>(
     request: Observable<T>,
     onSuccess: (message: string, result: T) => void,
-    onError?: (err: { status: number; error?: { code?: string; message?: string; renewUrl?: string } }) => void,
+    onError?: (err: {
+      status: number;
+      error?: { code?: string; message?: string; renewUrl?: string };
+    }) => void,
   ) {
     this.loading = true;
     this.errorMessage = '';

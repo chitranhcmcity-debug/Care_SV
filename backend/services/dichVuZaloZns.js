@@ -13,9 +13,9 @@ const env = (key) => (process.env[key] || '').trim();
 const isConfigured = () =>
   Boolean(
     env('ZALO_APP_ID') &&
-      env('ZALO_APP_SECRET') &&
-      env('ZALO_OA_REFRESH_TOKEN') &&
-      env('ZALO_ZNS_TEMPLATE_ID'),
+    env('ZALO_APP_SECRET') &&
+    env('ZALO_OA_REFRESH_TOKEN') &&
+    env('ZALO_ZNS_TEMPLATE_ID'),
   );
 
 /** "0912 345 678" / "+84912345678" → "84912345678"; null when it is not a Vietnamese number. */
@@ -86,7 +86,9 @@ async function sendTemplate(phone, templateData, trackingId) {
   if (data.error !== 0) {
     // Expired / revoked token: drop it so the next message renews it.
     if ([-124, -216].includes(data.error)) token = null;
-    throw new Error(`Zalo từ chối (${data.error ?? response.status}): ${data.message || ''}`.trim());
+    throw new Error(
+      `Zalo từ chối (${data.error ?? response.status}): ${data.message || ''}`.trim(),
+    );
   }
   return { msgId: data.data?.msg_id || '' };
 }

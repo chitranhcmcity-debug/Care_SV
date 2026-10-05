@@ -771,16 +771,28 @@ a:focus-visible {
   animation: logo-loader-dots 1.2s steps(1, end) infinite;
 }
 @keyframes logo-loader-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes logo-loader-fade {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 @keyframes logo-loader-dots {
-  0% { content: '.'; }
-  33% { content: '..'; }
-  66% { content: '...'; }
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .logo-loader__ring::before { animation-duration: 2.5s; }
+  .logo-loader__ring::before {
+    animation-duration: 2.5s;
+  }
 }

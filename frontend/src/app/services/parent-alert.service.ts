@@ -12,7 +12,13 @@ export interface ParentAlert {
   weekStart: string;
   weekEnd: string;
   absentCount: number;
-  courses: { groupCode: string; courseName: string; count: number; teacherName: string; teacherPhone: string }[];
+  courses: {
+    groupCode: string;
+    courseName: string;
+    count: number;
+    teacherName: string;
+    teacherPhone: string;
+  }[];
   staffName: string;
   staffPhone: string;
   parentPhone: string;
@@ -45,6 +51,9 @@ export class ParentAlertService {
   }
 
   resend(id: string): Observable<{ message: string; alert: ParentAlert }> {
-    return this.http.post<{ message: string; alert: ParentAlert }>(`${this.apiUrl}/${id}/resend`, {});
+    return this.http.post<{ message: string; alert: ParentAlert }>(
+      `${this.apiUrl}/${id}/resend`,
+      {},
+    );
   }
 }

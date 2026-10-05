@@ -2336,7 +2336,12 @@ test(
     const status = { value: 'PENDING', amount: 499000 };
     await withFakePayOS(status, async () => {
       const email = 'truongphong.moi@itc.edu.vn';
-      const signup = { fullName: 'Trưởng Phòng Mới', email, password: 'matkhau123', role: 'manager' };
+      const signup = {
+        fullName: 'Trưởng Phòng Mới',
+        email,
+        password: 'matkhau123',
+        role: 'manager',
+      };
       assert.equal((await request('/auth/register', null, 'POST', signup)).status, 400);
 
       const registered = await request('/auth/register', null, 'POST', {
@@ -2440,7 +2445,10 @@ test(
     assert.equal(listB.body.total, 1);
     assert.notEqual(listA.body.items[0]._id, listB.body.items[0]._id);
     // Another unit's student cannot be opened, edited or deleted by id.
-    assert.notEqual((await request(`/students/${createdA.body._id}`, tokenB, 'DELETE')).status, 200);
+    assert.notEqual(
+      (await request(`/students/${createdA.body._id}`, tokenB, 'DELETE')).status,
+      200,
+    );
     assert.ok(await SinhVien.exists({ _id: createdA.body._id }));
     // The admin sees every unit.
     assert.equal((await request('/students?search=UNIT001', tokens.admin)).body.total, 2);
@@ -2481,7 +2489,9 @@ test(
     assert.deepEqual(asked, [leadB.email]);
     const applicant = await NguoiDung.findOne({ email: signup.email });
     assert.equal(String(applicant.unitId), String(leadB._id));
-    assert.ok(!(await request('/auth/registrations', tokenA)).body.some((r) => r.email === signup.email));
+    assert.ok(
+      !(await request('/auth/registrations', tokenA)).body.some((r) => r.email === signup.email),
+    );
     assert.equal(
       (await request(`/auth/registrations/${applicant._id}/approve`, tokenA, 'POST')).status,
       404,
@@ -2546,7 +2556,11 @@ test('startup conversion puts existing data in the legacy unit and gives other m
     password: 'x',
     role: 'manager',
   });
-  const orphan = await SinhVien.create({ studentCode: 'LEG001', fullName: 'SV Cũ', classCode: 'L1' });
+  const orphan = await SinhVien.create({
+    studentCode: 'LEG001',
+    fullName: 'SV Cũ',
+    classCode: 'L1',
+  });
   process.env.LEGACY_UNIT_EMAIL = legacy.email;
   const saved = await Settings.findOne();
   const previous = saved?.defaultUnitId ?? null;
@@ -2630,12 +2644,18 @@ test('parent alert: more than 2 absences in a week sends one Zalo message, kept 
       if (target.startsWith('https://oauth.zaloapp.com')) {
         calls.push({ target, body: String(init.body) });
         return new Response(
-          JSON.stringify({ access_token: 'access-1', refresh_token: 'refresh-2', expires_in: '90000' }),
+          JSON.stringify({
+            access_token: 'access-1',
+            refresh_token: 'refresh-2',
+            expires_in: '90000',
+          }),
         );
       }
       if (target.startsWith('https://business.openapi.zalo.me')) {
         calls.push({ target, body: JSON.parse(init.body), token: init.headers.access_token });
-        return new Response(JSON.stringify({ error: 0, message: 'Success', data: { msg_id: 'm-1' } }));
+        return new Response(
+          JSON.stringify({ error: 0, message: 'Success', data: { msg_id: 'm-1' } }),
+        );
       }
       return realFetch(url, init);
     };
@@ -2659,7 +2679,12 @@ test('parent alert: more than 2 absences in a week sends one Zalo message, kept 
       );
     } finally {
       globalThis.fetch = realFetch;
-      for (const k of ['ZALO_APP_ID', 'ZALO_APP_SECRET', 'ZALO_OA_REFRESH_TOKEN', 'ZALO_ZNS_TEMPLATE_ID'])
+      for (const k of [
+        'ZALO_APP_ID',
+        'ZALO_APP_SECRET',
+        'ZALO_OA_REFRESH_TOKEN',
+        'ZALO_ZNS_TEMPLATE_ID',
+      ])
         delete process.env[k];
       await Settings.updateOne({}, { $unset: { 'integrations.ZALO_OA_REFRESH_TOKEN': 1 } });
     }

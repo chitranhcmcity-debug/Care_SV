@@ -37,51 +37,51 @@
   <div *ngIf="loading()" class="care-empty" role="status">Đang tải hồ sơ...</div>
   <div *ngIf="!loading() && !items().length" class="care-empty">Không có hồ sơ nào ở mục này.</div>
   <div *ngIf="!loading() && items().length" class="care-items">
-  <button
-    *ngFor="let c of items()"
-    type="button"
-    (click)="selectCase.emit(c)"
-    class="care-item"
-    [attr.data-status]="c.status"
-    [class.is-selected]="selectedId() === c._id"
-    [attr.aria-current]="selectedId() === c._id ? 'true' : null"
-  >
-    <span class="care-list-avatar" aria-hidden="true">{{
-      c.studentId?.fullName?.trim()?.charAt(0) || '?'
-    }}</span>
-    <span class="care-item-content">
-      <span class="care-item-heading"
-        ><strong>{{ c.studentId?.fullName }}</strong
-        ><span class="care-status" [attr.data-status]="c.status">{{
-          statusLabels[c.status]
-        }}</span></span
-      >
-      <span class="care-muted"
-        >{{ c.studentId?.studentCode }} · Lớp {{ c.studentId?.classCode }}</span
-      >
-      <span class="care-item-chips"
-        ><span class="care-chip care-chip--muted">{{ sourceLabels[c.source] }}</span
-        ><span
-          *ngIf="c.warning?.level"
-          class="care-chip"
-          [style.--c]="c.warning?.color || '#8b5cf6'"
-          >{{ c.warning?.level }}</span
-        ><span *ngIf="overdueIds().has(c._id)" class="care-chip" style="--c: #e11d48"
-          >Quá hạn</span
-        ></span
-      >
-      <span class="care-muted care-item-reason">{{ c.reason }}</span>
-      <span class="care-item-footer"
-        ><span
-          ><app-care-icon name="person" />{{
-            c.assignedStaffId?.fullName || 'Chưa phân công'
-          }}</span
-        ><span>{{ c.stepsDone }}/{{ c.stepsTotal }} bước</span></span
-      >
-      <span class="care-progress"
-        ><span [style.width.%]="progress(c.stepsDone, c.stepsTotal)"></span
-      ></span>
-    </span>
-  </button>
+    <button
+      *ngFor="let c of items()"
+      type="button"
+      (click)="selectCase.emit(c)"
+      class="care-item"
+      [attr.data-status]="c.status"
+      [class.is-selected]="selectedId() === c._id"
+      [attr.aria-current]="selectedId() === c._id ? 'true' : null"
+    >
+      <span class="care-list-avatar" aria-hidden="true">{{
+        c.studentId?.fullName?.trim()?.charAt(0) || '?'
+      }}</span>
+      <span class="care-item-content">
+        <span class="care-item-heading"
+          ><strong>{{ c.studentId?.fullName }}</strong
+          ><span class="care-status" [attr.data-status]="c.status">{{
+            statusLabels[c.status]
+          }}</span></span
+        >
+        <span class="care-muted"
+          >{{ c.studentId?.studentCode }} · Lớp {{ c.studentId?.classCode }}</span
+        >
+        <span class="care-item-chips"
+          ><span class="care-chip care-chip--muted">{{ sourceLabels[c.source] }}</span
+          ><span
+            *ngIf="c.warning?.level"
+            class="care-chip"
+            [style.--c]="c.warning?.color || '#8b5cf6'"
+            >{{ c.warning?.level }}</span
+          ><span *ngIf="overdueIds().has(c._id)" class="care-chip" style="--c: #e11d48"
+            >Quá hạn</span
+          ></span
+        >
+        <span class="care-muted care-item-reason">{{ c.reason }}</span>
+        <span class="care-item-footer"
+          ><span
+            ><app-care-icon name="person" />{{
+              c.assignedStaffId?.fullName || 'Chưa phân công'
+            }}</span
+          ><span>{{ c.stepsDone }}/{{ c.stepsTotal }} bước</span></span
+        >
+        <span class="care-progress"
+          ><span [style.width.%]="progress(c.stepsDone, c.stepsTotal)"></span
+        ></span>
+      </span>
+    </button>
   </div>
 </aside>

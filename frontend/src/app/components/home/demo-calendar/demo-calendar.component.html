@@ -31,15 +31,30 @@
             <!-- Copy -->
             <div class="flex flex-col justify-center">
               <span class="pg-kicker">{{ p.kicker }}</span>
-              <h3 class="mt-4 text-[44px] font-extrabold leading-[1.1] tracking-tight text-slate-900">
+              <h3
+                class="mt-4 text-[44px] font-extrabold leading-[1.1] tracking-tight text-slate-900"
+              >
                 <span class="block">{{ p.title[0] }}</span>
                 <span class="block pg-grad">{{ p.title[1] }}</span>
               </h3>
               <p class="mt-4 text-[17px] leading-relaxed text-slate-600">{{ p.text }}</p>
               <ul class="mt-6 space-y-3">
-                <li *ngFor="let pt of p.points" class="flex items-center gap-3 text-[16px] font-semibold text-slate-800">
+                <li
+                  *ngFor="let pt of p.points"
+                  class="flex items-center gap-3 text-[16px] font-semibold text-slate-800"
+                >
                   <span class="pg-check">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="i.check" /></svg>
+                    <svg
+                      class="w-4 h-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path [attr.d]="i.check" />
+                    </svg>
                   </span>
                   {{ pt }}
                 </li>
@@ -53,7 +68,17 @@
                 <div class="pg-card w-[380px] p-6 -rotate-2">
                   <div class="flex items-center gap-3">
                     <span class="pg-tile bg-gradient-to-br from-violet-500 to-fuchsia-500">
-                      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="i.calendar" /></svg>
+                      <svg
+                        class="w-6 h-6"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path [attr.d]="i.calendar" />
+                      </svg>
                     </span>
                     <div class="flex-1 space-y-2">
                       <span class="block h-3 w-40 rounded-full bg-slate-200"></span>
@@ -64,16 +89,30 @@
                     <div *ngFor="let r of rows" class="flex items-center gap-3">
                       <span class="w-9 h-9 rounded-full bg-gradient-to-br" [ngClass]="r.av"></span>
                       <span class="flex-1 h-2.5 rounded-full bg-slate-100">
-                        <span class="block h-full rounded-full bg-slate-200" [style.width.%]="r.w"></span>
+                        <span
+                          class="block h-full rounded-full bg-slate-200"
+                          [style.width.%]="r.w"
+                        ></span>
                       </span>
                       <span class="pg-dot" [ngClass]="'is-' + r.state"></span>
                     </div>
                   </div>
                 </div>
-                <div class="pg-card pg-float absolute right-2 bottom-6 px-5 py-4 flex items-center gap-3">
+                <div
+                  class="pg-card pg-float absolute right-2 bottom-6 px-5 py-4 flex items-center gap-3"
+                >
                   <svg viewBox="0 0 36 36" class="w-14 h-14 -rotate-90">
                     <circle cx="18" cy="18" r="14" fill="none" stroke="#ede9fe" stroke-width="5" />
-                    <circle cx="18" cy="18" r="14" fill="none" stroke="url(#pgRing)" stroke-width="5" stroke-dasharray="80 88" stroke-linecap="round" />
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="14"
+                      fill="none"
+                      stroke="url(#pgRing)"
+                      stroke-width="5"
+                      stroke-dasharray="80 88"
+                      stroke-linecap="round"
+                    />
                     <defs>
                       <linearGradient id="pgRing" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0" stop-color="#8b5cf6" />
@@ -98,7 +137,17 @@
                     [style.marginLeft.px]="fi % 2 ? 40 : 0"
                   >
                     <span class="pg-tile bg-gradient-to-br" [ngClass]="f.tone">
-                      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="f.icon" /></svg>
+                      <svg
+                        class="w-6 h-6"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path [attr.d]="f.icon" />
+                      </svg>
                     </span>
                     <span class="flex-1 text-[17px] font-bold text-slate-800">{{ f.label }}</span>
                     <span class="text-[13px] font-extrabold text-slate-300">0{{ fi + 1 }}</span>
@@ -111,10 +160,26 @@
                 <div class="relative w-[410px] space-y-3">
                   <div class="pg-bubble pg-bubble--me ml-auto">Lớp nào đang vắng nhiều nhất?</div>
                   <div class="flex items-end gap-3">
-                    <img src="robot-ai-right.webp" alt="" width="90" height="75" class="w-[84px] h-auto shrink-0 pg-float" />
+                    <img
+                      src="robot-ai-right.webp"
+                      alt=""
+                      width="90"
+                      height="75"
+                      class="w-[84px] h-auto shrink-0 pg-float"
+                    />
                     <div class="pg-bubble pg-bubble--ai">
                       <span class="flex items-center gap-1.5 font-bold text-teal-700">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path [attr.d]="i.sparkles" /></svg>
+                        <svg
+                          class="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path [attr.d]="i.sparkles" />
+                        </svg>
                         AI Care
                       </span>
                       Mình đã tổng hợp và gợi ý các bước chăm sóc cho bạn.
@@ -122,14 +187,27 @@
                   </div>
                   <div class="pg-card p-5">
                     <div class="flex items-center gap-2 text-[14px] font-bold text-slate-700">
-                      <svg class="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path [attr.d]="i.chart" /></svg>
+                      <svg
+                        class="w-5 h-5 text-teal-600"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      >
+                        <path [attr.d]="i.chart" />
+                      </svg>
                       Báo cáo trực quan
                     </div>
                     <div class="mt-4 h-[110px] flex items-end gap-3">
                       <span
                         *ngFor="let b of bars; let last = last"
                         class="flex-1 rounded-t-lg"
-                        [ngClass]="last ? 'bg-gradient-to-t from-teal-500 to-cyan-300' : 'bg-gradient-to-t from-indigo-200 to-violet-100'"
+                        [ngClass]="
+                          last
+                            ? 'bg-gradient-to-t from-teal-500 to-cyan-300'
+                            : 'bg-gradient-to-t from-indigo-200 to-violet-100'
+                        "
                         [style.height.%]="b"
                       ></span>
                     </div>

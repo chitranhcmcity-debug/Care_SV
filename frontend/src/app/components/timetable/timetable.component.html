@@ -1,10 +1,21 @@
 <div class="mx-4 md:mx-6 my-5 space-y-4">
   <!-- Page banner (replaces the generic page header on this route) -->
   <section class="tt-hero relative overflow-hidden text-white hidden md:block">
-    <svg class="tt-hero-art" viewBox="0 0 900 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <svg
+      class="tt-hero-art"
+      viewBox="0 0 900 150"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
       <circle cx="880" cy="-20" r="110" fill="#fff" fill-opacity="0.1" />
       <circle cx="30" cy="170" r="80" fill="#fff" fill-opacity="0.08" />
-      <path d="M0 120 C 170 80, 320 150, 480 110 S 760 70, 900 100" stroke="#fff" stroke-opacity="0.2" stroke-width="2" fill="none" />
+      <path
+        d="M0 120 C 170 80, 320 150, 480 110 S 760 70, 900 100"
+        stroke="#fff"
+        stroke-opacity="0.2"
+        stroke-width="2"
+        fill="none"
+      />
       <g fill="#fff" fill-opacity="0.75">
         <path d="M600 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" />
         <path d="M770 110l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
@@ -15,13 +26,25 @@
 
     <div class="relative flex items-center gap-5 px-6 md:px-7 py-5">
       <span class="tt-hero-icon shrink-0" aria-hidden="true">
-        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          class="w-8 h-8"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <rect x="3" y="4" width="18" height="18" rx="3" />
-          <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+          <path
+            d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"
+          />
         </svg>
       </span>
       <div class="min-w-0 flex-1">
-        <h1 class="text-2xl md:text-[34px] font-extrabold tracking-tight leading-tight">Thời khóa biểu</h1>
+        <h1 class="text-2xl md:text-[34px] font-extrabold tracking-tight leading-tight">
+          Thời khóa biểu
+        </h1>
         <p class="mt-1 text-sm md:text-base text-white/85">
           Quản lý lịch học theo ngày, theo tuần và lớp học phần.
         </p>
@@ -29,7 +52,15 @@
 
       <div class="relative hidden lg:block w-[250px] h-[110px] shrink-0" aria-hidden="true">
         <span class="tt-hero-cal">
-          <svg class="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            class="w-12 h-12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <rect x="3" y="4" width="18" height="18" rx="3" />
             <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
           </svg>
@@ -49,7 +80,9 @@
     </div>
   </section>
 
-  <section class="tt-bar flex flex-wrap xl:flex-nowrap items-center justify-between gap-x-3 gap-y-2.5 px-3.5 py-2.5">
+  <section
+    class="tt-bar flex flex-wrap xl:flex-nowrap items-center justify-between gap-x-3 gap-y-2.5 px-3.5 py-2.5"
+  >
     <div class="flex items-center gap-1.5 shrink-0">
       <p class="text-[13px] font-bold text-slate-800 mr-1 whitespace-nowrap">Khung giờ học</p>
       <span *ngFor="let s of shifts" class="tt-chip" [ngClass]="'tt-' + s.key">
@@ -71,16 +104,46 @@
     <div class="flex items-center gap-2 shrink-0">
       <div class="tt-week">
         <button type="button" class="tt-week-btn" aria-label="Tuần trước" (click)="shiftWeek(-1)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
         </button>
         <span class="tt-week-range">
-          <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M16 2v4M8 2v4M3 10h18" />
+          <svg
+            class="w-4 h-4 text-slate-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="3" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
           </svg>
           {{ weekDates()[0] | date: 'dd/MM/yyyy' }} - {{ weekDates()[6] | date: 'dd/MM/yyyy' }}
         </span>
         <button type="button" class="tt-week-btn" aria-label="Tuần sau" (click)="shiftWeek(1)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
         </button>
       </div>
       <button type="button" class="tt-pill" [disabled]="isThisWeek()" (click)="thisWeek()">
@@ -100,7 +163,16 @@
       </label>
 
       <label class="tt-select">
-        <svg class="w-4 h-4 text-slate-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          class="w-4 h-4 text-slate-500 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <path d="m12 2 10 5-10 5L2 7zM2 17l10 5 10-5M2 12l10 5 10-5" />
         </svg>
         <select
@@ -121,8 +193,18 @@
           [attr.aria-selected]="view() === 'week'"
           (click)="view.set('week')"
         >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="3" />
+            <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01" />
           </svg>
           Dạng tuần
         </button>
@@ -133,7 +215,15 @@
           [attr.aria-selected]="view() === 'list'"
           (click)="view.set('list')"
         >
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
             <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
           </svg>
           Dạng danh sách
@@ -182,7 +272,15 @@
           <td>
             <div class="flex items-center gap-2.5">
               <span class="tt-icon" aria-hidden="true">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <svg
+                  class="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.1"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path [attr.d]="icons[tone(o.entry)]" />
                 </svg>
               </span>
@@ -211,7 +309,10 @@
       [style.grid-template-rows]="'auto repeat(' + layout().hours.length + ', minmax(58px, auto))'"
     >
       <!-- Column cards -->
-      <div class="tt-col tt-col--time" [style.grid-row]="'1 / span ' + (layout().hours.length + 1)"></div>
+      <div
+        class="tt-col tt-col--time"
+        [style.grid-row]="'1 / span ' + (layout().hours.length + 1)"
+      ></div>
       <div
         *ngFor="let day of week; let i = index"
         class="tt-col"
@@ -255,9 +356,19 @@
           [style.grid-column]="i + 2"
           [style.grid-row]="'2 / span ' + layout().hours.length"
         >
-          <div class="tt-empty h-full flex flex-col items-center justify-center text-center px-3 py-6">
+          <div
+            class="tt-empty h-full flex flex-col items-center justify-center text-center px-3 py-6"
+          >
             <span class="tt-empty-icon" aria-hidden="true">
-              <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                class="w-9 h-9"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <rect x="3" y="4" width="18" height="18" rx="3" />
                 <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
               </svg>
@@ -296,7 +407,15 @@
         >
           <span class="flex items-start gap-2">
             <span class="tt-icon" aria-hidden="true">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                class="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path [attr.d]="icons[tone(g)]" />
               </svg>
             </span>
@@ -307,14 +426,18 @@
           </span>
           <span class="tt-meta">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5" />
+              <path
+                d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"
+              />
             </svg>
             <span class="truncate flex-1">{{ g.room || 'Chưa có phòng' }}</span>
             <span class="tt-more" aria-hidden="true">•••</span>
           </span>
           <span class="tt-meta">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5" />
+              <path
+                d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5"
+              />
             </svg>
             <span class="truncate">{{ g.teacherName || 'Chưa phân công GV' }}</span>
           </span>
@@ -324,11 +447,7 @@
   </div>
 
   <!-- Session detail popup -->
-  <div
-    *ngIf="selected() as sel"
-    class="tt-overlay"
-    (click)="close()"
-  >
+  <div *ngIf="selected() as sel" class="tt-overlay" (click)="close()">
     <div
       class="tt-modal"
       role="dialog"
@@ -339,7 +458,15 @@
     >
       <header class="tt-modal-head">
         <span class="tt-icon tt-icon--lg" aria-hidden="true">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            class="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path [attr.d]="icons[tone(sel.entry)]" />
           </svg>
         </span>
@@ -351,7 +478,16 @@
           <span *ngIf="sel.entry.isMine" class="tt-mine">★ Lớp của tôi</span>
         </div>
         <button type="button" class="tt-close" aria-label="Đóng" (click)="close()">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
         </button>
       </header>
 

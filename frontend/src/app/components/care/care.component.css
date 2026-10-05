@@ -375,11 +375,21 @@
   border-radius: 0 4px 4px 0;
   background: var(--tile);
 }
-.care-student-details dl > div:nth-child(2) { --tile: #c026d3; }
-.care-student-details dl > div:nth-child(3) { --tile: #db2777; }
-.care-student-details dl > div:nth-child(4) { --tile: #0284c7; }
-.care-student-details dl > div:nth-child(5) { --tile: #059669; }
-.care-student-details dl > div:nth-child(6) { --tile: #d97706; }
+.care-student-details dl > div:nth-child(2) {
+  --tile: #c026d3;
+}
+.care-student-details dl > div:nth-child(3) {
+  --tile: #db2777;
+}
+.care-student-details dl > div:nth-child(4) {
+  --tile: #0284c7;
+}
+.care-student-details dl > div:nth-child(5) {
+  --tile: #059669;
+}
+.care-student-details dl > div:nth-child(6) {
+  --tile: #d97706;
+}
 .care-student-details dt {
   color: color-mix(in srgb, var(--tile) 70%, #475569);
   font-size: 11.5px;

@@ -16,7 +16,15 @@ const LichSuPhanCong = require('../models/LichSuPhanCong');
 
 const LEGACY_UNIT_EMAIL = () =>
   (process.env.LEGACY_UNIT_EMAIL || 'chitran15111996@gmail.com').trim().toLowerCase();
-const BUSINESS_MODELS = [SinhVien, NhomHocPhan, DiemDanh, HoSoChamSoc, CuocGoi, NhiemVu, LichSuPhanCong];
+const BUSINESS_MODELS = [
+  SinhVien,
+  NhomHocPhan,
+  DiemDanh,
+  HoSoChamSoc,
+  CuocGoi,
+  NhiemVu,
+  LichSuPhanCong,
+];
 // Models whose unique indexes changed from global to per unit.
 const REINDEXED_MODELS = [SinhVien, NhomHocPhan, LichSuPhanCong];
 
@@ -50,10 +58,7 @@ async function assignUnits() {
   const unitId = settings.defaultUnitId;
 
   // 3. Staff / teachers and records without a unit join the default unit.
-  await NguoiDung.updateMany(
-    { role: { $in: ['staff', 'teacher'] }, unitId: null },
-    { unitId },
-  );
+  await NguoiDung.updateMany({ role: { $in: ['staff', 'teacher'] }, unitId: null }, { unitId });
   for (const model of BUSINESS_MODELS) await model.updateMany({ unitId: null }, { unitId });
   return { defaultUnitId: unitId };
 }

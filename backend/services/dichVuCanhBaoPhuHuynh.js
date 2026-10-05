@@ -43,7 +43,9 @@ async function buildAlert(student, sessions, week) {
   }
   const teacherIds = [...byGroup.values()].map((e) => e.group?.teacherId).filter(Boolean);
   const [teachers, staff] = await Promise.all([
-    NguoiDung.find({ _id: { $in: teacherIds } }).select('fullName phone').lean(),
+    NguoiDung.find({ _id: { $in: teacherIds } })
+      .select('fullName phone')
+      .lean(),
     NguoiDung.findOne({ role: 'staff', status: 'active', managedClasses: student.classCode })
       .select('fullName phone')
       .lean(),
@@ -139,7 +141,10 @@ async function checkWeeklyAbsences(studentIds, sessionDay) {
     let alert;
     try {
       // Claimed before sending, so two saves at once cannot message the parent twice.
-      alert = await ThongBaoPhuHuynh.create({ ...fields, status: PARENT_ALERT_STATUS.NOT_CONFIGURED });
+      alert = await ThongBaoPhuHuynh.create({
+        ...fields,
+        status: PARENT_ALERT_STATUS.NOT_CONFIGURED,
+      });
     } catch (error) {
       if (error.code === 11000) continue;
       throw error;
