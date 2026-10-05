@@ -24,3 +24,8 @@ frontend/public/robotAI.png
 ~$o_Cao_Do_An_Backend_ITC_Care.docx
 Bao_Cao_Do_An_Backend_ITC_Care.docx
 .gitignore
+
+# local-only files
+CSDL_Cau10a.sql
+frontend/public/BCR.png
+frontend/public/banner.mp4
