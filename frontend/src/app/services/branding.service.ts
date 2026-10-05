@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Branding, SettingsService } from './settings.service';
 
 const DEFAULT_COLOR = '#673ab7';
-const DEFAULT_LOGO = 'logo_truong.webp';
+const DEFAULT_LOGO = 'logo_truong.png';
 // Tailwind shade → mix ratio: positive = towards white, negative = towards black.
 const SHADES: [number, number][] = [
   [50, 0.9],
