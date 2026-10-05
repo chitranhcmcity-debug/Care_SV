@@ -20,6 +20,7 @@ import { IntegrationsPanelComponent } from '../integrations-panel/integrations-p
 import { SystemOverviewComponent } from '../system-overview/system-overview.component';
 import { StaffProgressComponent } from '../staff-progress/staff-progress.component';
 import { StaffAiModalComponent } from '../staff-ai-modal/staff-ai-modal.component';
+import { StaffManagementComponent } from '../staff-management/staff-management.component';
 import { SystemSettingsPanelComponent } from '../system-settings-panel/system-settings-panel.component';
 import { PermissionsPanelComponent } from '../permissions-panel/permissions-panel.component';
 import {
@@ -76,6 +77,7 @@ const emptyTaskForm = () => ({
     StaffAiModalComponent,
     PermissionsPanelComponent,
     SystemSettingsPanelComponent,
+    StaffManagementComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css', './admin-warning.css'],
@@ -131,27 +133,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   selectedCourseFile: File | null = null;
   importCourseResult: ImportByCourseResult | null = null;
 
-  // Staff State
-  newStaffName = '';
-  newStaffEmail = '';
-  newStaffPass = '';
-  newStaffPhone = '';
-  newStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
-  /** Staff / teachers join the unit of this Trưởng phòng / PHT. */
-  newStaffManagerId = '';
-  isCreatingStaff = false;
-  staffCreatedMsg = '';
-  staffGeneratedPass = '';
   staffList: User[] = [];
-
-  showEditStaffModal = false;
-  editingStaffId = '';
-  editStaffName = '';
-  editStaffEmail = '';
-  editStaffPass = '';
-  editStaffPhone = '';
-  editStaffRole: 'staff' | 'teacher' | 'manager' = 'staff';
-  isUpdatingStaff = false;
 
   // Task (Giao Việc) State
   taskList: WorkTask[] = [];
@@ -268,18 +250,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   // Task (Giao Việc) Management Methods
-  /** Active Trưởng phòng / PHT accounts: each owns a unit staff and teachers can join. */
-  get activeManagers(): User[] {
-    return this.staffList.filter((s) => s.role === 'manager' && s.status === 'active');
-  }
-
-  /** "Đơn vị của …" label for the admin's account list. */
-  unitLabel(user: User): string {
-    const unit = user.unitId;
-    if (!unit || typeof unit === 'string') return '';
-    return user.role === 'manager' ? 'Chủ đơn vị' : `Đơn vị: ${unit.fullName}`;
-  }
-
   get staffOnlyList(): User[] {
     return this.staffList.filter((s) => s.role === 'staff' && s.status === 'active');
   }
@@ -984,7 +954,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Component 3: Staff Management logic
+  // Component 3: Staff list shared with the tasks and courses tabs
   loadStaffList() {
     this.staffService.getStaffList().subscribe({
       next: (list) => {
@@ -992,224 +962,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Load staff error:', err),
-    });
-  }
-
-  copyPasswordToClipboard(pass: string) {
-    if (!pass) return;
-    navigator.clipboard
-      .writeText(pass)
-      .then(() => {
-        this.triggerToast(
-          'success',
-          'Đã Sao Chép!',
-          'Mật khẩu đã được lưu vào khay nhớ tạm (Clipboard).',
-        );
-      })
-      .catch(() => {
-        this.triggerToast('info', 'Mật Khẩu', pass);
-      });
-  }
-
-  createStaffAccount() {
-    if (!this.newStaffName.trim() || !this.newStaffEmail.trim()) return;
-    if (this.newStaffRole !== 'manager' && !this.newStaffManagerId) {
-      this.triggerToast(
-        'error',
-        'Chưa chọn đơn vị',
-        'Hãy chọn Trưởng phòng / Phó hiệu trưởng quản lý tài khoản này.',
-      );
-      return;
-    }
-    this.isCreatingStaff = true;
-    this.staffCreatedMsg = '';
-    this.staffGeneratedPass = '';
-    this.cdr.detectChanges();
-
-    const payload = {
-      fullName: this.newStaffName.trim(),
-      email: this.newStaffEmail.trim(),
-      customPassword: this.newStaffPass.trim() || undefined,
-      phone: this.newStaffPhone.trim(),
-      role: this.newStaffRole,
-      ...(this.newStaffRole === 'manager' ? {} : { managerId: this.newStaffManagerId }),
-    };
-
-    this.staffService
-      .createStaff(payload)
-      .pipe(
-        finalize(() => {
-          this.isCreatingStaff = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: (res) => {
-          this.staffCreatedMsg = res.message + ' ' + this.emailStatusText(res.emailSent);
-          if (res.generatedPassword) {
-            this.staffGeneratedPass = res.generatedPassword;
-          }
-          this.triggerToast(
-            res.emailSent ? 'success' : 'warning',
-            'Tạo Nhân Viên Thành Công!',
-            this.emailStatusText(res.emailSent),
-          );
-          this.newStaffName = '';
-          this.newStaffEmail = '';
-          this.newStaffPass = '';
-          this.newStaffPhone = '';
-          this.newStaffRole = 'staff';
-          this.newStaffManagerId = '';
-          this.loadStaffList();
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          const errMsg = err.error?.message || err.message || 'Không thể tạo nhân viên';
-          this.triggerToast('error', 'Lỗi Tạo Nhân Viên', errMsg);
-          this.cdr.detectChanges();
-        },
-      });
-  }
-
-  /** "Trần Thị Mai" → "TM", for the avatar in the staff list. */
-  staffInitials(name = ''): string {
-    const words = name.trim().split(/\s+/).filter(Boolean);
-    if (!words.length) return '?';
-    return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
-  }
-
-  openEditStaffModal(staff: User) {
-    this.editingStaffId = staff.id || (staff as any)._id || '';
-    this.editStaffName = staff.fullName;
-    this.editStaffEmail = staff.email;
-    this.editStaffPhone = staff.phone || '';
-    this.editStaffPass = '';
-    this.editStaffRole =
-      staff.role === 'teacher' || staff.role === 'manager' ? staff.role : 'staff';
-    this.showEditStaffModal = true;
-    this.cdr.detectChanges();
-  }
-
-  saveEditStaff() {
-    if (!this.editingStaffId || !this.editStaffName.trim() || !this.editStaffEmail.trim()) return;
-    this.isUpdatingStaff = true;
-    this.cdr.detectChanges();
-
-    const payload: any = {
-      fullName: this.editStaffName.trim(),
-      email: this.editStaffEmail.trim(),
-      phone: this.editStaffPhone.trim(),
-      role: this.editStaffRole,
-    };
-    if (this.editStaffPass.trim()) {
-      payload.password = this.editStaffPass.trim();
-    }
-
-    this.staffService
-      .updateStaff(this.editingStaffId, payload)
-      .pipe(
-        finalize(() => {
-          this.isUpdatingStaff = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: (res) => {
-          this.showEditStaffModal = false;
-          const msg = res.message || 'Cập nhật tài khoản nhân viên thành công!';
-          this.triggerToast('success', 'Thành Công!', msg);
-          if (this.editStaffPass.trim()) {
-            this.staffCreatedMsg =
-              'Đã cập nhật thông tin và mật khẩu mới cho ' + this.editStaffName + '!';
-            this.staffGeneratedPass = this.editStaffPass.trim();
-          }
-          this.loadStaffList();
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.notify.error(err.error?.message || 'Lỗi khi cập nhật nhân viên');
-          this.cdr.detectChanges();
-        },
-      });
-  }
-
-  private emailStatusText(emailSent: boolean): string {
-    return emailSent
-      ? 'Đã gửi mật khẩu tới email của nhân viên.'
-      : 'Không gửi được email — hãy tự chuyển mật khẩu bên dưới cho nhân viên.';
-  }
-
-  async resetStaffPassword(staff: User) {
-    const customPass = await this.notify.prompt({
-      title: 'Đặt lại mật khẩu',
-      message: `Nhập mật khẩu mới cho "${staff.fullName}". Để trống để hệ thống tự sinh mật khẩu ngẫu nhiên.`,
-      placeholder: 'Mật khẩu mới (không bắt buộc)',
-      confirmText: 'Đặt lại',
-    });
-    if (customPass === null) return; // User cancelled
-
-    const targetId = staff.id || (staff as any)._id || '';
-    this.staffService.resetStaffPassword(targetId, customPass).subscribe({
-      next: (res) => {
-        this.staffCreatedMsg =
-          'Đã đặt lại mật khẩu cho nhân viên ' +
-          staff.fullName +
-          '! ' +
-          this.emailStatusText(res.emailSent);
-        this.staffGeneratedPass = res.newPassword;
-        this.triggerToast(
-          res.emailSent ? 'success' : 'warning',
-          'Reset Mật Khẩu Thành Công!',
-          this.emailStatusText(res.emailSent),
-        );
-        this.copyPasswordToClipboard(res.newPassword);
-        this.loadStaffList();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        const msg =
-          err.error?.message || err.statusText || 'Không thể kết nối đến máy chủ API backend';
-        this.triggerToast('error', 'Lỗi Reset Mật Khẩu', msg);
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  toggleStaffStatus(staff: User) {
-    const newStatus = staff.status === 'active' ? 'inactive' : 'active';
-    this.staffService.toggleStaffStatus(staff.id || (staff as any)._id, newStatus).subscribe({
-      next: () => {
-        this.loadStaffList();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        const msg = err.error?.message || err.statusText || 'Lỗi cập nhật trạng thái';
-        this.notify.error(msg);
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  async deleteStaffAccount(staff: User) {
-    const ok = await this.notify.confirm({
-      title: 'Xóa vĩnh viễn tài khoản?',
-      message: `${staff.fullName} (${staff.email}) sẽ bị xóa khỏi hệ thống. Không thể hoàn tác.`,
-      confirmText: 'Xóa tài khoản',
-      danger: true,
-    });
-    if (!ok) return;
-    const targetId = staff.id || (staff as any)._id || '';
-    this.staffService.deleteStaff(targetId).subscribe({
-      next: (res) => {
-        this.triggerToast('success', 'Đã Xóa Nhân Viên', res.message);
-        this.loadStaffList();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        const msg = err.error?.message || err.statusText || 'Không thể xóa tài khoản nhân viên';
-        this.triggerToast('error', 'Lỗi Xóa Nhân Viên', msg);
-        this.cdr.detectChanges();
-      },
     });
   }
 }
