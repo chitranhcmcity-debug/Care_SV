@@ -1,6 +1,6 @@
 <div class="bl">
   <!-- Current subscription -->
-  <section class="bl-card bl-current">
+  <section *ngIf="!isAdmin" class="bl-card bl-current">
     <span class="bl-current-icon" aria-hidden="true">💳</span>
     <div class="bl-current-info">
       <div class="bl-label">Gói sử dụng hiện tại</div>
@@ -40,7 +40,7 @@
   </div>
 
   <!-- Plans -->
-  <section class="bl-plans">
+  <section *ngIf="!isAdmin" class="bl-plans">
     <article
       *ngFor="let plan of plans(); let last = last"
       class="bl-card bl-plan"
@@ -141,7 +141,7 @@
   </section>
 
   <!-- History -->
-  <section class="bl-card bl-section">
+  <section *ngIf="!isAdmin" class="bl-card bl-section">
     <div class="bl-section-head">
       <h2>Lịch sử thanh toán</h2>
     </div>
