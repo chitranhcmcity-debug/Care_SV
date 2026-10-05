@@ -8,24 +8,22 @@ import { finalize } from 'rxjs';
 import { ExcelService, ImportByCourseResult } from '../../services/excel.service';
 import { StaffService } from '../../services/staff.service';
 import { AnalyticsService, AnalyticsSummary } from '../../services/analytics.service';
-import { SettingsService } from '../../services/settings.service';
 import { CourseGroupService } from '../../services/course-group.service';
 import { TaskService } from '../../services/task.service';
 import { AiService } from '../../services/ai.service';
 import { NotificationService, ToastType } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { ParentAlertsPanelComponent } from '../parent-alerts-panel/parent-alerts-panel.component';
-import { BrandingService } from '../../services/branding.service';
 import { ClassAssignmentPanelComponent } from '../class-assignment-panel/class-assignment-panel.component';
 import { WarningConfigComponent } from '../warning-config/warning-config.component';
 import { IntegrationsPanelComponent } from '../integrations-panel/integrations-panel.component';
 import { SystemOverviewComponent } from '../system-overview/system-overview.component';
 import { StaffProgressComponent } from '../staff-progress/staff-progress.component';
 import { StaffAiModalComponent } from '../staff-ai-modal/staff-ai-modal.component';
+import { SystemSettingsPanelComponent } from '../system-settings-panel/system-settings-panel.component';
 import { PermissionsPanelComponent } from '../permissions-panel/permissions-panel.component';
 import {
   User,
-  SystemSettings,
   CourseGroup,
   WorkTask,
   TaskStatus,
@@ -77,6 +75,7 @@ const emptyTaskForm = () => ({
     StaffProgressComponent,
     StaffAiModalComponent,
     PermissionsPanelComponent,
+    SystemSettingsPanelComponent,
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css', './admin-warning.css'],
@@ -119,22 +118,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   classToEnroll = '';
   mssvToEnroll = '';
   enrollAlertMsg = '';
-
-  // System Settings State
-  sysSettings: SystemSettings = {
-    systemTitle: 'ITC CARE',
-    schoolName: 'Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC)',
-    departmentName: 'Phòng Đào Tạo & Chăm Sóc Sinh Viên',
-    supportHotline: '028 3965 1114',
-    supportEmail: 'cskh@itc.edu.vn',
-    logoDataUrl: '',
-    primaryColor: '#673ab7',
-    warningLevels: [],
-    absenceReasons: [],
-    tags: [],
-  };
-  isSavingSettings = false;
-  settingsSaveAlert = '';
 
   // Excel State (legacy)
   isDownloadingExcel = false;
@@ -204,7 +187,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private excelService: ExcelService,
     private staffService: StaffService,
     private analyticsService: AnalyticsService,
-    private settingsService: SettingsService,
     private courseGroupService: CourseGroupService,
     protected taskService: TaskService,
     private aiService: AiService,
@@ -215,7 +197,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   /** Report of Zalo messages to parents: Trưởng phòng / PHT and admins. */
   readonly showParentAlerts = this.auth.isManager() || this.auth.isAdmin();
-  private readonly branding = inject(BrandingService);
   readonly visibleTabs = visibleDashboardTabs(this.auth);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -237,7 +218,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     if (this.hasTab('staff') || this.hasTab('tasks') || this.hasTab('courses'))
       this.loadStaffList();
     if (this.hasTab('analytics')) this.loadAnalytics();
-    if (this.hasTab('settings')) this.loadSettings();
     if (this.hasTab('courses') || this.hasTab('excel')) this.loadCourseGroups();
     // The sidebar selects the tab through ?tab=; a missing or unknown tab falls back to the first.
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -279,8 +259,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       this.analyticsInterval = setInterval(() => {
         if (!document.hidden) this.loadAnalytics();
       }, 60000);
-    } else if (tab === 'settings') {
-      this.loadSettings();
     } else if (tab === 'courses' || tab === 'excel') {
       this.loadCourseGroups();
     } else if (tab === 'tasks') {
@@ -795,75 +773,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       },
       error: (err) => this.notify.error(err.error?.message || 'Lỗi khi rút tên sinh viên'),
     });
-  }
-
-  // System Settings Logic
-  loadSettings() {
-    this.settingsService.getSettings().subscribe({
-      next: (s) => {
-        if (s) {
-          this.sysSettings = s;
-        }
-        this.cdr.markForCheck();
-      },
-      error: (err) => console.error('Load settings error:', err),
-    });
-  }
-
-  saveSettings() {
-    this.isSavingSettings = true;
-    this.settingsSaveAlert = '';
-
-    const {
-      systemTitle,
-      schoolName,
-      departmentName,
-      supportHotline,
-      supportEmail,
-      logoDataUrl,
-      primaryColor,
-    } = this.sysSettings;
-    this.settingsService
-      .updateSettings({
-        systemTitle,
-        schoolName,
-        departmentName,
-        supportHotline,
-        supportEmail,
-        logoDataUrl,
-        primaryColor,
-      })
-      .subscribe({
-        next: (res) => {
-          this.isSavingSettings = false;
-          this.settingsSaveAlert = res.message || 'Đã lưu cấu hình thành công!';
-          this.notify.success(this.settingsSaveAlert);
-          this.branding.apply(res.settings);
-          this.cdr.markForCheck();
-          setTimeout(() => (this.settingsSaveAlert = ''), 4000);
-        },
-        error: (err) => {
-          this.isSavingSettings = false;
-          this.cdr.markForCheck();
-          this.notify.error(err.error?.message || 'Lỗi khi lưu cấu hình');
-        },
-      });
-  }
-
-  /** Reads the chosen logo as a data URL (kept small: it is stored in the settings). */
-  onLogoSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    if (file.size > 300 * 1024) {
-      this.notify.error('Logo tối đa 300 KB');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.sysSettings.logoDataUrl = String(reader.result);
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
   }
 
   loadAnalytics() {
