@@ -1,14 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import {
-  NavigationCancel,
-  NavigationEnd,
-  NavigationError,
-  NavigationStart,
-  Router,
-  RouterOutlet,
-} from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
@@ -16,6 +9,7 @@ import { CallDialogComponent } from './components/call-dialog/call-dialog.compon
 import { AiCareComponent } from './components/ai-care/ai-care.component';
 import { AuthService } from './services/auth.service';
 import { BrandingService } from './services/branding.service';
+import { LoadingService } from './services/loading.service';
 
 // Pages rendered full-width without the signed-in sidebar shell.
 const PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/renew', '/account-payment'];
@@ -51,26 +45,10 @@ export class App {
   }
 
   readonly branding = inject(BrandingService);
-  /** True while a navigation runs longer than 150ms (lazy page download); drives the logo loader. */
-  readonly navigating = signal(false);
-  private navTimer?: ReturnType<typeof setTimeout>;
+  readonly loading = inject(LoadingService);
 
   constructor(public authService: AuthService) {
     // Admin-configured name, logo and colour, loaded before sign-in for the login page.
     this.branding.load();
-
-    this.router.events.subscribe((event) => {
-      if (event instanceof NavigationStart) {
-        clearTimeout(this.navTimer);
-        this.navTimer = setTimeout(() => this.navigating.set(true), 150);
-      } else if (
-        event instanceof NavigationEnd ||
-        event instanceof NavigationCancel ||
-        event instanceof NavigationError
-      ) {
-        clearTimeout(this.navTimer);
-        this.navigating.set(false);
-      }
-    });
   }
 }

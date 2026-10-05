@@ -28,8 +28,8 @@
   }
 }
 
-<!-- Logo loader while a lazy page is being fetched (shown only if it takes > 150ms) -->
-@if (navigating()) {
+<!-- Logo loader while a page (code or its opening data) is loading; see LoadingService -->
+@if (loading.visible()) {
   <div class="logo-loader" role="status" aria-live="polite">
     <div class="logo-loader__ring"><img [src]="branding.logo()" alt="Logo" width="96" height="96" /></div>
     <span class="logo-loader__text">Đang tải</span>
