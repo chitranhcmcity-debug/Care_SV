@@ -1,7 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+  RouterOutlet,
+} from '@angular/router';
 import { filter, map } from 'rxjs';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
@@ -43,8 +50,27 @@ export class App {
     return this.authService.isLoggedIn() && !PUBLIC_PATHS.includes(path);
   }
 
+  readonly branding = inject(BrandingService);
+  /** True while a navigation runs longer than 150ms (lazy page download); drives the logo loader. */
+  readonly navigating = signal(false);
+  private navTimer?: ReturnType<typeof setTimeout>;
+
   constructor(public authService: AuthService) {
     // Admin-configured name, logo and colour, loaded before sign-in for the login page.
-    inject(BrandingService).load();
+    this.branding.load();
+
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        clearTimeout(this.navTimer);
+        this.navTimer = setTimeout(() => this.navigating.set(true), 150);
+      } else if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        clearTimeout(this.navTimer);
+        this.navigating.set(false);
+      }
+    });
   }
 }
