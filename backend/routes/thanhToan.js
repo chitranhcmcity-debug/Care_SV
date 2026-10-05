@@ -1,173 +1,42 @@
 const express = require('express');
 const router = express.Router();
-const DonThanhToan = require('../models/DonThanhToan');
-const payos = require('../services/dichVuPayOS');
-const subscription = require('../services/dichVuGoiDichVu');
-const { ORDER_STATUS } = require('../utils/hangSo');
-const { assert } = require('../utils/kiemTra');
 const {
   verifyToken,
   requireAdmin,
   requireSignedIn,
   requireRoles,
 } = require('../middleware/xacThuc');
+const ctrl = require('../controllers/dieuKhienThanhToan');
 
 // The admin sets the prices; a Trưởng phòng / PHT buys the plan for the whole system.
 const requireBuyer = requireRoles('manager');
 const requireBillingViewer = requireRoles('admin', 'manager');
 
-const findOrder = async (orderCode) => {
-  const code = Number(orderCode);
-  assert(Number.isSafeInteger(code) && code > 0, 'Mã đơn không hợp lệ');
-  const order = await DonThanhToan.findOne({ orderCode: code });
-  assert(order, 'Không tìm thấy đơn thanh toán', 404);
-  return order;
-};
-
 // GET /api/billing/status (any signed-in user) — drives the expiry banner.
-router.get('/status', verifyToken, requireSignedIn, async (req, res, next) => {
-  try {
-    res.json({ ...(await subscription.getSubscription()), payosConfigured: payos.isConfigured() });
-  } catch (error) {
-    next(error);
-  }
-});
+router.get('/status', verifyToken, requireSignedIn, ctrl.getStatus);
 
 // GET /api/billing/plans (Admin, Trưởng phòng / PHT)
-router.get('/plans', verifyToken, requireBillingViewer, async (req, res, next) => {
-  try {
-    res.json(await subscription.getPlans());
-  } catch (error) {
-    next(error);
-  }
-});
+router.get('/plans', verifyToken, requireBillingViewer, ctrl.getPlans);
 
 // PUT /api/billing/plans (Admin) — body: { plans: [{ name, months, amount }] }
-router.put('/plans', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    res.json(await subscription.savePlans(req.body?.plans));
-  } catch (error) {
-    next(error);
-  }
-});
+router.put('/plans', verifyToken, requireAdmin, ctrl.savePlans);
 
 // GET /api/billing/orders (Admin, Trưởng phòng / PHT) — payment history, newest first.
-router.get('/orders', verifyToken, requireBillingViewer, async (req, res, next) => {
-  try {
-    // Shared system plan only; Trưởng phòng / PHT own-plan orders belong to their accounts.
-    const orders = await DonThanhToan.find({ kind: { $ne: 'account' } })
-      .populate('createdBy', 'fullName email')
-      .sort({ createdAt: -1 })
-      .limit(50);
-    res.json(orders);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get('/orders', verifyToken, requireBillingViewer, ctrl.listOrders);
 
 // GET /api/billing/revenue (Admin) — revenue from every paid order (system + manager accounts).
-router.get('/revenue', verifyToken, requireAdmin, async (req, res, next) => {
-  try {
-    const paid = { status: ORDER_STATUS.PAID };
-    const [totals, byMonth, byPlan, recent] = await Promise.all([
-      DonThanhToan.aggregate([
-        { $match: paid },
-        { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
-      ]),
-      DonThanhToan.aggregate([
-        { $match: paid },
-        {
-          $group: {
-            _id: {
-              $dateToString: {
-                format: '%Y-%m',
-                date: { $ifNull: ['$paidAt', '$createdAt'] },
-                timezone: 'Asia/Ho_Chi_Minh',
-              },
-            },
-            total: { $sum: '$amount' },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: -1 } },
-        { $limit: 12 },
-      ]),
-      DonThanhToan.aggregate([
-        { $match: paid },
-        {
-          $group: {
-            _id: '$planName',
-            total: { $sum: '$amount' },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { total: -1 } },
-      ]),
-      DonThanhToan.find(paid)
-        .populate('createdBy', 'fullName email')
-        .sort({ paidAt: -1, createdAt: -1 })
-        .limit(50),
-    ]);
-    res.json({
-      total: totals[0]?.total || 0,
-      count: totals[0]?.count || 0,
-      byMonth: byMonth.map((m) => ({ month: m._id, total: m.total, count: m.count })).reverse(),
-      byPlan: byPlan.map((p) => ({ plan: p._id, total: p.total, count: p.count })),
-      recent,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+router.get('/revenue', verifyToken, requireAdmin, ctrl.getRevenue);
 
 // POST /api/billing/orders (Trưởng phòng / PHT) — creates a PayOS payment link for a plan.
-router.post('/orders', verifyToken, requireBuyer, async (req, res, next) => {
-  try {
-    const order = await subscription.createOrder(req.body?.planCode, req.user);
-    res.status(201).json({ orderCode: order.orderCode, checkoutUrl: order.checkoutUrl });
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/orders', verifyToken, requireBuyer, ctrl.createOrder);
 
 // POST /api/billing/orders/:orderCode/sync (Admin, Trưởng phòng / PHT)
 // Called when PayOS redirects back, and by the "Kiểm tra lại" button. Asks PayOS directly,
 // so it works even where PayOS cannot reach our webhook (e.g. localhost).
-router.post(
-  '/orders/:orderCode/sync',
-  verifyToken,
-  requireBillingViewer,
-  async (req, res, next) => {
-    try {
-      const order = await subscription.syncOrder(await findOrder(req.params.orderCode));
-      res.json({ order, subscription: await subscription.getSubscription() });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+router.post('/orders/:orderCode/sync', verifyToken, requireBillingViewer, ctrl.syncOrder);
 
 // POST /api/billing/payos-webhook (Public, PayOS → us). Trusted only if the signature
 // matches our checksum key. Always 200 for well-formed calls so PayOS stops retrying.
-router.post('/payos-webhook', async (req, res, next) => {
-  try {
-    const data = payos.verifyWebhook(req.body);
-    if (!data) return res.status(400).json({ message: 'Chữ ký không hợp lệ' });
-    // PayOS's "confirm webhook" test call uses an order we never created — just acknowledge.
-    if (data.code === '00' && req.body.success !== false) {
-      const order = await DonThanhToan.findOne({ orderCode: Number(data.orderCode) });
-      if (order && order.status === ORDER_STATUS.PENDING) {
-        await subscription.applyPaidOrder(order.orderCode, {
-          amount: data.amount,
-          reference: data.reference,
-          paidAt: data.transactionDateTime,
-        });
-      }
-    }
-    res.json({ success: true });
-  } catch (error) {
-    next(error);
-  }
-});
+router.post('/payos-webhook', ctrl.payosWebhook);
 
 module.exports = router;
