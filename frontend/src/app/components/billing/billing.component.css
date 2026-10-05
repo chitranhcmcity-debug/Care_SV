@@ -361,3 +361,53 @@ button:disabled {
     grid-column: 1 / -1;
   }
 }
+
+/* Revenue report */
+.bl-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.bl-kpi {
+  padding: 14px 16px;
+  border: 1.5px solid #dccdf6;
+  border-radius: 16px;
+  background: linear-gradient(115deg, #f6f0ff, #fff 70%);
+}
+.bl-kpi-value {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 800;
+}
+.bl-sub-title {
+  margin: 18px 0 8px;
+  font-size: 15px;
+}
+.bl-bars {
+  display: grid;
+  gap: 8px;
+}
+.bl-bar-row {
+  display: grid;
+  grid-template-columns: 70px 1fr minmax(120px, auto);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.bl-bar-track {
+  height: 12px;
+  border-radius: 6px;
+  background: #efe8fb;
+  overflow: hidden;
+}
+.bl-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+  background: var(--bl-gradient);
+}
+.bl-bar-value {
+  text-align: right;
+  color: #6b6488;
+}

@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BillingOrder, BillingService, SubscriptionPlan } from '../../services/billing.service';
+import {
+  BillingOrder,
+  BillingService,
+  RevenueReport,
+  SubscriptionPlan,
+} from '../../services/billing.service';
 import { NotificationService } from '../../services/notification.service';
 
 const ORDER_STATUS_LABEL: Record<BillingOrder['status'], string> = {
@@ -44,6 +49,10 @@ export class BillingComponent implements OnInit {
   readonly status = this.billing.status;
   readonly plans = signal<SubscriptionPlan[]>([]);
   readonly orders = signal<BillingOrder[]>([]);
+  readonly revenue = signal<RevenueReport | null>(null);
+  readonly maxMonthly = computed(() =>
+    Math.max(1, ...(this.revenue()?.byMonth ?? []).map((m) => m.total)),
+  );
   readonly buyingPlan = signal('');
   readonly syncingOrder = signal<number | null>(null);
   readonly statusLabel = ORDER_STATUS_LABEL;
@@ -62,6 +71,11 @@ export class BillingComponent implements OnInit {
   ngOnInit() {
     this.billing.refreshStatus().subscribe();
     this.loadPlans();
+
+    if (this.isAdmin) {
+      this.billing.getRevenue().subscribe((r) => this.revenue.set(r));
+      return;
+    }
 
     // PayOS sends the buyer back here with ?orderCode=…; never trust its status param —
     // ask our backend, which asks PayOS directly.

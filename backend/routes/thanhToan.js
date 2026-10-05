@@ -65,6 +65,61 @@ router.get('/orders', verifyToken, requireBillingViewer, async (req, res, next) 
   }
 });
 
+// GET /api/billing/revenue (Admin) — revenue from every paid order (system + manager accounts).
+router.get('/revenue', verifyToken, requireAdmin, async (req, res, next) => {
+  try {
+    const paid = { status: ORDER_STATUS.PAID };
+    const [totals, byMonth, byPlan, recent] = await Promise.all([
+      DonThanhToan.aggregate([
+        { $match: paid },
+        { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+      ]),
+      DonThanhToan.aggregate([
+        { $match: paid },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: '%Y-%m',
+                date: { $ifNull: ['$paidAt', '$createdAt'] },
+                timezone: 'Asia/Ho_Chi_Minh',
+              },
+            },
+            total: { $sum: '$amount' },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: -1 } },
+        { $limit: 12 },
+      ]),
+      DonThanhToan.aggregate([
+        { $match: paid },
+        {
+          $group: {
+            _id: '$planName',
+            total: { $sum: '$amount' },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { total: -1 } },
+      ]),
+      DonThanhToan.find(paid)
+        .populate('createdBy', 'fullName email')
+        .sort({ paidAt: -1, createdAt: -1 })
+        .limit(50),
+    ]);
+    res.json({
+      total: totals[0]?.total || 0,
+      count: totals[0]?.count || 0,
+      byMonth: byMonth.map((m) => ({ month: m._id, total: m.total, count: m.count })).reverse(),
+      byPlan: byPlan.map((p) => ({ plan: p._id, total: p.total, count: p.count })),
+      recent,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /api/billing/orders (Trưởng phòng / PHT) — creates a PayOS payment link for a plan.
 router.post('/orders', verifyToken, requireBuyer, async (req, res, next) => {
   try {

@@ -140,6 +140,87 @@
     </div>
   </section>
 
+  <!-- Revenue report (Admin) -->
+  <section *ngIf="isAdmin && revenue() as r" class="bl-card bl-section">
+    <div class="bl-section-head">
+      <div>
+        <h2>Báo cáo doanh thu</h2>
+        <p class="bl-muted">Tổng hợp các đơn đã thanh toán của toàn hệ thống.</p>
+      </div>
+    </div>
+    <div class="bl-kpis">
+      <div class="bl-kpi">
+        <div class="bl-label">Tổng doanh thu</div>
+        <div class="bl-kpi-value">{{ formatVnd(r.total) }}</div>
+      </div>
+      <div class="bl-kpi">
+        <div class="bl-label">Số đơn đã thanh toán</div>
+        <div class="bl-kpi-value">{{ r.count }}</div>
+      </div>
+    </div>
+
+    <div *ngIf="!r.count" class="bl-empty">Chưa có doanh thu.</div>
+
+    <ng-container *ngIf="r.count">
+      <h3 class="bl-sub-title">Theo tháng</h3>
+      <div class="bl-bars">
+        <div *ngFor="let m of r.byMonth" class="bl-bar-row">
+          <span class="bl-bar-label">{{ m.month }}</span>
+          <span class="bl-bar-track"
+            ><span class="bl-bar-fill" [style.width.%]="(m.total / maxMonthly()) * 100"></span
+          ></span>
+          <span class="bl-bar-value">{{ formatVnd(m.total) }} · {{ m.count }} đơn</span>
+        </div>
+      </div>
+
+      <h3 class="bl-sub-title">Theo gói</h3>
+      <div class="bl-table-wrap">
+        <table class="bl-table">
+          <thead>
+            <tr>
+              <th>Gói</th>
+              <th>Số đơn</th>
+              <th>Doanh thu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of r.byPlan">
+              <td>{{ p.plan }}</td>
+              <td>{{ p.count }}</td>
+              <td class="bl-nowrap">{{ formatVnd(p.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="bl-sub-title">Giao dịch gần đây</h3>
+      <div class="bl-table-wrap">
+        <table class="bl-table">
+          <thead>
+            <tr>
+              <th>Mã đơn</th>
+              <th>Gói</th>
+              <th>Người thanh toán</th>
+              <th>Số tiền</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let o of r.recent">
+              <td class="bl-code">{{ o.orderCode }}</td>
+              <td>{{ o.planName }}</td>
+              <td>{{ o.createdBy?.fullName }}</td>
+              <td class="bl-nowrap">{{ formatVnd(o.amount) }}</td>
+              <td class="bl-sub bl-nowrap">
+                {{ o.paidAt || o.createdAt | date: 'HH:mm dd/MM/yyyy' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </section>
+
   <!-- History -->
   <section *ngIf="!isAdmin" class="bl-card bl-section">
     <div class="bl-section-head">

@@ -35,6 +35,14 @@ export interface BillingOrder {
   createdAt: string;
 }
 
+export interface RevenueReport {
+  total: number;
+  count: number;
+  byMonth: { month: string; total: number; count: number }[];
+  byPlan: { plan: string; total: number; count: number }[];
+  recent: (BillingOrder & { kind?: 'system' | 'account' })[];
+}
+
 /** Subscription ("gói sử dụng") paid through PayOS. */
 @Injectable({ providedIn: 'root' })
 export class BillingService {
@@ -61,6 +69,11 @@ export class BillingService {
 
   getOrders(): Observable<BillingOrder[]> {
     return this.http.get<BillingOrder[]>(`${this.apiUrl}/orders`);
+  }
+
+  /** Admin: revenue from all paid orders. */
+  getRevenue(): Observable<RevenueReport> {
+    return this.http.get<RevenueReport>(`${this.apiUrl}/revenue`);
   }
 
   createOrder(planCode: string): Observable<{ orderCode: number; checkoutUrl: string }> {
