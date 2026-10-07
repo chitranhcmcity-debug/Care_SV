@@ -15,7 +15,7 @@ type AccountRole = 'staff' | 'teacher' | 'manager';
   imports: [CommonModule, FormsModule],
   templateUrl: './quan-ly-nhan-vien.component.html',
   styleUrl: './quan-ly-nhan-vien.component.css',
-  host: { class: 'block' },
+  host: { class: 'd-block' },
 })
 export class StaffManagementComponent {
   private readonly staffService = inject(StaffService);

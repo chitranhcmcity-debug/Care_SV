@@ -1,22 +1,22 @@
 <div
-  class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+  class="position-fixed inset-0 z-50 bg-slate-900-60 backdrop-blur-xs d-flex align-items-center justify-content-center p-4"
   (click)="closed.emit()"
 >
   <div
-    class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4 border border-slate-200"
+    class="bg-white rounded-2xl mw-2xl w-100 mh-90vh overflow-y-auto p-6 shadow-2xl space-y-4 border border-slate-200"
     role="dialog"
     aria-label="Đánh giá năng lực nhân viên bằng AI"
     (click)="$event.stopPropagation()"
   >
-    <div class="flex items-start justify-between border-b border-slate-200 pb-3">
+    <div class="d-flex align-items-start justify-content-between border-bottom border-slate-200 pb-3">
       <div>
         <div
-          class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-violet-100 text-violet-900 text-xs font-bold uppercase"
+          class="d-inline-flex align-items-center gap-2 px-2-5 py-0-5 rounded bg-violet-100 text-violet-900 fs-xs fw-bold text-uppercase"
         >
           🤖 Đánh Giá Năng Lực AI
         </div>
-        <h3 class="text-lg font-bold text-slate-900 mt-1">{{ staffName }}</h3>
-        <p class="text-xs text-slate-500">
+        <h3 class="fs-lg fw-bold text-slate-900 mt-1">{{ staffName }}</h3>
+        <p class="fs-xs text-slate-500">
           {{
             from || to
               ? 'Kỳ đánh giá: ' + (from || '…') + ' → ' + (to || 'nay')
@@ -27,93 +27,93 @@
       <button
         type="button"
         (click)="closed.emit()"
-        class="text-slate-400 hover:text-slate-700 font-bold text-2xl"
+        class="text-slate-400 text-slate-700-hover fw-bold fs-2xl"
         aria-label="Đóng"
       >
         ✖
       </button>
     </div>
 
-    <div *ngIf="loading()" class="py-10 text-center text-xs text-slate-500 font-semibold">
+    <div *ngIf="loading()" class="py-10 text-center fs-xs text-slate-500 fw-semibold">
       ⏳ AI đang phân tích tiến độ, chất lượng công việc và kết quả chăm sóc sinh viên...
     </div>
 
     <div
       *ngIf="!loading() && error()"
-      class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-800 font-semibold"
+      class="p-4 rounded-xl bg-rose-50 border border-rose-200 fs-sm text-rose-800 fw-semibold"
     >
       ⚠️ {{ error() }}
     </div>
 
     <ng-container *ngIf="!loading() && metrics() as m">
       <!-- KPI + các tỷ lệ -->
-      <div class="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-center">
+      <div class="d-grid grid-cols-1 grid-cols-sm-auto-1 gap-4 align-items-center">
         <div
           class="rounded-xl border px-5 py-3 text-center"
           [ngClass]="kpiTone(m.kpiScore)"
           title="KPI tham khảo do hệ thống tính từ số liệu, không phải do AI chấm"
         >
-          <div class="text-3xl font-bold leading-none">{{ m.kpiScore ?? '—' }}</div>
-          <div class="text-[11px] font-bold uppercase mt-1">KPI · {{ m.kpiRating }}</div>
+          <div class="fs-3xl fw-bold lh-1">{{ m.kpiScore ?? '—' }}</div>
+          <div class="fs-11px fw-bold text-uppercase mt-1">KPI · {{ m.kpiRating }}</div>
         </div>
-        <div class="space-y-1.5">
-          <div *ngFor="let p of rateParts" class="flex items-center gap-2 text-xs">
-            <span class="w-24 shrink-0 font-semibold text-slate-600">{{ p.label }}</span>
-            <div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div class="space-y-1-5">
+          <div *ngFor="let p of rateParts" class="d-flex align-items-center gap-2 fs-xs">
+            <span class="w-24 flex-shrink-0 fw-semibold text-slate-600">{{ p.label }}</span>
+            <div class="flex-1 h-2 rounded-pill bg-slate-100 overflow-hidden">
               <div
-                class="h-full rounded-full bg-violet-500"
+                class="h-100 rounded-pill bg-violet-500"
                 [style.width.%]="m.rates[p.key] ?? 0"
               ></div>
             </div>
-            <span class="w-20 text-right font-bold text-slate-700">
+            <span class="w-20 text-end fw-bold text-slate-700">
               {{ m.rates[p.key] === null ? 'chưa có' : m.rates[p.key] + '%' }}
             </span>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+      <div class="d-grid grid-cols-2 grid-cols-sm-4 gap-2 text-center">
         <div class="rounded-lg bg-slate-50 border border-slate-200 p-2">
-          <div class="text-base font-bold text-slate-900">
+          <div class="fs-base fw-bold text-slate-900">
             {{ m.tasks.completed }}/{{ m.tasks.total }}
           </div>
-          <div class="text-[11px] font-semibold text-slate-500">Việc hoàn thành</div>
+          <div class="fs-11px fw-semibold text-slate-500">Việc hoàn thành</div>
         </div>
         <div class="rounded-lg bg-rose-50 border border-rose-200 p-2">
-          <div class="text-base font-bold text-rose-800">{{ m.tasks.overdue }}</div>
-          <div class="text-[11px] font-semibold text-rose-700">Quá hạn</div>
+          <div class="fs-base fw-bold text-rose-800">{{ m.tasks.overdue }}</div>
+          <div class="fs-11px fw-semibold text-rose-700">Quá hạn</div>
         </div>
         <div class="rounded-lg bg-amber-50 border border-amber-200 p-2">
-          <div class="text-base font-bold text-amber-800">
+          <div class="fs-base fw-bold text-amber-800">
             {{ m.tasks.avgScore ?? '—' }}<span *ngIf="m.tasks.avgScore">/5</span>
           </div>
-          <div class="text-[11px] font-semibold text-amber-700">Điểm chất lượng</div>
+          <div class="fs-11px fw-semibold text-amber-700">Điểm chất lượng</div>
         </div>
         <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
-          <div class="text-base font-bold text-emerald-800">
+          <div class="fs-base fw-bold text-emerald-800">
             {{ m.care.closed }}/{{ m.care.total }}
           </div>
-          <div class="text-[11px] font-semibold text-emerald-700">Hồ sơ đã kết thúc</div>
+          <div class="fs-11px fw-semibold text-emerald-700">Hồ sơ đã kết thúc</div>
         </div>
       </div>
     </ng-container>
 
     <div
       *ngIf="!loading() && html()"
-      class="p-4 rounded-xl bg-violet-50 border border-violet-200 text-sm text-slate-800 space-y-1"
+      class="p-4 rounded-xl bg-violet-50 border border-violet-200 fs-sm text-slate-800 space-y-1"
       [innerHTML]="html()"
     ></div>
 
-    <p *ngIf="!loading() && !error()" class="text-[11px] text-slate-400">
+    <p *ngIf="!loading() && !error()" class="fs-11px text-slate-400">
       KPI do hệ thống tính từ số liệu (hoàn thành 30%, đúng hạn 25%, chất lượng 25%, liên hệ SV 20%;
       phần chưa có dữ liệu được bỏ qua). Nhận xét do AI viết, chỉ mang tính tham khảo.
     </p>
 
-    <div class="pt-2 flex justify-end border-t border-slate-200">
+    <div class="pt-2 d-flex justify-content-end border-top border-slate-200">
       <button
         type="button"
         (click)="closed.emit()"
-        class="px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl"
+        class="px-6 py-2-5 bg-white border border-slate-200 bg-slate-50-hover text-slate-700 fw-bold fs-xs rounded-xl"
       >
         Đóng
       </button>

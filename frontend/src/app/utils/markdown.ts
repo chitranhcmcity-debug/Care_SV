@@ -8,7 +8,7 @@ export function renderMarkdown(text: string): string {
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(
         /`([^`]+)`/g,
-        '<code class="px-1.5 py-0.5 rounded-md bg-violet-50 text-violet-700 text-[0.85em]">$1</code>',
+        '<code class="px-1-5 py-0-5 rounded-md bg-violet-50 text-violet-700 fs-0-85em">$1</code>',
       );
   const out: string[] = [];
   let list: 'ul' | 'ol' | null = null;
@@ -21,8 +21,8 @@ export function renderMarkdown(text: string): string {
     if (!table) return;
     const [head, ...rows] = table;
     out.push(
-      '<div class="overflow-x-auto my-2"><table class="text-xs border-collapse w-full">' +
-        `<thead><tr>${head.map((c) => `<th class="border border-violet-100 bg-violet-50 px-2 py-1 text-left">${inline(c)}</th>`).join('')}</tr></thead>` +
+      '<div class="overflow-x-auto my-2"><table class="fs-xs border-collapse w-100">' +
+        `<thead><tr>${head.map((c) => `<th class="border border-violet-100 bg-violet-50 px-2 py-1 text-start">${inline(c)}</th>`).join('')}</tr></thead>` +
         `<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td class="border border-violet-100 px-2 py-1">${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`,
     );
     table = null;
@@ -50,8 +50,8 @@ export function renderMarkdown(text: string): string {
         list = kind;
         out.push(
           kind === 'ul'
-            ? '<ul class="list-disc pl-5 space-y-0.5">'
-            : '<ol class="list-decimal pl-5 space-y-0.5">',
+            ? '<ul class="list-disc ps-5 space-y-0-5">'
+            : '<ol class="list-decimal ps-5 space-y-0-5">',
         );
       }
       out.push(`<li>${inline((bullet ?? numbered)![1])}</li>`);
@@ -59,7 +59,7 @@ export function renderMarkdown(text: string): string {
     }
     closeList();
     const heading = /^#{1,6}\s+(.*)$/.exec(line);
-    if (heading) out.push(`<p class="font-semibold mt-2">${inline(heading[1])}</p>`);
+    if (heading) out.push(`<p class="fw-semibold mt-2">${inline(heading[1])}</p>`);
     else if (line) out.push(`<p>${inline(line)}</p>`);
   }
   closeList();

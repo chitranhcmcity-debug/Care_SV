@@ -2,27 +2,27 @@
   <!-- ========================================================= -->
   <!-- KHUNG CHÍNH: GIAO DIỆN THÍCH ỨNG DI ĐỘNG & MÁY TÍNH           -->
   <!-- ========================================================= -->
-  <main class="mx-4 md:mx-6 my-5 space-y-5">
+  <main class="mx-4 mx-md-6 my-5 space-y-5">
     <!-- Chuyển chế độ: thanh công cụ mỏng dưới tiêu đề trang; ghim dưới thanh ứng dụng trên di động -->
     <div
-      class="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-20 md:static md:flex md:bg-white md:border md:border-slate-200 md:px-4 md:py-3 md:rounded-2xl md:shadow-sm items-center justify-between gap-4"
+      class="position-sticky top-safe-top-14 z-20 position-md-static d-md-flex bg-md-white border-md border-md-slate-200 px-md-4 py-md-3 rounded-md-2xl shadow-md-sm align-items-center justify-content-between gap-4"
     >
-      <p class="hidden md:block text-sm text-slate-500">
+      <p class="d-none d-md-block fs-sm text-slate-500">
         Xin chào <b class="text-slate-800">{{ currentUser?.fullName }}</b> — chọn chế độ làm việc:
       </p>
 
       <!-- Tab chọn chế độ nhanh trên máy tính -->
       <div
-        class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-sm md:shadow-none"
+        class="d-flex align-items-center space-x-2 bg-slate-100 p-1-5 rounded-2xl border border-slate-200 shadow-sm shadow-md-none"
       >
         <button
           (click)="activeTab = 'home'"
           [ngClass]="
             activeTab === 'home'
-              ? 'bg-violet-600 text-white font-bold shadow-sm'
-              : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
+              ? 'bg-violet-600 text-white fw-bold shadow-sm'
+              : 'text-slate-700 text-slate-900-hover fw-bold bg-white-hover'
           "
-          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
+          class="flex-1 flex-md-none text-nowrap px-1-5 px-md-4 py-2 fs-xs rounded-xl transition-all cursor-pointer"
         >
           🏠 Tổng Quan
         </button>
@@ -31,23 +31,23 @@
           (click)="activeTab = 'attendance'"
           [ngClass]="
             activeTab === 'attendance'
-              ? 'bg-violet-600 text-white font-bold shadow-sm'
-              : 'text-slate-700 hover:text-slate-900 font-bold hover:bg-white'
+              ? 'bg-violet-600 text-white fw-bold shadow-sm'
+              : 'text-slate-700 text-slate-900-hover fw-bold bg-white-hover'
           "
-          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all cursor-pointer"
+          class="flex-1 flex-md-none text-nowrap px-1-5 px-md-4 py-2 fs-xs rounded-xl transition-all cursor-pointer"
         >
-          📝 Điểm Danh<span class="hidden md:inline"> Lớp</span>
+          📝 Điểm Danh<span class="d-none d-md-inline"> Lớp</span>
         </button>
 
         <a
           *ngIf="canOpenCare"
           routerLink="/care"
-          class="flex-1 md:flex-none whitespace-nowrap px-1.5 md:px-4 py-2 text-xs rounded-xl transition-all text-slate-700 hover:text-slate-900 font-bold hover:bg-white text-center"
+          class="flex-1 flex-md-none text-nowrap px-1-5 px-md-4 py-2 fs-xs rounded-xl transition-all text-slate-700 text-slate-900-hover fw-bold bg-white-hover text-center"
         >
           🗂️ Hồ sơ chăm sóc
           <span
             *ngIf="myOpenCases > 0"
-            class="ml-1.5 px-2 py-0.5 rounded-full bg-violet-600 text-white text-xs font-bold"
+            class="ms-1-5 px-2 py-0-5 rounded-pill bg-violet-600 text-white fs-xs fw-bold"
             >{{ myOpenCases }}</span
           >
         </a>
@@ -60,99 +60,99 @@
     <div *ngIf="activeTab === 'home'" class="space-y-5 animate-fade-in">
       <!-- Banner chào mừng (di động) -->
       <div
-        class="md:hidden bg-violet-600 text-white p-5 rounded-3xl shadow-sm relative overflow-hidden"
+        class="d-md-none bg-violet-600 text-white p-5 rounded-3xl shadow-sm position-relative overflow-hidden"
       >
-        <div class="relative z-10 space-y-2">
+        <div class="position-relative z-10 space-y-2">
           <div
-            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-800 text-violet-100 text-xs font-bold border border-violet-500/40"
+            class="d-inline-flex align-items-center gap-1-5 px-3 py-1 rounded-pill bg-violet-800 text-violet-100 fs-xs fw-bold border border-violet-500-40"
           >
             <span>👋 Chào ngày mới</span>
           </div>
-          <h2 class="text-xl font-bold tracking-tight leading-snug">
+          <h2 class="fs-xl fw-bold tracking-tight lh-snug">
             ThS. {{ currentUser?.fullName || 'Giảng Viên' }}
           </h2>
-          <p class="text-xs text-blue-200 font-medium">
+          <p class="fs-xs text-blue-200 fw-medium">
             Bảng điều khiển điểm danh và quản lý học sinh theo thời khóa biểu.
           </p>
         </div>
       </div>
 
       <!-- Lưới 4 thống kê nhanh -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="d-grid grid-cols-2 grid-cols-lg-4 gap-4">
         <div
           (click)="activeTab = 'attendance'"
-          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
+          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm shadow-md-hover transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lớp Hôm Nay</div>
-          <div class="text-3xl font-bold text-blue-900">
-            {{ todayClasses.length }} <span class="text-xs font-normal text-slate-400">lớp</span>
+          <div class="fs-xs fw-bold text-slate-400 text-uppercase tracking-wider">Lớp Hôm Nay</div>
+          <div class="fs-3xl fw-bold text-blue-900">
+            {{ todayClasses.length }} <span class="fs-xs fw-normal text-slate-400">lớp</span>
           </div>
-          <div class="text-xs text-blue-600 font-bold">📅 {{ todayName }}</div>
+          <div class="fs-xs text-blue-600 fw-bold">📅 {{ todayName }}</div>
         </div>
 
         <div
           (click)="activeTab = 'attendance'"
-          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
+          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm shadow-md-hover transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">SV Phụ Trách</div>
-          <div class="text-3xl font-bold text-emerald-700">
-            {{ totalAssignedStudents }} <span class="text-xs font-normal text-slate-400">SV</span>
+          <div class="fs-xs fw-bold text-slate-400 text-uppercase tracking-wider">SV Phụ Trách</div>
+          <div class="fs-3xl fw-bold text-emerald-700">
+            {{ totalAssignedStudents }} <span class="fs-xs fw-normal text-slate-400">SV</span>
           </div>
-          <div class="text-xs text-emerald-600 font-bold">
+          <div class="fs-xs text-emerald-600 fw-bold">
             🎓 {{ myAssignedGroups.length }} Học Phần
           </div>
         </div>
 
         <a
           routerLink="/care"
-          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1 relative block"
+          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm shadow-md-hover transition-all cursor-pointer space-y-1 position-relative d-block"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <div class="fs-xs fw-bold text-slate-400 text-uppercase tracking-wider">
             Hồ Sơ Chăm Sóc
           </div>
-          <div class="text-3xl font-bold text-violet-600">
-            {{ myOpenCases }} <span class="text-xs font-normal text-slate-400">đang mở</span>
+          <div class="fs-3xl fw-bold text-violet-600">
+            {{ myOpenCases }} <span class="fs-xs fw-normal text-slate-400">đang mở</span>
           </div>
-          <div class="text-xs text-violet-600 font-bold">🗂️ Tôi đề xuất / phụ trách</div>
+          <div class="fs-xs text-violet-600 fw-bold">🗂️ Tôi đề xuất / phụ trách</div>
         </a>
 
         <div
           (click)="activeTab = 'attendance'"
-          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-1"
+          class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm shadow-md-hover transition-all cursor-pointer space-y-1"
         >
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          <div class="fs-xs fw-bold text-slate-400 text-uppercase tracking-wider">
             Cảnh Báo Cấm Thi
           </div>
-          <div class="text-3xl font-bold text-rose-600">
-            0 <span class="text-xs font-normal text-slate-400">SV</span>
+          <div class="fs-3xl fw-bold text-rose-600">
+            0 <span class="fs-xs fw-normal text-slate-400">SV</span>
           </div>
-          <div class="text-xs text-rose-600 font-bold">⚠️ Vắng 2+ buổi</div>
+          <div class="fs-xs text-rose-600 fw-bold">⚠️ Vắng 2+ buổi</div>
         </div>
       </div>
 
       <!-- Today's Timetable Widget (Thời khóa biểu hôm nay) -->
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+        <div class="d-flex align-items-center justify-content-between">
+          <h3 class="fw-bold text-slate-900 fs-base d-flex align-items-center gap-2">
             <span>🗓️</span>
             <span>LỊCH DẠY HÔM NAY ({{ todayName }})</span>
           </h3>
           <span
-            class="text-xs font-bold text-blue-900 bg-blue-50 px-3 py-1 rounded-full border border-blue-200"
+            class="fs-xs fw-bold text-blue-900 bg-blue-50 px-3 py-1 rounded-pill border border-blue-200"
           >
             {{ todayDateStr }}
           </span>
         </div>
 
-        <div *ngIf="todayClasses.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div *ngIf="todayClasses.length > 0" class="d-grid grid-cols-1 grid-cols-md-2 gap-4">
           <div
             *ngFor="let g of todayClasses"
-            class="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:border-blue-300 transition-all flex flex-col justify-between space-y-3"
+            class="p-5 rounded-2xl border border-slate-200 bg-slate-50-70 border-blue-300-hover transition-all d-flex flex-column justify-content-between space-y-3"
           >
             <div class="space-y-2">
-              <div class="flex items-center justify-between gap-2">
+              <div class="d-flex align-items-center justify-content-between gap-2">
                 <span
-                  class="px-2.5 py-0.5 rounded-full text-xs font-bold border uppercase"
+                  class="px-2-5 py-0-5 rounded-pill fs-xs fw-bold border text-uppercase"
                   [ngClass]="{
                     'bg-amber-100 text-amber-900 border-amber-300': g.shift === 'sang',
                     'bg-blue-100 text-blue-900 border-blue-300': g.shift === 'chieu',
@@ -167,14 +167,14 @@
                         : '☀️ Ca Sáng'
                   }}
                 </span>
-                <span class="text-xs font-bold text-slate-500"
+                <span class="fs-xs fw-bold text-slate-500"
                   >📍 Phòng {{ g.room || 'A.101' }}</span
                 >
               </div>
-              <h4 class="font-bold text-slate-900 text-base leading-snug">
+              <h4 class="fw-bold text-slate-900 fs-base lh-snug">
                 {{ g.courseName }}
               </h4>
-              <div class="text-xs text-slate-500 font-sans tabular-nums">
+              <div class="fs-xs text-slate-500 font-sans tabular-nums">
                 Mã lớp: {{ g.groupCode }} | 🎓 {{ g.students?.length || 0 }} SV
               </div>
             </div>
@@ -182,7 +182,7 @@
             <button
               type="button"
               (click)="goToAttendanceForGroup(g._id)"
-              class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs shadow-sm transition-all touch-target cursor-pointer flex items-center justify-center gap-1.5"
+              class="w-100 py-2-5 rounded-xl bg-violet-600 bg-violet-700-hover text-white fw-bold fs-xs shadow-sm transition-all touch-target cursor-pointer d-flex align-items-center justify-content-center gap-1-5"
             >
               <span>⚡ Điểm Danh Lớp Này</span>
             </button>
@@ -191,7 +191,7 @@
 
         <div
           *ngIf="todayClasses.length === 0"
-          class="p-6 text-center bg-slate-50 rounded-2xl border border-slate-200 text-slate-500 text-xs font-semibold"
+          class="p-6 text-center bg-slate-50 rounded-2xl border border-slate-200 text-slate-500 fs-xs fw-semibold"
         >
           🎉 Hôm nay ({{ todayName }}) thầy/cô không có lịch dạy môn nào. Chúc thầy/cô một ngày làm
           việc vui vẻ!
@@ -200,36 +200,36 @@
 
       <!-- Lưới phím tắt thao tác nhanh -->
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <h3 class="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-500">
+        <h3 class="fw-bold text-slate-900 fs-sm text-uppercase tracking-wider text-slate-500">
           Lối Tắt Thao Tác Nhanh Văn Phòng
         </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="d-grid grid-cols-2 grid-cols-md-4 gap-4">
           <button
             (click)="activeTab = 'attendance'"
-            class="p-4 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+            class="p-4 rounded-2xl bg-blue-50 bg-blue-100-hover border border-blue-200 text-blue-950 fw-bold fs-xs d-flex flex-column align-items-center justify-content-center gap-2 transition-all cursor-pointer"
           >
-            <span class="text-3xl">📝</span>
+            <span class="fs-3xl">📝</span>
             <span>Điểm Danh Lớp</span>
           </button>
           <button
             (click)="activeTab = 'calls'"
-            class="p-4 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+            class="p-4 rounded-2xl bg-amber-50 bg-amber-100-hover border border-amber-200 text-amber-950 fw-bold fs-xs d-flex flex-column align-items-center justify-content-center gap-2 transition-all cursor-pointer"
           >
-            <span class="text-3xl">📞</span>
+            <span class="fs-3xl">📞</span>
             <span>Hộp Thư Gọi Điện</span>
           </button>
           <button
             (click)="showLookupModal = true"
-            class="p-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-950 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+            class="p-4 rounded-2xl bg-indigo-50 bg-indigo-100-hover border border-indigo-200 text-indigo-950 fw-bold fs-xs d-flex flex-column align-items-center justify-content-center gap-2 transition-all cursor-pointer"
           >
-            <span class="text-3xl">🔍</span>
+            <span class="fs-3xl">🔍</span>
             <span>Tra Cứu SV</span>
           </button>
           <button
             (click)="showPasswordModal = true"
-            class="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold text-xs flex flex-col items-center justify-center gap-2 transition-all cursor-pointer"
+            class="p-4 rounded-2xl bg-slate-50 bg-slate-100-hover border border-slate-200 text-slate-800 fw-bold fs-xs d-flex flex-column align-items-center justify-content-center gap-2 transition-all cursor-pointer"
           >
-            <span class="text-3xl">🔑</span>
+            <span class="fs-3xl">🔑</span>
             <span>Đổi Mật Khẩu</span>
           </button>
         </div>
@@ -313,7 +313,7 @@
         </div>
 
         <div *ngIf="!displayCourseGroups.length" class="at-empty">
-          <div class="text-2xl">📭</div>
+          <div class="fs-2xl">📭</div>
           Không tìm thấy lớp học phần nào phù hợp.
         </div>
       </section>
@@ -371,26 +371,26 @@
       </section>
 
       <!-- BẢNG MA TRẬN ĐIỂM DANH TÍCH CHỌN TRỰC TIẾP (Airtable / Notion Style) -->
-      <div *ngIf="attendanceMode === 'history'" class="space-y-4 relative pb-24">
+      <div *ngIf="attendanceMode === 'history'" class="space-y-4 position-relative pb-24">
         <!-- Success Banner (hiện sau khi bấm Lưu) -->
         <div
           *ngIf="submitResult"
-          class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xl animate-fade-in"
+          class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-4 d-flex align-items-center justify-content-between gap-3 shadow-xl animate-fade-in"
         >
-          <div class="flex items-center gap-3">
+          <div class="d-flex align-items-center gap-3">
             <div
-              class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-xl flex-shrink-0"
+              class="w-9 h-9 rounded-xl bg-white-20 d-flex align-items-center justify-content-center fs-xl flex-shrink-0"
             >
               🎉
             </div>
             <div>
-              <div class="font-bold text-sm sm:text-base">Đã Lưu Điểm Danh Thành Công!</div>
-              <div class="text-xs text-emerald-100 font-semibold mt-0.5">
+              <div class="fw-bold fs-sm fs-sm-base">Đã Lưu Điểm Danh Thành Công!</div>
+              <div class="fs-xs text-emerald-100 fw-semibold mt-0-5">
                 {{ submitResult.message }}
               </div>
               <div
                 *ngIf="submitResult.openedCases?.length"
-                class="text-xs text-amber-200 font-bold mt-0.5"
+                class="fs-xs text-amber-200 fw-bold mt-0-5"
               >
                 🗂️ {{ submitResult.openedCases.length }} sinh viên chạm mức cảnh báo — đã mở hồ sơ
                 chăm sóc.
@@ -399,7 +399,7 @@
           </div>
           <button
             (click)="submitResult = null"
-            class="text-white/80 hover:text-white font-bold text-lg p-1.5 rounded-lg hover:bg-white/10 transition-all flex-shrink-0"
+            class="text-white-80 text-white-hover fw-bold fs-lg p-1-5 rounded-lg bg-white-10-hover transition-all flex-shrink-0"
           >
             ✕
           </button>
@@ -609,7 +609,7 @@
             </button>
           </div>
           <div *ngIf="allSessions.length === 0" class="at-empty">
-            <div class="text-2xl">📭</div>
+            <div class="fs-2xl">📭</div>
             {{
               selectedGroup
                 ? 'Chưa có buổi điểm danh nào được ghi nhận cho học phần này.'
@@ -621,41 +621,41 @@
         <!-- THANH THAO TÁC NỔI Ở DƯỚI -->
         <div
           *ngIf="selectedGroup && activeSession && !isSessionLocked(activeSession)"
-          class="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-auto md:min-w-[860px] lg:min-w-[940px]"
+          class="position-fixed bottom-safe-bottom-26 bottom-md-6 start-50 translate-x-n50 z-50 w-vw-6 w-sm-auto min-w-md-860px min-w-lg-940px"
         >
           <div
-            class="bg-white/95 backdrop-blur-xl text-slate-800 px-4 sm:px-6 md:px-7 py-3.5 md:py-4 rounded-2xl md:rounded-[1.35rem] shadow-[0_18px_55px_-12px_rgba(76,29,149,0.38)] border border-violet-200/80 ring-1 ring-white/80 flex items-center gap-3 sm:gap-5 md:gap-6 flex-wrap md:flex-nowrap justify-center md:justify-between"
+            class="bg-white-95 backdrop-blur-xl text-slate-800 px-4 px-sm-6 px-md-7 py-3-5 py-md-4 rounded-2xl rounded-md-1-35rem shadow-tim-38 border border-violet-200-80 ring-1 ring-white-80 d-flex align-items-center gap-3 gap-sm-5 gap-md-6 flex-wrap flex-md-nowrap justify-content-center justify-content-md-between"
           >
             <!-- Nhãn buổi & bộ đếm -->
-            <div class="flex items-center gap-3 pr-3 sm:pr-5 border-r border-slate-200">
+            <div class="d-flex align-items-center gap-3 pe-3 pe-sm-5 border-end border-slate-200">
               <div
-                class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-50 border border-violet-200 text-violet-700 flex items-center justify-center text-lg md:text-xl font-bold shadow-sm"
+                class="w-10 h-10 w-md-12 h-md-12 rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-50 border border-violet-200 text-violet-700 d-flex align-items-center justify-content-center fs-lg fs-md-xl fw-bold shadow-sm"
               >
                 📅
               </div>
-              <div class="text-sm md:text-base leading-tight">
+              <div class="fs-sm fs-md-base lh-sm">
                 <div
-                  class="font-extrabold text-slate-900 flex items-center gap-1.5 whitespace-nowrap"
+                  class="fw-bold text-slate-900 d-flex align-items-center gap-1-5 text-nowrap"
                 >
                   <span>Buổi {{ activeSession.scheduledDate | date: 'dd/MM/yyyy' }}</span>
                   <span
                     *ngIf="isTodaySession(activeSession)"
-                    class="bg-violet-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-md uppercase"
+                    class="bg-violet-600 text-white fs-xs fw-bold px-1-5 py-0-5 rounded-md text-uppercase"
                     >Hôm Nay</span
                   >
                 </div>
-                <div class="mt-1 text-xs md:text-sm text-slate-500 font-semibold">
-                  <span class="text-rose-600 font-bold">{{
+                <div class="mt-1 fs-xs fs-md-sm text-slate-500 fw-semibold">
+                  <span class="text-rose-600 fw-bold">{{
                     getAbsentCountForSession(activeSession)
                   }}</span>
                   Vắng
                   <span
                     *ngIf="getExcusedCountForSession(activeSession) > 0"
-                    class="text-amber-700 font-bold"
+                    class="text-amber-700 fw-bold"
                   >
                     • {{ getExcusedCountForSession(activeSession) }} Có phép</span
                   >
-                  <span *ngIf="isSessionDirty(activeSession)" class="text-amber-700 font-bold ml-1"
+                  <span *ngIf="isSessionDirty(activeSession)" class="text-amber-700 fw-bold ms-1"
                     >• Chưa lưu</span
                   >
                 </div>
@@ -663,11 +663,11 @@
             </div>
 
             <!-- Thao tác nhanh -->
-            <div class="flex items-center gap-2 md:gap-3">
+            <div class="d-flex align-items-center gap-2 gap-md-3">
               <button
                 type="button"
                 (click)="markAllPresentInSession(activeSession)"
-                class="px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold bg-emerald-50 hover:bg-emerald-100 hover:-translate-y-0.5 text-emerald-700 border border-emerald-200 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                class="px-3-5 px-md-4 py-2-5 py-md-3 rounded-xl fs-xs fs-md-sm fw-bold bg-emerald-50 bg-emerald-100-hover translate-y-n0-5-hover text-emerald-700 border border-emerald-200 transition-all cursor-pointer d-flex align-items-center gap-1-5 text-nowrap"
                 title="Đánh dấu tất cả CÓ MẶT"
               >
                 ✓ Tất cả Có mặt
@@ -675,7 +675,7 @@
               <button
                 type="button"
                 (click)="markAllAbsentInSession(activeSession)"
-                class="px-3.5 md:px-4 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold bg-rose-50 hover:bg-rose-100 hover:-translate-y-0.5 text-rose-700 border border-rose-200 transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                class="px-3-5 px-md-4 py-2-5 py-md-3 rounded-xl fs-xs fs-md-sm fw-bold bg-rose-50 bg-rose-100-hover translate-y-n0-5-hover text-rose-700 border border-rose-200 transition-all cursor-pointer d-flex align-items-center gap-1-5 text-nowrap"
                 title="Đánh dấu tất cả VẮNG"
               >
                 V Tất cả Vắng
@@ -687,11 +687,11 @@
               type="button"
               (click)="submitMatrixSession(activeSession)"
               [disabled]="savingSessionKey === getSessionKey(activeSession)"
-              class="px-5 md:px-7 py-3 md:py-3.5 rounded-xl text-xs md:text-sm font-extrabold tracking-wide text-white shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:translate-y-0 whitespace-nowrap"
+              class="px-5 px-md-7 py-3 py-md-3-5 rounded-xl fs-xs fs-md-sm fw-bold tracking-wide text-white shadow-lg transition-all translate-y-n0-5-hover translate-y-0-active d-flex align-items-center justify-content-center gap-2 cursor-pointer opacity-50-disabled translate-y-0-disabled text-nowrap"
               [ngClass]="
                 isSessionDirty(activeSession)
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 ring-4 ring-emerald-100 shadow-emerald-500/25'
-                  : 'bg-gradient-to-r from-violet-700 to-fuchsia-600 hover:from-violet-800 hover:to-fuchsia-700 shadow-violet-500/30'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 from-emerald-700-hover to-teal-700-hover ring-4 ring-emerald-100 shadow-emerald-500-25'
+                  : 'bg-gradient-to-r from-violet-700 to-fuchsia-600 from-violet-800-hover to-fuchsia-700-hover shadow-violet-500-30'
               "
             >
               <span *ngIf="savingSessionKey === getSessionKey(activeSession)">⏳</span>
@@ -706,14 +706,14 @@
       <!-- Tab tóm tắt điểm danh -->
       <div *ngIf="attendanceMode === 'summary'" class="space-y-4">
         <div
-          class="bg-white/95 border border-slate-200/80 rounded-3xl shadow-xl shadow-slate-200/40 overflow-hidden backdrop-blur-sm"
+          class="bg-white-95 border border-slate-200-80 rounded-3xl shadow-xl shadow-slate-200-40 overflow-hidden backdrop-blur-sm"
         >
           <div
-            class="p-5 sm:p-6 border-b border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 flex items-center justify-between gap-4 flex-wrap"
+            class="p-5 p-sm-6 border-bottom border-slate-200-80 bg-gradient-to-r from-slate-50 via-white to-slate-50 d-flex align-items-center justify-content-between gap-4 flex-wrap"
           >
-            <div class="flex items-center gap-3.5">
+            <div class="d-flex align-items-center gap-3-5">
               <div
-                class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-600 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 flex-shrink-0"
+                class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-600 to-amber-500 text-white d-flex align-items-center justify-content-center shadow-lg shadow-rose-500-25 flex-shrink-0"
               >
                 <svg
                   class="w-6 h-6"
@@ -730,26 +730,26 @@
                 </svg>
               </div>
               <div>
-                <h3 class="font-bold text-slate-900 text-base sm:text-lg tracking-tight">
+                <h3 class="fw-bold text-slate-900 fs-base fs-sm-lg tracking-tight">
                   BẢNG TÓM TẮT VẮNG MỖI SINH VIÊN
                 </h3>
                 <div
-                  class="flex items-center gap-3 text-xs text-slate-500 font-semibold mt-1 flex-wrap"
+                  class="d-flex align-items-center gap-3 fs-xs text-slate-500 fw-semibold mt-1 flex-wrap"
                 >
                   <span
-                    class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200/60"
+                    class="bg-slate-100 text-slate-700 px-2-5 py-1 rounded-lg border border-slate-200-60"
                   >
                     {{ attendanceSummary?.totalSessions || 0 }} Buổi tổng cộng
                   </span>
                   <span
-                    class="bg-rose-50 text-rose-700 px-2.5 py-1 rounded-lg border border-rose-200/60 font-bold"
+                    class="bg-rose-50 text-rose-700 px-2-5 py-1 rounded-lg border border-rose-200-60 fw-bold"
                   >
                     {{ attendanceSummary?.periodsPerSession || 0 }} tiết/buổi ·
                     {{ attendanceSummary?.totalPeriods || '?' }} tiết cả học phần
                   </span>
                   <span
                     *ngFor="let level of attendanceSummary?.warningLevels"
-                    class="px-2.5 py-1 rounded-lg font-bold text-white"
+                    class="px-2-5 py-1 rounded-lg fw-bold text-white"
                     [style.backgroundColor]="level.color"
                   >
                     {{ level.name }}: từ {{ level.threshold
@@ -762,10 +762,10 @@
             <button
               (click)="loadAttendanceSummary()"
               [disabled]="isLoadingSummary"
-              class="px-4 py-2 bg-gradient-to-r from-rose-700 to-red-800 hover:from-rose-800 hover:to-red-900 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-rose-700/20 active:scale-95 disabled:opacity-50"
+              class="px-4 py-2 bg-gradient-to-r from-rose-700 to-red-800 from-rose-800-hover to-red-900-hover text-white fs-xs fw-bold rounded-xl d-flex align-items-center gap-1-5 transition-all shadow-md shadow-rose-700-20 scale-95-active opacity-50-disabled"
             >
               <svg
-                class="w-3.5 h-3.5 text-white"
+                class="w-3-5 h-3-5 text-white"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
@@ -781,60 +781,60 @@
             </button>
           </div>
 
-          <div *ngIf="!selectedGroup" class="p-12 text-center text-slate-400 text-xs font-medium">
+          <div *ngIf="!selectedGroup" class="p-12 text-center text-slate-400 fs-xs fw-medium">
             <div
-              class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner"
+              class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 mx-auto d-flex align-items-center justify-content-center fs-2xl mb-3 shadow-inner"
             >
               📚
             </div>
-            <div class="font-bold text-slate-600 text-sm">
+            <div class="fw-bold text-slate-600 fs-sm">
               Hãy chọn học phần ở trên để xem bảng tóm tắt vắng.
             </div>
           </div>
 
           <div *ngIf="selectedGroup && attendanceSummary" class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-sm border-collapse">
+            <table class="w-100 fs-sm border-collapse">
               <thead>
                 <tr
-                  class="bg-slate-50 text-slate-600 uppercase text-xs font-bold border-b border-slate-200"
+                  class="bg-slate-50 text-slate-600 text-uppercase fs-xs fw-bold border-bottom border-slate-200"
                 >
-                  <th class="p-4 text-left min-w-[50px]">#</th>
-                  <th class="p-4 text-left min-w-[180px]">Sinh Viên</th>
-                  <th class="p-4 text-left min-w-[90px]">Lớp</th>
-                  <th class="p-4 text-center min-w-[90px]">Có Mặt</th>
-                  <th class="p-4 text-center min-w-[90px]">Vắng</th>
-                  <th class="p-4 text-center min-w-[160px]">Tỷ Lệ %</th>
-                  <th class="p-4 text-left min-w-[130px]">SĐT SV</th>
-                  <th class="p-4 text-left min-w-[130px]">SĐT PH</th>
-                  <th class="p-4 text-center min-w-[140px]">Hồ sơ chăm sóc</th>
+                  <th class="p-4 text-start min-w-50px">#</th>
+                  <th class="p-4 text-start min-w-180px">Sinh Viên</th>
+                  <th class="p-4 text-start min-w-90px">Lớp</th>
+                  <th class="p-4 text-center min-w-90px">Có Mặt</th>
+                  <th class="p-4 text-center min-w-90px">Vắng</th>
+                  <th class="p-4 text-center min-w-160px">Tỷ Lệ %</th>
+                  <th class="p-4 text-start min-w-130px">SĐT SV</th>
+                  <th class="p-4 text-start min-w-130px">SĐT PH</th>
+                  <th class="p-4 text-center min-w-140px">Hồ sơ chăm sóc</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
                 <tr
                   *ngFor="let row of attendanceSummary.summary; let idx = index"
-                  class="hover:bg-slate-50/90 transition-colors"
-                  [ngClass]="row.isAtRisk ? 'bg-rose-50/40' : ''"
+                  class="bg-slate-50-90-hover transition-colors"
+                  [ngClass]="row.isAtRisk ? 'bg-rose-50-40' : ''"
                   [style.borderLeft]="row.warningLevel ? '4px solid ' + row.warningLevel.color : ''"
                 >
-                  <td class="p-4 font-bold text-slate-400 text-xs">{{ idx + 1 }}</td>
+                  <td class="p-4 fw-bold text-slate-400 fs-xs">{{ idx + 1 }}</td>
                   <td class="p-4">
-                    <div class="font-bold text-slate-900 text-xs sm:text-sm">
+                    <div class="fw-bold text-slate-900 fs-xs fs-sm-sm">
                       {{ row.student.fullName }}
                     </div>
-                    <div class="text-xs font-sans tabular-nums font-bold text-indigo-700">
+                    <div class="fs-xs font-sans tabular-nums fw-bold text-indigo-700">
                       {{ row.student.studentCode }}
                     </div>
                   </td>
-                  <td class="p-4 text-xs font-bold text-slate-600">{{ row.student.classCode }}</td>
+                  <td class="p-4 fs-xs fw-bold text-slate-600">{{ row.student.classCode }}</td>
                   <td class="p-4 text-center">
                     <span
-                      class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold"
+                      class="px-3 py-1 rounded-pill bg-emerald-50 text-emerald-700 border border-emerald-200 fs-xs fw-bold"
                       >{{ row.attendCount }}</span
                     >
                   </td>
                   <td class="p-4 text-center">
                     <span
-                      class="px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 shadow-2xs"
+                      class="px-3 py-1 rounded-pill fs-xs fw-bold d-inline-flex align-items-center gap-1 shadow-2xs"
                       [ngClass]="
                         row.warningLevel
                           ? 'text-white shadow-md'
@@ -848,7 +848,7 @@
                     </span>
                     <div
                       *ngIf="row.warningLevel"
-                      class="mt-1 text-[11px] font-bold"
+                      class="mt-1 fs-11px fw-bold"
                       [style.color]="row.warningLevel.color"
                     >
                       {{ row.warningLevel.name
@@ -856,12 +856,12 @@
                     </div>
                   </td>
                   <td class="p-4 text-center">
-                    <div class="flex items-center gap-2.5">
+                    <div class="d-flex align-items-center gap-2-5">
                       <div
-                        class="flex-1 bg-slate-100 rounded-full h-2.5 min-w-[60px] overflow-hidden border border-slate-200/60 p-0.5"
+                        class="flex-1 bg-slate-100 rounded-pill h-2-5 min-w-60px overflow-hidden border border-slate-200-60 p-0-5"
                       >
                         <div
-                          class="h-full rounded-full transition-all duration-500"
+                          class="h-100 rounded-pill transition-all duration-500"
                           [ngClass]="
                             row.attendRate >= 80
                               ? 'bg-emerald-500'
@@ -872,7 +872,7 @@
                           [style.width.%]="row.attendRate"
                         ></div>
                       </div>
-                      <span class="text-xs font-bold text-slate-700 w-11 text-right"
+                      <span class="fs-xs fw-bold text-slate-700 w-11 text-end"
                         >{{ row.attendRate }}%</span
                       >
                     </div>
@@ -886,10 +886,10 @@
                           courseGroupId: selectedGroup?._id,
                         })
                       "
-                      class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-200/60 transition-colors"
+                      class="d-inline-flex align-items-center gap-1-5 fs-xs fw-bold text-indigo-700 text-indigo-900-hover bg-indigo-50 bg-indigo-100-hover px-2-5 py-1 rounded-lg border border-indigo-200-60 transition-colors"
                     >
                       <svg
-                        class="w-3.5 h-3.5 text-indigo-600"
+                        class="w-3-5 h-3-5 text-indigo-600"
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
@@ -903,7 +903,7 @@
                       </svg>
                       <span>{{ row.student.phone }}</span>
                     </a>
-                    <span *ngIf="!row.student.phone" class="text-xs text-slate-400">—</span>
+                    <span *ngIf="!row.student.phone" class="fs-xs text-slate-400">—</span>
                   </td>
                   <td class="p-4">
                     <a
@@ -914,10 +914,10 @@
                           courseGroupId: selectedGroup?._id,
                         })
                       "
-                      class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200/60 transition-colors"
+                      class="d-inline-flex align-items-center gap-1-5 fs-xs fw-bold text-amber-800 text-amber-950-hover bg-amber-50 bg-amber-100-hover px-2-5 py-1 rounded-lg border border-amber-200-60 transition-colors"
                     >
                       <svg
-                        class="w-3.5 h-3.5 text-amber-700"
+                        class="w-3-5 h-3-5 text-amber-700"
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
@@ -931,15 +931,15 @@
                       </svg>
                       <span>{{ row.student.parentPhone }}</span>
                     </a>
-                    <span *ngIf="!row.student.parentPhone" class="text-xs text-slate-400">—</span>
+                    <span *ngIf="!row.student.parentPhone" class="fs-xs text-slate-400">—</span>
                   </td>
                   <td class="p-4 text-center">
                     <span
                       *ngIf="row.careStatus && row.careStatus !== 'da_ket_thuc'; else proposeCell"
-                      class="px-2.5 py-1 rounded-full text-xs font-bold border inline-flex items-center gap-1 bg-violet-50 text-violet-700 border-violet-200"
+                      class="px-2-5 py-1 rounded-pill fs-xs fw-bold border d-inline-flex align-items-center gap-1 bg-violet-50 text-violet-700 border-violet-200"
                       [title]="row.assignedStaff ? 'Nhân viên: ' + row.assignedStaff : ''"
                     >
-                      <span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                      <span class="w-1-5 h-1-5 rounded-pill bg-violet-500"></span>
                       <span>{{ row.careStatus | viLabel }}</span>
                     </span>
                     <ng-template #proposeCell>
@@ -947,12 +947,12 @@
                         *ngIf="canProposeCare; else noCase"
                         type="button"
                         (click)="proposeCare(row.student)"
-                        class="px-2.5 py-1 rounded-lg text-xs font-bold border border-dashed border-violet-300 text-violet-700 hover:bg-violet-50"
+                        class="px-2-5 py-1 rounded-lg fs-xs fw-bold border border-dashed border-violet-300 text-violet-700 bg-violet-50-hover"
                       >
                         + Đề xuất chăm sóc
                       </button>
                       <ng-template #noCase
-                        ><span class="text-xs text-slate-400">—</span></ng-template
+                        ><span class="fs-xs text-slate-400">—</span></ng-template
                       >
                     </ng-template>
                   </td>
@@ -963,10 +963,10 @@
 
           <div
             *ngIf="selectedGroup && isLoadingSummary"
-            class="p-10 text-center text-slate-400 text-xs font-medium"
+            class="p-10 text-center text-slate-400 fs-xs fw-medium"
           >
             <div
-              class="w-8 h-8 rounded-full border-2 border-slate-300 border-t-indigo-600 animate-spin mx-auto mb-2"
+              class="w-8 h-8 rounded-pill border-2 border-slate-300 border-top-indigo-600 animate-spin mx-auto mb-2"
             ></div>
             <div>Đang tải bảng tóm tắt vắng...</div>
           </div>
@@ -974,25 +974,25 @@
       </div>
 
       <!-- Toast kết quả gửi (nâng cấp) -->
-      <div *ngIf="submitResult" class="fixed top-5 right-5 z-[9999] max-w-md w-full">
+      <div *ngIf="submitResult" class="position-fixed top-5 end-5 z-9999 mw-md w-100">
         <div
           class="bg-white border border-emerald-200 rounded-2xl shadow-2xl p-5 space-y-3 animate-fade-in"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="flex items-center gap-3">
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
               <div
-                class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-xl flex-shrink-0"
+                class="w-10 h-10 rounded-xl bg-emerald-100 d-flex align-items-center justify-content-center fs-xl flex-shrink-0"
               >
                 🎉
               </div>
               <div>
-                <h5 class="font-bold text-sm text-emerald-900">Lưu Điểm Danh Thành Công!</h5>
-                <p class="text-xs font-medium text-slate-600 mt-0.5">{{ submitResult.message }}</p>
+                <h5 class="fw-bold fs-sm text-emerald-900">Lưu Điểm Danh Thành Công!</h5>
+                <p class="fs-xs fw-medium text-slate-600 mt-0-5">{{ submitResult.message }}</p>
               </div>
             </div>
             <button
               (click)="submitResult = null"
-              class="text-slate-400 hover:text-slate-600 font-bold"
+              class="text-slate-400 text-slate-600-hover fw-bold"
             >
               ✖
             </button>
@@ -1001,27 +1001,27 @@
             *ngIf="submitResult.openedCases?.length"
             class="bg-violet-50 rounded-xl p-3 space-y-1"
           >
-            <div class="text-xs font-bold text-violet-800 uppercase">Đã mở hồ sơ chăm sóc:</div>
+            <div class="fs-xs fw-bold text-violet-800 text-uppercase">Đã mở hồ sơ chăm sóc:</div>
             <div
               *ngFor="let oc of submitResult.openedCases"
-              class="text-xs font-medium text-slate-600 flex items-center gap-2"
+              class="fs-xs fw-medium text-slate-600 d-flex align-items-center gap-2"
             >
-              <span class="text-rose-600 font-bold">{{ oc.studentCode }}</span>
+              <span class="text-rose-600 fw-bold">{{ oc.studentCode }}</span>
               <span>{{ oc.studentName }}</span>
               <span class="text-slate-400">·</span>
-              <span class="text-violet-800 font-bold">{{ oc.level }}</span>
+              <span class="text-violet-800 fw-bold">{{ oc.level }}</span>
             </div>
           </div>
           <div *ngIf="submitResult.absentStudents?.length" class="space-y-2">
-            <div class="text-sm font-bold text-slate-800">
+            <div class="fs-sm fw-bold text-slate-800">
               Có {{ submitResult.absentStudents.length }} sinh viên vắng. Gọi điện ngay?
             </div>
-            <div class="max-h-56 overflow-y-auto space-y-1.5">
+            <div class="mh-56 overflow-y-auto space-y-1-5">
               <div
                 *ngFor="let st of submitResult.absentStudents"
-                class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50"
+                class="d-flex align-items-center justify-content-between gap-2 px-3 py-2 rounded-xl bg-slate-50"
               >
-                <span class="text-xs text-slate-700 min-w-0 truncate"
+                <span class="fs-xs text-slate-700 min-w-0 text-truncate"
                   ><b>{{ st.studentCode }}</b> · {{ st.fullName }}</span
                 >
                 <button
@@ -1032,7 +1032,7 @@
                     })
                   "
                   [disabled]="!st.phone && !st.parentPhone"
-                  class="shrink-0 px-3 h-8 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs font-bold"
+                  class="flex-shrink-0 px-3 h-8 rounded-lg bg-violet-600 bg-violet-700-hover opacity-50-disabled text-white fs-xs fw-bold"
                 >
                   📞 Gọi
                 </button>
@@ -1041,7 +1041,7 @@
             <button
               type="button"
               (click)="submitResult = null"
-              class="w-full h-9 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
+              class="w-100 h-9 rounded-xl border border-slate-200 text-slate-600 fs-xs fw-bold bg-slate-50-hover"
             >
               Không gọi lúc này
             </button>
@@ -1052,77 +1052,77 @@
       <!-- MODAL NHẬP LÝ DO VẮNG CÓ PHÉP -->
       <div
         *ngIf="showExcusedModal"
-        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in"
+        class="position-fixed inset-0 z-50 bg-slate-900-60 backdrop-blur-xs d-flex align-items-center justify-content-center p-4 animate-fade-in"
       >
         <div
-          class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4"
+          class="bg-white rounded-3xl mw-md w-100 p-6 shadow-2xl border border-slate-200 space-y-4"
         >
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2.5">
+          <div class="d-flex align-items-center justify-content-between border-bottom border-slate-100 pb-3">
+            <div class="d-flex align-items-center gap-2-5">
               <div
-                class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg border border-amber-300"
+                class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 d-flex align-items-center justify-content-center fw-bold fs-lg border border-amber-300"
               >
                 📝
               </div>
               <div>
-                <h4 class="font-bold text-slate-900 text-base">Lý Do Vắng Có Phép</h4>
-                <p class="text-xs text-slate-500 font-medium">
+                <h4 class="fw-bold text-slate-900 fs-base">Lý Do Vắng Có Phép</h4>
+                <p class="fs-xs text-slate-500 fw-medium">
                   Sinh viên:
-                  <b class="text-slate-900 font-bold">{{ excusedTarget?.studentName }}</b>
+                  <b class="text-slate-900 fw-bold">{{ excusedTarget?.studentName }}</b>
                 </p>
               </div>
             </div>
             <button
               (click)="cancelExcusedReason()"
-              class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              class="text-slate-400 text-slate-600-hover fw-bold fs-lg p-1-5 rounded-lg bg-slate-100-hover transition-colors"
             >
               ✕
             </button>
           </div>
 
           <div class="space-y-3">
-            <label class="block text-xs font-bold text-slate-700">Chọn nhanh lý do phổ biến:</label>
-            <div class="flex flex-wrap gap-1.5">
+            <label class="d-block fs-xs fw-bold text-slate-700">Chọn nhanh lý do phổ biến:</label>
+            <div class="d-flex flex-wrap gap-1-5">
               <button
                 *ngFor="let r of quickExcusedReasons"
                 type="button"
                 (click)="selectQuickReason(r)"
                 [ngClass]="
                   excusedReasonInput === r
-                    ? 'bg-amber-500 text-white font-bold border-amber-600 shadow-sm'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold border-slate-200'
+                    ? 'bg-amber-500 text-white fw-bold border-amber-600 shadow-sm'
+                    : 'bg-slate-100 bg-slate-200-hover text-slate-700 fw-semibold border-slate-200'
                 "
-                class="px-3 py-1.5 rounded-xl text-xs border transition-all cursor-pointer"
+                class="px-3 py-1-5 rounded-xl fs-xs border transition-all cursor-pointer"
               >
                 {{ r }}
               </button>
             </div>
 
             <div class="pt-1">
-              <label class="block text-xs font-bold text-slate-700 mb-1"
+              <label class="d-block fs-xs fw-bold text-slate-700 mb-1"
                 >Hoặc nhập chi tiết lý do:</label
               >
               <input
                 type="text"
                 [(ngModel)]="excusedReasonInput"
                 placeholder="Ví dụ: Bị sốt siêu vi, có giấy khám bệnh..."
-                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none font-medium"
+                class="w-100 px-3-5 py-2-5 rounded-xl border border-slate-300 fs-xs ring-2-focus ring-amber-500-focus border-amber-500-focus outline-none fw-medium"
               />
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div class="pt-3 border-top border-slate-100 d-flex align-items-center justify-content-end gap-2">
             <button
               type="button"
               (click)="cancelExcusedReason()"
-              class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+              class="px-4 py-2 rounded-xl fs-xs fw-bold bg-slate-100 bg-slate-200-hover text-slate-700 cursor-pointer"
             >
               Bỏ qua
             </button>
             <button
               type="button"
               (click)="saveExcusedReason()"
-              class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 cursor-pointer flex items-center gap-1"
+              class="px-5 py-2 rounded-xl fs-xs fw-bold bg-amber-500 bg-amber-600-hover text-white shadow-md shadow-amber-500-20 cursor-pointer d-flex align-items-center gap-1"
             >
               <span>💾</span>
               <span>Xác Nhận Lý Do</span>
@@ -1138,34 +1138,34 @@
   <!-- ========================================================= -->
   <div
     *ngIf="showLookupModal"
-    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    class="position-fixed inset-0 bg-slate-900-60 backdrop-blur-sm z-50 d-flex align-items-center justify-content-center p-4"
   >
-    <div class="bg-white w-full max-w-lg rounded-3xl p-6 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+    <div class="bg-white w-100 mw-lg rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="d-flex align-items-center justify-content-between border-bottom border-slate-100 pb-3">
+        <h3 class="fw-bold text-slate-900 fs-base d-flex align-items-center gap-2">
           <span>🔍</span>
           <span>TRA CỨU HỒ SƠ SINH VIÊN</span>
         </h3>
         <button
           (click)="showLookupModal = false"
-          class="text-slate-400 hover:text-slate-700 font-bold"
+          class="text-slate-400 text-slate-700-hover fw-bold"
         >
           ✖
         </button>
       </div>
 
       <div class="space-y-3">
-        <div class="flex items-center space-x-2">
+        <div class="d-flex align-items-center space-x-2">
           <input
             type="text"
             [(ngModel)]="lookupTerm"
             (keyup.enter)="doStudentLookup()"
             placeholder="Nhập MSSV hoặc Họ tên sinh viên..."
-            class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-300 font-bold text-xs text-slate-900"
+            class="w-100 px-4 py-3 rounded-2xl bg-slate-50 border border-slate-300 fw-bold fs-xs text-slate-900"
           />
           <button
             (click)="doStudentLookup()"
-            class="px-4 py-3 rounded-2xl bg-violet-600 text-white font-bold text-xs whitespace-nowrap touch-target"
+            class="px-4 py-3 rounded-2xl bg-violet-600 text-white fw-bold fs-xs text-nowrap touch-target"
           >
             Tìm
           </button>
@@ -1174,10 +1174,10 @@
         <!-- Thẻ chi tiết kết quả tra cứu -->
         <div
           *ngIf="lookupResult"
-          class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs space-y-2 text-slate-800"
+          class="p-4 rounded-2xl bg-blue-50-70 border border-blue-200 fs-xs space-y-2 text-slate-800"
         >
-          <div class="font-bold text-base text-blue-950">{{ lookupResult.fullName }}</div>
-          <div class="grid grid-cols-2 gap-2 text-slate-700">
+          <div class="fw-bold fs-base text-blue-950">{{ lookupResult.fullName }}</div>
+          <div class="d-grid grid-cols-2 gap-2 text-slate-700">
             <div>
               MSSV:
               <b class="text-slate-900 font-sans tabular-nums">{{ lookupResult.studentCode }}</b>
@@ -1200,7 +1200,7 @@
 
         <div
           *ngIf="lookupSearched && !lookupResult"
-          class="p-4 text-center bg-rose-50 border border-rose-200 text-rose-900 font-bold text-xs rounded-2xl"
+          class="p-4 text-center bg-rose-50 border border-rose-200 text-rose-900 fw-bold fs-xs rounded-2xl"
         >
           ⚠️ Không tìm thấy thông tin sinh viên phù hợp.
         </div>
@@ -1213,17 +1213,17 @@
   <!-- ========================================================= -->
   <div
     *ngIf="showPasswordModal"
-    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    class="position-fixed inset-0 bg-slate-900-60 backdrop-blur-sm z-50 d-flex align-items-center justify-content-center p-4"
   >
-    <div class="bg-white w-full max-w-md rounded-3xl p-6 space-y-4 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+    <div class="bg-white w-100 mw-md rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="d-flex align-items-center justify-content-between border-bottom border-slate-100 pb-3">
+        <h3 class="fw-bold text-slate-900 fs-base d-flex align-items-center gap-2">
           <span>🔑</span>
           <span>ĐỔI MẬT KHẨU CÁ NHÂN</span>
         </h3>
         <button
           (click)="showPasswordModal = false"
-          class="text-slate-400 hover:text-slate-700 font-bold"
+          class="text-slate-400 text-slate-700-hover fw-bold"
         >
           ✖
         </button>
@@ -1231,32 +1231,32 @@
 
       <div class="space-y-3">
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Mật Khẩu Mới</label>
+          <label class="d-block fs-xs fw-bold text-uppercase text-slate-600 mb-1">Mật Khẩu Mới</label>
           <input
             type="text"
             [(ngModel)]="newPasswordInput"
             placeholder="Nhập mật khẩu mới tại đây..."
-            class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-300 font-bold text-xs text-slate-900"
+            class="w-100 px-4 py-3 rounded-2xl bg-slate-50 border border-slate-300 fw-bold fs-xs text-slate-900"
           />
         </div>
 
         <div
           *ngIf="passwordChangedMsg"
-          class="p-3 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold"
+          class="p-3 rounded-xl bg-emerald-100 text-emerald-900 fs-xs fw-bold"
         >
           {{ passwordChangedMsg }}
         </div>
 
-        <div class="flex items-center justify-end space-x-2 pt-2">
+        <div class="d-flex align-items-center justify-content-end space-x-2 pt-2">
           <button
             (click)="showPasswordModal = false"
-            class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs touch-target"
+            class="px-4 py-2-5 rounded-xl bg-slate-100 text-slate-700 fw-bold fs-xs touch-target"
           >
             Hủy
           </button>
           <button
             (click)="saveMyNewPassword()"
-            class="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-bold text-xs shadow-md touch-target"
+            class="px-5 py-2-5 rounded-xl bg-violet-600 text-white fw-bold fs-xs shadow-md touch-target"
           >
             💾 Lưu Mật Khẩu
           </button>

@@ -1,0 +1,58 @@
+// Biến Bootstrap: chỉnh theo giao diện ITC Care (nạp trước bootstrap/scss/variables).
+
+// Utility không dùng !important: CSS riêng của component vẫn ghi đè được như trước.
+$enable-important-utilities: false;
+$enable-negative-margins: true;
+$enable-smooth-scroll: false;
+
+// Breakpoint: sm 640 / md 768 / lg 1024 / xl 1280 / xxl 1536.
+$grid-breakpoints: (
+  xs: 0,
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+  xxl: 1536px,
+);
+$container-max-widths: (
+  sm: 640px,
+  md: 768px,
+  lg: 1024px,
+  xl: 1280px,
+  xxl: 1536px,
+);
+
+// Font, màu nền và viền mặc định.
+$font-family-sans-serif: var(--font-sans);
+$body-bg: #eef2f6;
+$body-color: #121926;
+$border-color: #e5e7eb;
+$border-radius: 0.25rem;
+$border-radius-sm: 0.125rem;
+
+// Thang khoảng cách: mỗi bậc 0.25rem (p-4 = 1rem); dùng cho margin, padding và gap.
+$spacers: (
+  0: 0,
+  "0-5": 0.125rem,
+  1: 0.25rem,
+  "1-5": 0.375rem,
+  2: 0.5rem,
+  "2-5": 0.625rem,
+  3: 0.75rem,
+  "3-5": 0.875rem,
+  4: 1rem,
+  5: 1.25rem,
+  6: 1.5rem,
+  7: 1.75rem,
+  8: 2rem,
+  9: 2.25rem,
+  10: 2.5rem,
+  11: 2.75rem,
+  12: 3rem,
+  14: 3.5rem,
+  16: 4rem,
+  20: 5rem,
+  24: 6rem,
+  32: 8rem,
+  40: 10rem,
+);

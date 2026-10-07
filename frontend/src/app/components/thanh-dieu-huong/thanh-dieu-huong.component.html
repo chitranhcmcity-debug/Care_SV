@@ -1,31 +1,31 @@
 <!-- ===== Header (toàn chiều rộng) ===== -->
 <!-- Di động: thanh ứng dụng gọn (menu nằm ở thanh tab dưới); safe-area đệm phần tai thỏ -->
 <header
-  class="sticky top-0 z-40 h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)] md:h-20 md:pt-0 bg-white border-b border-slate-200 md:border-0 flex items-center gap-3 md:gap-4 px-4 md:px-6"
+  class="position-sticky top-0 z-40 h-safe-top-14 pt-safe-top h-md-20 pt-md-0 bg-white border-bottom border-slate-200 border-md-0 d-flex align-items-center gap-3 gap-md-4 px-4 px-md-6"
 >
   <!-- Thương hiệu -->
-  <a routerLink="/" class="hidden md:flex items-center gap-2.5 w-[228px] shrink-0">
-    <img [src]="branding.logo()" alt="Logo ITC" width="40" height="40" class="object-contain" />
-    <span class="font-bold text-lg text-slate-900 tracking-tight">{{ branding.title() }}</span>
+  <a routerLink="/" class="d-none d-md-flex align-items-center gap-2-5 w-228px flex-shrink-0">
+    <img [src]="branding.logo()" alt="Logo ITC" width="40" height="40" class="object-fit-contain" />
+    <span class="fw-bold fs-lg text-slate-900 tracking-tight">{{ branding.title() }}</span>
   </a>
 
   <!-- Di động: logo + tiêu đề trang hiện tại -->
-  <div class="md:hidden flex items-center gap-2.5 min-w-0">
+  <div class="d-md-none d-flex align-items-center gap-2-5 min-w-0">
     <img
       [src]="branding.logo()"
       alt="Logo ITC"
       width="32"
       height="32"
-      class="object-contain shrink-0"
+      class="object-fit-contain flex-shrink-0"
     />
-    <span class="font-semibold text-base text-slate-900 truncate">{{ pageTitle }}</span>
+    <span class="fw-semibold fs-base text-slate-900 text-truncate">{{ pageTitle }}</span>
   </div>
 
   <!-- Nút bật/tắt menu -->
   <button
     type="button"
     (click)="toggleSidebar()"
-    class="hidden md:flex w-9 h-9 rounded-lg bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white items-center justify-center transition-colors shrink-0"
+    class="d-none d-md-flex w-9 h-9 rounded-lg bg-violet-50 text-violet-600 bg-violet-600-hover text-white-hover align-items-center justify-content-center transition-colors flex-shrink-0"
     aria-label="Thu gọn / mở menu"
   >
     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -38,7 +38,7 @@
     routerLink="/"
     title="Về trang chủ website"
     aria-label="Về trang chủ website"
-    class="shrink-0 hidden md:inline-flex items-center gap-2 h-10 px-3 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+    class="flex-shrink-0 d-none d-md-inline-flex align-items-center gap-2 h-10 px-3 rounded-lg border border-slate-200 fs-sm fw-medium text-slate-700 bg-violet-50-hover text-violet-600-hover transition-colors"
   >
     <svg
       class="w-5 h-5"
@@ -50,13 +50,13 @@
     >
       <path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9" stroke-linecap="round" stroke-linejoin="round" />
     </svg>
-    <span class="hidden lg:inline">Về trang chủ</span>
+    <span class="d-none d-lg-inline">Về trang chủ</span>
   </a>
 
   <!-- Tìm trang -->
-  <div class="relative hidden md:block w-full max-w-[380px]">
+  <div class="position-relative d-none d-md-block w-100 mw-380px">
     <svg
-      class="w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+      class="w-18px h-18px position-absolute start-3-5 top-50 translate-y-n50 text-slate-500 pe-none"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -72,17 +72,17 @@
       (keydown.escape)="searchTerm = ''"
       placeholder="Tìm trang..."
       aria-label="Tìm trang"
-      class="w-full h-12 pl-10 pr-4 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-500 hover:border-violet-300"
+      class="w-100 h-12 ps-10 pe-4 rounded-lg border border-slate-200 bg-white fs-sm text-slate-900 text-slate-500-placeholder border-violet-300-hover"
     />
     <div
       *ngIf="searchTerm"
-      class="absolute left-0 right-0 top-[52px] bg-white rounded-xl shadow-xl border border-slate-200 p-2"
+      class="position-absolute start-0 end-0 top-52px bg-white rounded-xl shadow-xl border border-slate-200 p-2"
     >
       <button
         *ngFor="let item of searchResults"
         type="button"
         (click)="goTo(item)"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 text-left"
+        class="w-100 d-flex align-items-center gap-3 px-3 py-2-5 rounded-lg fs-sm text-slate-700 bg-violet-50-hover text-violet-600-hover text-start"
       >
         <svg
           class="w-5 h-5"
@@ -97,20 +97,20 @@
         </svg>
         {{ item.label }}
       </button>
-      <div *ngIf="!searchResults.length" class="px-3 py-2.5 text-sm text-slate-500">
+      <div *ngIf="!searchResults.length" class="px-3 py-2-5 fs-sm text-slate-500">
         Không tìm thấy trang phù hợp
       </div>
     </div>
   </div>
 
-  <div class="ml-auto flex items-center gap-3">
+  <div class="ms-auto d-flex align-items-center gap-3">
     <!-- Thông báo: nhiệm vụ gọi đang mở + nhiệm vụ được giao đang chờ người dùng -->
-    <div *ngIf="showNotifications" class="relative">
+    <div *ngIf="showNotifications" class="position-relative">
       <button
         type="button"
         (click)="toggleNotifications()"
         [attr.aria-expanded]="notificationsOpen"
-        class="hdr-bell relative w-11 h-11 rounded-2xl flex items-center justify-center transition-colors"
+        class="hdr-bell position-relative w-11 h-11 rounded-2xl d-flex align-items-center justify-content-center transition-colors"
         title="Thông báo"
         aria-label="Thông báo"
       >
@@ -129,33 +129,33 @@
         </svg>
         <span
           *ngIf="unseenCount > 0"
-          class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-gradient-to-br from-rose-500 to-red-600 text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white shadow-[0_4px_10px_-3px_rgb(225_29_72/0.7)]"
+          class="position-absolute top-n1 end-n1 min-w-20px h-5 px-1 rounded-pill bg-gradient-to-br from-rose-500 to-red-600 text-white fs-11px fw-bold d-flex align-items-center justify-content-center ring-2 ring-white shadow-hong"
         >
           {{ unseenCount > 99 ? '99+' : unseenCount }}
         </span>
       </button>
 
       <ng-container *ngIf="notificationsOpen">
-        <div class="fixed inset-0 z-40" (click)="closeNotifications()"></div>
+        <div class="position-fixed inset-0 z-40" (click)="closeNotifications()"></div>
         <div
-          class="fixed inset-x-4 top-[calc(3.75rem+env(safe-area-inset-top))] md:absolute md:inset-x-auto md:right-0 md:top-[48px] z-50 md:w-80 bg-white rounded-xl shadow-xl border border-slate-200 p-2"
+          class="position-fixed inset-x-4 top-safe-top-15 position-md-absolute inset-x-md-auto end-md-0 top-md-48px z-50 w-md-80 bg-white rounded-xl shadow-xl border border-slate-200 p-2"
         >
-          <div class="px-3 py-2 text-sm font-semibold text-slate-900">Thông báo</div>
+          <div class="px-3 py-2 fs-sm fw-semibold text-slate-900">Thông báo</div>
           <a
             *ngIf="unreadCount > 0"
             routerLink="/care"
             (click)="closeNotifications()"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
+            class="d-flex align-items-center gap-3 px-3 py-2-5 rounded-lg bg-violet-50-hover"
           >
             <span
-              class="w-9 h-9 shrink-0 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center"
+              class="w-9 h-9 flex-shrink-0 rounded-pill bg-violet-50 text-violet-600 d-flex align-items-center justify-content-center"
               >🗂️</span
             >
-            <span class="flex-1 text-sm text-slate-700">
+            <span class="flex-1 fs-sm text-slate-700">
               <strong class="text-slate-900">{{ unreadCount }}</strong> hồ sơ chăm sóc cần xử lý
               <span
                 *ngIf="newCare"
-                class="ml-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"
+                class="ms-1 px-1-5 py-0-5 rounded-pill bg-orange-100 text-orange-700 fs-xs fw-semibold"
                 >{{ newCare }} mới</span
               >
             </span>
@@ -164,25 +164,25 @@
             *ngIf="pendingTaskCount > 0"
             routerLink="/tasks"
             (click)="closeNotifications()"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-violet-50"
+            class="d-flex align-items-center gap-3 px-3 py-2-5 rounded-lg bg-violet-50-hover"
           >
             <span
-              class="w-9 h-9 shrink-0 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center"
+              class="w-9 h-9 flex-shrink-0 rounded-pill bg-violet-50 text-violet-600 d-flex align-items-center justify-content-center"
               >📋</span
             >
-            <span class="flex-1 text-sm text-slate-700">
+            <span class="flex-1 fs-sm text-slate-700">
               <strong class="text-slate-900">{{ pendingTaskCount }}</strong> nhiệm vụ được giao cần
               xử lý
               <span
                 *ngIf="newTasks"
-                class="ml-1 px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"
+                class="ms-1 px-1-5 py-0-5 rounded-pill bg-orange-100 text-orange-700 fs-xs fw-semibold"
                 >{{ newTasks }} mới</span
               >
             </span>
           </a>
           <div
             *ngIf="!unreadCount && !pendingTaskCount"
-            class="px-3 py-6 text-center text-sm text-slate-500"
+            class="px-3 py-6 text-center fs-sm text-slate-500"
           >
             Không có thông báo mới.
           </div>
@@ -191,23 +191,23 @@
     </div>
 
     <!-- Chip hồ sơ + menu -->
-    <div class="relative">
+    <div class="position-relative">
       <button
         type="button"
         (click)="profileMenuOpen = !profileMenuOpen; notificationsOpen = false"
         [attr.aria-expanded]="profileMenuOpen"
         aria-label="Tài khoản"
-        class="hdr-profile group flex items-center gap-3 h-12 pl-1.5 pr-3 rounded-2xl transition-colors"
+        class="hdr-profile group d-flex align-items-center gap-3 h-12 ps-1-5 pe-3 rounded-2xl transition-colors"
       >
         <span
-          class="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white flex items-center justify-center text-sm font-bold ring-2 ring-white shadow-[0_6px_14px_-6px_rgb(124_58_237/0.8)]"
+          class="w-10 h-10 flex-shrink-0 rounded-pill bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white d-flex align-items-center justify-content-center fs-sm fw-bold ring-2 ring-white shadow-tim-dam"
           >{{ userInitial }}</span
         >
-        <span class="hidden sm:block text-left leading-tight min-w-0">
-          <span class="block max-w-[180px] truncate text-sm font-bold text-slate-900">{{
+        <span class="d-none d-sm-block text-start lh-sm min-w-0">
+          <span class="d-block mw-180px text-truncate fs-sm fw-bold text-slate-900">{{
             user?.fullName
           }}</span>
-          <span class="block max-w-[180px] truncate text-xs text-slate-500">{{ roleLabel }}</span>
+          <span class="d-block mw-180px text-truncate fs-xs text-slate-500">{{ roleLabel }}</span>
         </span>
         <svg
           class="w-4 h-4 text-slate-500 transition-transform"
@@ -225,19 +225,19 @@
       </button>
 
       <ng-container *ngIf="profileMenuOpen">
-        <div class="fixed inset-0 z-40" (click)="profileMenuOpen = false"></div>
+        <div class="position-fixed inset-0 z-40" (click)="profileMenuOpen = false"></div>
         <div
-          class="absolute right-0 top-[56px] z-50 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-4"
+          class="position-absolute end-0 top-56px z-50 w-72 bg-white rounded-xl shadow-xl border border-slate-200 p-4"
         >
-          <div class="text-base text-slate-900">
-            Xin chào, <span class="font-semibold">{{ user?.fullName }}</span>
+          <div class="fs-base text-slate-900">
+            Xin chào, <span class="fw-semibold">{{ user?.fullName }}</span>
           </div>
-          <div class="text-sm text-slate-500 mt-0.5">{{ roleLabel }}</div>
+          <div class="fs-sm text-slate-500 mt-0-5">{{ roleLabel }}</div>
           <div class="h-px bg-slate-200 my-3"></div>
           <button
             type="button"
             (click)="logout()"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+            class="w-100 d-flex align-items-center gap-3 px-3 py-2-5 rounded-lg fs-sm text-slate-700 bg-violet-50-hover text-violet-600-hover transition-colors"
           >
             <svg
               class="w-5 h-5"
@@ -257,52 +257,52 @@
   </div>
 </header>
 
-<div class="flex">
+<div class="d-flex">
   <!-- Nền mờ của ngăn kéo trên di động -->
   <div
     *ngIf="sidebarOpen"
     (click)="closeSidebar()"
-    class="md:hidden fixed inset-0 bg-slate-900/40 z-40"
+    class="d-md-none position-fixed inset-0 bg-slate-900-40 z-40"
   ></div>
 
   <!-- ===== Sidebar ===== -->
   <aside
-    class="fixed md:sticky md:top-20 inset-y-0 left-0 z-50 md:z-auto w-[260px] md:h-[calc(100vh-80px)] bg-white flex flex-col shrink-0 transition-transform duration-200 md:translate-x-0"
+    class="position-fixed position-md-sticky top-md-20 inset-y-0 start-0 z-50 z-md-auto w-260px h-md-screen-80px bg-white d-flex flex-column flex-shrink-0 transition-transform duration-200 translate-x-md-0"
     [ngClass]="{
       'translate-x-0 shadow-xl': sidebarOpen,
-      '-translate-x-full': !sidebarOpen,
-      'md:hidden': sidebarCollapsed,
+      'translate-x-n100': !sidebarOpen,
+      'd-md-none': sidebarCollapsed,
     }"
   >
     <!-- Thương hiệu (chỉ ngăn kéo di động; thương hiệu desktop nằm ở header) -->
-    <div class="md:hidden h-20 px-6 flex items-center gap-2.5">
-      <img [src]="branding.logo()" alt="Logo ITC" width="36" height="36" class="object-contain" />
-      <span class="font-bold text-base leading-tight text-slate-900 line-clamp-2">{{
+    <div class="d-md-none h-20 px-6 d-flex align-items-center gap-2-5">
+      <img [src]="branding.logo()" alt="Logo ITC" width="36" height="36" class="object-fit-contain" />
+      <span class="fw-bold fs-base lh-sm text-slate-900 line-clamp-2">{{
         branding.title()
       }}</span>
     </div>
 
     <nav class="nav-scroll flex-1 overflow-y-auto px-4 pb-4" aria-label="Điều hướng chính">
-      <div *ngFor="let section of navSections" class="pt-3 first:pt-1">
-        <div class="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+      <div *ngFor="let section of navSections" class="pt-3 pt-1-first">
+        <div class="px-3 pb-1-5 fs-11px fw-semibold text-uppercase tracking-wide text-slate-400">
           {{ section.title }}
         </div>
-        <div class="space-y-0.5">
+        <div class="space-y-0-5">
           <a
             *ngFor="let item of section.links"
             [routerLink]="item.path"
             [queryParams]="item.queryParams"
             [ngClass]="
               isActive(item)
-                ? 'nav-active font-semibold'
-                : 'text-slate-700 hover:bg-violet-50 hover:text-violet-600'
+                ? 'nav-active fw-semibold'
+                : 'text-slate-700 bg-violet-50-hover text-violet-600-hover'
             "
             [attr.aria-current]="isActive(item) ? 'page' : null"
             (click)="closeSidebar()"
-            class="flex items-center gap-3 h-10 pl-6 pr-3 rounded-lg text-sm transition-colors"
+            class="d-flex align-items-center gap-3 h-10 ps-6 pe-3 rounded-lg fs-sm transition-colors"
           >
             <svg
-              class="w-5 h-5 shrink-0"
+              class="w-5 h-5 flex-shrink-0"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -312,10 +312,10 @@
             >
               <path [attr.d]="item.icon" />
             </svg>
-            <span class="flex-1 truncate">{{ item.label }}</span>
+            <span class="flex-1 text-truncate">{{ item.label }}</span>
             <span
               *ngIf="badgeCount(item) > 0"
-              class="min-w-[20px] h-5 px-1.5 rounded-full bg-violet-600 text-white text-[11px] font-semibold flex items-center justify-center"
+              class="min-w-20px h-5 px-1-5 rounded-pill bg-violet-600 text-white fs-11px fw-semibold d-flex align-items-center justify-content-center"
             >
               {{ badgeCount(item) }}
             </span>
@@ -325,18 +325,18 @@
     </nav>
 
     <!-- Vị trí nghỉ của robot AI Care (xem AiCareComponent.homePosition). -->
-    <div class="h-24 shrink-0" aria-hidden="true"></div>
+    <div class="h-24 flex-shrink-0" aria-hidden="true"></div>
   </aside>
 
   <!-- ===== Vùng nội dung ===== -->
   <main
-    class="app-main flex-1 min-w-0 min-h-[calc(100vh-80px)] md:rounded-t-3xl md:mr-5 transition-[margin] pb-[calc(6.5rem+env(safe-area-inset-bottom))] md:pb-0"
-    [ngClass]="sidebarCollapsed ? 'md:ml-5' : ''"
+    class="app-main flex-1 min-w-0 min-h-screen-80px rounded-top-md-3xl me-md-5 transition-margin pb-safe-bottom-26 pb-md-0"
+    [ngClass]="sidebarCollapsed ? 'ms-md-5' : ''"
   >
     <!-- Banner trang (di động hiện tiêu đề ở thanh ứng dụng thay vào đó) -->
     <section
       *ngIf="showPageHero && heroInfo as hero"
-      class="page-hero hidden md:block mx-4 md:mx-6 mt-5"
+      class="page-hero d-none d-md-block mx-4 mx-md-6 mt-5"
       [ngClass]="'page-hero--' + hero.tone"
     >
       <svg
@@ -362,8 +362,8 @@
         </g>
       </svg>
 
-      <div class="relative flex items-center gap-5 px-6 md:px-7 py-5">
-        <span class="page-hero-icon shrink-0" aria-hidden="true">
+      <div class="position-relative d-flex align-items-center gap-5 px-6 px-md-7 py-5">
+        <span class="page-hero-icon flex-shrink-0" aria-hidden="true">
           <svg
             class="w-8 h-8"
             viewBox="0 0 24 24"
@@ -377,14 +377,14 @@
           </svg>
         </span>
         <div class="min-w-0 flex-1">
-          <h1 class="text-2xl lg:text-[34px] font-extrabold tracking-tight leading-tight">
+          <h1 class="fs-2xl fs-lg-34px fw-bold tracking-tight lh-sm">
             {{ pageTitle }}
           </h1>
-          <p class="mt-1 text-sm lg:text-base font-normal text-white/85">{{ hero.subtitle }}</p>
+          <p class="mt-1 fs-sm fs-lg-base fw-normal text-white-85">{{ hero.subtitle }}</p>
         </div>
 
         <div
-          class="relative hidden lg:block w-[250px] h-[110px] shrink-0"
+          class="position-relative d-none d-lg-block w-250px h-110px flex-shrink-0"
           [class.page-hero-deco--flip]="hero.mascot === 'left'"
           aria-hidden="true"
         >
@@ -410,10 +410,10 @@
           />
         </div>
 
-        <div class="page-hero-tip hidden xl:block shrink-0">
-          <p class="text-xs font-medium text-slate-500">{{ heroDate }}</p>
-          <p class="text-lg font-extrabold leading-tight">{{ hero.tipTitle }}</p>
-          <p class="text-xs font-normal text-slate-500">{{ hero.tipText }}</p>
+        <div class="page-hero-tip d-none d-xl-block flex-shrink-0">
+          <p class="fs-xs fw-medium text-slate-500">{{ heroDate }}</p>
+          <p class="fs-lg fw-bold lh-sm">{{ hero.tipTitle }}</p>
+          <p class="fs-xs fw-normal text-slate-500">{{ hero.tipText }}</p>
         </div>
       </div>
     </section>
@@ -422,7 +422,7 @@
     <div
       *ngIf="subscriptionWarning as s"
       role="alert"
-      class="mx-4 md:mx-6 mt-4 px-5 py-3 rounded-xl border text-sm flex flex-wrap items-center justify-between gap-3"
+      class="mx-4 mx-md-6 mt-4 px-5 py-3 rounded-xl border fs-sm d-flex flex-wrap align-items-center justify-content-between gap-3"
       [ngClass]="
         s.active
           ? 'bg-amber-50 border-amber-200 text-amber-800'
@@ -442,7 +442,7 @@
       <a
         *ngIf="authService.isAdmin()"
         routerLink="/billing"
-        class="px-3 py-1.5 rounded-lg bg-white border border-current font-semibold hover:opacity-80"
+        class="px-3 py-1-5 rounded-lg bg-white border border-current fw-semibold opacity-80-hover"
         >Gia hạn ngay</a
       >
     </div>
@@ -453,28 +453,28 @@
 
 <!-- ===== Thanh tab dưới trên di động (nổi): các trang chính + "Menu" cho mọi thứ còn lại ===== -->
 <nav
-  class="md:hidden fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-30 rounded-3xl bg-white/90 backdrop-blur-xl ring-1 ring-slate-900/5 shadow-[0_10px_30px_-6px_rgba(76,29,149,0.28)] p-1.5"
+  class="d-md-none position-fixed inset-x-3 bottom-safe-bottom-3 z-30 rounded-3xl bg-white-90 backdrop-blur-xl ring-1 ring-slate-900-5 shadow-tim-28 p-1-5"
   aria-label="Điều hướng nhanh"
 >
-  <div class="flex">
+  <div class="d-flex">
     <a
       *ngFor="let item of bottomTabs"
       [routerLink]="item.path"
       [queryParams]="item.queryParams"
-      [ngClass]="isActive(item) ? 'text-violet-700 font-semibold' : 'text-slate-500'"
+      [ngClass]="isActive(item) ? 'text-violet-700 fw-semibold' : 'text-slate-500'"
       [attr.aria-current]="isActive(item) ? 'page' : null"
-      class="flex-1 min-w-0 py-1 flex flex-col items-center gap-0.5 text-[11px] active:scale-95 transition-transform"
+      class="flex-1 min-w-0 py-1 d-flex flex-column align-items-center gap-0-5 fs-11px scale-95-active transition-transform"
     >
       <span
-        class="relative w-14 h-8 rounded-full flex items-center justify-center transition-colors"
+        class="position-relative w-14 h-8 rounded-pill d-flex align-items-center justify-content-center transition-colors"
         [ngClass]="
           isActive(item)
-            ? 'bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-md shadow-violet-500/40'
+            ? 'bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-md shadow-violet-500-40'
             : ''
         "
       >
         <svg
-          class="w-[22px] h-[22px]"
+          class="w-22px h-22px"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -487,26 +487,26 @@
         </svg>
         <span
           *ngIf="badgeCount(item) > 0"
-          class="absolute -top-1 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-orange-500 text-white text-[10px] font-semibold flex items-center justify-center ring-2 ring-white"
+          class="position-absolute top-n1 end-1-5 min-w-18px h-18px px-1 rounded-pill bg-orange-500 text-white fs-10px fw-semibold d-flex align-items-center justify-content-center ring-2 ring-white"
         >
           {{ badgeCount(item) }}
         </span>
       </span>
-      <span class="max-w-full px-1 truncate">{{ item.short || item.label }}</span>
+      <span class="mw-100 px-1 text-truncate">{{ item.short || item.label }}</span>
     </a>
     <button
       type="button"
       (click)="sidebarOpen = true"
       [attr.aria-expanded]="sidebarOpen"
-      [ngClass]="sidebarOpen ? 'text-violet-700 font-semibold' : 'text-slate-500'"
-      class="flex-1 min-w-0 py-1 flex flex-col items-center gap-0.5 text-[11px] active:scale-95 transition-transform"
+      [ngClass]="sidebarOpen ? 'text-violet-700 fw-semibold' : 'text-slate-500'"
+      class="flex-1 min-w-0 py-1 d-flex flex-column align-items-center gap-0-5 fs-11px scale-95-active transition-transform"
     >
       <span
-        class="w-14 h-8 rounded-full flex items-center justify-center"
+        class="w-14 h-8 rounded-pill d-flex align-items-center justify-content-center"
         [ngClass]="sidebarOpen ? 'bg-violet-100' : ''"
       >
         <svg
-          class="w-[22px] h-[22px]"
+          class="w-22px h-22px"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

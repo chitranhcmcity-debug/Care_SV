@@ -1,6 +1,6 @@
 <div class="space-y-5">
   <!-- Banner chào mừng (thay header trang chung ở tab này) -->
-  <section class="ov-hero relative overflow-hidden rounded-[26px] text-white">
+  <section class="ov-hero position-relative overflow-hidden rounded-26px text-white">
     <svg
       class="ov-hero-art"
       viewBox="0 0 900 220"
@@ -45,34 +45,34 @@
     </svg>
 
     <div
-      class="relative grid lg:grid-cols-[1fr_auto_auto] items-center gap-5 px-6 md:px-8 py-6 md:py-7"
+      class="position-relative d-grid grid-cols-lg-1-auto-auto align-items-center gap-5 px-6 px-md-8 py-6 py-md-7"
     >
       <div class="space-y-3 min-w-0">
         <span
-          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur text-sm font-semibold"
+          class="d-inline-flex align-items-center gap-2 px-3-5 py-1-5 rounded-pill bg-white-20 backdrop-blur fs-sm fw-semibold"
         >
           <span aria-hidden="true">{{ greetingIcon() }}</span> Xin chào, {{ userName() }}
         </span>
-        <h1 class="text-3xl md:text-[40px] font-extrabold tracking-tight leading-tight">
+        <h1 class="fs-3xl fs-md-40px fw-bold tracking-tight lh-sm">
           Tổng quan hệ thống
         </h1>
-        <p class="text-white/85 text-sm md:text-base">
+        <p class="text-white-85 fs-sm fs-md-base">
           Quản lý điểm danh &amp; chăm sóc sinh viên toàn diện, thông minh.
         </p>
       </div>
 
       <!-- linh vật với hai bong bóng thoại dựng từ số liệu thật -->
-      <div class="relative hidden lg:block w-[300px] h-[150px]" aria-hidden="true">
-        <div *ngIf="data() as d" class="ov-bubble absolute left-0 top-0">
+      <div class="position-relative d-none d-lg-block w-300px h-150px" aria-hidden="true">
+        <div *ngIf="data() as d" class="ov-bubble position-absolute start-0 top-0">
           <b>{{ d.warnings.count }}</b> sinh viên đang ở mức cảnh báo
         </div>
-        <div *ngIf="data() as d" class="ov-bubble absolute left-2 bottom-3 flex items-center gap-2">
+        <div *ngIf="data() as d" class="ov-bubble position-absolute start-2 bottom-3 d-flex align-items-center gap-2">
           <span
-            class="w-6 h-6 rounded-full grid place-items-center text-white shrink-0"
+            class="w-6 h-6 rounded-pill d-grid place-items-center text-white flex-shrink-0"
             [ngClass]="attentionCount(d) ? 'bg-amber-500' : 'bg-emerald-500'"
           >
             <svg
-              class="w-3.5 h-3.5"
+              class="w-3-5 h-3-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -84,12 +84,12 @@
             </svg>
           </span>
           <span>
-            <b class="block">{{
+            <b class="d-block">{{
               attentionCount(d)
                 ? attentionCount(d) + ' mục cần chú ý'
                 : 'Hệ thống hoạt động ổn định'
             }}</b>
-            <span class="text-[11px] text-slate-500">{{
+            <span class="fs-11px text-slate-500">{{
               missingIntegrations.length
                 ? 'Còn dịch vụ chưa cấu hình'
                 : 'Tất cả dịch vụ đã cấu hình'
@@ -101,14 +101,14 @@
           alt=""
           width="170"
           height="140"
-          class="ov-mascot absolute right-0 -top-3 w-[150px] h-auto"
+          class="ov-mascot position-absolute end-0 top-n3 w-150px h-auto"
         />
       </div>
 
       <!-- thẻ ngày / giờ -->
-      <div class="ov-clock rounded-2xl px-5 py-4 flex items-center gap-4">
+      <div class="ov-clock rounded-2xl px-5 py-4 d-flex align-items-center gap-4">
         <span
-          class="w-12 h-12 rounded-2xl bg-amber-300/90 text-amber-700 grid place-items-center shrink-0"
+          class="w-12 h-12 rounded-2xl bg-amber-300-90 text-amber-700 d-grid place-items-center flex-shrink-0"
         >
           <svg
             class="w-7 h-7"
@@ -121,14 +121,14 @@
             <path [attr.d]="icons.sun" />
           </svg>
         </span>
-        <div class="leading-tight">
-          <div class="text-xs text-white/80">
+        <div class="lh-sm">
+          <div class="fs-xs text-white-80">
             {{ weekday(now()) }}, {{ now() | date: 'dd/MM/yyyy' }}
           </div>
-          <div class="text-2xl font-extrabold tabular-nums">{{ now() | date: 'HH:mm' }}</div>
-          <div class="mt-1 flex items-center gap-1 text-xs text-white/80">
+          <div class="fs-2xl fw-bold tabular-nums">{{ now() | date: 'HH:mm' }}</div>
+          <div class="mt-1 d-flex align-items-center gap-1 fs-xs text-white-80">
             <svg
-              class="w-3.5 h-3.5"
+              class="w-3-5 h-3-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -142,11 +142,11 @@
             type="button"
             (click)="load()"
             [disabled]="loading()"
-            class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-white/90 hover:text-white disabled:opacity-60"
+            class="mt-2 d-inline-flex align-items-center gap-1 fs-11px fw-semibold text-white-90 text-white-hover opacity-60-disabled"
             [title]="'Tự động làm mới mỗi 60 giây'"
           >
             <svg
-              class="w-3.5 h-3.5"
+              class="w-3-5 h-3-5"
               [class.animate-spin]="loading()"
               viewBox="0 0 24 24"
               fill="none"
@@ -169,21 +169,21 @@
 
   <div
     *ngIf="error()"
-    class="p-4 rounded-2xl border border-rose-200 bg-rose-50 text-sm text-rose-800 font-medium"
+    class="p-4 rounded-2xl border border-rose-200 bg-rose-50 fs-sm text-rose-800 fw-medium"
   >
     {{ error() }}
   </div>
 
   <ng-container *ngIf="data() as d">
     <!-- Số liệu chính -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
+    <div class="d-grid grid-cols-1 grid-cols-sm-2 grid-cols-xxl-4 gap-4">
       <div
         *ngFor="let s of stats()"
-        class="st-card p-4 2xl:p-5 flex items-center gap-3 2xl:gap-4"
+        class="st-card p-4 p-xxl-5 d-flex align-items-center gap-3 gap-xxl-4"
         [ngClass]="s.tone"
       >
         <span
-          class="st-icon w-12 h-12 2xl:w-14 2xl:h-14 rounded-2xl grid place-items-center text-white shrink-0"
+          class="st-icon w-12 h-12 w-xxl-14 h-xxl-14 rounded-2xl d-grid place-items-center text-white flex-shrink-0"
         >
           <svg
             class="w-7 h-7"
@@ -198,23 +198,23 @@
           </svg>
         </span>
         <div class="min-w-0 flex-1">
-          <div class="st-label truncate">{{ s.label }}</div>
-          <div class="flex items-baseline gap-2 mt-0.5">
+          <div class="st-label text-truncate">{{ s.label }}</div>
+          <div class="d-flex align-items-baseline gap-2 mt-0-5">
             <span class="st-value">{{ s.value }}</span>
             <span
-              class="text-xs font-bold whitespace-nowrap"
+              class="fs-xs fw-bold text-nowrap"
               [ngClass]="s.added ? 'text-emerald-600' : 'text-slate-400'"
               [title]="'Thêm mới trong 7 ngày qua'"
               >{{ s.added ? '↑ ' + s.added : '—' }}
-              <span class="font-medium text-slate-400">7 ngày</span></span
+              <span class="fw-medium text-slate-400">7 ngày</span></span
             >
           </div>
-          <div class="text-xs text-slate-500 mt-1 leading-snug">{{ s.sub }}</div>
+          <div class="fs-xs text-slate-500 mt-1 lh-snug">{{ s.sub }}</div>
         </div>
-        <div class="flex items-end gap-[3px] h-11 shrink-0 self-end mb-1" aria-hidden="true">
+        <div class="d-flex align-items-end gap-3px h-11 flex-shrink-0 align-self-end mb-1" aria-hidden="true">
           <span
             *ngFor="let h of sparkHeights(s.spark); let last = last"
-            class="st-spark w-[5px]"
+            class="st-spark w-5px"
             [class.is-last]="last"
             [style.height.%]="h"
           ></span>
@@ -225,9 +225,9 @@
     <!-- Dải cần chú ý -->
     <div
       *ngIf="attentionCount(d)"
-      class="ov-attention flex flex-wrap items-center gap-x-5 gap-y-2 px-5 py-3.5 rounded-2xl text-sm text-amber-900"
+      class="ov-attention d-flex flex-wrap align-items-center column-gap-5 row-gap-2 px-5 py-3-5 rounded-2xl fs-sm text-amber-900"
     >
-      <span class="flex items-center gap-2 font-bold shrink-0">
+      <span class="d-flex align-items-center gap-2 fw-bold flex-shrink-0">
         <svg class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
           <path
             d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"
@@ -238,16 +238,16 @@
       </span>
       <span *ngIf="!d.subscription.active" class="ov-att-item">
         Gói dịch vụ đã hết hạn — chức năng nghiệp vụ đang bị khóa.
-        <a routerLink="/billing" class="font-semibold underline">Gia hạn</a>
+        <a routerLink="/billing" class="fw-semibold text-decoration-underline">Gia hạn</a>
       </span>
       <span *ngIf="d.subscription.active && d.subscription.daysLeft <= 7" class="ov-att-item">
         Gói dịch vụ còn {{ d.subscription.daysLeft }} ngày.
-        <a routerLink="/billing" class="font-semibold underline">Gia hạn</a>
+        <a routerLink="/billing" class="fw-semibold text-decoration-underline">Gia hạn</a>
       </span>
       <span *ngIf="pendingUsers" class="ov-att-item">
         {{ pendingUsers }} tài khoản tự đăng ký chưa kích hoạt (chờ Trưởng phòng / PHT duyệt hoặc
         chờ nhập key).
-        <a routerLink="/admin" [queryParams]="{ tab: 'staff' }" class="font-semibold underline"
+        <a routerLink="/admin" [queryParams]="{ tab: 'staff' }" class="fw-semibold text-decoration-underline"
           >Xem tài khoản</a
         >
       </span>
@@ -259,16 +259,16 @@
         <a
           routerLink="/admin"
           [queryParams]="{ tab: 'integrations' }"
-          class="font-semibold underline"
+          class="fw-semibold text-decoration-underline"
           >Cấu hình API</a
         >
       </span>
     </div>
 
     <!-- Điểm danh · cuộc gọi · cảnh báo -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-[1.45fr_1fr_1fr] gap-5">
+    <div class="d-grid grid-cols-1 grid-cols-lg-2 grid-cols-xxl-145-1-1 gap-5">
       <!-- Biểu đồ điểm danh dạng chồng -->
-      <section class="ov-card p-5 space-y-4 lg:col-span-2 2xl:col-span-1">
+      <section class="ov-card p-5 space-y-4 col-span-lg-2 col-span-xxl-1">
         <div class="ov-card-head">
           <h4>
             <span class="ov-card-icon bg-violet-100 text-violet-600"
@@ -289,40 +289,40 @@
             >Xem chi tiết →</a
           >
         </div>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
-          <span class="flex items-center gap-1.5"
-            ><span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>Có mặt</span
+        <div class="d-flex flex-wrap align-items-center column-gap-4 row-gap-1 fs-xs text-slate-600">
+          <span class="d-flex align-items-center gap-1-5"
+            ><span class="w-2-5 h-2-5 rounded-pill bg-violet-500"></span>Có mặt</span
           >
-          <span class="flex items-center gap-1.5"
-            ><span class="w-2.5 h-2.5 rounded-full bg-fuchsia-300"></span>Nghỉ phép</span
+          <span class="d-flex align-items-center gap-1-5"
+            ><span class="w-2-5 h-2-5 rounded-pill bg-fuchsia-300"></span>Nghỉ phép</span
           >
-          <span class="flex items-center gap-1.5"
-            ><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>Vắng</span
+          <span class="d-flex align-items-center gap-1-5"
+            ><span class="w-2-5 h-2-5 rounded-pill bg-rose-400"></span>Vắng</span
           >
-          <span class="ml-auto text-slate-400">{{ total('attendance') }} buổi điểm danh</span>
+          <span class="ms-auto text-slate-400">{{ total('attendance') }} buổi điểm danh</span>
         </div>
-        <div class="flex gap-2">
+        <div class="d-flex gap-2">
           <div
-            class="flex flex-col justify-between h-44 text-[10px] text-slate-400 text-right w-7 shrink-0 -mt-1.5 pb-0"
+            class="d-flex flex-column justify-content-between h-44 fs-10px text-slate-400 text-end w-7 flex-shrink-0 mt-n1-5 pb-0"
           >
             <span *ngFor="let t of axisTicks()">{{ t }}</span>
           </div>
-          <div class="relative flex-1 h-44">
-            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+          <div class="position-relative flex-1 h-44">
+            <div class="position-absolute inset-0 d-flex flex-column justify-content-between pe-none">
               <span
                 *ngFor="let t of axisTicks()"
-                class="border-t border-dashed border-slate-100"
+                class="border-top border-dashed border-slate-100"
               ></span>
             </div>
             <div
-              class="relative h-full flex items-end gap-2 sm:gap-3"
+              class="position-relative h-100 d-flex align-items-end gap-2 gap-sm-3"
               role="list"
               aria-label="Điểm danh 7 ngày qua"
             >
               <div
                 *ngFor="let day of d.activity; let i = index"
                 role="listitem"
-                class="relative flex-1 h-full flex flex-col justify-end items-center"
+                class="position-relative flex-1 h-100 d-flex flex-column justify-content-end align-items-center"
                 [attr.aria-label]="
                   fullDayLabel(day.date) +
                   ': ' +
@@ -338,24 +338,24 @@
               >
                 <div
                   *ngIf="hovered() === i"
-                  class="ov-tip absolute z-10 bottom-full mb-2 left-1/2 -translate-x-1/2"
+                  class="ov-tip position-absolute z-10 bottom-100 mb-2 start-50 translate-x-n50"
                 >
-                  <div class="font-bold text-slate-900 mb-1">{{ fullDayLabel(day.date) }}</div>
+                  <div class="fw-bold text-slate-900 mb-1">{{ fullDayLabel(day.date) }}</div>
                   <div class="text-slate-500">{{ day.attendance }} buổi điểm danh</div>
-                  <div class="flex justify-between gap-4">
+                  <div class="d-flex justify-content-between gap-4">
                     <span><i class="bg-violet-500"></i>Có mặt</span
                     ><b>{{ day.students.present }}</b>
                   </div>
-                  <div class="flex justify-between gap-4">
+                  <div class="d-flex justify-content-between gap-4">
                     <span><i class="bg-fuchsia-300"></i>Nghỉ phép</span
                     ><b>{{ day.students.excused }}</b>
                   </div>
-                  <div class="flex justify-between gap-4">
+                  <div class="d-flex justify-content-between gap-4">
                     <span><i class="bg-rose-400"></i>Vắng</span><b>{{ day.students.absent }}</b>
                   </div>
                 </div>
                 <div
-                  class="ov-stack w-full max-w-11"
+                  class="ov-stack w-100 mw-11"
                   [class.is-hovered]="hovered() === i"
                   [style.height.%]="segment(dayTotal(day))"
                 >
@@ -370,7 +370,7 @@
             </div>
           </div>
         </div>
-        <div class="flex gap-2 sm:gap-3 pl-9 text-[11px] text-slate-500">
+        <div class="d-flex gap-2 gap-sm-3 ps-9 fs-11px text-slate-500">
           <span *ngFor="let day of d.activity" class="flex-1 text-center">{{
             dayLabel(day.date)
           }}</span>
@@ -399,7 +399,7 @@
             >Xem chi tiết →</a
           >
         </div>
-        <div class="flex justify-center py-1">
+        <div class="d-flex justify-content-center py-1">
           <div
             class="ov-donut"
             [style.background]="dn.gradient"
@@ -407,24 +407,24 @@
             [attr.aria-label]="dn.total + ' cuộc gọi trong 7 ngày'"
           >
             <div class="ov-donut-hole">
-              <div class="text-3xl font-extrabold text-slate-900 tabular-nums">{{ dn.total }}</div>
-              <div class="text-xs text-slate-500">cuộc gọi</div>
+              <div class="fs-3xl fw-bold text-slate-900 tabular-nums">{{ dn.total }}</div>
+              <div class="fs-xs text-slate-500">cuộc gọi</div>
             </div>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-x-3 gap-y-2.5">
-          <div *ngFor="let p of dn.parts" class="text-xs">
-            <div class="flex items-center gap-1.5 text-slate-500">
-              <span class="w-2.5 h-2.5 rounded-full shrink-0" [style.background]="p.color"></span
+        <div class="d-grid grid-cols-2 column-gap-3 row-gap-2-5">
+          <div *ngFor="let p of dn.parts" class="fs-xs">
+            <div class="d-flex align-items-center gap-1-5 text-slate-500">
+              <span class="w-2-5 h-2-5 rounded-pill flex-shrink-0" [style.background]="p.color"></span
               >{{ p.label }}
             </div>
-            <div class="pl-4 font-bold text-slate-800 tabular-nums">
+            <div class="ps-4 fw-bold text-slate-800 tabular-nums">
               {{ p.value }}
-              <span class="font-medium text-slate-400">({{ p.percent | number: '1.0-1' }}%)</span>
+              <span class="fw-medium text-slate-400">({{ p.percent | number: '1.0-1' }}%)</span>
             </div>
           </div>
         </div>
-        <div class="text-xs text-slate-500 border-t border-dashed border-violet-100 pt-3">
+        <div class="fs-xs text-slate-500 border-top border-dashed border-violet-100 pt-3">
           🎙️ <b class="text-slate-700">{{ d.callsWithRecording }}</b> / {{ total('calls') }} cuộc
           gọi có ghi âm
         </div>
@@ -452,7 +452,7 @@
             >Xem tất cả →</a
           >
         </div>
-        <div *ngIf="!d.warnings.items.length" class="py-8 text-center text-sm text-slate-400">
+        <div *ngIf="!d.warnings.items.length" class="py-8 text-center fs-sm text-slate-400">
           ✅ Chưa có sinh viên nào chạm mức cảnh báo.
         </div>
         <div *ngFor="let w of d.warnings.items" class="ov-warn">
@@ -469,28 +469,28 @@
               <path [attr.d]="icons.alert" />
             </svg>
           </span>
-          <div class="min-w-0 flex-1 leading-tight">
-            <div class="text-sm font-bold text-slate-900 truncate">
+          <div class="min-w-0 flex-1 lh-sm">
+            <div class="fs-sm fw-bold text-slate-900 text-truncate">
               {{ w.level }}<span *ngIf="w.examBan" class="text-rose-600"> · cấm thi</span>
             </div>
-            <div class="text-xs text-slate-500 truncate">
+            <div class="fs-xs text-slate-500 text-truncate">
               {{ w.student.studentCode }} - {{ w.student.fullName }} · {{ w.groupCode }}
             </div>
           </div>
-          <span class="text-[11px] text-slate-400 whitespace-nowrap">{{
+          <span class="fs-11px text-slate-400 text-nowrap">{{
             timeAgo(w.lastAbsence)
           }}</span>
         </div>
         <div
           *ngIf="d.warnings.count > d.warnings.items.length"
-          class="text-xs text-slate-500 text-center pt-1"
+          class="fs-xs text-slate-500 text-center pt-1"
         >
           và {{ d.warnings.count - d.warnings.items.length }} sinh viên khác
         </div>
       </section>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
+    <div class="d-grid grid-cols-1 grid-cols-lg-2 grid-cols-xxl-3 gap-5">
       <!-- Tài khoản theo vai trò + tài khoản mới nhất -->
       <section class="ov-card p-5 space-y-4">
         <div class="ov-card-head">
@@ -526,30 +526,30 @@
               <path [attr.d]="icons.users" />
             </svg>
           </span>
-          <span class="w-36 shrink-0 text-sm text-slate-700 truncate" [title]="roleLabels[role]">{{
+          <span class="w-36 flex-shrink-0 fs-sm text-slate-700 text-truncate" [title]="roleLabels[role]">{{
             roleLabels[role]
           }}</span>
           <div class="ov-track flex-1"><span [style.width.%]="roleShare(role)"></span></div>
-          <strong class="w-8 text-right text-sm text-slate-800 tabular-nums">{{
+          <strong class="w-8 text-end fs-sm text-slate-800 tabular-nums">{{
             d.users.byRole[role] || 0
           }}</strong>
         </div>
 
-        <div class="pt-3 border-t border-dashed border-violet-100 space-y-1">
-          <div class="text-xs font-bold text-slate-500 pb-1">Mới tạo gần đây</div>
+        <div class="pt-3 border-top border-dashed border-violet-100 space-y-1">
+          <div class="fs-xs fw-bold text-slate-500 pb-1">Mới tạo gần đây</div>
           <div
             *ngFor="let u of d.users.recent; let ui = index"
             class="ov-row ov-row--hover"
             [attr.data-tone]="ui % 4"
           >
             <span class="ov-avatar">{{ initials(u.fullName) }}</span>
-            <div class="min-w-0 flex-1 leading-tight">
-              <div class="text-sm font-semibold text-slate-900 truncate">{{ u.fullName }}</div>
-              <div class="text-xs text-slate-500 truncate">
+            <div class="min-w-0 flex-1 lh-sm">
+              <div class="fs-sm fw-semibold text-slate-900 text-truncate">{{ u.fullName }}</div>
+              <div class="fs-xs text-slate-500 text-truncate">
                 {{ roleLabels[u.role] }} · {{ u.email }}
               </div>
             </div>
-            <span class="text-[11px] text-slate-400 whitespace-nowrap">{{
+            <span class="fs-11px text-slate-400 text-nowrap">{{
               u.createdAt | date: 'dd/MM'
             }}</span>
           </div>
@@ -577,9 +577,9 @@
           </h4>
           <a routerLink="/billing" class="ov-link">Chi tiết →</a>
         </div>
-        <div class="flex items-center gap-6">
+        <div class="d-flex align-items-center gap-6">
           <div
-            class="ov-ring shrink-0"
+            class="ov-ring flex-shrink-0"
             [style.background]="
               'conic-gradient(' +
               (d.subscription.active ? '#ec4899' : '#94a3b8') +
@@ -589,10 +589,10 @@
             "
           >
             <div class="ov-ring-hole">
-              <div class="text-3xl font-extrabold text-slate-900 tabular-nums">
+              <div class="fs-3xl fw-bold text-slate-900 tabular-nums">
                 {{ d.subscription.daysLeft }}
               </div>
-              <div class="text-xs text-slate-500">ngày còn lại</div>
+              <div class="fs-xs text-slate-500">ngày còn lại</div>
             </div>
           </div>
           <div class="space-y-3 min-w-0">
@@ -600,19 +600,19 @@
               <span class="ov-pill-dot"></span>
               {{ d.subscription.active ? 'Đang hoạt động' : 'Đã hết hạn' }}
             </span>
-            <div class="text-sm text-slate-600 space-y-1.5">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+            <div class="fs-sm text-slate-600 space-y-1-5">
+              <div class="d-flex align-items-center gap-2">
+                <span class="w-2-5 h-2-5 rounded-pill bg-pink-500"></span>
                 {{ d.subscription.isTrial ? 'Dùng thử' : 'Gói trả phí' }}
               </div>
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="w-2-5 h-2-5 rounded-pill bg-violet-500"></span>
                 Hết hạn
                 <b class="text-slate-800">{{ d.subscription.expiresAt | date: 'dd/MM/yyyy' }}</b>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="d-flex align-items-center gap-2">
                 <span
-                  class="w-2.5 h-2.5 rounded-full"
+                  class="w-2-5 h-2-5 rounded-pill"
                   [ngClass]="d.subscription.payosConfigured ? 'bg-emerald-500' : 'bg-slate-300'"
                 ></span>
                 PayOS:
@@ -653,10 +653,10 @@
           class="ov-row ov-row--hover"
           [attr.data-tone]="ii % 4"
         >
-          <span class="ov-row-icon text-base" aria-hidden="true">{{
+          <span class="ov-row-icon fs-base" aria-hidden="true">{{
             integrationIcon(item.name)
           }}</span>
-          <span class="flex-1 min-w-0 text-sm font-semibold text-slate-800 truncate">{{
+          <span class="flex-1 min-w-0 fs-sm fw-semibold text-slate-800 text-truncate">{{
             item.name
           }}</span>
           <span class="ov-pill ov-pill--sm" [class.is-muted]="!item.configured">

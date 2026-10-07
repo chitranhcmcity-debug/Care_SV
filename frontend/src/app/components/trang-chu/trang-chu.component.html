@@ -1,27 +1,27 @@
-<div class="min-h-screen bg-white text-slate-900 flex flex-col">
+<div class="min-vh-100 bg-white text-slate-900 d-flex flex-column">
   <!-- ============ HEADER ============ -->
-  <header class="sticky top-0 z-50 bg-white/75 backdrop-blur-xl border-b border-violet-100/70">
+  <header class="position-sticky top-0 z-50 bg-white-75 backdrop-blur-xl border-bottom border-violet-100-70">
     <div
-      class="max-w-[1440px] mx-auto px-4 sm:px-5 md:px-6 h-16 lg:h-[72px] flex items-center justify-between gap-3 sm:gap-4"
+      class="mw-1440px mx-auto px-4 px-sm-5 px-md-6 h-16 h-lg-72px d-flex align-items-center justify-content-between gap-3 gap-sm-4"
     >
-      <a routerLink="/" class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+      <a routerLink="/" class="d-flex align-items-center gap-2-5 gap-sm-3 min-w-0">
         <img
           [src]="branding.logo()"
           alt="Logo ITC"
           width="42"
           height="42"
-          class="object-contain w-9 h-9 sm:w-[42px] sm:h-[42px] shrink-0"
+          class="object-fit-contain w-9 h-9 w-sm-42px h-sm-42px flex-shrink-0"
         />
-        <div class="leading-tight min-w-0">
-          <div class="font-extrabold text-slate-900 truncate">{{ branding.title() }}</div>
-          <div class="hidden sm:block text-xs text-slate-500 whitespace-nowrap">
+        <div class="lh-sm min-w-0">
+          <div class="fw-bold text-slate-900 text-truncate">{{ branding.title() }}</div>
+          <div class="d-none d-sm-block fs-xs text-slate-500 text-nowrap">
             Điểm danh &amp; chăm sóc sinh viên
           </div>
         </div>
       </a>
 
       <nav
-        class="hidden xl:flex items-center gap-0.5 p-1 rounded-full bg-slate-100/80 text-sm font-medium text-slate-600"
+        class="d-none d-xl-flex align-items-center gap-0-5 p-1 rounded-pill bg-slate-100-80 fs-sm fw-medium text-slate-600"
       >
         <a
           href="#trang-chu"
@@ -29,15 +29,15 @@
           [attr.aria-current]="
             activeSection() === 'trang-chu' || !activeSection() ? 'location' : null
           "
-          class="flex items-center gap-1.5 px-3.5 xl:px-4 py-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          class="d-flex align-items-center gap-1-5 px-3-5 px-xl-4 py-2 rounded-pill transition-all outline-none-focus-visible ring-2-focus-visible ring-violet-500-focus-visible"
           [ngClass]="
             activeSection() === 'trang-chu' || !activeSection()
-              ? 'bg-violet-100 text-violet-700 font-semibold shadow-sm'
-              : 'hover:text-slate-900'
+              ? 'bg-violet-100 text-violet-700 fw-semibold shadow-sm'
+              : 'text-slate-900-hover'
           "
         >
           <svg
-            class="w-[18px] h-[18px]"
+            class="w-18px h-18px"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -55,15 +55,15 @@
           [href]="'#' + link.id"
           (click)="scrollTo(link.id, $event)"
           [attr.aria-current]="activeSection() === link.id ? 'location' : null"
-          class="flex items-center gap-1.5 px-3 xl:px-3.5 py-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          class="d-flex align-items-center gap-1-5 px-3 px-xl-3-5 py-2 rounded-pill transition-all outline-none-focus-visible ring-2-focus-visible ring-violet-500-focus-visible"
           [ngClass]="
             activeSection() === link.id
-              ? 'bg-violet-100 text-violet-700 font-semibold shadow-sm'
-              : 'hover:text-slate-900'
+              ? 'bg-violet-100 text-violet-700 fw-semibold shadow-sm'
+              : 'text-slate-900-hover'
           "
         >
           <svg
-            class="w-[18px] h-[18px]"
+            class="w-18px h-18px"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -78,21 +78,21 @@
         </a>
       </nav>
 
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
         <div
           *ngIf="authService.currentUser() as user"
-          class="hidden md:flex xl:hidden 2xl:flex items-center gap-2.5 pl-1.5 pr-3 h-11 rounded-full bg-white border border-slate-200"
+          class="d-none d-md-flex d-xl-none d-xxl-flex align-items-center gap-2-5 ps-1-5 pe-3 h-11 rounded-pill bg-white border border-slate-200"
         >
           <span
-            class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-sm font-bold flex items-center justify-center"
+            class="w-8 h-8 rounded-pill bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white fs-sm fw-bold d-flex align-items-center justify-content-center"
             aria-hidden="true"
             >{{ (user.fullName || '?').trim().charAt(0).toUpperCase() }}</span
           >
-          <span class="leading-tight min-w-0">
-            <span class="block text-sm font-semibold text-slate-900 truncate max-w-[150px]">{{
+          <span class="lh-sm min-w-0">
+            <span class="d-block fs-sm fw-semibold text-slate-900 text-truncate mw-150px">{{
               user.fullName
             }}</span>
-            <span class="block text-xs text-slate-500 truncate max-w-[150px]">{{
+            <span class="d-block fs-xs text-slate-500 text-truncate mw-150px">{{
               roleLabels[user.role]
             }}</span>
           </span>
@@ -100,7 +100,7 @@
         <button
           type="button"
           (click)="enterSystem()"
-          class="btn-grad px-4 sm:px-5 h-10 sm:h-11 rounded-full text-sm font-semibold whitespace-nowrap"
+          class="btn-grad px-4 px-sm-5 h-10 h-sm-11 rounded-pill fs-sm fw-semibold text-nowrap"
         >
           {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Đăng nhập' }}
         </button>
@@ -110,7 +110,7 @@
           (click)="logout()"
           [title]="'Đăng xuất khỏi tài khoản ' + (authService.currentUser()?.fullName || '')"
           aria-label="Đăng xuất"
-          class="w-10 h-10 sm:w-11 sm:h-11 shrink-0 rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+          class="w-10 h-10 w-sm-11 h-sm-11 flex-shrink-0 rounded-pill border border-slate-200 bg-white text-slate-500 bg-rose-50-hover text-rose-600-hover border-rose-200-hover transition-colors d-flex align-items-center justify-content-center outline-none-focus-visible ring-2-focus-visible ring-rose-400-focus-visible"
         >
           <svg
             class="w-5 h-5"
@@ -132,25 +132,25 @@
 
     <!-- Link mục trên điện thoại/máy tính bảng: hàng viên thuốc vuốt ngang dưới thanh header -->
     <nav
-      class="xl:hidden flex gap-1.5 overflow-x-auto no-scrollbar px-5 md:px-6 pb-2.5 text-[13px] font-medium text-slate-600"
+      class="d-xl-none d-flex gap-1-5 overflow-x-auto no-scrollbar px-5 px-md-6 pb-2-5 fs-13px fw-medium text-slate-600"
     >
       <a
         *ngFor="let link of navLinks"
         [href]="'#' + link.id"
         (click)="scrollTo(link.id, $event)"
         [attr.aria-current]="activeSection() === link.id ? 'location' : null"
-        class="shrink-0 px-3.5 py-1.5 rounded-full whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+        class="flex-shrink-0 px-3-5 py-1-5 rounded-pill text-nowrap transition-colors outline-none-focus-visible ring-2-focus-visible ring-violet-500-focus-visible"
         [ngClass]="
           activeSection() === link.id
             ? 'bg-violet-600 text-white'
-            : 'bg-slate-100/80 hover:text-slate-900'
+            : 'bg-slate-100-80 text-slate-900-hover'
         "
         >{{ link.label }}</a
       >
     </nav>
   </header>
 
-  <main class="flex-grow">
+  <main class="flex-grow-1">
     <!-- ============ HERO ============ -->
     <section id="trang-chu" class="hero">
       <div class="blob blob-1"></div>
@@ -177,15 +177,15 @@
       </div>
 
       <div
-        class="hero-inner relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pt-6 pb-10 lg:pt-0 lg:pb-0 flex items-center"
+        class="hero-inner position-relative mw-1440px mx-auto px-5 px-md-6 px-xl-10 pt-6 pb-10 pt-lg-0 pb-lg-0 d-flex align-items-center"
       >
         <!-- Nội dung -->
-        <div class="hero-copy space-y-6 md:space-y-7 text-center lg:text-left">
+        <div class="hero-copy space-y-6 space-y-md-7 text-center text-lg-start">
           <span
-            class="glass inline-flex items-center gap-3 pl-1.5 pr-5 py-1.5 rounded-full text-violet-800 text-sm font-semibold"
+            class="glass d-inline-flex align-items-center gap-3 ps-1-5 pe-5 py-1-5 rounded-pill text-violet-800 fs-sm fw-semibold"
           >
             <span
-              class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white grid place-items-center shrink-0"
+              class="w-9 h-9 rounded-pill bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white d-grid place-items-center flex-shrink-0"
             >
               <svg
                 class="w-5 h-5"
@@ -203,22 +203,22 @@
             {{ branding.schoolName() }}
           </span>
           <h1
-            class="text-[34px] min-[400px]:text-[38px] leading-[1.12] sm:text-[52px] md:text-[62px] xl:text-[70px] md:leading-[1.08] font-extrabold tracking-tight text-slate-900 text-balance"
+            class="fs-34px fs-min400-38px lh-1-12 fs-sm-52px fs-md-62px fs-xl-70px lh-md-1-08 fw-bold tracking-tight text-slate-900 text-balance"
           >
             Không để sinh viên nào
             <span class="text-grad">bị bỏ lại phía sau</span>
           </h1>
-          <p class="text-base md:text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+          <p class="fs-base fs-md-xl text-slate-600 mw-2xl mx-auto mx-lg-0 lh-relaxed">
             Điểm danh đúng giờ học, cảnh báo sớm sinh viên nghỉ nhiều, mở hồ sơ chăm sóc cho đúng
             người phụ trách — và một trợ lý AI luôn sẵn sàng làm việc cùng bạn.
           </p>
           <div
-            class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4"
+            class="d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-lg-start gap-3 gap-sm-4"
           >
             <button
               type="button"
               (click)="enterSystem()"
-              class="btn-grad w-full sm:w-auto px-9 h-14 rounded-full text-base font-semibold inline-flex items-center justify-center gap-2"
+              class="btn-grad w-100 w-sm-auto px-9 h-14 rounded-pill fs-base fw-semibold d-inline-flex align-items-center justify-content-center gap-2"
             >
               {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Bắt đầu ngay' }}
               <svg
@@ -234,7 +234,7 @@
             <a
               href="#tinh-nang"
               (click)="scrollTo('tinh-nang', $event)"
-              class="w-full sm:w-auto px-7 h-14 rounded-full bg-white text-violet-700 text-base font-semibold inline-flex items-center justify-center gap-2.5 shadow-lg shadow-violet-500/10 ring-1 ring-violet-100 hover:ring-violet-200 hover:-translate-y-0.5 transition"
+              class="w-100 w-sm-auto px-7 h-14 rounded-pill bg-white text-violet-700 fs-base fw-semibold d-inline-flex align-items-center justify-content-center gap-2-5 shadow-lg shadow-violet-500-10 ring-1 ring-violet-100 ring-violet-200-hover translate-y-n0-5-hover transition"
             >
               <svg class="w-6 h-6" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" class="fill-violet-600" />
@@ -244,17 +244,17 @@
             </a>
           </div>
           <div
-            class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-1"
+            class="d-flex flex-column flex-sm-row align-items-center justify-content-center justify-content-lg-start gap-3 gap-sm-4 pt-1"
           >
-            <div class="flex -space-x-2.5 shrink-0" aria-hidden="true">
+            <div class="d-flex space-x-n2-5 flex-shrink-0" aria-hidden="true">
               <span
                 *ngFor="let a of avatars"
-                class="w-10 h-10 rounded-full ring-[3px] ring-white bg-gradient-to-br text-white text-sm font-bold grid place-items-center"
+                class="w-10 h-10 rounded-pill ring-3px ring-white bg-gradient-to-br text-white fs-sm fw-bold d-grid place-items-center"
                 [ngClass]="a.tone"
                 >{{ a.letter }}</span
               >
               <span
-                class="w-10 h-10 rounded-full ring-[3px] ring-white bg-violet-200 text-violet-700 grid place-items-center"
+                class="w-10 h-10 rounded-pill ring-3px ring-white bg-violet-200 text-violet-700 d-grid place-items-center"
               >
                 <svg
                   class="w-5 h-5"
@@ -268,8 +268,8 @@
                 </svg>
               </span>
             </div>
-            <div class="text-sm leading-snug text-slate-500 text-center sm:text-left">
-              Dành cho <br class="hidden sm:block" />
+            <div class="fs-sm lh-snug text-slate-500 text-center text-sm-start">
+              Dành cho <br class="d-none d-sm-block" />
               <span class="text-slate-700">Ban Giám Hiệu, Phòng CTSV, CSSV &amp; Giảng viên</span>
             </div>
           </div>
@@ -277,13 +277,13 @@
       </div>
 
       <!-- Điểm nổi bật -->
-      <div class="relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pb-10 md:pb-14">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+      <div class="position-relative mw-1440px mx-auto px-5 px-md-6 px-xl-10 pb-10 pb-md-14">
+        <div class="d-grid grid-cols-1 grid-cols-sm-2 grid-cols-lg-4 gap-4 gap-md-5">
           <a
             *ngFor="let stat of highlights"
             [href]="'#' + stat.target"
             (click)="scrollTo(stat.target, $event)"
-            class="hl group relative overflow-hidden rounded-[26px] p-5 md:p-6 flex flex-col"
+            class="hl group position-relative overflow-hidden rounded-26px p-5 p-md-6 d-flex flex-column"
             [ngClass]="stat.theme"
           >
             <!-- hình minh họa góc: một đốm mềm với icon lớn mờ -->
@@ -301,11 +301,11 @@
               </svg>
             </span>
             <span
-              class="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shrink-0 shadow-xl"
+              class="position-relative w-14 h-14 w-md-16 h-md-16 rounded-2xl bg-gradient-to-br text-white d-flex align-items-center justify-content-center flex-shrink-0 shadow-xl"
               [ngClass]="stat.tone"
             >
               <svg
-                class="w-7 h-7 md:w-8 md:h-8"
+                class="w-7 h-7 w-md-8 h-md-8"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -317,11 +317,11 @@
               </svg>
             </span>
             <div
-              class="relative mt-5 text-lg md:text-xl font-extrabold text-slate-900 leading-tight"
+              class="position-relative mt-5 fs-lg fs-md-xl fw-bold text-slate-900 lh-sm"
             >
               {{ stat.title }}
             </div>
-            <div class="relative mt-2 pr-12 text-sm md:text-[15px] text-slate-500 leading-relaxed">
+            <div class="position-relative mt-2 pe-12 fs-sm fs-md-15px text-slate-500 lh-relaxed">
               {{ stat.text }}
             </div>
             <span class="hl-arrow" aria-hidden="true">
@@ -345,13 +345,13 @@
     <!-- ============ TÍNH NĂNG ============ -->
     <section
       id="tinh-nang"
-      class="features-bg relative overflow-hidden px-5 md:px-6 py-14 md:py-20 scroll-mt-28 xl:scroll-mt-20"
+      class="features-bg position-relative overflow-hidden px-5 px-md-6 py-14 py-md-20 scroll-mt-28 scroll-mt-xl-20"
     >
       <div class="features-dots" aria-hidden="true"></div>
-      <div class="relative max-w-[1440px] mx-auto xl:px-4 space-y-10 md:space-y-12">
-        <div class="text-center space-y-4 max-w-5xl mx-auto">
+      <div class="position-relative mw-1440px mx-auto px-xl-4 space-y-10 space-y-md-12">
+        <div class="text-center space-y-4 mw-5xl mx-auto">
           <span
-            class="flex w-fit mx-auto items-center gap-2 px-4 py-1.5 rounded-full bg-white text-sm font-bold text-violet-600 shadow-md shadow-violet-500/10 ring-1 ring-violet-100"
+            class="d-flex w-fit mx-auto align-items-center gap-2 px-4 py-1-5 rounded-pill bg-white fs-sm fw-bold text-violet-600 shadow-md shadow-violet-500-10 ring-1 ring-violet-100"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path [attr.d]="icons.grid" />
@@ -359,10 +359,10 @@
             TÍNH NĂNG
           </span>
           <h2
-            class="relative inline-block text-3xl md:text-[48px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
+            class="position-relative d-inline-block fs-3xl fs-md-48px fw-bold tracking-tight text-slate-900 lh-sm text-balance"
           >
             <svg
-              class="spark hidden md:block absolute -left-8 -top-5 w-8 h-8 text-violet-500"
+              class="spark d-none d-md-block position-absolute start-n8 top-n5 w-8 h-8 text-violet-500"
               viewBox="0 0 32 32"
               aria-hidden="true"
             >
@@ -370,20 +370,20 @@
             </svg>
             Mọi khâu chăm sóc, <span class="text-grad">gọn trong một nơi</span>
           </h2>
-          <p class="text-slate-500 md:text-lg">
+          <p class="text-slate-500 fs-md-lg">
             Từ tiết học trên lớp đến cuộc gọi cho phụ huynh — tự động, minh bạch, có lịch sử.
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        <div class="d-grid grid-cols-1 grid-cols-md-2 grid-cols-lg-3 gap-5 gap-md-6">
           <article
             *ngFor="let feature of features"
-            class="fcard group relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-start gap-5"
+            class="fcard group position-relative overflow-hidden rounded-28px p-5 p-sm-6 d-flex align-items-start gap-5"
             [ngClass]="feature.theme"
           >
             <!-- hình mờ của icon -->
             <svg
-              class="fcard-mark absolute -right-3 -bottom-4 w-28 h-28"
+              class="fcard-mark position-absolute end-n3 bottom-n4 w-28 h-28"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -395,12 +395,12 @@
               <path [attr.d]="feature.icon" />
             </svg>
 
-            <div class="relative shrink-0">
+            <div class="position-relative flex-shrink-0">
               <span
-                class="fcard-tile w-[76px] h-[76px] sm:w-[88px] sm:h-[88px] rounded-[22px] grid place-items-center text-white"
+                class="fcard-tile w-76px h-76px w-sm-88px h-sm-88px rounded-22px d-grid place-items-center text-white"
               >
                 <svg
-                  class="w-9 h-9 sm:w-11 sm:h-11"
+                  class="w-9 h-9 w-sm-11 h-sm-11"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -413,7 +413,7 @@
                 </svg>
               </span>
               <svg
-                class="spark fcard-spark absolute -right-4 -top-4 w-7 h-7"
+                class="spark fcard-spark position-absolute end-n4 top-n4 w-7 h-7"
                 viewBox="0 0 32 32"
                 aria-hidden="true"
               >
@@ -421,13 +421,13 @@
               </svg>
             </div>
 
-            <div class="relative min-w-0 flex-1 pt-1">
-              <div class="flex items-start justify-between gap-3">
-                <h3 class="text-lg md:text-xl font-bold text-slate-900 leading-snug">
+            <div class="position-relative min-w-0 flex-1 pt-1">
+              <div class="d-flex align-items-start justify-content-between gap-3">
+                <h3 class="fs-lg fs-md-xl fw-bold text-slate-900 lh-snug">
                   {{ feature.title }}
                 </h3>
                 <span
-                  class="fcard-arrow w-10 h-10 rounded-full grid place-items-center shrink-0 -mt-1 transition-transform group-hover:translate-x-1"
+                  class="fcard-arrow w-10 h-10 rounded-pill d-grid place-items-center flex-shrink-0 mt-n1 transition-transform translate-x-1-group-hover"
                   aria-hidden="true"
                 >
                   <svg
@@ -443,7 +443,7 @@
                   </svg>
                 </span>
               </div>
-              <p class="mt-2 text-[15px] text-slate-500 leading-relaxed">{{ feature.text }}</p>
+              <p class="mt-2 fs-15px text-slate-500 lh-relaxed">{{ feature.text }}</p>
             </div>
           </article>
         </div>
@@ -451,37 +451,37 @@
     </section>
 
     <!-- ============ ĐIỂM NHẤN AI CARE ============ -->
-    <section id="ai-care" class="px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20">
-      <div class="ai-panel relative overflow-hidden max-w-[1440px] mx-auto rounded-[36px]">
+    <section id="ai-care" class="px-5 px-md-6 py-12 py-md-16 scroll-mt-28 scroll-mt-xl-20">
+      <div class="ai-panel position-relative overflow-hidden mw-1440px mx-auto rounded-36px">
         <div class="ai-glow" aria-hidden="true"></div>
         <div
-          class="relative grid lg:grid-cols-[1.05fr_0.8fr_1.25fr] gap-8 items-center p-6 sm:p-8 md:p-12"
+          class="position-relative d-grid grid-cols-lg-105-08-125 gap-8 align-items-center p-6 p-sm-8 p-md-12"
         >
           <!-- nội dung -->
           <div class="space-y-5">
             <span
-              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white ring-1 ring-violet-100 text-xs font-bold text-violet-600 shadow-sm"
+              class="d-inline-flex align-items-center gap-1-5 px-3-5 py-1-5 rounded-pill bg-white ring-1 ring-violet-100 fs-xs fw-bold text-violet-600 shadow-sm"
             >
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <svg class="w-3-5 h-3-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path [attr.d]="icons.sparkles" />
               </svg>
               AI CARE
             </span>
             <h2
-              class="text-3xl md:text-[46px] font-extrabold tracking-tight leading-[1.1] text-slate-900 text-balance"
+              class="fs-3xl fs-md-46px fw-bold tracking-tight lh-1-1 text-slate-900 text-balance"
             >
               Trợ lý phù thủy
-              <span class="block text-grad ai-underline">làm việc cùng bạn</span>
+              <span class="d-block text-grad ai-underline">làm việc cùng bạn</span>
             </h2>
-            <p class="text-slate-600 leading-relaxed max-w-lg">
+            <p class="text-slate-600 lh-relaxed mw-lg">
               Hỏi bằng tiếng Việt, AI Care tra cứu đúng dữ liệu bạn được phép xem — và soạn sẵn thao
               tác như giao việc, ghi kết quả cuộc gọi, phân lớp. Bạn chỉ cần kiểm tra và bấm
               <b class="text-violet-700">Xác nhận</b>.
             </p>
-            <ul class="space-y-2.5">
-              <li *ngFor="let p of aiPoints" class="flex items-center gap-3">
+            <ul class="space-y-2-5">
+              <li *ngFor="let p of aiPoints" class="d-flex align-items-center gap-3">
                 <span
-                  class="w-10 h-10 rounded-xl bg-gradient-to-br text-white grid place-items-center shrink-0 shadow-lg"
+                  class="w-10 h-10 rounded-xl bg-gradient-to-br text-white d-grid place-items-center flex-shrink-0 shadow-lg"
                   [ngClass]="p.tone"
                 >
                   <svg
@@ -502,10 +502,10 @@
           </div>
 
           <!-- linh vật -->
-          <div class="relative hidden lg:grid place-items-center min-h-[380px]" aria-hidden="true">
+          <div class="position-relative d-none d-lg-grid place-items-center min-h-380px" aria-hidden="true">
             <span class="ai-orbit"></span>
             <span class="ai-orbit ai-orbit--2"></span>
-            <span class="ai-float-tile left-2 top-4 -rotate-12">
+            <span class="ai-float-tile start-2 top-4 rotate-n12">
               <svg
                 class="w-8 h-8"
                 viewBox="0 0 24 24"
@@ -518,7 +518,7 @@
                 <path [attr.d]="icons.book" />
               </svg>
             </span>
-            <span class="ai-float-tile left-0 bottom-10 rotate-6 text-rose-500">
+            <span class="ai-float-tile start-0 bottom-10 rotate-6 text-rose-500">
               <svg
                 class="w-8 h-8"
                 viewBox="0 0 24 24"
@@ -535,24 +535,24 @@
               alt=""
               width="300"
               height="250"
-              class="mascot relative w-[260px] h-auto"
+              class="mascot position-relative w-260px h-auto"
             />
           </div>
 
           <!-- xem trước chat (minh họa) -->
-          <div class="relative" aria-hidden="true">
-            <div class="ai-chat rounded-[28px] p-4 sm:p-6 space-y-4">
-              <div class="flex items-start justify-end gap-3">
+          <div class="position-relative" aria-hidden="true">
+            <div class="ai-chat rounded-28px p-4 p-sm-6 space-y-4">
+              <div class="d-flex align-items-start justify-content-end gap-3">
                 <div
-                  class="px-4 py-3 rounded-2xl rounded-tr-md btn-grad text-sm font-semibold flex items-center gap-2 shadow-lg"
+                  class="px-4 py-3 rounded-2xl rounded-top-end-md btn-grad fs-sm fw-semibold d-flex align-items-center gap-2 shadow-lg"
                 >
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path [attr.d]="icons.sparkles" />
                   </svg>
                   Giao việc tổng hợp SV nguy cơ cấm thi cho Mai, hạn thứ 6
                 </div>
                 <span
-                  class="w-10 h-10 rounded-full bg-violet-100 text-violet-600 grid place-items-center shrink-0"
+                  class="w-10 h-10 rounded-pill bg-violet-100 text-violet-600 d-grid place-items-center flex-shrink-0"
                 >
                   <svg
                     class="w-5 h-5"
@@ -566,38 +566,38 @@
                   </svg>
                 </span>
               </div>
-              <div class="flex items-start gap-3">
+              <div class="d-flex align-items-start gap-3">
                 <img
                   src="robot-ai-left.webp"
                   alt=""
                   width="40"
                   height="34"
-                  class="w-10 h-auto shrink-0"
+                  class="w-10 h-auto flex-shrink-0"
                 />
                 <div
-                  class="px-4 py-3 rounded-2xl rounded-tl-md bg-slate-50 text-sm text-slate-700 leading-relaxed"
+                  class="px-4 py-3 rounded-2xl rounded-top-start-md bg-slate-50 fs-sm text-slate-700 lh-relaxed"
                 >
                   Mình đã soạn sẵn nhiệm vụ cho <b>Trần Thị Mai</b>, hạn thứ 6. Bạn kiểm tra rồi bấm
                   Xác nhận nhé!
                 </div>
               </div>
-              <div class="rounded-2xl bg-white border border-violet-100 p-4 sm:p-5 shadow-sm">
-                <div class="flex items-start justify-between gap-3">
+              <div class="rounded-2xl bg-white border border-violet-100 p-4 p-sm-5 shadow-sm">
+                <div class="d-flex align-items-start justify-content-between gap-3">
                   <div>
                     <div
-                      class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-violet-600"
+                      class="d-flex align-items-center gap-1-5 fs-11px fw-bold text-uppercase tracking-wide text-violet-600"
                     >
-                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                      <svg class="w-3-5 h-3-5" viewBox="0 0 24 24" fill="currentColor">
                         <path [attr.d]="icons.sparkles" />
                       </svg>
                       AI Care đề xuất thao tác
                     </div>
-                    <div class="mt-1 text-lg font-extrabold text-slate-900">
+                    <div class="mt-1 fs-lg fw-bold text-slate-900">
                       Giao việc cho Trần Thị Mai
                     </div>
                   </div>
                   <span
-                    class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 grid place-items-center shrink-0 rotate-6"
+                    class="w-14 h-14 rounded-2xl bg-violet-50 text-violet-600 d-grid place-items-center flex-shrink-0 rotate-6"
                   >
                     <svg
                       class="w-7 h-7"
@@ -612,8 +612,8 @@
                     </svg>
                   </span>
                 </div>
-                <dl class="mt-3 space-y-2 text-sm">
-                  <div class="flex items-center gap-2.5 text-slate-600">
+                <dl class="mt-3 space-y-2 fs-sm">
+                  <div class="d-flex align-items-center gap-2-5 text-slate-600">
                     <svg
                       class="w-4 h-4 text-slate-400"
                       viewBox="0 0 24 24"
@@ -625,10 +625,10 @@
                     >
                       <path [attr.d]="icons.clipboard" />
                     </svg>
-                    <dt class="font-semibold text-slate-800">Nhiệm vụ:</dt>
+                    <dt class="fw-semibold text-slate-800">Nhiệm vụ:</dt>
                     <dd>Tổng hợp SV nguy cơ cấm thi</dd>
                   </div>
-                  <div class="flex items-center gap-2.5 text-slate-600">
+                  <div class="d-flex align-items-center gap-2-5 text-slate-600">
                     <svg
                       class="w-4 h-4 text-slate-400"
                       viewBox="0 0 24 24"
@@ -639,10 +639,10 @@
                     >
                       <path [attr.d]="icons.user" />
                     </svg>
-                    <dt class="font-semibold text-slate-800">Người nhận:</dt>
+                    <dt class="fw-semibold text-slate-800">Người nhận:</dt>
                     <dd>Trần Thị Mai</dd>
                   </div>
-                  <div class="flex items-center gap-2.5 text-slate-600">
+                  <div class="d-flex align-items-center gap-2-5 text-slate-600">
                     <svg
                       class="w-4 h-4 text-slate-400"
                       viewBox="0 0 24 24"
@@ -654,13 +654,13 @@
                     >
                       <path [attr.d]="icons.calendarCheck" />
                     </svg>
-                    <dt class="font-semibold text-slate-800">Hạn hoàn thành:</dt>
+                    <dt class="fw-semibold text-slate-800">Hạn hoàn thành:</dt>
                     <dd>Thứ 6</dd>
                   </div>
                 </dl>
-                <div class="mt-4 grid grid-cols-[1.4fr_1fr] gap-2.5">
+                <div class="mt-4 d-grid grid-cols-14-1 gap-2-5">
                   <span
-                    class="btn-grad h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                    class="btn-grad h-11 rounded-xl fs-sm fw-bold d-flex align-items-center justify-content-center gap-2"
                   >
                     <svg
                       class="w-4 h-4"
@@ -676,7 +676,7 @@
                     Xác nhận giao việc
                   </span>
                   <span
-                    class="h-11 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 flex items-center justify-center"
+                    class="h-11 rounded-xl border border-slate-200 bg-white fs-sm fw-bold text-slate-700 d-flex align-items-center justify-content-center"
                   >
                     Chỉnh sửa
                   </span>
@@ -691,10 +691,10 @@
     <!-- ============ QUY TRÌNH ============ -->
     <section
       id="quy-trinh"
-      class="sec-soft relative px-5 md:px-6 py-12 md:py-16 scroll-mt-28 xl:scroll-mt-20"
+      class="sec-soft position-relative px-5 px-md-6 py-12 py-md-16 scroll-mt-28 scroll-mt-xl-20"
     >
-      <div class="relative max-w-[1440px] mx-auto space-y-10">
-        <div class="text-center space-y-3 max-w-3xl mx-auto">
+      <div class="position-relative mw-1440px mx-auto space-y-10">
+        <div class="text-center space-y-3 mw-3xl mx-auto">
           <span class="sec-kicker">
             <svg
               class="w-4 h-4"
@@ -711,23 +711,23 @@
             QUY TRÌNH
           </span>
           <h2
-            class="text-3xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
+            class="fs-3xl fs-md-46px fw-bold tracking-tight text-slate-900 lh-sm text-balance"
           >
             4 bước, <span class="text-grad">khép kín toàn trình</span>
           </h2>
-          <p class="text-slate-500 md:text-lg">
+          <p class="text-slate-500 fs-md-lg">
             Từ buổi học đến khi hồ sơ được chốt — mỗi bước đều có người phụ trách và lịch sử rõ
             ràng.
           </p>
         </div>
-        <div class="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div class="step-line hidden lg:block" aria-hidden="true"></div>
+        <div class="position-relative d-grid grid-cols-1 grid-cols-sm-2 grid-cols-lg-4 gap-5">
+          <div class="step-line d-none d-lg-block" aria-hidden="true"></div>
           <div
             *ngFor="let step of steps; let i = index; let last = last"
-            class="step relative"
+            class="step position-relative"
             [ngClass]="step.theme"
           >
-            <div class="flex items-start justify-between">
+            <div class="d-flex align-items-start justify-content-between">
               <span class="step-no">0{{ i + 1 }}</span>
               <span class="step-art" aria-hidden="true">
                 <svg
@@ -743,9 +743,9 @@
                 </svg>
               </span>
             </div>
-            <span *ngIf="!last" class="step-chev hidden lg:grid" aria-hidden="true">
+            <span *ngIf="!last" class="step-chev d-none d-lg-grid" aria-hidden="true">
               <svg
-                class="w-3.5 h-3.5"
+                class="w-3-5 h-3-5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -756,8 +756,8 @@
                 <path d="m9 6 6 6-6 6" />
               </svg>
             </span>
-            <h3 class="mt-5 text-lg md:text-xl font-extrabold text-slate-900">{{ step.title }}</h3>
-            <p class="mt-2 text-[15px] text-slate-500 leading-relaxed">{{ step.text }}</p>
+            <h3 class="mt-5 fs-lg fs-md-xl fw-bold text-slate-900">{{ step.title }}</h3>
+            <p class="mt-2 fs-15px text-slate-500 lh-relaxed">{{ step.text }}</p>
           </div>
         </div>
       </div>
@@ -766,10 +766,10 @@
     <!-- ============ VAI TRÒ ============ -->
     <section
       id="danh-cho-ai"
-      class="relative px-5 md:px-6 pb-12 md:pb-16 pt-4 scroll-mt-28 xl:scroll-mt-20"
+      class="position-relative px-5 px-md-6 pb-12 pb-md-16 pt-4 scroll-mt-28 scroll-mt-xl-20"
     >
-      <div class="max-w-[1440px] mx-auto space-y-10">
-        <div class="text-center space-y-3 max-w-3xl mx-auto">
+      <div class="mw-1440px mx-auto space-y-10">
+        <div class="text-center space-y-3 mw-3xl mx-auto">
           <span class="sec-kicker">
             <svg
               class="w-4 h-4"
@@ -786,23 +786,23 @@
             DÀNH CHO AI
           </span>
           <h2
-            class="text-3xl md:text-[46px] font-extrabold tracking-tight text-slate-900 leading-tight text-balance"
+            class="fs-3xl fs-md-46px fw-bold tracking-tight text-slate-900 lh-sm text-balance"
           >
             Mỗi vai trò, <span class="text-grad">một không gian riêng</span>
           </h2>
-          <p class="text-slate-500 md:text-lg">
+          <p class="text-slate-500 fs-md-lg">
             Hệ thống được thiết kế phù hợp với từng vai trò, giúp mọi người dễ dàng quản lý, theo
             dõi và phối hợp hiệu quả hơn.
           </p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="d-grid grid-cols-1 grid-cols-sm-2 grid-cols-lg-4 gap-5">
           <article
             *ngFor="let role of roles"
-            class="role group relative overflow-hidden flex flex-col"
+            class="role group position-relative overflow-hidden d-flex flex-column"
             [ngClass]="role.theme"
           >
             <!-- header minh họa -->
-            <div class="role-head relative h-40" aria-hidden="true">
+            <div class="role-head position-relative h-40" aria-hidden="true">
               <span class="role-glass role-glass--main">
                 <svg
                   class="w-12 h-12"
@@ -846,7 +846,7 @@
                 <path d="M0 22 C 80 4, 160 40, 240 20 S 360 6, 400 18 V40 H0z" fill="#fff" />
               </svg>
             </div>
-            <div class="relative flex-1 flex flex-col px-6 pb-6 -mt-9">
+            <div class="position-relative flex-1 d-flex flex-column px-6 pb-6 mt-n9">
               <span class="role-icon">
                 <svg
                   class="w-7 h-7"
@@ -860,12 +860,12 @@
                   <path [attr.d]="role.icon" />
                 </svg>
               </span>
-              <h3 class="mt-4 text-xl font-extrabold text-slate-900">{{ role.title }}</h3>
-              <p class="mt-1.5 text-sm leading-relaxed text-slate-500">{{ role.text }}</p>
-              <ul class="mt-4 space-y-2.5 flex-1">
+              <h3 class="mt-4 fs-xl fw-bold text-slate-900">{{ role.title }}</h3>
+              <p class="mt-1-5 fs-sm lh-relaxed text-slate-500">{{ role.text }}</p>
+              <ul class="mt-4 space-y-2-5 flex-1">
                 <li
                   *ngFor="let pt of role.points"
-                  class="flex items-start gap-2.5 text-sm text-slate-700"
+                  class="d-flex align-items-start gap-2-5 fs-sm text-slate-700"
                 >
                   <span class="role-check">
                     <svg
@@ -885,7 +885,7 @@
               </ul>
               <button
                 type="button"
-                class="role-go self-end mt-4"
+                class="role-go align-self-end mt-4"
                 (click)="enterSystem()"
                 [attr.aria-label]="'Vào hệ thống — ' + role.title"
               >
@@ -910,27 +910,27 @@
     <!-- ============ KÊU GỌI HÀNH ĐỘNG ============ -->
     <section
       id="lien-he"
-      class="relative z-10 px-5 md:px-6 scroll-mt-28 xl:scroll-mt-20 -mb-20 md:-mb-24"
+      class="position-relative z-10 px-5 px-md-6 scroll-mt-28 scroll-mt-xl-20 mb-n20 mb-md-n24"
     >
-      <div class="cta relative overflow-hidden max-w-[1440px] mx-auto rounded-[32px] text-white">
+      <div class="cta position-relative overflow-hidden mw-1440px mx-auto rounded-32px text-white">
         <div class="cta-dots" aria-hidden="true"></div>
         <div
-          class="relative grid lg:grid-cols-[1.25fr_0.9fr_auto] items-center gap-8 p-7 md:p-10 xl:px-14"
+          class="position-relative d-grid grid-cols-lg-125-09-auto align-items-center gap-8 p-7 p-md-10 px-xl-14"
         >
-          <div class="space-y-4 text-center lg:text-left">
+          <div class="space-y-4 text-center text-lg-start">
             <span
-              class="inline-block px-3.5 py-1.5 rounded-full bg-white/15 ring-1 ring-white/25 text-xs font-bold tracking-wide"
+              class="d-inline-block px-3-5 py-1-5 rounded-pill bg-white-15 ring-1 ring-white-25 fs-xs fw-bold tracking-wide"
             >
               CẦN HỖ TRỢ?
             </span>
-            <h2 class="text-3xl md:text-[44px] font-extrabold leading-tight text-balance">
+            <h2 class="fs-3xl fs-md-44px fw-bold lh-sm text-balance">
               Cần hỗ trợ sử dụng <span class="cta-accent">hệ thống?</span>
             </h2>
-            <p class="text-white/85 md:text-lg">
+            <p class="text-white-85 fs-md-lg">
               {{ branding.departmentName() }} luôn sẵn sàng hỗ trợ bạn. Liên hệ để được tư vấn, giải
               đáp và xử lý nhanh chóng!
             </p>
-            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start gap-3 pt-1">
               <a [href]="'tel:' + branding.supportHotline()" class="cta-pill">
                 <svg
                   class="w-5 h-5"
@@ -963,12 +963,12 @@
           </div>
 
           <!-- minh họa: tai nghe + bong bóng chat -->
-          <div class="relative hidden lg:block h-[210px]" aria-hidden="true">
-            <span class="cta-bubble left-0 top-16 -rotate-6">
-              <span class="block h-2 w-16 rounded-full bg-violet-300"></span>
-              <span class="block h-2 w-10 rounded-full bg-violet-200"></span>
+          <div class="position-relative d-none d-lg-block h-210px" aria-hidden="true">
+            <span class="cta-bubble start-0 top-16 rotate-n6">
+              <span class="d-block h-2 w-16 rounded-pill bg-violet-300"></span>
+              <span class="d-block h-2 w-10 rounded-pill bg-violet-200"></span>
             </span>
-            <span class="cta-headset left-1/2 top-2 -translate-x-1/2">
+            <span class="cta-headset start-50 top-2 translate-x-n50">
               <svg
                 class="w-20 h-20"
                 viewBox="0 0 24 24"
@@ -981,15 +981,15 @@
                 <path [attr.d]="icons.headset" />
               </svg>
             </span>
-            <span class="cta-bubble right-4 top-4 rotate-6">
-              <span class="flex gap-1.5"
-                ><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i
-                ><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i
-                ><i class="w-2.5 h-2.5 rounded-full bg-violet-400"></i
+            <span class="cta-bubble end-4 top-4 rotate-6">
+              <span class="d-flex gap-1-5"
+                ><i class="w-2-5 h-2-5 rounded-pill bg-violet-400"></i
+                ><i class="w-2-5 h-2-5 rounded-pill bg-violet-400"></i
+                ><i class="w-2-5 h-2-5 rounded-pill bg-violet-400"></i
               ></span>
             </span>
-            <span class="cta-card right-0 bottom-2 rotate-3">
-              <span class="w-10 h-10 rounded-xl bg-violet-500 text-white grid place-items-center">
+            <span class="cta-card end-0 bottom-2 rotate-3">
+              <span class="w-10 h-10 rounded-xl bg-violet-500 text-white d-grid place-items-center">
                 <svg
                   class="w-5 h-5"
                   viewBox="0 0 24 24"
@@ -1001,14 +1001,14 @@
                   <path [attr.d]="icons.user" />
                 </svg>
               </span>
-              <span class="space-y-1.5">
-                <span class="block h-2 w-20 rounded-full bg-violet-300"></span>
-                <span class="block h-2 w-14 rounded-full bg-violet-200"></span>
+              <span class="space-y-1-5">
+                <span class="d-block h-2 w-20 rounded-pill bg-violet-300"></span>
+                <span class="d-block h-2 w-14 rounded-pill bg-violet-200"></span>
               </span>
             </span>
           </div>
 
-          <div class="flex justify-center">
+          <div class="d-flex justify-content-center">
             <button type="button" (click)="enterSystem()" class="cta-btn">
               {{ authService.isLoggedIn() ? 'Vào hệ thống' : 'Đăng nhập hệ thống' }}
               <svg
@@ -1030,12 +1030,12 @@
   </main>
 
   <!-- ============ CHÂN TRANG ============ -->
-  <footer class="site-footer relative overflow-hidden text-slate-300 pt-32 md:pt-40">
+  <footer class="site-footer position-relative overflow-hidden text-slate-300 pt-32 pt-md-40">
     <svg class="footer-wave" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
       <path d="M0 0h1440v40c-160 30-320 50-520 36S520 20 340 30 100 70 0 56z" />
     </svg>
     <!-- khuôn viên trang trí trên màn hình rộng -->
-    <svg class="footer-campus hidden xl:block" viewBox="0 0 260 170" aria-hidden="true">
+    <svg class="footer-campus d-none d-xl-block" viewBox="0 0 260 170" aria-hidden="true">
       <ellipse cx="130" cy="160" rx="130" ry="10" fill="#fff" fill-opacity="0.06" />
       <rect x="40" y="70" width="80" height="90" rx="6" fill="#6d5ce8" fill-opacity="0.55" />
       <rect x="110" y="40" width="110" height="120" rx="6" fill="#8b7cf6" fill-opacity="0.6" />
@@ -1075,26 +1075,26 @@
     </svg>
 
     <div
-      class="relative max-w-[1440px] mx-auto px-5 md:px-6 xl:px-10 pb-10 grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr_1.1fr] gap-10 xl:pr-[300px]"
+      class="position-relative mw-1440px mx-auto px-5 px-md-6 px-xl-10 pb-10 d-grid grid-cols-1 grid-cols-md-12-08-11 gap-10 pe-xl-300px"
     >
       <div class="space-y-4">
-        <div class="flex items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
           <img
             [src]="branding.logo()"
             alt="Logo ITC"
             width="56"
             height="56"
-            class="w-14 h-14 object-contain bg-white rounded-full ring-4 ring-white/10"
+            class="w-14 h-14 object-fit-contain bg-white rounded-pill ring-4 ring-white-10"
           />
-          <span class="text-lg font-extrabold text-white">{{ branding.title() }}</span>
+          <span class="fs-lg fw-bold text-white">{{ branding.title() }}</span>
         </div>
-        <p class="text-sm leading-relaxed max-w-sm text-slate-400">
+        <p class="fs-sm lh-relaxed mw-sm text-slate-400">
           Hệ thống quản lý điểm danh và chăm sóc sinh viên của {{ branding.schoolName() }}.
         </p>
       </div>
 
       <div class="space-y-4">
-        <h4 class="flex items-center gap-2 font-bold text-white">
+        <h4 class="d-flex align-items-center gap-2 fw-bold text-white">
           <svg
             class="w-5 h-5 text-violet-300"
             viewBox="0 0 24 24"
@@ -1111,11 +1111,11 @@
           </svg>
           Liên kết nhanh
         </h4>
-        <ul class="space-y-2.5 text-sm">
+        <ul class="space-y-2-5 fs-sm">
           <li *ngFor="let link of navLinks.slice(0, 4)">
             <a [href]="'#' + link.id" (click)="scrollTo(link.id, $event)" class="footer-link">
               <svg
-                class="w-3.5 h-3.5"
+                class="w-3-5 h-3-5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1132,7 +1132,7 @@
           <li>
             <button type="button" (click)="enterSystem()" class="footer-link">
               <svg
-                class="w-3.5 h-3.5"
+                class="w-3-5 h-3-5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1150,7 +1150,7 @@
       </div>
 
       <div class="space-y-4">
-        <h4 class="flex items-center gap-2 font-bold text-white">
+        <h4 class="d-flex align-items-center gap-2 fw-bold text-white">
           <svg
             class="w-5 h-5 text-violet-300"
             viewBox="0 0 24 24"
@@ -1164,8 +1164,8 @@
           </svg>
           Liên hệ
         </h4>
-        <ul class="space-y-3 text-sm">
-          <li class="flex items-start gap-3">
+        <ul class="space-y-3 fs-sm">
+          <li class="d-flex align-items-start gap-3">
             <span class="footer-ico">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path
@@ -1173,11 +1173,11 @@
                 />
               </svg>
             </span>
-            <span class="pt-1.5 leading-relaxed"
+            <span class="pt-1-5 lh-relaxed"
               >{{ branding.schoolName() }}<br />{{ branding.departmentName() }}</span
             >
           </li>
-          <li class="flex items-center gap-3">
+          <li class="d-flex align-items-center gap-3">
             <span class="footer-ico">
               <svg
                 class="w-4 h-4"
@@ -1191,11 +1191,11 @@
                 <path [attr.d]="icons.phone" />
               </svg>
             </span>
-            <a [href]="'tel:' + branding.supportHotline()" class="hover:text-white">{{
+            <a [href]="'tel:' + branding.supportHotline()" class="text-white-hover">{{
               branding.supportHotline()
             }}</a>
           </li>
-          <li class="flex items-center gap-3">
+          <li class="d-flex align-items-center gap-3">
             <span class="footer-ico">
               <svg
                 class="w-4 h-4"
@@ -1211,7 +1211,7 @@
                 <path d="m3 7 9 6 9-6" />
               </svg>
             </span>
-            <a [href]="'mailto:' + branding.supportEmail()" class="hover:text-white break-all">{{
+            <a [href]="'mailto:' + branding.supportEmail()" class="text-white-hover text-break-all">{{
               branding.supportEmail()
             }}</a>
           </li>
@@ -1219,7 +1219,7 @@
       </div>
     </div>
 
-    <div class="relative px-6 py-5 text-center text-sm text-slate-500 border-t border-white/10">
+    <div class="position-relative px-6 py-5 text-center fs-sm text-slate-500 border-top border-white-10">
       {{ branding.schoolName() }} &copy; 2026 &mdash; {{ branding.title() }}. All rights reserved.
     </div>
   </footer>

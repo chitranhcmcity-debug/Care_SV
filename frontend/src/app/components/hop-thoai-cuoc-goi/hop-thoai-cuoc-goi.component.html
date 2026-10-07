@@ -1,6 +1,6 @@
 <div
   *ngIf="request() as req"
-  class="fixed inset-0 z-[60] bg-slate-900/50 flex items-center justify-center p-4"
+  class="position-fixed inset-0 z-60 bg-slate-900-50 d-flex align-items-center justify-content-center p-4"
   role="dialog"
   aria-modal="true"
   aria-labelledby="call-dialog-title call-dialog-student"
@@ -235,7 +235,7 @@
             type="file"
             accept="audio/*"
             (change)="onFile($event)"
-            class="block w-full text-sm text-slate-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-700"
+            class="d-block w-100 fs-sm text-slate-600 me-3-file px-3-file py-2-file rounded-lg-file border-0-file bg-violet-50-file text-violet-700-file"
           />
           <p class="call-option-sub">mp3, m4a, wav, aac, ogg, amr — tối đa 50MB.</p>
         </div>

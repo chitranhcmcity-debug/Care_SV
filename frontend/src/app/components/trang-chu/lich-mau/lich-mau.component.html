@@ -27,21 +27,21 @@
           <span class="pg-blob pg-blob--a"></span>
           <span class="pg-blob pg-blob--b"></span>
 
-          <div class="relative h-full grid grid-cols-[1fr_1.05fr] gap-10 px-14 pt-16 pb-12">
+          <div class="position-relative h-100 d-grid grid-cols-1-105 gap-10 px-14 pt-16 pb-12">
             <!-- Nội dung -->
-            <div class="flex flex-col justify-center">
+            <div class="d-flex flex-column justify-content-center">
               <span class="pg-kicker">{{ p.kicker }}</span>
               <h3
-                class="mt-4 text-[44px] font-extrabold leading-[1.1] tracking-tight text-slate-900"
+                class="mt-4 fs-44px fw-bold lh-1-1 tracking-tight text-slate-900"
               >
-                <span class="block">{{ p.title[0] }}</span>
-                <span class="block pg-grad">{{ p.title[1] }}</span>
+                <span class="d-block">{{ p.title[0] }}</span>
+                <span class="d-block pg-grad">{{ p.title[1] }}</span>
               </h3>
-              <p class="mt-4 text-[17px] leading-relaxed text-slate-600">{{ p.text }}</p>
+              <p class="mt-4 fs-17px lh-relaxed text-slate-600">{{ p.text }}</p>
               <ul class="mt-6 space-y-3">
                 <li
                   *ngFor="let pt of p.points"
-                  class="flex items-center gap-3 text-[16px] font-semibold text-slate-800"
+                  class="d-flex align-items-center gap-3 fs-16px fw-semibold text-slate-800"
                 >
                   <span class="pg-check">
                     <svg
@@ -62,11 +62,11 @@
             </div>
 
             <!-- Hình minh họa -->
-            <div class="relative flex items-center justify-center" [ngSwitch]="p.id">
+            <div class="position-relative d-flex align-items-center justify-content-center" [ngSwitch]="p.id">
               <!-- 01: thẻ điểm danh trừu tượng -->
               <ng-container *ngSwitchCase="'attendance'">
-                <div class="pg-card w-[380px] p-6 -rotate-2">
-                  <div class="flex items-center gap-3">
+                <div class="pg-card w-380px p-6 rotate-n2">
+                  <div class="d-flex align-items-center gap-3">
                     <span class="pg-tile bg-gradient-to-br from-violet-500 to-fuchsia-500">
                       <svg
                         class="w-6 h-6"
@@ -81,16 +81,16 @@
                       </svg>
                     </span>
                     <div class="flex-1 space-y-2">
-                      <span class="block h-3 w-40 rounded-full bg-slate-200"></span>
-                      <span class="block h-2.5 w-24 rounded-full bg-slate-100"></span>
+                      <span class="d-block h-3 w-40 rounded-pill bg-slate-200"></span>
+                      <span class="d-block h-2-5 w-24 rounded-pill bg-slate-100"></span>
                     </div>
                   </div>
                   <div class="mt-5 space-y-3">
-                    <div *ngFor="let r of rows" class="flex items-center gap-3">
-                      <span class="w-9 h-9 rounded-full bg-gradient-to-br" [ngClass]="r.av"></span>
-                      <span class="flex-1 h-2.5 rounded-full bg-slate-100">
+                    <div *ngFor="let r of rows" class="d-flex align-items-center gap-3">
+                      <span class="w-9 h-9 rounded-pill bg-gradient-to-br" [ngClass]="r.av"></span>
+                      <span class="flex-1 h-2-5 rounded-pill bg-slate-100">
                         <span
-                          class="block h-full rounded-full bg-slate-200"
+                          class="d-block h-100 rounded-pill bg-slate-200"
                           [style.width.%]="r.w"
                         ></span>
                       </span>
@@ -99,9 +99,9 @@
                   </div>
                 </div>
                 <div
-                  class="pg-card pg-float absolute right-2 bottom-6 px-5 py-4 flex items-center gap-3"
+                  class="pg-card pg-float position-absolute end-2 bottom-6 px-5 py-4 d-flex align-items-center gap-3"
                 >
-                  <svg viewBox="0 0 36 36" class="w-14 h-14 -rotate-90">
+                  <svg viewBox="0 0 36 36" class="w-14 h-14 rotate-n90">
                     <circle cx="18" cy="18" r="14" fill="none" stroke="#ede9fe" stroke-width="5" />
                     <circle
                       cx="18"
@@ -120,20 +120,20 @@
                       </linearGradient>
                     </defs>
                   </svg>
-                  <div class="leading-tight">
-                    <div class="text-[13px] text-slate-500">Chuyên cần</div>
-                    <div class="text-[18px] font-extrabold text-violet-700">Tự động tính</div>
+                  <div class="lh-sm">
+                    <div class="fs-13px text-slate-500">Chuyên cần</div>
+                    <div class="fs-18px fw-bold text-violet-700">Tự động tính</div>
                   </div>
                 </div>
               </ng-container>
 
               <!-- 02: luồng chăm sóc -->
               <ng-container *ngSwitchCase="'care'">
-                <div class="relative w-[400px] space-y-4">
+                <div class="position-relative w-400px space-y-4">
                   <span class="pg-flow-line"></span>
                   <div
                     *ngFor="let f of flow; let fi = index"
-                    class="pg-card relative flex items-center gap-4 px-5 py-4"
+                    class="pg-card position-relative d-flex align-items-center gap-4 px-5 py-4"
                     [style.marginLeft.px]="fi % 2 ? 40 : 0"
                   >
                     <span class="pg-tile bg-gradient-to-br" [ngClass]="f.tone">
@@ -149,26 +149,26 @@
                         <path [attr.d]="f.icon" />
                       </svg>
                     </span>
-                    <span class="flex-1 text-[17px] font-bold text-slate-800">{{ f.label }}</span>
-                    <span class="text-[13px] font-extrabold text-slate-300">0{{ fi + 1 }}</span>
+                    <span class="flex-1 fs-17px fw-bold text-slate-800">{{ f.label }}</span>
+                    <span class="fs-13px fw-bold text-slate-300">0{{ fi + 1 }}</span>
                   </div>
                 </div>
               </ng-container>
 
               <!-- 03: chat AI + biểu đồ trừu tượng -->
               <ng-container *ngSwitchCase="'ai'">
-                <div class="relative w-[410px] space-y-3">
-                  <div class="pg-bubble pg-bubble--me ml-auto">Lớp nào đang vắng nhiều nhất?</div>
-                  <div class="flex items-end gap-3">
+                <div class="position-relative w-410px space-y-3">
+                  <div class="pg-bubble pg-bubble--me ms-auto">Lớp nào đang vắng nhiều nhất?</div>
+                  <div class="d-flex align-items-end gap-3">
                     <img
                       src="robot-ai-right.webp"
                       alt=""
                       width="90"
                       height="75"
-                      class="w-[84px] h-auto shrink-0 pg-float"
+                      class="w-84px h-auto flex-shrink-0 pg-float"
                     />
                     <div class="pg-bubble pg-bubble--ai">
-                      <span class="flex items-center gap-1.5 font-bold text-teal-700">
+                      <span class="d-flex align-items-center gap-1-5 fw-bold text-teal-700">
                         <svg
                           class="w-4 h-4"
                           viewBox="0 0 24 24"
@@ -186,7 +186,7 @@
                     </div>
                   </div>
                   <div class="pg-card p-5">
-                    <div class="flex items-center gap-2 text-[14px] font-bold text-slate-700">
+                    <div class="d-flex align-items-center gap-2 fs-14px fw-bold text-slate-700">
                       <svg
                         class="w-5 h-5 text-teal-600"
                         viewBox="0 0 24 24"
@@ -199,10 +199,10 @@
                       </svg>
                       Báo cáo trực quan
                     </div>
-                    <div class="mt-4 h-[110px] flex items-end gap-3">
+                    <div class="mt-4 h-110px d-flex align-items-end gap-3">
                       <span
                         *ngFor="let b of bars; let last = last"
-                        class="flex-1 rounded-t-lg"
+                        class="flex-1 rounded-top-lg"
                         [ngClass]="
                           last
                             ? 'bg-gradient-to-t from-teal-500 to-cyan-300'
@@ -218,7 +218,7 @@
           </div>
 
           <!-- số trang -->
-          <span class="absolute right-24 bottom-6 text-[14px] font-bold text-slate-400">
+          <span class="position-absolute end-24 bottom-6 fs-14px fw-bold text-slate-400">
             {{ pi + 1 }} / {{ pages.length }}
           </span>
         </div>
@@ -230,7 +230,7 @@
 </div>
 
 <!-- Tab trang dưới lịch -->
-<div class="dc-nav mt-7 flex flex-wrap items-center justify-center gap-2">
+<div class="dc-nav mt-7 d-flex flex-wrap align-items-center justify-content-center gap-2">
   <button
     *ngFor="let p of pages; let pi = index"
     type="button"

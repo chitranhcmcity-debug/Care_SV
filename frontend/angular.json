@@ -25,7 +25,12 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.scss"],
+            "stylePreprocessorOptions": {
+              "sass": {
+                "silenceDeprecations": ["import", "global-builtin", "color-functions", "if-function", "slash-div"]
+              }
+            }
           },
           "configurations": {
             "production": {

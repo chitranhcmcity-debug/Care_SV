@@ -1,0 +1,1065 @@
+// TỰ SINH khi chuyển sang Bootstrap (có thể sửa tay).
+// Mở rộng utility API của Bootstrap bằng các giá trị giao diện ITC Care đang dùng.
+
+// 1. Giá trị bổ sung cho utility có sẵn + utility mới.
+$utilities: map-merge(
+  $utilities,
+  (
+    "float": mo-rong("float", (), (responsive: false)),
+    "object-fit": mo-rong("object-fit", (), (responsive: false)),
+    "opacity": mo-rong("opacity", (
+      25: 0.25,
+      40: 0.4,
+      50: 0.5,
+      60: 0.6,
+      70: 0.7,
+      75: 0.75,
+      80: 0.8,
+    )),
+    "top": mo-rong("top", (
+      2: 0.5rem,
+      4: 1rem,
+      5: 1.25rem,
+      16: 4rem,
+      20: 5rem,
+      "n1": -0.25rem,
+      "n3": -0.75rem,
+      "n4": -1rem,
+      "n5": -1.25rem,
+      "48px": 48px,
+      "110px": 110px,
+      "130px": 130px,
+      "150px": 150px,
+      "230px": 230px,
+      "250px": 250px,
+      "52px": 52px,
+      "56px": 56px,
+      "safe-top-14": calc(3.5rem + env(safe-area-inset-top)),
+      "safe-top-15": calc(3.75rem + env(safe-area-inset-top)),
+    )),
+    "bottom": mo-rong("bottom", (
+      2: 0.5rem,
+      3: 0.75rem,
+      6: 1.5rem,
+      10: 2.5rem,
+      32: 8rem,
+      "n4": -1rem,
+      "safe-bottom-3": calc(0.75rem + env(safe-area-inset-bottom)),
+      "safe-bottom-26": calc(6.5rem + env(safe-area-inset-bottom)),
+    )),
+    "start": mo-rong("start", (
+      2: 0.5rem,
+      4: 1rem,
+      "n8": -2rem,
+      "n7px": -7px,
+      "3-5": 0.875rem,
+      "auto": auto,
+    )),
+    "end": mo-rong("end", (
+      2: 0.5rem,
+      4: 1rem,
+      5: 1.25rem,
+      6: 1.5rem,
+      24: 6rem,
+      "n1": -0.25rem,
+      "n3": -0.75rem,
+      "n4": -1rem,
+      "1-5": 0.375rem,
+      "250px": 250px,
+    )),
+    "border-start": mo-rong("border-start", (
+      2: 2px solid var(--bs-border-color),
+    )),
+    "border-color": mo-rong("border-color", (
+      "violet-200": unquote("rgb(var(--brand-200))"),
+      "slate-200": #e3e8ef,
+      "rose-200": #fecdd3,
+      "violet-100": unquote("rgb(var(--brand-100))"),
+      "emerald-200": #a7f3d0,
+      "blue-200": #90caf9,
+      "amber-200": #fde68a,
+      "amber-300": #fcd34d,
+      "emerald-300": #6ee7b7,
+      "purple-200": #e9d5ff,
+      "slate-300": #cdd5df,
+      "rose-300": #fda4af,
+      "slate-100": #eef2f6,
+      "violet-500": unquote("rgb(var(--brand-500))"),
+      "orange-300": #fdba74,
+      "sky-200": #bae6fd,
+      "blue-300": #64b5f6,
+      "purple-300": #d8b4fe,
+      "amber-600": #d97706,
+      "blue-500": #2196f3,
+      "transparent": transparent,
+      "violet-300": unquote("rgb(var(--brand-300))"),
+      "indigo-200": #c7d2fe,
+      "current": currentColor,
+      "violet-600": unquote("rgb(var(--brand-600))"),
+      "amber-200-60": rgba(#fde68a, 0.6),
+      "indigo-200-60": rgba(#c7d2fe, 0.6),
+      "rose-200-60": rgba(#fecdd3, 0.6),
+      "slate-200-60": rgba(#e3e8ef, 0.6),
+      "slate-200-80": rgba(#e3e8ef, 0.8),
+      "violet-100-70": unquote("rgb(var(--brand-100) / 0.7)"),
+      "violet-200-80": unquote("rgb(var(--brand-200) / 0.8)"),
+      "violet-500-40": unquote("rgb(var(--brand-500) / 0.4)"),
+      "white-10": rgba(#fff, 0.1),
+      "amber-500": #f59e0b,
+      "violet-400": unquote("rgb(var(--brand-400))"),
+    )),
+    "width": mo-rong("width", (
+      3: 0.75rem,
+      4: 1rem,
+      5: 1.25rem,
+      6: 1.5rem,
+      7: 1.75rem,
+      8: 2rem,
+      9: 2.25rem,
+      10: 2.5rem,
+      11: 2.75rem,
+      12: 3rem,
+      14: 3.5rem,
+      16: 4rem,
+      20: 5rem,
+      24: 6rem,
+      28: 7rem,
+      32: 8rem,
+      36: 9rem,
+      40: 10rem,
+      56: 14rem,
+      72: 18rem,
+      80: 20rem,
+      "fit": fit-content,
+      "380px": 380px,
+      "420px": 420px,
+      "42px": 42px,
+      "88px": 88px,
+      "1-5": 0.375rem,
+      "2-5": 0.625rem,
+      "3-5": 0.875rem,
+      "150px": 150px,
+      "18px": 18px,
+      "190px": 190px,
+      "228px": 228px,
+      "22px": 22px,
+      "240px": 240px,
+      "250px": 250px,
+      "260px": 260px,
+      "300px": 300px,
+      "400px": 400px,
+      "410px": 410px,
+      "5px": 5px,
+      "6px": 6px,
+      "76px": 76px,
+      "80pct": 80%,
+      "84px": 84px,
+      "vw-6": calc(100vw - 1.5rem),
+      "230px": 230px,
+    )),
+    "max-width": mo-rong("max-width", (
+      11: 2.75rem,
+      "2xl": 42rem,
+      "3xl": 48rem,
+      "5xl": 64rem,
+      "1440px": 1440px,
+      "150px": 150px,
+      "180px": 180px,
+      "380px": 380px,
+      "420px": 420px,
+      "500px": 500px,
+      "85pct": 85%,
+      "92pct": 92%,
+      "lg": 32rem,
+      "md": 28rem,
+      "sm": 24rem,
+      "xl": 36rem,
+      "xs": 20rem,
+    )),
+    "height": mo-rong("height", (
+      2: 0.5rem,
+      3: 0.75rem,
+      4: 1rem,
+      5: 1.25rem,
+      6: 1.5rem,
+      7: 1.75rem,
+      8: 2rem,
+      9: 2.25rem,
+      10: 2.5rem,
+      11: 2.75rem,
+      12: 3rem,
+      14: 3.5rem,
+      16: 4rem,
+      20: 5rem,
+      24: 6rem,
+      28: 7rem,
+      40: 10rem,
+      44: 11rem,
+      "px": 1px,
+      "1-5": 0.375rem,
+      "2-5": 0.625rem,
+      "3-5": 0.875rem,
+      "110px": 110px,
+      "150px": 150px,
+      "18px": 18px,
+      "210px": 210px,
+      "22px": 22px,
+      "3px": 3px,
+      "42px": 42px,
+      "54px": 54px,
+      "76px": 76px,
+      "safe-top-14": calc(3.5rem + env(safe-area-inset-top)),
+      "modal": min(640px, calc(100vh - 8rem)),
+      "72px": 72px,
+      "screen-10": calc(100vh - 2.5rem),
+      "screen-80px": calc(100vh - 80px),
+      "88px": 88px,
+    )),
+    "max-height": mo-rong("max-height", (
+      56: 14rem,
+      64: 16rem,
+      "85vh": 85vh,
+      "90vh": 90vh,
+    )),
+    "flex": mo-rong("flex", (
+      1: 1 1 0%,
+      "none": none,
+    ), (responsive: false)),
+    "flex-direction": mo-rong("flex-direction", (), (responsive: false)),
+    "flex-grow": mo-rong("flex-grow", (), (responsive: false)),
+    "flex-shrink": mo-rong("flex-shrink", (), (responsive: false)),
+    "flex-wrap": mo-rong("flex-wrap", (), (responsive: false)),
+    "justify-content": mo-rong("justify-content", (), (responsive: false)),
+    "align-items": mo-rong("align-items", (), (responsive: false)),
+    "align-content": mo-rong("align-content", (), (responsive: false)),
+    "align-self": mo-rong("align-self", (), (responsive: false)),
+    "order": mo-rong("order", (), (responsive: false)),
+    "margin": mo-rong("margin", (), (responsive: false)),
+    "margin-x": mo-rong("margin-x", (), (responsive: false)),
+    "margin-y": mo-rong("margin-y", (), (responsive: false)),
+    "margin-top": mo-rong("margin-top", (), (responsive: false)),
+    "margin-end": mo-rong("margin-end", (), (responsive: false)),
+    "margin-bottom": mo-rong("margin-bottom", (), (responsive: false)),
+    "margin-start": mo-rong("margin-start", (), (responsive: false)),
+    "negative-margin": mo-rong("negative-margin", (), (responsive: false)),
+    "negative-margin-x": mo-rong("negative-margin-x", (), (responsive: false)),
+    "negative-margin-y": mo-rong("negative-margin-y", (), (responsive: false)),
+    "negative-margin-top": mo-rong("negative-margin-top", (), (responsive: false)),
+    "negative-margin-end": mo-rong("negative-margin-end", (), (responsive: false)),
+    "negative-margin-bottom": mo-rong("negative-margin-bottom", (), (responsive: false)),
+    "negative-margin-start": mo-rong("negative-margin-start", (), (responsive: false)),
+    "padding": mo-rong("padding", (), (responsive: false)),
+    "padding-x": mo-rong("padding-x", (), (responsive: false)),
+    "padding-y": mo-rong("padding-y", (), (responsive: false)),
+    "padding-top": mo-rong("padding-top", (
+      "safe-top": env(safe-area-inset-top),
+    ), (responsive: false)),
+    "padding-end": mo-rong("padding-end", (
+      "300px": 300px,
+    ), (responsive: false)),
+    "padding-bottom": mo-rong("padding-bottom", (
+      "safe-bottom-26": calc(6.5rem + env(safe-area-inset-bottom)),
+    ), (responsive: false)),
+    "padding-start": mo-rong("padding-start", (), (responsive: false)),
+    "gap": mo-rong("gap", (
+      "3px": 3px,
+    ), (responsive: false)),
+    "row-gap": mo-rong("row-gap", (), (responsive: false)),
+    "column-gap": mo-rong("column-gap", (), (responsive: false)),
+    "font-family": mo-rong("font-family", (
+      "sans": var(--font-sans),
+    )),
+    "font-size": mo-rong("font-size", (
+      "34px": 34px,
+      "base": 1rem,
+      "15px": 15px,
+      "40px": 40px,
+      "44px": 44px,
+      "46px": 46px,
+      "48px": 48px,
+      "62px": 62px,
+      "lg": 1.125rem,
+      "sm": 0.875rem,
+      "xl": 1.25rem,
+      "52px": 52px,
+      "2xl": 1.5rem,
+      "3xl": 1.875rem,
+      "4xl": 2.25rem,
+      "0-85em": 0.85em,
+      "10px": 10px,
+      "11px": 11px,
+      "13px": 13px,
+      "14px": 14px,
+      "16px": 16px,
+      "17px": 17px,
+      "18px": 18px,
+      "28px": 28px,
+      "32px": 32px,
+      "xs": 0.75rem,
+      "70px": 70px,
+    ), (rfs: false)),
+    "line-height": mo-rong("line-height", (
+      "1-12": 1.12,
+      "1-1": 1.1,
+      "relaxed": 1.625,
+      "snug": 1.375,
+      "1-08": 1.08,
+    )),
+    "text-align": mo-rong("text-align", (), (responsive: false)),
+    "white-space": mo-rong("white-space", (
+      "pre-line": pre-line,
+      "pre-wrap": pre-wrap,
+    )),
+    "color": mo-rong("color", (
+      "slate-900": #121926,
+      "white": #fff,
+      "slate-800": #202939,
+      "slate-500": #697586,
+      "slate-700": #364152,
+      "violet-700": unquote("rgb(var(--brand-700))"),
+      "violet-600": unquote("rgb(var(--brand-600))"),
+      "slate-600": #4b5565,
+      "rose-700": #be123c,
+      "slate-400": #9aa4b2,
+      "emerald-700": #047857,
+      "emerald-900": #064e3b,
+      "blue-700": #1976d2,
+      "blue-900": #0d47a1,
+      "amber-700": #b45309,
+      "amber-900": #78350f,
+      "emerald-800": #065f46,
+      "blue-800": #1565c0,
+      "violet-800": unquote("rgb(var(--brand-800))"),
+      "rose-600": #e11d48,
+      "purple-900": #581c87,
+      "purple-700": #7e22ce,
+      "rose-800": #9f1239,
+      "amber-600": #d97706,
+      "violet-900": unquote("rgb(var(--brand-900))"),
+      "violet-500": unquote("rgb(var(--brand-500))"),
+      "slate-300": #cdd5df,
+      "rose-900": #881337,
+      "orange-800": #9a3412,
+      "amber-500": #f59e0b,
+      "sky-900": #0c4a6e,
+      "amber-800": #92400e,
+      "rose-500": #f43f5e,
+      "blue-600": #1e88e5,
+      "emerald-600": #059669,
+      "violet-100": unquote("rgb(var(--brand-100))"),
+      "blue-200": #90caf9,
+      "blue-950": #0a3677,
+      "amber-950": #451a03,
+      "indigo-950": #1e1b4b,
+      "emerald-100": #d1fae5,
+      "amber-200": #fde68a,
+      "indigo-700": #4338ca,
+      "indigo-600": #4f46e5,
+      "orange-700": #c2410c,
+      "blue-500": #2196f3,
+      "indigo-500": #6366f1,
+      "pink-600": #db2777,
+      "sky-600": #0284c7,
+      "teal-700": #0f766e,
+      "teal-600": #0d9488,
+      "violet-300": unquote("rgb(var(--brand-300))"),
+      "indigo-900": #312e81,
+      "emerald-700-70": rgba(#047857, 0.7),
+      "white-80": rgba(#fff, 0.8),
+      "white-85": rgba(#fff, 0.85),
+      "white-90": rgba(#fff, 0.9),
+    )),
+    "background-color": mo-rong("background-color", (
+      "slate-50": #f8fafc,
+      "white": #fff,
+      "rose-50": #fff1f2,
+      "violet-600": unquote("rgb(var(--brand-600))"),
+      "violet-200": unquote("rgb(var(--brand-200))"),
+      "violet-100": unquote("rgb(var(--brand-100))"),
+      "fuchsia-100": #fae8ff,
+      "emerald-100": #d1fae5,
+      "emerald-50": #ecfdf5,
+      "blue-50": #e3f2fd,
+      "amber-50": #fffbeb,
+      "slate-100": #eef2f6,
+      "blue-100": #bbdefb,
+      "purple-50": #faf5ff,
+      "rose-100": #ffe4e6,
+      "purple-700": #7e22ce,
+      "purple-100": #f3e8ff,
+      "violet-50": unquote("rgb(var(--brand-50))"),
+      "emerald-700": #047857,
+      "amber-600": #d97706,
+      "blue-700": #1976d2,
+      "rose-600": #e11d48,
+      "orange-100": #ffedd5,
+      "emerald-500": #10b981,
+      "blue-500": #2196f3,
+      "sky-50": #f0f9ff,
+      "amber-100": #fef3c7,
+      "sky-100": #e0f2fe,
+      "amber-500": #f59e0b,
+      "transparent": transparent,
+      "slate-200": #e3e8ef,
+      "violet-800": unquote("rgb(var(--brand-800))"),
+      "indigo-50": #eef2ff,
+      "violet-500": unquote("rgb(var(--brand-500))"),
+      "rose-500": #f43f5e,
+      "slate-300": #cdd5df,
+      "orange-500": #f97316,
+      "fuchsia-300": #f0abfc,
+      "rose-400": #fb7185,
+      "indigo-100": #e0e7ff,
+      "pink-100": #fce7f3,
+      "pink-500": #ec4899,
+      "violet-300": unquote("rgb(var(--brand-300))"),
+      "violet-400": unquote("rgb(var(--brand-400))"),
+      "amber-300-90": rgba(#fcd34d, 0.9),
+      "amber-50-20": rgba(#fffbeb, 0.2),
+      "blue-50-20": rgba(#e3f2fd, 0.2),
+      "blue-50-60": rgba(#e3f2fd, 0.6),
+      "blue-50-70": rgba(#e3f2fd, 0.7),
+      "emerald-50-20": rgba(#ecfdf5, 0.2),
+      "purple-50-20": rgba(#faf5ff, 0.2),
+      "rose-50-20": rgba(#fff1f2, 0.2),
+      "rose-50-40": rgba(#fff1f2, 0.4),
+      "slate-100-80": rgba(#eef2f6, 0.8),
+      "slate-50-60": rgba(#f8fafc, 0.6),
+      "slate-50-70": rgba(#f8fafc, 0.7),
+      "slate-900-40": rgba(#121926, 0.4),
+      "slate-900-50": rgba(#121926, 0.5),
+      "slate-900-60": rgba(#121926, 0.6),
+      "violet-50-30": unquote("rgb(var(--brand-50) / 0.3)"),
+      "violet-50-40": unquote("rgb(var(--brand-50) / 0.4)"),
+      "violet-50-50": unquote("rgb(var(--brand-50) / 0.5)"),
+      "white-15": rgba(#fff, 0.15),
+      "white-20": rgba(#fff, 0.2),
+      "white-75": rgba(#fff, 0.75),
+      "white-90": rgba(#fff, 0.9),
+      "white-95": rgba(#fff, 0.95),
+      "emerald-800": #065f46,
+      "purple-800": #6b21a8,
+      "rose-200": #fecdd3,
+      "rose-700": #be123c,
+      "slate-50-90": rgba(#f8fafc, 0.9),
+      "violet-700": unquote("rgb(var(--brand-700))"),
+      "white-10": rgba(#fff, 0.1),
+      "white-30": rgba(#fff, 0.3),
+    )),
+    "rounded": mo-rong("rounded", (
+      "3xl": 24px,
+      "2xl": 20px,
+      "xl": 16px,
+      "lg": 12px,
+      "md": 10px,
+      "1-35rem": 1.35rem,
+      "22px": 22px,
+      "26px": 26px,
+      "28px": 28px,
+      "32px": 32px,
+      "36px": 36px,
+    )),
+    "rounded-top": mo-rong("rounded-top", (
+      "3xl": 24px,
+      "lg": 12px,
+    )),
+    "z-index": mo-rong("z-index", (
+      10: 10,
+      20: 20,
+      30: 30,
+      40: 40,
+      50: 50,
+      60: 60,
+      9999: 9999,
+      10001: 10001,
+      10002: 10002,
+      "auto": auto,
+    )),
+    "place-items": (
+      property: place-items,
+      class: place-items,
+      values: (
+        "center": center,
+      ),
+    ),
+    "min-width": (
+      property: min-width,
+      class: min-w,
+      values: (
+        0: 0,
+        12: 3rem,
+        16: 4rem,
+        56: 14rem,
+        "940px": 940px,
+        "860px": 860px,
+        "130px": 130px,
+        "140px": 140px,
+        "160px": 160px,
+        "170px": 170px,
+        "180px": 180px,
+        "18px": 18px,
+        "20px": 20px,
+        "220px": 220px,
+        "50px": 50px,
+        "60px": 60px,
+        "720px": 720px,
+        "90px": 90px,
+      ),
+    ),
+    "list-style-type": (
+      property: list-style-type,
+      class: list,
+      values: (
+        "disc": disc,
+        "decimal": decimal,
+      ),
+    ),
+    "letter-spacing": (
+      property: letter-spacing,
+      class: tracking,
+      values: (
+        "wide": 0.025em,
+        "tight": -0.025em,
+        "widest": 0.1em,
+        "wider": 0.05em,
+      ),
+    ),
+    "resize": (
+      property: resize,
+      class: resize,
+      values: (
+        "none": none,
+        null: both,
+      ),
+    ),
+    "grid-template-columns": (
+      property: grid-template-columns,
+      class: grid-cols,
+      values: (
+        1: repeat(1, minmax(0, 1fr)),
+        2: repeat(2, minmax(0, 1fr)),
+        3: repeat(3, minmax(0, 1fr)),
+        4: repeat(4, minmax(0, 1fr)),
+        5: repeat(5, minmax(0, 1fr)),
+        6: repeat(6, minmax(0, 1fr)),
+        "145-1-1": 1.45fr 1fr 1fr,
+        "14-1": 1.4fr 1fr,
+        "1-105": 1fr 1.05fr,
+        "105-08-125": 1.05fr 0.8fr 1.25fr,
+        "125-09-auto": 1.25fr 0.9fr auto,
+        "1-auto-auto": 1fr auto auto,
+        "m1-m108": minmax(0, 1fr) minmax(0, 1.08fr),
+        "12-08-11": 1.2fr 0.8fr 1.1fr,
+        "1-170px": 1fr 170px,
+        "auto-1": auto 1fr,
+      ),
+    ),
+    "border-style": (
+      property: border-style,
+      class: border,
+      values: (
+        "dashed": dashed,
+      ),
+    ),
+    "cursor": (
+      property: cursor,
+      class: cursor,
+      values: (
+        "pointer": pointer,
+        "not-allowed": not-allowed,
+      ),
+    ),
+    "border-collapse": (
+      property: border-collapse,
+      class: border-collapse,
+      values: (
+        null: collapse,
+      ),
+    ),
+    "font-variant-numeric": (
+      property: font-variant-numeric,
+      class: tabular-nums,
+      values: (
+        null: tabular-nums,
+      ),
+    ),
+    "inset": (
+      property: inset,
+      class: inset,
+      values: (
+        0: 0,
+      ),
+    ),
+    "grid-column": (
+      property: grid-column,
+      class: col-span,
+      values: (
+        1: unquote("span 1 / span 1"),
+        2: unquote("span 2 / span 2"),
+        "full": unquote("1 / -1"),
+      ),
+    ),
+    "backdrop-filter": (
+      property: backdrop-filter,
+      class: backdrop-blur,
+      values: (
+        "sm": blur(4px),
+        "xl": blur(24px),
+        null: blur(8px),
+        "2px": blur(2px),
+      ),
+    ),
+    "min-height": (
+      property: min-height,
+      class: min-h,
+      values: (
+        0: 0,
+        "600px": 600px,
+        "30px": 30px,
+        "330px": 330px,
+        "380px": 380px,
+        "screen-80px": calc(100vh - 80px),
+        "screen-8": calc(100vh - 2rem),
+      ),
+    ),
+    "transition-duration": (
+      property: transition-duration,
+      class: duration,
+      values: (
+        200: 200ms,
+        500: 500ms,
+      ),
+    ),
+    "accent-color": (
+      property: accent-color,
+      class: accent,
+      values: (
+        "blue-600": #1e88e5,
+        "amber-500": #f59e0b,
+        "violet-600": unquote("rgb(var(--brand-600))"),
+      ),
+    ),
+    "inset-x": (
+      property: left right,
+      class: inset-x,
+      values: (
+        3: 0.75rem,
+        4: 1rem,
+        "auto": auto,
+      ),
+    ),
+    "inset-y": (
+      property: top bottom,
+      class: inset-y,
+      values: (
+        0: 0,
+      ),
+    ),
+    "text-wrap": (
+      property: text-wrap,
+      class: text,
+      values: (
+        "balance": balance,
+      ),
+    ),
+    "fill": (
+      property: fill,
+      class: fill,
+      values: (
+        "violet-600": unquote("rgb(var(--brand-600))"),
+      ),
+    ),
+    "scroll-margin-top": (
+      property: scroll-margin-top,
+      class: scroll-mt,
+      values: (
+        20: 5rem,
+        28: 7rem,
+      ),
+    ),
+    "filter": (
+      property: filter,
+      class: blur,
+      values: (
+        null: blur(8px),
+      ),
+    ),
+    "border-top-color": (
+      property: border-top-color,
+      class: border-top,
+      values: (
+        "indigo-600": #4f46e5,
+        "violet-600": unquote("rgb(var(--brand-600))"),
+      ),
+    ),
+    "word-break": (
+      property: word-break,
+      class: text-break,
+      values: (
+        "all": break-all,
+      ),
+    ),
+    "font-size-lh": (
+      property: line-height,
+      class: fs,
+      values: (
+        "base": 1.5rem,
+        "lg": 1.75rem,
+        "sm": 1.25rem,
+        "xl": 1.75rem,
+        "2xl": 2rem,
+        "3xl": 2.25rem,
+        "4xl": 2.5rem,
+        "xs": 1rem,
+      ),
+    ),
+    "rounded-bottom-start": (
+      property: border-bottom-left-radius,
+      class: rounded-bottom-start,
+      values: (
+        "md": 10px,
+      ),
+    ),
+    "rounded-bottom-end": (
+      property: border-bottom-right-radius,
+      class: rounded-bottom-end,
+      values: (
+        "md": 10px,
+      ),
+    ),
+    "rounded-top-start": (
+      property: border-top-left-radius,
+      class: rounded-top-start,
+      values: (
+        "md": 10px,
+      ),
+    ),
+    "rounded-top-end": (
+      property: border-top-right-radius,
+      class: rounded-top-end,
+      values: (
+        "md": 10px,
+      ),
+    ),
+  )
+);
+
+// 2. Bản responsive (-md-...) và trạng thái (-hover, -focus...) chỉ cho các giá trị thực sự dùng,
+//    chèn ngay sau utility gốc để giữ đúng thứ tự ưu tiên (vd p-5 rồi mới tới pt-6).
+$utilities: chen-sau(
+  $utilities,
+  "opacity",
+  (
+    "opacity-hover": tach("opacity", (state: hover), (80,)),
+    "opacity-disabled": tach("opacity", (state: disabled), (40, 50, 60, 70)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "overflow-y",
+  (
+    "overflow-y-rsp": tach("overflow-y", (responsive: true), ("auto",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "position",
+  (
+    "position-rsp": tach("position", (responsive: true), ("absolute", "static", "sticky")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "top",
+  (
+    "top-rsp": tach("top", (responsive: true), (20, "48px")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "bottom",
+  (
+    "bottom-rsp": tach("bottom", (responsive: true), (6,)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "start",
+  (
+    "start-rsp": tach("start", (responsive: true), ("auto",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "end",
+  (
+    "end-rsp": tach("end", (responsive: true), (0, 5, 6)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "border",
+  (
+    "border-rsp": tach("border", (responsive: true), ("null", 0)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "border-color",
+  (
+    "border-color-rsp": tach("border-color", (responsive: true), ("slate-200",)),
+    "border-color-hover": tach("border-color", (state: hover), ("blue-300", "rose-200", "slate-200", "violet-200", "violet-300", "violet-400")),
+    "border-color-focus": tach("border-color", (state: focus), ("amber-500", "violet-300", "violet-400")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "width",
+  (
+    "width-rsp": tach("width", (responsive: true), (14, 12, 16, 36, 56, 8, 80, 11, "380px", "420px", "42px", "88px", "auto", "230px")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "height",
+  (
+    "height-rsp": tach("height", (responsive: true), (14, "72px", "screen-10", 12, 16, 20, 8, "screen-80px", 11, "42px", "88px")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "flex",
+  (
+    "flex-rsp": tach("flex", (responsive: true), ("none",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "flex-direction",
+  (
+    "flex-direction-rsp": tach("flex-direction", (responsive: true), ("row",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "flex-wrap",
+  (
+    "flex-wrap-rsp": tach("flex-wrap", (responsive: true), ("nowrap",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "justify-content",
+  (
+    "justify-content-rsp": tach("justify-content", (responsive: true), ("start", "between")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "align-items",
+  (
+    "align-items-rsp": tach("align-items", (responsive: true), ("center",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "margin-x",
+  (
+    "margin-x-rsp": tach("margin-x", (responsive: true), (0, 6)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "margin-end",
+  (
+    "margin-end-rsp": tach("margin-end", (responsive: true), (5,)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "margin-start",
+  (
+    "margin-start-rsp": tach("margin-start", (responsive: true), (5,)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "negative-margin-bottom",
+  (
+    "negative-margin-bottom-rsp": tach("negative-margin-bottom", (responsive: true), ("n24",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "padding",
+  (
+    "padding-rsp": tach("padding", (responsive: true), (5, 10, 12, 6, 8, 4)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "padding-x",
+  (
+    "padding-x-rsp": tach("padding-x", (responsive: true), (4, 6, 7, 8, 12, 5, 10, 14, 20, "3-5")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "padding-y",
+  (
+    "padding-y-rsp": tach("padding-y", (responsive: true), (16, 20, 3, "3-5", 4, 7)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "padding-top",
+  (
+    "padding-top-rsp": tach("padding-top", (responsive: true), (0, 40, 9)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "padding-end",
+  (
+    "padding-end-rsp": tach("padding-end", (responsive: true), (5, "300px")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "padding-bottom",
+  (
+    "padding-bottom-rsp": tach("padding-bottom", (responsive: true), (0, 14, 16)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "gap",
+  (
+    "gap-rsp": tach("gap", (responsive: true), (4, 3, 5, 6)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "font-size",
+  (
+    "font-size-rsp": tach("font-size", (responsive: true), ("34px", "base", "15px", "40px", "44px", "46px", "48px", "62px", "lg", "sm", "xl", "52px", "70px")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "line-height",
+  (
+    "line-height-rsp": tach("line-height", (responsive: true), ("1-08",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "text-align",
+  (
+    "text-align-rsp": tach("text-align", (responsive: true), ("start", "end")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "text-decoration",
+  (
+    "text-decoration-hover": tach("text-decoration", (state: hover), ("underline",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "color",
+  (
+    "color-hover": tach("color", (state: hover), ("amber-900", "amber-950", "emerald-900", "indigo-900", "rose-600", "rose-800", "sky-900", "slate-600", "slate-700", "slate-800", "slate-900", "violet-600", "violet-700", "violet-800", "violet-900", "white")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "background-color",
+  (
+    "background-color-rsp": tach("background-color", (responsive: true), ("white",)),
+    "background-color-hover": tach("background-color", (state: hover), ("amber-100", "amber-50", "amber-600", "blue-100", "emerald-100", "emerald-800", "indigo-100", "purple-800", "rose-100", "rose-200", "rose-50", "rose-700", "sky-50", "slate-100", "slate-200", "slate-50", "slate-50-90", "violet-100", "violet-50", "violet-50-50", "violet-600", "violet-700", "white", "white-10", "white-20", "white-30")),
+    "background-color-focus": tach("background-color", (state: focus), ("white",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "rounded",
+  (
+    "rounded-rsp": tach("rounded", (responsive: true), ("2xl", "1-35rem")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "rounded-top",
+  (
+    "rounded-top-rsp": tach("rounded-top", (responsive: true), ("3xl",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "z-index",
+  (
+    "z-index-rsp": tach("z-index", (responsive: true), ("auto",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "min-width",
+  (
+    "min-width-rsp": tach("min-width", (responsive: true), ("940px", "860px")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "grid-template-columns",
+  (
+    "grid-template-columns-rsp": tach("grid-template-columns", (responsive: true), (3, 4, "145-1-1", 2, 6, "105-08-125", "125-09-auto", "1-auto-auto", "m1-m108", 5, "12-08-11", "1-170px", "auto-1")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "cursor",
+  (
+    "cursor-disabled": tach("cursor", (state: disabled), ("not-allowed",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "grid-column",
+  (
+    "grid-column-rsp": tach("grid-column", (responsive: true), (1, 2)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "min-height",
+  (
+    "min-height-rsp": tach("min-height", (responsive: true), ("600px", "screen-8")),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "inset-x",
+  (
+    "inset-x-rsp": tach("inset-x", (responsive: true), ("auto",)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "scroll-margin-top",
+  (
+    "scroll-margin-top-rsp": tach("scroll-margin-top", (responsive: true), (20,)),
+  )
+);
+$utilities: chen-sau(
+  $utilities,
+  "font-size-lh",
+  (
+    "font-size-lh-rsp": tach("font-size-lh", (responsive: true), ("base", "lg", "sm", "xl")),
+  )
+);
+
+
+// 3. line-height xuống cuối để lh-* luôn thắng line-height đi kèm cỡ chữ (fs-*).
+$utilities: dua-xuong-cuoi($utilities, "line-height", "line-height-rsp");

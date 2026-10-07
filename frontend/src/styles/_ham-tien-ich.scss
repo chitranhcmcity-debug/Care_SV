@@ -1,0 +1,57 @@
+// Hàm hỗ trợ chỉnh map $utilities của Bootstrap.
+
+// Đưa values (list hoặc map) về dạng map.
+@function _ve-map($vals) {
+  @if type-of($vals) == 'map' {
+    @return $vals;
+  }
+  $m: ();
+  @each $v in $vals {
+    $m: map-merge($m, ($v: $v));
+  }
+  @return $m;
+}
+
+// Thêm giá trị (và tuỳ chọn) vào một utility có sẵn, giữ nguyên vị trí của nó trong map.
+@function mo-rong($ten, $gia-tri, $tuy-chon: ()) {
+  $u: map-merge(map-get($utilities, $ten), $tuy-chon);
+  @return map-merge($u, (values: map-merge(_ve-map(map-get($u, values)), $gia-tri)));
+}
+
+// Bản sao của một utility chỉ với các khoá được chọn, kèm tuỳ chọn (responsive, state).
+// Khoá null viết là "null".
+@function tach($ten, $tuy-chon, $khoa) {
+  $u: map-get($utilities, $ten);
+  $con: ();
+  @each $k, $v in _ve-map(map-get($u, values)) {
+    @if index($khoa, if($k == null, 'null', $k)) {
+      $con: map-merge($con, ($k: $v));
+    }
+  }
+  @return map-merge(map-merge($u, $tuy-chon), (values: $con));
+}
+
+// Chèn các utility $them ngay sau khoá $sau trong map.
+@function chen-sau($map, $sau, $them) {
+  $kq: ();
+  @each $k, $v in $map {
+    @if not map-has-key($them, $k) {
+      $kq: map-merge($kq, ($k: $v));
+    }
+    @if $k == $sau {
+      $kq: map-merge($kq, $them);
+    }
+  }
+  @return $kq;
+}
+
+// Chuyển các utility xuống cuối map để chúng được sinh sau (thắng khi trùng thuộc tính).
+@function dua-xuong-cuoi($map, $khoa...) {
+  @each $k in $khoa {
+    @if map-has-key($map, $k) {
+      $v: map-get($map, $k);
+      $map: map-merge(map-remove($map, $k), ($k: $v));
+    }
+  }
+  @return $map;
+}

@@ -1,18 +1,18 @@
-<div class="card-3d perm-card p-6 md:p-8 pt-7 md:pt-9 space-y-6">
-  <div class="border-b border-slate-200 pb-4 flex items-center justify-between flex-wrap gap-4">
+<div class="card-3d perm-card p-6 p-md-8 pt-7 pt-md-9 space-y-6">
+  <div class="border-bottom border-slate-200 pb-4 d-flex align-items-center justify-content-between flex-wrap gap-4">
     <div>
-      <h3 class="text-lg md:text-xl font-bold text-slate-900">Phân quyền theo vai trò</h3>
-      <p class="text-xs text-slate-500 font-medium mt-0.5">
+      <h3 class="fs-lg fs-md-xl fw-bold text-slate-900">Phân quyền theo vai trò</h3>
+      <p class="fs-xs text-slate-500 fw-medium mt-0-5">
         Chọn chức năng mà từng vai trò được sử dụng. Thay đổi có hiệu lực ngay, người dùng không cần
         đăng nhập lại.
       </p>
     </div>
-    <div class="flex flex-wrap items-center gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2">
       <button
         type="button"
         (click)="resetPermissionsToDefault()"
         [disabled]="!permissionDraft || isSavingPermissions"
-        class="px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm rounded-xl transition-all disabled:opacity-50"
+        class="px-4 py-2-5 border border-slate-300 text-slate-700 bg-slate-50-hover fw-semibold fs-xs fs-sm-sm rounded-xl transition-all opacity-50-disabled"
       >
         Khôi phục mặc định
       </button>
@@ -21,7 +21,7 @@
         *ngIf="permissionsChanged"
         (click)="discardPermissionChanges()"
         [disabled]="isSavingPermissions"
-        class="px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm rounded-xl transition-all disabled:opacity-50"
+        class="px-4 py-2-5 border border-slate-300 text-slate-700 bg-slate-50-hover fw-semibold fs-xs fs-sm-sm rounded-xl transition-all opacity-50-disabled"
       >
         Hủy thay đổi
       </button>
@@ -29,22 +29,22 @@
         type="button"
         (click)="savePermissions()"
         [disabled]="!permissionsChanged || isSavingPermissions"
-        class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all disabled:opacity-50"
+        class="px-6 py-2-5 bg-violet-600 bg-violet-700-hover text-white fw-bold fs-xs fs-sm-sm rounded-xl shadow-md transition-all opacity-50-disabled"
       >
         {{ isSavingPermissions ? 'Đang lưu...' : 'Lưu phân quyền' }}
       </button>
     </div>
   </div>
 
-  <div *ngIf="!permissionConfig" class="py-10 text-center text-sm text-slate-500">
+  <div *ngIf="!permissionConfig" class="py-10 text-center fs-sm text-slate-500">
     Đang tải bảng phân quyền...
   </div>
 
   <div *ngIf="permissionConfig && permissionDraft" class="overflow-x-auto">
-    <table class="perm-table w-full min-w-[720px] text-sm">
+    <table class="perm-table w-100 min-w-720px fs-sm">
       <thead>
-        <tr class="text-left">
-          <th class="py-3 pl-4 pr-4">🧩 Chức năng</th>
+        <tr class="text-start">
+          <th class="py-3 ps-4 pe-4">🧩 Chức năng</th>
           <th class="py-3 px-3 text-center w-32">
             <span class="perm-role" data-tone="0">👑 Quản trị viên</span>
           </th>
@@ -64,9 +64,9 @@
             </td>
           </tr>
           <tr *ngFor="let p of g.items" class="perm-row">
-            <td class="py-3 pl-4 pr-4">
-              <div class="font-semibold text-slate-800">{{ p.label }}</div>
-              <div class="text-xs text-slate-500 mt-0.5">{{ p.description }}</div>
+            <td class="py-3 ps-4 pe-4">
+              <div class="fw-semibold text-slate-800">{{ p.label }}</div>
+              <div class="fs-xs text-slate-500 mt-0-5">{{ p.description }}</div>
             </td>
             <td class="perm-cell py-3 px-3 text-center" data-tone="0">
               <input
@@ -91,7 +91,7 @@
               >
               <label
                 *ngIf="permissionApplies(r.role, p.key)"
-                class="inline-flex flex-col items-center gap-1 cursor-pointer"
+                class="d-inline-flex flex-column align-items-center gap-1 cursor-pointer"
               >
                 <input
                   type="checkbox"
@@ -113,7 +113,7 @@
     </table>
   </div>
 
-  <p class="text-xs text-slate-500">
+  <p class="fs-xs text-slate-500">
     Quản lý tài khoản, phân công phụ trách, cấu hình hệ thống, gói dịch vụ và bảng phân quyền luôn
     chỉ dành cho Quản trị viên. Phạm vi dữ liệu vẫn được giữ: giảng viên chỉ điểm danh học phần mình
     dạy, nhân viên chỉ làm các hồ sơ chăm sóc được giao.

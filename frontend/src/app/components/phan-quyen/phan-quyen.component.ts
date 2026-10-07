@@ -17,7 +17,7 @@ import {
   imports: [CommonModule],
   templateUrl: './phan-quyen.component.html',
   styleUrl: './phan-quyen.component.css',
-  host: { class: 'block' },
+  host: { class: 'd-block' },
 })
 export class PermissionsPanelComponent implements OnInit {
   private readonly permissionService = inject(PermissionService);

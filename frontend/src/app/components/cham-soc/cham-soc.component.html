@@ -69,12 +69,12 @@
       >
         <!-- Các bước -->
         <div class="care-card care-steps-panel">
-          <div class="flex items-center justify-between gap-2">
+          <div class="d-flex align-items-center justify-content-between gap-2">
             <h3 class="care-title">
               <span class="care-section-icon is-green"><app-care-icon name="check" /></span> Các
               bước chăm sóc
             </h3>
-            <span class="text-xs font-bold text-violet-700 tabular-nums"
+            <span class="fs-xs fw-bold text-violet-700 tabular-nums"
               >{{ doneCount(c) }}/{{ c.steps.length }}</span
             >
           </div>
@@ -96,13 +96,13 @@
                 <span *ngIf="step.done">✓</span>
               </button>
               <div class="care-step-content">
-                <div class="text-sm font-semibold text-slate-800">
+                <div class="fs-sm fw-semibold text-slate-800">
                   {{ step.title }}
                   <span *ngIf="step.source === 'ai'" class="care-tag">AI</span>
                   <span *ngIf="step.source === 'quan_ly'" class="care-tag">Quản lý</span>
                 </div>
                 <p *ngIf="stepDescription(step)" class="care-muted">{{ stepDescription(step) }}</p>
-                <div *ngIf="step.doneAt" class="text-[11px] text-slate-400">
+                <div *ngIf="step.doneAt" class="fs-11px text-slate-400">
                   Xong {{ step.doneAt | date: 'dd/MM HH:mm' }}
                 </div>
                 <input
@@ -112,10 +112,10 @@
                   (blur)="saveStepNote(c, step, noteInput.value)"
                   (keydown.enter)="noteInput.blur()"
                   placeholder="Ghi chú..."
-                  class="mt-1 w-full h-8 px-2 rounded-lg border border-transparent hover:border-slate-200 focus:border-violet-300 text-xs bg-transparent"
+                  class="mt-1 w-100 h-8 px-2 rounded-lg border border-transparent border-slate-200-hover border-violet-300-focus fs-xs bg-transparent"
                 />
                 <ng-template #stepNote>
-                  <div *ngIf="step.note" class="text-xs text-slate-500">{{ step.note }}</div>
+                  <div *ngIf="step.note" class="fs-xs text-slate-500">{{ step.note }}</div>
                 </ng-template>
               </div>
               <button
@@ -130,13 +130,13 @@
             </li>
           </ul>
           <ng-container *ngIf="c.permissions.work && c.status !== STATUS.CLOSED">
-            <div class="flex gap-2">
+            <div class="d-flex gap-2">
               <input
                 [(ngModel)]="newStep"
                 (keydown.enter)="addStep(c)"
                 maxlength="300"
                 placeholder="Thêm bước chăm sóc..."
-                class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
+                class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 fs-sm"
               />
               <button type="button" (click)="addStep(c)" class="care-btn h-10 px-4">Thêm</button>
             </div>
@@ -344,18 +344,18 @@
         <!-- Chỉ đạo (quản lý) -->
         <div
           *ngIf="canAct() && c.status !== STATUS.CLOSED"
-          class="care-card p-3.5 space-y-2.5"
+          class="care-card p-3-5 space-y-2-5"
           [class.care-card--attention]="c.status === STATUS.AWAITING"
         >
           <h3 class="care-title">
             🧭
             {{ c.status === STATUS.AWAITING ? 'Chỉ đạo chăm sóc' : 'Chỉ đạo / đổi người chăm sóc' }}
           </h3>
-          <div class="grid sm:grid-cols-[1fr_170px] gap-2">
+          <div class="d-grid grid-cols-sm-1-170px gap-2">
             <select
               [(ngModel)]="directStaffId"
               aria-label="Nhân viên chăm sóc"
-              class="h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
+              class="h-10 px-3 rounded-xl border border-slate-200 fs-sm bg-white"
             >
               <option value="">— Chọn nhân viên CSSV —</option>
               <option *ngFor="let s of staffOptions()" [value]="s._id">
@@ -368,7 +368,7 @@
               type="date"
               [(ngModel)]="dueDate"
               aria-label="Hạn hoàn thành"
-              class="h-10 px-3 rounded-xl border border-slate-200 text-sm"
+              class="h-10 px-3 rounded-xl border border-slate-200 fs-sm"
             />
           </div>
           <textarea
@@ -376,7 +376,7 @@
             rows="2"
             maxlength="4000"
             placeholder="Nội dung chỉ đạo (không bắt buộc)..."
-            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+            class="w-100 px-3 py-2 rounded-xl border border-slate-200 fs-sm"
           ></textarea>
           <button
             type="button"
@@ -391,15 +391,15 @@
         <!-- Đóng hồ sơ -->
         <div
           *ngIf="c.status === STATUS.CLOSED; else closingForms"
-          class="care-card care-card--done p-3.5 space-y-2"
+          class="care-card care-card--done p-3-5 space-y-2"
         >
           <h3 class="care-title">🏁 Kết quả chăm sóc</h3>
-          <div class="text-sm">
+          <div class="fs-sm">
             <b>{{ resultLabel(c.closing.result) }}</b>
             <span *ngIf="c.closing.early" class="care-tag">Kết thúc sớm</span>
           </div>
-          <p class="text-sm text-slate-700 whitespace-pre-line">{{ c.closing.summary }}</p>
-          <div class="text-xs text-slate-500">
+          <p class="fs-sm text-slate-700 text-pre-line">{{ c.closing.summary }}</p>
+          <div class="fs-xs text-slate-500">
             Duyệt bởi {{ c.closing.approvedBy?.fullName || '—' }} ·
             {{ c.closing.closedAt | date: 'dd/MM/yyyy' }}
           </div>
@@ -408,19 +408,19 @@
           <!-- Chờ duyệt -->
           <div
             *ngIf="c.status === STATUS.CLOSING"
-            class="care-card care-card--attention p-3.5 space-y-2.5"
+            class="care-card care-card--attention p-3-5 space-y-2-5"
           >
             <h3 class="care-title">📋 Đề nghị kết thúc hồ sơ</h3>
-            <div class="text-sm">
+            <div class="fs-sm">
               <b>{{ resultLabel(c.closing.result) }}</b>
               <span *ngIf="c.closing.early" class="care-tag">Kết thúc sớm</span>
             </div>
-            <p class="text-sm text-slate-700 whitespace-pre-line">{{ c.closing.summary }}</p>
-            <div class="text-xs text-slate-500">
+            <p class="fs-sm text-slate-700 text-pre-line">{{ c.closing.summary }}</p>
+            <div class="fs-xs text-slate-500">
               {{ c.closing.proposedBy?.fullName }} ·
               {{ c.closing.proposedAt | date: 'dd/MM/yyyy HH:mm' }}
             </div>
-            <div *ngIf="canAct()" class="space-y-2 pt-2 border-t border-dashed border-amber-200">
+            <div *ngIf="canAct()" class="space-y-2 pt-2 border-top border-dashed border-amber-200">
               <button
                 type="button"
                 (click)="approveClose(c)"
@@ -429,11 +429,11 @@
               >
                 ✓ Duyệt kết thúc
               </button>
-              <div class="flex gap-2">
+              <div class="d-flex gap-2">
                 <input
                   [(ngModel)]="returnNote"
                   placeholder="Lý do chưa duyệt, yêu cầu chăm sóc thêm..."
-                  class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm"
+                  class="min-w-0 flex-1 h-10 px-3 rounded-xl border border-slate-200 fs-sm"
                 />
                 <button
                   type="button"
@@ -445,7 +445,7 @@
                 </button>
               </div>
             </div>
-            <p *ngIf="!canAct()" class="text-sm text-amber-800">
+            <p *ngIf="!canAct()" class="fs-sm text-amber-800">
               Đang chờ Trưởng phòng / Phó hiệu trưởng duyệt.
             </p>
           </div>
@@ -453,7 +453,7 @@
           <!-- Báo cáo & đóng (nhân viên xin; quản lý có thể đóng trực tiếp) -->
           <div
             *ngIf="c.status === STATUS.IN_PROGRESS && c.permissions.work"
-            class="care-card p-3.5 space-y-2.5"
+            class="care-card p-3-5 space-y-2-5"
           >
             <h3 class="care-title">
               🏁
@@ -464,7 +464,7 @@
             <select
               [(ngModel)]="closeResult"
               aria-label="Kết quả chăm sóc"
-              class="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
+              class="w-100 h-10 px-3 rounded-xl border border-slate-200 fs-sm bg-white"
             >
               <option value="">— Kết quả chăm sóc —</option>
               <option *ngFor="let r of resultOptions" [value]="r[0]">{{ r[1] }}</option>
@@ -474,9 +474,9 @@
               rows="2"
               maxlength="4000"
               placeholder="Báo cáo: sinh viên đã được chăm sóc thế nào, chuyển biến ra sao..."
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+              class="w-100 px-3 py-2 rounded-xl border border-slate-200 fs-sm"
             ></textarea>
-            <label class="flex items-center gap-2 text-sm text-slate-700">
+            <label class="d-flex align-items-center gap-2 fs-sm text-slate-700">
               <input type="checkbox" [(ngModel)]="closeEarly" /> Kết thúc sớm (trước hết học kỳ)
             </label>
             <button
@@ -502,12 +502,12 @@
           <ng-container *ngTemplateOutlet="callControls; context: { $implicit: c }" />
         </div>
         <!-- Cuộc gọi -->
-        <div class="care-card p-3.5 space-y-2.5">
+        <div class="care-card p-3-5 space-y-2-5">
           <h3 class="care-title">📞 Cuộc gọi trong hồ sơ ({{ c.calls.length }})</h3>
-          <p *ngIf="!c.calls.length" class="text-sm text-slate-400">Chưa có cuộc gọi nào.</p>
+          <p *ngIf="!c.calls.length" class="fs-sm text-slate-400">Chưa có cuộc gọi nào.</p>
           <div *ngFor="let call of c.calls" class="care-call">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="text-sm">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <div class="fs-sm">
                 <b>{{ call.target === 'phu_huynh' ? 'Phụ huynh' : 'Sinh viên' }}</b>
                 · {{ $any(call.callerId)?.fullName }} ·
                 {{ call.createdAt | date: 'dd/MM/yyyy HH:mm' }}
@@ -518,8 +518,8 @@
                 >{{ outcomeLabels[call.outcome] || 'Chưa ghi kết quả' }}</span
               >
             </div>
-            <p *ngIf="call.note" class="text-sm text-slate-600">{{ call.note }}</p>
-            <div class="flex items-center gap-2 text-xs text-slate-500">
+            <p *ngIf="call.note" class="fs-sm text-slate-600">{{ call.note }}</p>
+            <div class="d-flex align-items-center gap-2 fs-xs text-slate-500">
               <span *ngIf="call.durationSec"
                 >{{ call.durationSec / 60 | number: '1.0-1' }} phút</span
               >
@@ -531,10 +531,10 @@
                 [src]="src"
                 controls
                 autoplay
-                class="w-full h-9"
+                class="w-100 h-9"
               ></audio>
               <ng-template #playBtn>
-                <button type="button" (click)="play(call._id)" class="care-btn h-8 px-3 text-xs">
+                <button type="button" (click)="play(call._id)" class="care-btn h-8 px-3 fs-xs">
                   ▶ Nghe lại ghi âm
                 </button>
               </ng-template>
@@ -550,10 +550,10 @@
         class="care-tab-content"
       >
         <!-- Trao đổi / dòng thời gian -->
-        <div class="care-card p-3.5 space-y-2.5">
+        <div class="care-card p-3-5 space-y-2-5">
           <h3 class="care-title">💬 Trao đổi & tiến trình</h3>
           <div *ngIf="c.permissions.work" class="space-y-2">
-            <div class="flex flex-wrap gap-1.5">
+            <div class="d-flex flex-wrap gap-1-5">
               <button
                 type="button"
                 (click)="noteKind = 'trao_doi'"
@@ -583,7 +583,7 @@
                 Chỉ đạo
               </button>
             </div>
-            <div class="flex gap-2">
+            <div class="d-flex gap-2">
               <textarea
                 [(ngModel)]="noteText"
                 rows="2"
@@ -595,13 +595,13 @@
                       ? 'Chỉ đạo cho nhân viên...'
                       : 'Nội dung trao đổi...'
                 "
-                class="min-w-0 flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                class="min-w-0 flex-1 px-3 py-2 rounded-xl border border-slate-200 fs-sm"
               ></textarea>
               <button
                 type="button"
                 (click)="sendNote(c)"
                 [disabled]="busy() || !noteText.trim()"
-                class="care-btn-primary px-4 self-end h-10"
+                class="care-btn-primary px-4 align-self-end h-10"
               >
                 Gửi
               </button>
@@ -609,14 +609,14 @@
           </div>
           <ol class="care-timeline">
             <li *ngFor="let n of sortedNotes(c)" [attr.data-kind]="n.kind">
-              <div class="flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+              <div class="d-flex flex-wrap align-items-center column-gap-2 fs-xs text-slate-500">
                 <span class="care-kind-label" [attr.data-kind]="n.kind">{{
                   noteKindLabels[n.kind]
                 }}</span>
                 <b class="text-slate-700">{{ n.authorId?.fullName || 'Hệ thống' }}</b>
                 <span>{{ n.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
               </div>
-              <div class="text-sm text-slate-800 whitespace-pre-line">{{ n.text }}</div>
+              <div class="fs-sm text-slate-800 text-pre-line">{{ n.text }}</div>
             </li>
           </ol>
         </div>
@@ -641,40 +641,40 @@
 <!-- Hồ sơ mới (quản lý) -->
 <div
   *ngIf="showNew()"
-  class="fixed inset-0 z-[60] bg-slate-900/50 flex items-center justify-center p-4"
+  class="position-fixed inset-0 z-60 bg-slate-900-50 d-flex align-items-center justify-content-center p-4"
   role="dialog"
   aria-modal="true"
   aria-labelledby="care-new-title"
 >
-  <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4">
-    <div class="flex items-center justify-between">
-      <h2 id="care-new-title" class="text-lg font-bold text-slate-900">Mở hồ sơ chăm sóc</h2>
+  <div class="w-100 mw-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+    <div class="d-flex align-items-center justify-content-between">
+      <h2 id="care-new-title" class="fs-lg fw-bold text-slate-900">Mở hồ sơ chăm sóc</h2>
       <button
         type="button"
         (click)="showNew.set(false)"
-        class="w-9 h-9 rounded-lg hover:bg-slate-100 text-slate-500"
+        class="w-9 h-9 rounded-lg bg-slate-100-hover text-slate-500"
         aria-label="Đóng"
       >
         ✕
       </button>
     </div>
-    <div class="relative">
+    <div class="position-relative">
       <input
         [(ngModel)]="studentQuery"
         (input)="findStudents()"
         placeholder="Tìm sinh viên theo MSSV hoặc tên..."
         aria-label="Sinh viên"
-        class="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm"
+        class="w-100 h-10 px-3 rounded-xl border border-slate-200 fs-sm"
       />
       <div
         *ngIf="studentResults().length"
-        class="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
+        class="position-absolute z-10 mt-1 w-100 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden"
       >
         <button
           *ngFor="let s of studentResults()"
           type="button"
           (click)="pickStudent(s)"
-          class="w-full text-left px-3 py-2 text-sm hover:bg-violet-50"
+          class="w-100 text-start px-3 py-2 fs-sm bg-violet-50-hover"
         >
           <b>{{ s.studentCode }}</b> · {{ s.fullName }} · {{ s.classCode }}
         </button>
@@ -685,12 +685,12 @@
       rows="2"
       maxlength="2000"
       placeholder="Lý do cần chăm sóc (nghỉ nhiều, có dấu hiệu bỏ học...)"
-      class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+      class="w-100 px-3 py-2 rounded-xl border border-slate-200 fs-sm"
     ></textarea>
     <select
       [(ngModel)]="newStaffId"
       aria-label="Nhân viên chăm sóc"
-      class="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm bg-white"
+      class="w-100 h-10 px-3 rounded-xl border border-slate-200 fs-sm bg-white"
     >
       <option value="">Chưa chỉ đạo (để chờ chỉ đạo)</option>
       <option *ngFor="let s of staffOptions()" [value]="s._id">
@@ -702,13 +702,13 @@
       [(ngModel)]="newDirective"
       rows="2"
       placeholder="Nội dung chỉ đạo (không bắt buộc)"
-      class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+      class="w-100 px-3 py-2 rounded-xl border border-slate-200 fs-sm"
     ></textarea>
     <button
       type="button"
       (click)="createCase()"
       [disabled]="busy()"
-      class="care-btn-primary w-full h-11"
+      class="care-btn-primary w-100 h-11"
     >
       Mở hồ sơ
     </button>
@@ -717,7 +717,7 @@
 
 <ng-template #callControls let-c>
   <!-- Nút gọi -->
-  <div *ngIf="c.permissions.work && c.status !== STATUS.CLOSED" class="flex flex-wrap gap-2">
+  <div *ngIf="c.permissions.work && c.status !== STATUS.CLOSED" class="d-flex flex-wrap gap-2">
     <button
       type="button"
       (click)="call(c, 'sinh_vien')"
@@ -738,7 +738,7 @@
       ✨ AI gợi ý cuộc gọi
     </button>
   </div>
-  <div *ngIf="advice() as a" class="care-ai text-sm whitespace-pre-line">
+  <div *ngIf="advice() as a" class="care-ai fs-sm text-pre-line">
     <span *ngIf="a.loading">AI Care đang soạn gợi ý...</span>
     <span *ngIf="a.text">{{ a.text }}</span>
     <span *ngIf="a.error" class="text-rose-700">{{ a.error }}</span>

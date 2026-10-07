@@ -9,7 +9,7 @@ export const RATE_PARTS: { key: keyof StaffProgressRow['rates']; label: string; 
     { key: 'care', label: 'Bước chăm sóc', weight: 20 },
   ];
 
-/** Các class Tailwind cho huy hiệu điểm KPI. */
+/** Các class màu cho huy hiệu điểm KPI. */
 export function kpiTone(score: number | null): string {
   if (score === null) return 'bg-slate-100 text-slate-600 border-slate-300';
   if (score >= 85) return 'bg-emerald-100 text-emerald-800 border-emerald-300';

@@ -1,7 +1,7 @@
 /** Giao diện từng trang của banner trang: phụ đề, bảng màu, phía linh vật và thẻ mẹo. */
 export interface PageHero {
   subtitle: string;
-  /** Bảng màu gradient, xem `.page-hero--*` trong styles.css. */
+  /** Bảng màu gradient, xem `.page-hero--*` trong styles.scss. */
   tone: 'violet' | 'blue' | 'teal' | 'sunset' | 'rose' | 'indigo';
   /** Ảnh robot nào nổi bên cạnh ô. */
   mascot: 'left' | 'right';

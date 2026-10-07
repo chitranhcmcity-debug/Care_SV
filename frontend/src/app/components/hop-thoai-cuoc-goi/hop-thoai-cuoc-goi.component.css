@@ -1,5 +1,5 @@
 /* Hộp thoại gọi: header gradient, thẻ sinh viên, các ô lựa chọn kèm icon. Lớp phủ giữ
-   nền popup toàn ứng dụng từ styles.css; khung hộp thoại được tạo kiểu ở đây. */
+   nền popup toàn ứng dụng từ styles.scss; khung hộp thoại được tạo kiểu ở đây. */
 .call-panel {
   --call-violet: #7c3aed;
   --call-border: #e7e1f7;

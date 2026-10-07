@@ -1,3 +1,15 @@
+// Bootstrap 5 (SCSS): chỉ nạp phần lõi (biến, reboot, helpers); utility được sinh ở giữa file.
+@import 'bootstrap/scss/functions';
+@import 'styles/bien-bootstrap';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/variables-dark';
+@import 'bootstrap/scss/maps';
+@import 'bootstrap/scss/mixins';
+@import 'bootstrap/scss/utilities';
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+@import 'bootstrap/scss/helpers';
+
 @font-face {
   font-family: 'Roboto';
   font-style: normal;
@@ -16,7 +28,7 @@
 
 /* Kiểu chữ và token giao diện dùng chung. */
 :root {
-  /* Bảng màu nhấn (Tailwind 'violet'); BrandingService ghi đè bằng màu của admin. */
+  /* Bảng màu nhấn (violet); BrandingService ghi đè bằng màu của admin. */
   --brand-50: 237 231 246;
   --brand-100: 209 196 233;
   --brand-200: 179 157 219;
@@ -222,14 +234,17 @@ a:focus-visible {
   scrollbar-color: #cdd5df transparent;
 }
 
-/* Tailwind (build lúc biên dịch; theme trong tailwind.config.js). Để cuối cùng để các utility
-   thắng các quy tắc nền phía trên, như với script CDN trước đây. */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Nền + utility Bootstrap. Đặt ở đây để các utility thắng các quy tắc nền phía trên. */
+@import 'styles/nen';
+@import 'styles/ham-tien-ich';
+@import 'styles/tien-ich-mo-rong';
+// Bóng đổ dùng hệ riêng (ghép được với vòng sáng ring-*) trong tien-ich-tuy-chinh.
+$utilities: map-remove($utilities, 'shadow');
+@import 'bootstrap/scss/utilities/api';
+@import 'styles/tien-ich-tuy-chinh';
 
 /* ===================== Giao diện trẻ trung & sinh động (các trang đã đăng nhập) =====================
-   Áp dụng cho vùng trang theo route (<main class="app-main">), sau Tailwind để nó có thể
+   Áp dụng cho vùng trang theo route (<main class="app-main">), sau phần utility để nó có thể
    tinh chỉnh các class utility mà các trang đã dùng: nút chính gradient, thẻ mềm,
    thẻ thống kê có màu, bảng và tiêu đề thân thiện hơn. Màu thương hiệu vẫn lấy từ
    --brand-* (cài đặt của admin); hồng và hổ phách là các màu nhấn cố định. */
@@ -444,7 +459,7 @@ a:focus-visible {
 .app-main h3 {
   letter-spacing: -0.015em;
 }
-.app-main h2.uppercase {
+.app-main h2.text-uppercase {
   text-transform: none;
   font-weight: 800;
 }
@@ -602,14 +617,14 @@ a:focus-visible {
    Mỗi modal là một lớp phủ toàn màn hình (fixed inset-0, flex căn giữa) với một khung trắng làm
    phần tử con. Lớp phủ có độ mờ pha tím, khung có dải gradient phía trên, cạnh dưới
    dày và quầng sáng màu, để nó trông như một khối đặc nổi trên trang. */
-.fixed.inset-0.flex.items-center.justify-center,
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center,
 .profile-backdrop {
   background:
     radial-gradient(900px 500px at 50% 0%, rgb(192 38 211 / 0.18), transparent 70%),
     rgb(30 16 64 / 0.55) !important;
   backdrop-filter: blur(5px);
 }
-.fixed.inset-0.flex.items-center.justify-center > .bg-white {
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center > .bg-white {
   border: 1.5px solid #d8cff3;
   border-bottom: 6px solid #c9bcf0;
   border-radius: 24px;
@@ -630,13 +645,13 @@ a:focus-visible {
     transform: translateY(10px) scale(0.98);
   }
 }
-.fixed.inset-0.flex.items-center.justify-center > .bg-white :is(h2, h3):first-of-type {
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center > .bg-white :is(h2, h3):first-of-type {
   color: #2e1065;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 /* Trường trong popup: oải hương, bo tròn, có vòng focus rõ. */
-.fixed.inset-0.flex.items-center.justify-center
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center
   > .bg-white
   :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) {
   border: 1.5px solid #ddd6fe;
@@ -648,7 +663,7 @@ a:focus-visible {
     box-shadow 0.15s ease,
     background-color 0.15s ease;
 }
-.fixed.inset-0.flex.items-center.justify-center
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center
   > .bg-white
   :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea):focus {
   outline: none;
@@ -656,11 +671,11 @@ a:focus-visible {
   background-color: #fff;
   box-shadow: 0 0 0 4px rgb(168 85 247 / 0.16);
 }
-.fixed.inset-0.flex.items-center.justify-center > .bg-white label {
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center > .bg-white label {
   color: #5b21b6;
 }
 /* Nút đóng (×): chip tròn mềm chuyển hồng khi rê chuột. */
-.fixed.inset-0.flex.items-center.justify-center > .bg-white button[aria-label='Đóng'] {
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center > .bg-white button[aria-label='Đóng'] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -672,14 +687,14 @@ a:focus-visible {
     color 0.15s ease,
     transform 0.15s ease;
 }
-.fixed.inset-0.flex.items-center.justify-center > .bg-white button[aria-label='Đóng']:hover {
+.position-fixed.inset-0.d-flex.align-items-center.justify-content-center > .bg-white button[aria-label='Đóng']:hover {
   background: #ffe4e6;
   color: #e11d48;
   transform: rotate(90deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fixed.inset-0.flex.items-center.justify-center > .bg-white {
+  .position-fixed.inset-0.d-flex.align-items-center.justify-content-center > .bg-white {
     animation: none;
   }
   .app-main .bg-violet-600,

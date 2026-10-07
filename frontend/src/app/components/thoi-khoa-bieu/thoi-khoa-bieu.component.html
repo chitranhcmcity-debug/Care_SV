@@ -1,6 +1,6 @@
-<div class="mx-4 md:mx-6 my-5 space-y-4">
+<div class="mx-4 mx-md-6 my-5 space-y-4">
   <!-- Banner trang (thay header trang chung ở route này) -->
-  <section class="tt-hero relative overflow-hidden text-white hidden md:block">
+  <section class="tt-hero position-relative overflow-hidden text-white d-none d-md-block">
     <svg
       class="tt-hero-art"
       viewBox="0 0 900 150"
@@ -24,8 +24,8 @@
       </g>
     </svg>
 
-    <div class="relative flex items-center gap-5 px-6 md:px-7 py-5">
-      <span class="tt-hero-icon shrink-0" aria-hidden="true">
+    <div class="position-relative d-flex align-items-center gap-5 px-6 px-md-7 py-5">
+      <span class="tt-hero-icon flex-shrink-0" aria-hidden="true">
         <svg
           class="w-8 h-8"
           viewBox="0 0 24 24"
@@ -42,15 +42,15 @@
         </svg>
       </span>
       <div class="min-w-0 flex-1">
-        <h1 class="text-2xl md:text-[34px] font-extrabold tracking-tight leading-tight">
+        <h1 class="fs-2xl fs-md-34px fw-bold tracking-tight lh-sm">
           Thời khóa biểu
         </h1>
-        <p class="mt-1 text-sm md:text-base text-white/85">
+        <p class="mt-1 fs-sm fs-md-base text-white-85">
           Quản lý lịch học theo ngày, theo tuần và lớp học phần.
         </p>
       </div>
 
-      <div class="relative hidden lg:block w-[250px] h-[110px] shrink-0" aria-hidden="true">
+      <div class="position-relative d-none d-lg-block w-250px h-110px flex-shrink-0" aria-hidden="true">
         <span class="tt-hero-cal">
           <svg
             class="w-12 h-12"
@@ -68,12 +68,12 @@
         <img src="robot-ai-right.webp" alt="" width="170" height="140" class="tt-hero-mascot" />
       </div>
 
-      <div class="tt-today hidden sm:block shrink-0">
-        <p class="text-xs font-medium text-slate-500">Lịch học hôm nay</p>
-        <p class="text-2xl font-extrabold text-violet-700 leading-tight">
+      <div class="tt-today d-none d-sm-block flex-shrink-0">
+        <p class="fs-xs fw-medium text-slate-500">Lịch học hôm nay</p>
+        <p class="fs-2xl fw-bold text-violet-700 lh-sm">
           {{ todayCount() }} buổi học
         </p>
-        <p class="text-xs text-slate-500">
+        <p class="fs-xs text-slate-500">
           {{ todayCount() ? 'Hãy chuẩn bị thật tốt nhé!' : 'Hôm nay không có lớp.' }}
         </p>
       </div>
@@ -81,10 +81,10 @@
   </section>
 
   <section
-    class="tt-bar flex flex-wrap xl:flex-nowrap items-center justify-between gap-x-3 gap-y-2.5 px-3.5 py-2.5"
+    class="tt-bar d-flex flex-wrap flex-xl-nowrap align-items-center justify-content-between column-gap-3 row-gap-2-5 px-3-5 py-2-5"
   >
-    <div class="flex items-center gap-1.5 shrink-0">
-      <p class="text-[13px] font-bold text-slate-800 mr-1 whitespace-nowrap">Khung giờ học</p>
+    <div class="d-flex align-items-center gap-1-5 flex-shrink-0">
+      <p class="fs-13px fw-bold text-slate-800 me-1 text-nowrap">Khung giờ học</p>
       <span *ngFor="let s of shifts" class="tt-chip" [ngClass]="'tt-' + s.key">
         <svg class="tt-chip-ico" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="s.key">
           <g *ngSwitchCase="'sang'">
@@ -101,7 +101,7 @@
       </span>
     </div>
 
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
       <div class="tt-week">
         <button type="button" class="tt-week-btn" aria-label="Tuần trước" (click)="shiftWeek(-1)">
           <svg
@@ -151,7 +151,7 @@
       </button>
     </div>
 
-    <div class="flex items-center gap-2 shrink-0">
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
       <label *ngIf="auth.isTeacher()" class="tt-pill tt-pill--check">
         <input
           type="checkbox"
@@ -164,7 +164,7 @@
 
       <label class="tt-select">
         <svg
-          class="w-4 h-4 text-slate-500 shrink-0"
+          class="w-4 h-4 text-slate-500 flex-shrink-0"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -234,13 +234,13 @@
 
   <div *ngIf="loading()" class="tt-bar p-10 text-center">
     <div
-      class="mx-auto h-8 w-8 rounded-full border-4 border-violet-100 border-t-violet-600 animate-spin"
+      class="mx-auto h-8 w-8 rounded-pill border-4 border-violet-100 border-top-violet-600 animate-spin"
     ></div>
-    <p class="mt-3 text-sm font-medium text-slate-500">Đang tải thời khóa biểu...</p>
+    <p class="mt-3 fs-sm fw-medium text-slate-500">Đang tải thời khóa biểu...</p>
   </div>
 
   <div *ngIf="!loading() && view() === 'list'" class="tt-list">
-    <table class="w-full text-left text-sm">
+    <table class="w-100 text-start fs-sm">
       <thead>
         <tr>
           <th>Ngày</th>
@@ -248,7 +248,7 @@
           <th>Lớp học phần</th>
           <th>Phòng</th>
           <th>Giảng viên</th>
-          <th class="text-right">Sĩ số</th>
+          <th class="text-end">Sĩ số</th>
         </tr>
       </thead>
       <tbody>
@@ -259,18 +259,18 @@
           (click)="open(o.entry, o.day)"
           (keydown.enter)="open(o.entry, o.day)"
         >
-          <td class="whitespace-nowrap">
+          <td class="text-nowrap">
             <b class="text-slate-900">{{ o.day | viLabel }}</b>
-            <div class="text-xs text-slate-500">{{ o.date | date: 'dd/MM' }}</div>
+            <div class="fs-xs text-slate-500">{{ o.date | date: 'dd/MM' }}</div>
           </td>
-          <td class="whitespace-nowrap tabular-nums">
+          <td class="text-nowrap tabular-nums">
             <ng-container *ngIf="o.entry.startTime; else shiftCell">
               {{ o.entry.startTime }}–{{ o.entry.endTime }}
             </ng-container>
             <ng-template #shiftCell>Ca {{ o.entry.shift | viLabel }}</ng-template>
           </td>
           <td>
-            <div class="flex items-center gap-2.5">
+            <div class="d-flex align-items-center gap-2-5">
               <span class="tt-icon" aria-hidden="true">
                 <svg
                   class="w-4 h-4"
@@ -292,10 +292,10 @@
           </td>
           <td>{{ o.entry.room || '—' }}</td>
           <td>{{ o.entry.teacherName || 'Chưa phân công' }}</td>
-          <td class="text-right tabular-nums">{{ o.entry.studentCount }}</td>
+          <td class="text-end tabular-nums">{{ o.entry.studentCount }}</td>
         </tr>
         <tr *ngIf="!occurrences().length">
-          <td colspan="6" class="py-10 text-center text-slate-400 font-medium">
+          <td colspan="6" class="py-10 text-center text-slate-400 fw-medium">
             Không có lớp học trong tuần này.
           </td>
         </tr>
@@ -329,8 +329,8 @@
         style="grid-row: 1"
       >
         <div>
-          <div class="font-extrabold text-slate-900 text-[15px]">{{ day | viLabel }}</div>
-          <div class="text-xs font-medium text-slate-500">{{ weekDates()[i] | date: 'dd/MM' }}</div>
+          <div class="fw-bold text-slate-900 fs-15px">{{ day | viLabel }}</div>
+          <div class="fs-xs fw-medium text-slate-500">{{ weekDates()[i] | date: 'dd/MM' }}</div>
         </div>
         <span class="tt-count" [attr.aria-label]="layout().counts[day] + ' lớp'">
           {{ layout().counts[day] }}
@@ -357,7 +357,7 @@
           [style.grid-row]="'2 / span ' + layout().hours.length"
         >
           <div
-            class="tt-empty h-full flex flex-col items-center justify-center text-center px-3 py-6"
+            class="tt-empty h-100 d-flex flex-column align-items-center justify-content-center text-center px-3 py-6"
           >
             <span class="tt-empty-icon" aria-hidden="true">
               <svg
@@ -373,7 +373,7 @@
                 <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
               </svg>
             </span>
-            <p class="mt-3 text-[13px] font-semibold text-slate-500">
+            <p class="mt-3 fs-13px fw-semibold text-slate-500">
               Không có lớp học<br />trong ngày này
             </p>
           </div>
@@ -393,7 +393,7 @@
       <!-- Các khối lớp -->
       <div
         *ngFor="let b of layout().blocks"
-        class="tt-cell flex flex-col gap-2"
+        class="tt-cell d-flex flex-column gap-2"
         [style.grid-column]="b.col"
         [style.grid-row]="b.rowStart + ' / ' + b.rowEnd"
       >
@@ -405,7 +405,7 @@
           [class.is-mine]="g.isMine && !onlyMine()"
           (click)="open(g, b.day)"
         >
-          <span class="flex items-start gap-2">
+          <span class="d-flex align-items-start gap-2">
             <span class="tt-icon" aria-hidden="true">
               <svg
                 class="w-4 h-4"
@@ -430,7 +430,7 @@
                 d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"
               />
             </svg>
-            <span class="truncate flex-1">{{ g.room || 'Chưa có phòng' }}</span>
+            <span class="text-truncate flex-1">{{ g.room || 'Chưa có phòng' }}</span>
             <span class="tt-more" aria-hidden="true">•••</span>
           </span>
           <span class="tt-meta">
@@ -439,7 +439,7 @@
                 d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10m0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5"
               />
             </svg>
-            <span class="truncate">{{ g.teacherName || 'Chưa phân công GV' }}</span>
+            <span class="text-truncate">{{ g.teacherName || 'Chưa phân công GV' }}</span>
           </span>
         </button>
       </div>
@@ -472,7 +472,7 @@
         </span>
         <div class="min-w-0 flex-1">
           <h2 class="tt-modal-code">{{ sel.entry.groupCode }}</h2>
-          <p *ngIf="sel.entry.courseName" class="text-sm font-semibold text-slate-600">
+          <p *ngIf="sel.entry.courseName" class="fs-sm fw-semibold text-slate-600">
             {{ sel.entry.courseName }}
           </p>
           <span *ngIf="sel.entry.isMine" class="tt-mine">★ Lớp của tôi</span>

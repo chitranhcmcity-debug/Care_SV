@@ -1,77 +1,77 @@
-<div class="lg-page min-h-screen p-0 sm:p-4 lg:p-5">
+<div class="lg-page min-vh-100 p-0 p-sm-4 p-lg-5">
   <div
-    class="lg-shell min-h-screen sm:min-h-[calc(100vh-2rem)] lg:h-[calc(100vh-2.5rem)] lg:min-h-[600px] grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]"
+    class="lg-shell min-vh-100 min-h-sm-screen-8 h-lg-screen-10 min-h-lg-600px d-grid grid-cols-lg-m1-m108"
   >
     <!-- Trái: form -->
     <div
-      class="lg-left relative flex flex-col px-6 sm:px-12 xl:px-20 lg:overflow-y-auto"
+      class="lg-left position-relative d-flex flex-column px-6 px-sm-12 px-xl-20 overflow-y-lg-auto"
       [ngClass]="mode === 'login' || mode === 'register' ? 'py-6' : 'py-8'"
     >
       <!-- Thương hiệu -->
-      <a routerLink="/" class="relative flex items-center gap-3 w-fit">
-        <img [src]="branding.logo()" alt="Logo ITC" width="48" height="48" class="object-contain" />
-        <div class="leading-tight">
-          <div class="font-bold text-slate-900">{{ branding.title() }}</div>
-          <div class="text-xs text-slate-500">Điểm danh &amp; chăm sóc sinh viên</div>
+      <a routerLink="/" class="position-relative d-flex align-items-center gap-3 w-fit">
+        <img [src]="branding.logo()" alt="Logo ITC" width="48" height="48" class="object-fit-contain" />
+        <div class="lh-sm">
+          <div class="fw-bold text-slate-900">{{ branding.title() }}</div>
+          <div class="fs-xs text-slate-500">Điểm danh &amp; chăm sóc sinh viên</div>
         </div>
       </a>
 
       <div
-        class="flex-1 flex items-center justify-center"
+        class="flex-1 d-flex align-items-center justify-content-center"
         [ngClass]="mode === 'login' || mode === 'register' ? 'py-4' : 'py-10'"
       >
         <div
-          class="w-full"
+          class="w-100"
           [ngClass]="
             mode === 'register'
-              ? 'max-w-[500px] space-y-4 lg-register'
+              ? 'mw-500px space-y-4 lg-register'
               : mode === 'login'
-                ? 'max-w-[420px] space-y-4'
-                : 'max-w-[420px] space-y-7'
+                ? 'mw-420px space-y-4'
+                : 'mw-420px space-y-7'
           "
         >
           <!-- Tiêu đề -->
           <div class="space-y-2" [ngSwitch]="mode">
             <ng-container *ngSwitchCase="'register'">
-              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+              <h1 class="fs-32px fw-bold lh-sm tracking-tight">
                 <span class="lg-grad">Tạo tài khoản</span>
               </h1>
-              <p class="text-sm text-slate-500" *ngIf="role !== 'manager'">
+              <p class="fs-sm text-slate-500" *ngIf="role !== 'manager'">
                 Nhập email của Trưởng phòng / Phó hiệu trưởng quản lý bạn. Khi người đó xác nhận,
                 bạn sẽ nhận key kích hoạt qua email.
               </p>
-              <p class="text-sm text-slate-500" *ngIf="role === 'manager'">
+              <p class="fs-sm text-slate-500" *ngIf="role === 'manager'">
                 Trưởng phòng / Phó hiệu trưởng cần thanh toán gói dịch vụ để hoàn tất đăng ký. Thanh
                 toán xong, tài khoản dùng được ngay và hóa đơn được gửi về email.
               </p>
             </ng-container>
             <ng-container *ngSwitchCase="'renew'">
-              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+              <h1 class="fs-32px fw-bold lh-sm tracking-tight">
                 <span class="lg-grad">Gia hạn gói dịch vụ</span>
               </h1>
-              <p class="text-sm text-slate-500">
+              <p class="fs-sm text-slate-500">
                 Chọn gói và chuyển khoản qua PayOS. Thanh toán xong, tài khoản được kích hoạt lại
                 ngay và hóa đơn được gửi về email.
               </p>
             </ng-container>
             <ng-container *ngSwitchCase="'payment'">
-              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+              <h1 class="fs-32px fw-bold lh-sm tracking-tight">
                 <span class="lg-grad">Kết quả thanh toán</span>
               </h1>
             </ng-container>
             <ng-container *ngSwitchCase="'forgot'">
-              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+              <h1 class="fs-32px fw-bold lh-sm tracking-tight">
                 <span class="lg-grad">Quên mật khẩu?</span>
               </h1>
-              <p class="text-sm text-slate-500">
+              <p class="fs-sm text-slate-500">
                 Nhập email đã đăng ký, chúng tôi sẽ gửi liên kết để bạn đặt mật khẩu mới.
               </p>
             </ng-container>
             <ng-container *ngSwitchCase="'reset'">
-              <h1 class="text-[32px] font-extrabold leading-tight tracking-tight">
+              <h1 class="fs-32px fw-bold lh-sm tracking-tight">
                 <span class="lg-grad">Đặt mật khẩu mới</span>
               </h1>
-              <p class="text-sm text-slate-500">
+              <p class="fs-sm text-slate-500">
                 Mật khẩu mới có ít nhất {{ minPasswordLength }} ký tự. Sau khi đổi, mọi phiên đăng
                 nhập cũ sẽ bị đăng xuất.
               </p>
@@ -79,11 +79,11 @@
             <ng-container *ngSwitchDefault>
               <span class="lg-kicker">Chào mừng trở lại 👋</span>
               <h1
-                class="text-[32px] sm:text-[40px] font-extrabold text-slate-900 leading-tight tracking-tight"
+                class="fs-32px fs-sm-40px fw-bold text-slate-900 lh-sm tracking-tight"
               >
                 <span class="lg-grad">Đăng nhập</span> để tiếp tục
               </h1>
-              <p class="text-[15px] text-slate-500 leading-relaxed">
+              <p class="fs-15px text-slate-500 lh-relaxed">
                 Quản lý điểm danh, lớp học và chăm sóc sinh viên dễ dàng hơn với
                 {{ branding.title() }}.
               </p>
@@ -94,10 +94,10 @@
           <div
             *ngIf="errorMessage"
             role="alert"
-            class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-2"
+            class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 fs-sm d-flex align-items-start gap-2"
           >
             <svg
-              class="w-5 h-5 shrink-0"
+              class="w-5 h-5 flex-shrink-0"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -107,11 +107,11 @@
               <path d="M12 8v4m0 4h.01" stroke-linecap="round" />
             </svg>
             <span class="space-y-2">
-              <span class="block">{{ errorMessage }}</span>
+              <span class="d-block">{{ errorMessage }}</span>
               <a
                 *ngIf="renewUrl && mode === 'login'"
                 [href]="renewUrl"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700"
+                class="d-inline-flex align-items-center gap-1-5 px-3 py-1-5 rounded-lg bg-violet-600 text-white fs-xs fw-bold bg-violet-700-hover"
                 >Thanh toán / gia hạn ngay →</a
               >
             </span>
@@ -121,10 +121,10 @@
           <div
             *ngIf="successMessage"
             role="status"
-            class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-2"
+            class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 fs-sm d-flex align-items-start gap-2"
           >
             <svg
-              class="w-5 h-5 shrink-0"
+              class="w-5 h-5 flex-shrink-0"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -140,11 +140,11 @@
 
           <!-- Trường mật khẩu dùng cho đăng nhập / đăng ký / đặt lại -->
           <ng-template #passwordField let-id="id" let-label="label" let-autocomplete="autocomplete">
-            <div class="space-y-1.5">
-              <label [for]="id" class="block text-sm font-medium text-slate-700">{{ label }}</label>
-              <div class="relative">
+            <div class="space-y-1-5">
+              <label [for]="id" class="d-block fs-sm fw-medium text-slate-700">{{ label }}</label>
+              <div class="position-relative">
                 <svg
-                  class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                  class="w-5 h-5 position-absolute start-3-5 top-50 translate-y-n50 text-slate-400 pe-none"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -161,7 +161,7 @@
                   name="password"
                   required
                   placeholder="Nhập mật khẩu"
-                  class="w-full h-12 pl-11 pr-12 lg-input"
+                  class="w-100 h-12 ps-11 pe-12 lg-input"
                 />
                 <button
                   type="button"
@@ -169,7 +169,7 @@
                   [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
                   [attr.aria-pressed]="showPassword"
                   [title]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
-                  class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                  class="position-absolute end-1-5 top-50 translate-y-n50 w-9 h-9 rounded-md d-flex align-items-center justify-content-center text-slate-500 text-slate-800-hover bg-slate-100-hover transition-colors"
                 >
                   <!-- mắt -->
                   <svg
@@ -208,8 +208,8 @@
 
           <!-- Trường xác nhận mật khẩu dùng cho đăng ký / đặt lại -->
           <ng-template #confirmField>
-            <div class="space-y-1.5">
-              <label for="confirm-password" class="block text-sm font-medium text-slate-700"
+            <div class="space-y-1-5">
+              <label for="confirm-password" class="d-block fs-sm fw-medium text-slate-700"
                 >Nhập lại mật khẩu</label
               >
               <input
@@ -220,44 +220,44 @@
                 name="confirmPassword"
                 required
                 placeholder="Nhập lại mật khẩu"
-                class="w-full h-12 px-4 lg-input"
+                class="w-100 h-12 px-4 lg-input"
               />
             </div>
           </ng-template>
 
           <!-- Chọn gói (đăng ký và gia hạn của Trưởng phòng / PHT) -->
           <ng-template #planPicker>
-            <fieldset class="space-y-1.5">
-              <legend class="block text-sm font-medium text-slate-700 mb-1.5">Gói dịch vụ</legend>
-              <p *ngIf="!plans" class="text-sm text-slate-500">Đang tải bảng giá...</p>
+            <fieldset class="space-y-1-5">
+              <legend class="d-block fs-sm fw-medium text-slate-700 mb-1-5">Gói dịch vụ</legend>
+              <p *ngIf="!plans" class="fs-sm text-slate-500">Đang tải bảng giá...</p>
               <p
                 *ngIf="plans && !payosConfigured"
-                class="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm"
+                class="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 fs-sm"
               >
                 Hệ thống chưa bật thanh toán trực tuyến. Vui lòng liên hệ quản trị viên.
               </p>
-              <div *ngIf="plans?.length" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div *ngIf="plans?.length" class="d-grid grid-cols-2 grid-cols-sm-3 gap-2">
                 <label
                   *ngFor="let plan of plans"
-                  class="lg-plan flex flex-col gap-0.5 p-2.5 rounded-xl border cursor-pointer transition-colors"
+                  class="lg-plan d-flex flex-column gap-0-5 p-2-5 rounded-xl border cursor-pointer transition-colors"
                   [ngClass]="
                     planCode === plan.code
                       ? 'border-violet-500 bg-violet-50'
-                      : 'border-slate-200 hover:border-violet-300'
+                      : 'border-slate-200 border-violet-300-hover'
                   "
                 >
                   <input
                     type="radio"
                     name="planCode"
-                    class="sr-only"
+                    class="visually-hidden"
                     [value]="plan.code"
                     [(ngModel)]="planCode"
                   />
                   <span>
-                    <span class="block text-sm font-semibold text-slate-800">{{ plan.name }}</span>
-                    <span class="block text-xs text-slate-500">{{ plan.months }} tháng</span>
+                    <span class="d-block fs-sm fw-semibold text-slate-800">{{ plan.name }}</span>
+                    <span class="d-block fs-xs text-slate-500">{{ plan.months }} tháng</span>
                   </span>
-                  <span class="text-sm font-bold text-violet-700 whitespace-nowrap">{{
+                  <span class="fs-sm fw-bold text-violet-700 text-nowrap">{{
                     formatVnd(plan.amount)
                   }}</span>
                 </label>
@@ -270,7 +270,7 @@
             <button
               type="submit"
               [disabled]="loading"
-              class="lg-submit relative w-full h-[54px] disabled:opacity-70 text-white font-bold text-[15px] flex items-center justify-center gap-2.5"
+              class="lg-submit position-relative w-100 h-54px opacity-70-disabled text-white fw-bold fs-15px d-flex align-items-center justify-content-center gap-2-5"
             >
               <svg
                 *ngIf="!loading && mode === 'login'"
@@ -319,13 +319,13 @@
           <!-- ============ ĐĂNG NHẬP ============ -->
           <ng-container *ngIf="mode === 'login'">
             <form (ngSubmit)="onLogin()" class="space-y-3" novalidate>
-              <div class="space-y-1.5">
-                <label for="login-email" class="block text-sm font-medium text-slate-700"
+              <div class="space-y-1-5">
+                <label for="login-email" class="d-block fs-sm fw-medium text-slate-700"
                   >Tài khoản đăng nhập</label
                 >
-                <div class="relative">
+                <div class="position-relative">
                   <svg
-                    class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    class="w-5 h-5 position-absolute start-3-5 top-50 translate-y-n50 text-slate-400 pe-none"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -343,7 +343,7 @@
                     name="email"
                     required
                     placeholder="Nhập tài khoản hoặc email"
-                    class="w-full h-12 pl-11 pr-11 lg-input"
+                    class="w-100 h-12 ps-11 pe-11 lg-input"
                   />
                   <button
                     *ngIf="email"
@@ -351,7 +351,7 @@
                     (click)="email = ''"
                     aria-label="Xóa tài khoản đã nhập"
                     title="Xóa"
-                    class="absolute right-1.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                    class="position-absolute end-1-5 top-50 translate-y-n50 w-9 h-9 rounded-md d-flex align-items-center justify-content-center text-slate-400 text-slate-700-hover transition-colors"
                   >
                     <svg
                       class="w-5 h-5"
@@ -380,8 +380,8 @@
               ></ng-container>
 
               <!-- Hiện khi máy chủ yêu cầu key đã gửi qua email sau khi quản lý duyệt. -->
-              <div *ngIf="needsKey" class="space-y-1.5">
-                <label for="login-key" class="block text-sm font-medium text-slate-700"
+              <div *ngIf="needsKey" class="space-y-1-5">
+                <label for="login-key" class="d-block fs-sm fw-medium text-slate-700"
                   >Key kích hoạt</label
                 >
                 <input
@@ -392,18 +392,18 @@
                   [(ngModel)]="activationKey"
                   name="activationKey"
                   placeholder="VD: ABCD-EFGH-JKMN"
-                  class="w-full h-12 px-4 lg-input font-mono tracking-widest uppercase"
+                  class="w-100 h-12 px-4 lg-input font-monospace tracking-widest text-uppercase"
                 />
-                <p class="text-xs text-slate-500">
+                <p class="fs-xs text-slate-500">
                   Key được gửi vào email của bạn sau khi Trưởng phòng / Phó hiệu trưởng xác nhận.
                   Chỉ cần nhập một lần.
                 </p>
               </div>
 
-              <div class="flex justify-end -mt-2">
+              <div class="d-flex justify-content-end mt-n2">
                 <a
                   routerLink="/forgot-password"
-                  class="text-sm font-medium text-violet-600 hover:text-violet-700 hover:underline"
+                  class="fs-sm fw-medium text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                   >Quên mật khẩu?</a
                 >
               </div>
@@ -416,23 +416,23 @@
               ></ng-container>
             </form>
 
-            <p class="text-sm text-slate-500 text-center">
+            <p class="fs-sm text-slate-500 text-center">
               Chưa có tài khoản?
               <a
                 routerLink="/register"
-                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                class="fw-semibold text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                 >Đăng ký ngay</a
               >
             </p>
 
             <!-- Đăng nhập nhanh (chỉ bản dev) -->
             <div *ngIf="quickAccounts.length" class="space-y-2">
-              <div class="flex items-center gap-3 text-xs text-slate-400">
+              <div class="d-flex align-items-center gap-3 fs-xs text-slate-400">
                 <span class="h-px flex-1 bg-slate-200"></span>
                 Đăng nhập nhanh
                 <span class="h-px flex-1 bg-slate-200"></span>
               </div>
-              <div class="grid grid-cols-2 gap-2">
+              <div class="d-grid grid-cols-2 gap-2">
                 <button
                   *ngFor="let account of quickAccounts"
                   type="button"
@@ -440,27 +440,27 @@
                   [title]="account.email"
                   [attr.aria-pressed]="email === account.email"
                   [disabled]="loading"
-                  class="group flex items-center gap-2 py-2 px-2 rounded-lg border transition-all text-left"
+                  class="group d-flex align-items-center gap-2 py-2 px-2 rounded-lg border transition-all text-start"
                   [ngClass]="
                     email === account.email
                       ? 'border-violet-500 bg-violet-50'
-                      : 'border-slate-200 hover:border-violet-300 hover:bg-violet-50/50'
+                      : 'border-slate-200 border-violet-300-hover bg-violet-50-50-hover'
                   "
                 >
                   <span
-                    class="w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-xs font-bold"
+                    class="w-8 h-8 flex-shrink-0 rounded-pill d-flex align-items-center justify-content-center fs-xs fw-bold"
                     [ngClass]="account.tone"
                     >{{ account.initial }}</span
                   >
-                  <span class="min-w-0 flex flex-col gap-0.5">
-                    <span class="text-xs font-medium text-slate-700 leading-tight">{{
+                  <span class="min-w-0 d-flex flex-column gap-0-5">
+                    <span class="fs-xs fw-medium text-slate-700 lh-sm">{{
                       account.label
                     }}</span>
-                    <span class="text-xs text-slate-500">{{ account.email }}</span>
+                    <span class="fs-xs text-slate-500">{{ account.email }}</span>
                   </span>
                 </button>
               </div>
-              <p class="text-xs text-slate-400 text-center">
+              <p class="fs-xs text-slate-400 text-center">
                 Chọn tài khoản để điền tên đăng nhập, sau đó nhập mật khẩu.
               </p>
             </div>
@@ -469,9 +469,9 @@
           <!-- ============ ĐĂNG KÝ ============ -->
           <ng-container *ngIf="mode === 'register'">
             <form *ngIf="!successMessage" (ngSubmit)="onRegister()" class="space-y-4" novalidate>
-              <fieldset class="space-y-1.5">
-                <legend class="block text-sm font-medium text-slate-700 mb-1.5">Bạn là</legend>
-                <div class="grid grid-cols-2 gap-2">
+              <fieldset class="space-y-1-5">
+                <legend class="d-block fs-sm fw-medium text-slate-700 mb-1-5">Bạn là</legend>
+                <div class="d-grid grid-cols-2 gap-2">
                   <label
                     *ngFor="
                       let option of [
@@ -485,7 +485,7 @@
                     <input
                       type="radio"
                       name="role"
-                      class="sr-only"
+                      class="visually-hidden"
                       [value]="option.value"
                       [ngModel]="role"
                       (ngModelChange)="selectRole($event)"
@@ -499,10 +499,10 @@
                       </svg>
                     </span>
                     <span class="min-w-0">
-                      <span class="block text-sm font-semibold text-slate-800">{{
+                      <span class="d-block fs-sm fw-semibold text-slate-800">{{
                         option.label
                       }}</span>
-                      <span class="block text-xs text-slate-500">{{ option.hint }}</span>
+                      <span class="d-block fs-xs text-slate-500">{{ option.hint }}</span>
                     </span>
                   </label>
 
@@ -514,7 +514,7 @@
                     <input
                       type="radio"
                       name="role"
-                      class="sr-only"
+                      class="visually-hidden"
                       value="manager"
                       [ngModel]="role"
                       (ngModelChange)="selectRole($event)"
@@ -525,10 +525,10 @@
                       </svg>
                     </span>
                     <span class="min-w-0 flex-1">
-                      <span class="block text-sm font-semibold text-slate-800"
+                      <span class="d-block fs-sm fw-semibold text-slate-800"
                         >Trưởng phòng / Phó hiệu trưởng</span
                       >
-                      <span class="block text-xs text-slate-500"
+                      <span class="d-block fs-xs text-slate-500"
                         >Quản lý toàn bộ hệ thống · cần mua gói dịch vụ</span
                       >
                     </span>
@@ -543,11 +543,11 @@
               </ng-container>
 
               <!-- Giảng viên và nhân viên vào đơn vị của lãnh đạo mà họ nêu tên; lãnh đạo đó duyệt. -->
-              <div *ngIf="role !== 'manager'" class="lg-lead-field space-y-1.5">
-                <label for="register-manager" class="block text-sm font-medium text-slate-700"
+              <div *ngIf="role !== 'manager'" class="lg-lead-field space-y-1-5">
+                <label for="register-manager" class="d-block fs-sm fw-medium text-slate-700"
                   >Email Trưởng phòng / Phó hiệu trưởng quản lý bạn</label
                 >
-                <div class="relative">
+                <div class="position-relative">
                   <span class="lg-lead-field-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
                       <path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5Z M5 19h14" />
@@ -562,18 +562,18 @@
                     required
                     placeholder="lanhdao@itc.edu.vn"
                     aria-describedby="register-manager-hint"
-                    class="w-full h-12 pl-12 pr-4 lg-input"
+                    class="w-100 h-12 ps-12 pe-4 lg-input"
                   />
                 </div>
-                <p id="register-manager-hint" class="text-xs text-slate-500">
+                <p id="register-manager-hint" class="fs-xs text-slate-500">
                   Yêu cầu chỉ gửi tới người này; bạn chỉ làm việc với sinh viên và dữ liệu của đơn
                   vị họ quản lý.
                 </p>
               </div>
 
-              <div class="grid sm:grid-cols-2 gap-3">
-                <div class="space-y-1.5">
-                  <label for="register-name" class="block text-sm font-medium text-slate-700"
+              <div class="d-grid grid-cols-sm-2 gap-3">
+                <div class="space-y-1-5">
+                  <label for="register-name" class="d-block fs-sm fw-medium text-slate-700"
                     >Họ và tên</label
                   >
                   <input
@@ -585,11 +585,11 @@
                     required
                     maxlength="100"
                     placeholder="VD: Nguyễn Văn A"
-                    class="w-full h-12 px-4 lg-input"
+                    class="w-100 h-12 px-4 lg-input"
                   />
                 </div>
-                <div class="space-y-1.5">
-                  <label for="register-email" class="block text-sm font-medium text-slate-700"
+                <div class="space-y-1-5">
+                  <label for="register-email" class="d-block fs-sm fw-medium text-slate-700"
                     >Email</label
                   >
                   <input
@@ -600,7 +600,7 @@
                     name="email"
                     required
                     placeholder="ten@itc.edu.vn"
-                    class="w-full h-12 px-4 lg-input"
+                    class="w-100 h-12 px-4 lg-input"
                   />
                 </div>
                 <ng-container
@@ -614,10 +614,10 @@
                   "
                 ></ng-container>
                 <ng-container *ngTemplateOutlet="confirmField"></ng-container>
-                <div *ngIf="role !== 'manager'" class="space-y-1.5 sm:col-span-2">
-                  <label for="register-phone" class="block text-sm font-medium text-slate-700"
+                <div *ngIf="role !== 'manager'" class="space-y-1-5 col-span-sm-2">
+                  <label for="register-phone" class="d-block fs-sm fw-medium text-slate-700"
                     >Số điện thoại
-                    <span class="text-slate-400 font-normal"
+                    <span class="text-slate-400 fw-normal"
                       >(phụ huynh gọi lại số này)</span
                     ></label
                   >
@@ -628,12 +628,12 @@
                     [(ngModel)]="phone"
                     name="phone"
                     placeholder="VD: 0912 345 678"
-                    class="w-full h-12 px-4 lg-input tabular-nums"
+                    class="w-100 h-12 px-4 lg-input tabular-nums"
                   />
                 </div>
               </div>
 
-              <p *ngIf="role === 'teacher'" class="text-xs text-slate-500">
+              <p *ngIf="role === 'teacher'" class="fs-xs text-slate-500">
                 Giảng viên chỉ xem và điểm danh được các lớp do quản trị viên phân công cho mình.
               </p>
 
@@ -647,11 +647,11 @@
               ></ng-container>
             </form>
 
-            <p class="text-sm text-slate-500 text-center">
+            <p class="fs-sm text-slate-500 text-center">
               Đã có tài khoản?
               <a
                 routerLink="/login"
-                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                class="fw-semibold text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                 >Đăng nhập</a
               >
             </p>
@@ -660,10 +660,10 @@
           <!-- ============ RENEW (Trưởng phòng / PHT own plan) ============ -->
           <ng-container *ngIf="mode === 'renew'">
             <form *ngIf="renewal" (ngSubmit)="onRenew()" class="space-y-5" novalidate>
-              <div class="p-3 rounded-lg border border-slate-200 bg-slate-50 text-sm">
-                <div class="font-semibold text-slate-800">{{ renewal.fullName }}</div>
-                <div class="text-xs text-slate-500">{{ renewal.email }}</div>
-                <div class="text-xs mt-1" [class.text-rose-600]="renewal.accessExpiresAt">
+              <div class="p-3 rounded-lg border border-slate-200 bg-slate-50 fs-sm">
+                <div class="fw-semibold text-slate-800">{{ renewal.fullName }}</div>
+                <div class="fs-xs text-slate-500">{{ renewal.email }}</div>
+                <div class="fs-xs mt-1" [class.text-rose-600]="renewal.accessExpiresAt">
                   {{
                     renewal.status === 'awaiting_payment'
                       ? 'Chưa thanh toán lần đầu — tài khoản chưa được kích hoạt.'
@@ -681,10 +681,10 @@
                 "
               ></ng-container>
             </form>
-            <p class="text-sm text-slate-500 text-center">
+            <p class="fs-sm text-slate-500 text-center">
               <a
                 routerLink="/login"
-                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                class="fw-semibold text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                 >Quay lại đăng nhập</a
               >
             </p>
@@ -695,9 +695,9 @@
             <div *ngIf="payment" class="space-y-4">
               <div
                 *ngIf="payment.status === 'da_thanh_toan'"
-                class="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm space-y-1"
+                class="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 fs-sm space-y-1"
               >
-                <div class="font-bold">Thanh toán thành công — tài khoản đã được kích hoạt.</div>
+                <div class="fw-bold">Thanh toán thành công — tài khoản đã được kích hoạt.</div>
                 <div>
                   {{ payment.planName }} · {{ formatVnd(payment.amount) }}. Hạn sử dụng đến
                   <b>{{ payment.accessExpiresAt | date: 'dd/MM/yyyy' }}</b
@@ -707,14 +707,14 @@
               </div>
               <div
                 *ngIf="payment.status === 'cho_thanh_toan'"
-                class="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm"
+                class="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 fs-sm"
               >
                 Chưa nhận được thanh toán. Nếu bạn đã chuyển khoản, đợi vài giây rồi bấm Kiểm tra
                 lại.
               </div>
               <div
                 *ngIf="payment.status === 'da_huy' || payment.status === 'het_han'"
-                class="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm"
+                class="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 fs-sm"
               >
                 Thanh toán đã bị hủy hoặc hết hạn. Đăng nhập để nhận liên kết thanh toán mới.
               </div>
@@ -723,14 +723,14 @@
                 type="button"
                 (click)="checkPayment()"
                 [disabled]="loading"
-                class="w-full h-11 rounded-lg border border-violet-300 text-violet-700 font-semibold text-sm hover:bg-violet-50"
+                class="w-100 h-11 rounded-lg border border-violet-300 text-violet-700 fw-semibold fs-sm bg-violet-50-hover"
               >
                 {{ loading ? 'Đang kiểm tra...' : 'Kiểm tra lại' }}
               </button>
             </div>
             <a
               routerLink="/login"
-              class="lg-submit w-full h-[54px] text-white font-bold text-[15px] flex items-center justify-center"
+              class="lg-submit w-100 h-54px text-white fw-bold fs-15px d-flex align-items-center justify-content-center"
               >Đăng nhập</a
             >
           </ng-container>
@@ -738,8 +738,8 @@
           <!-- ============ QUÊN MẬT KHẨU ============ -->
           <ng-container *ngIf="mode === 'forgot'">
             <form *ngIf="!successMessage" (ngSubmit)="onForgot()" class="space-y-5" novalidate>
-              <div class="space-y-1.5">
-                <label for="forgot-email" class="block text-sm font-medium text-slate-700"
+              <div class="space-y-1-5">
+                <label for="forgot-email" class="d-block fs-sm fw-medium text-slate-700"
                   >Email</label
                 >
                 <input
@@ -750,7 +750,7 @@
                   name="email"
                   required
                   placeholder="Email đã đăng ký"
-                  class="w-full h-12 px-4 lg-input"
+                  class="w-100 h-12 px-4 lg-input"
                 />
               </div>
               <ng-container
@@ -760,10 +760,10 @@
                 "
               ></ng-container>
             </form>
-            <p class="text-sm text-slate-500 text-center">
+            <p class="fs-sm text-slate-500 text-center">
               <a
                 routerLink="/login"
-                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                class="fw-semibold text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                 >← Quay lại đăng nhập</a
               >
             </p>
@@ -795,16 +795,16 @@
                 "
               ></ng-container>
             </form>
-            <p class="text-sm text-slate-500 text-center space-x-3">
+            <p class="fs-sm text-slate-500 text-center space-x-3">
               <a
                 routerLink="/login"
-                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                class="fw-semibold text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                 >Đăng nhập</a
               >
               <a
                 *ngIf="errorMessage"
                 routerLink="/forgot-password"
-                class="font-semibold text-violet-600 hover:text-violet-700 hover:underline"
+                class="fw-semibold text-violet-600 text-violet-700-hover text-decoration-underline-hover"
                 >Yêu cầu liên kết mới</a
               >
             </p>
@@ -812,13 +812,13 @@
         </div>
       </div>
 
-      <p class="relative text-xs text-slate-400 text-center">
+      <p class="position-relative fs-xs text-slate-400 text-center">
         Trường Cao Đẳng Công Nghệ Thông Tin TP.HCM (ITC) &copy; 2026
       </p>
     </div>
 
     <!-- Phải: khung thương hiệu (xem trước minh họa, không phải dữ liệu thật) -->
-    <div class="lg-right hidden lg:flex relative overflow-hidden text-white" aria-hidden="true">
+    <div class="lg-right d-none d-lg-flex position-relative overflow-hidden text-white" aria-hidden="true">
       <svg class="lg-right-art" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
         <circle cx="560" cy="560" r="230" fill="#fff" fill-opacity="0.08" />
         <circle cx="680" cy="80" r="160" fill="#fff" fill-opacity="0.07" />
@@ -840,41 +840,41 @@
         <path d="M510 770l60-26-22 38-10-14z" fill="#fff" fill-opacity="0.9" />
       </svg>
 
-      <div class="relative flex flex-col w-full min-h-0 px-10 py-8 xl:px-12">
+      <div class="position-relative d-flex flex-column w-100 min-h-0 px-10 py-8 px-xl-12">
         <!-- Thẻ xem trước nổi + linh vật -->
-        <div class="relative flex-1 min-h-[330px]">
-          <p class="lg-script hidden xl:block absolute left-2 top-2">
+        <div class="position-relative flex-1 min-h-330px">
+          <p class="lg-script d-none d-xl-block position-absolute start-2 top-2">
             Your Future<br />&nbsp;&nbsp;&nbsp;Our Care ♡
           </p>
 
-          <div class="lg-float absolute right-0 top-0 w-[300px] p-4">
-            <div class="flex items-center justify-between">
-              <span class="flex items-center gap-2.5 text-sm font-bold text-slate-900">
+          <div class="lg-float position-absolute end-0 top-0 w-300px p-4">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="d-flex align-items-center gap-2-5 fs-sm fw-bold text-slate-900">
                 <span class="lg-av lg-av--1"></span> Điểm danh buổi học
               </span>
-              <span class="text-violet-600 font-extrabold text-xl">
-                2<span class="text-sm text-slate-400 font-semibold">/15</span>
+              <span class="text-violet-600 fw-bold fs-xl">
+                2<span class="fs-sm text-slate-400 fw-semibold">/15</span>
               </span>
             </div>
-            <div class="mt-3 flex items-center gap-1.5">
+            <div class="mt-3 d-flex align-items-center gap-1-5">
               <span class="lg-av lg-av--1"></span>
               <span class="lg-av lg-av--2"></span>
               <span class="lg-av lg-av--3"></span>
               <span class="lg-av lg-av--4"></span>
               <span class="lg-av lg-av--more">+3</span>
             </div>
-            <div class="mt-4 flex items-center gap-3">
-              <span class="flex-1 h-2 rounded-full bg-violet-100 overflow-hidden">
+            <div class="mt-4 d-flex align-items-center gap-3">
+              <span class="flex-1 h-2 rounded-pill bg-violet-100 overflow-hidden">
                 <span
-                  class="block h-full w-[80%] rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500"
+                  class="d-block h-100 w-80pct rounded-pill bg-gradient-to-r from-violet-600 to-fuchsia-500"
                 ></span>
               </span>
-              <span class="text-xs font-semibold text-slate-500">80%</span>
+              <span class="fs-xs fw-semibold text-slate-500">80%</span>
             </div>
           </div>
 
-          <div class="lg-float absolute left-0 top-[110px] w-[250px] p-4 -rotate-[6deg]">
-            <div class="flex items-start gap-3">
+          <div class="lg-float position-absolute start-0 top-110px w-250px p-4 rotate-n6">
+            <div class="d-flex align-items-start gap-3">
               <span class="lg-tile bg-violet-100 text-violet-600">
                 <svg
                   class="w-5 h-5"
@@ -890,17 +890,17 @@
                 </svg>
               </span>
               <div class="text-slate-900">
-                <div class="text-sm font-bold">Thời khóa biểu</div>
-                <div class="mt-2 text-xs text-slate-500">Hôm nay</div>
-                <div class="text-xs text-slate-400">07:00 - 11:30</div>
-                <div class="text-sm font-semibold">Thiết kế đồ họa 2D</div>
-                <div class="text-xs text-slate-400">Phòng Lab Mac</div>
+                <div class="fs-sm fw-bold">Thời khóa biểu</div>
+                <div class="mt-2 fs-xs text-slate-500">Hôm nay</div>
+                <div class="fs-xs text-slate-400">07:00 - 11:30</div>
+                <div class="fs-sm fw-semibold">Thiết kế đồ họa 2D</div>
+                <div class="fs-xs text-slate-400">Phòng Lab Mac</div>
               </div>
             </div>
           </div>
 
-          <div class="lg-float absolute left-2 top-[250px] w-[240px] p-4 rotate-[2deg]">
-            <div class="flex items-start gap-3">
+          <div class="lg-float position-absolute start-2 top-250px w-240px p-4 rotate-2">
+            <div class="d-flex align-items-start gap-3">
               <span class="lg-tile bg-rose-100 text-rose-600">
                 <svg
                   class="w-5 h-5"
@@ -917,9 +917,9 @@
                 </svg>
               </span>
               <div class="flex-1">
-                <div class="text-sm font-bold text-slate-900">Cảnh báo sinh viên</div>
-                <div class="text-3xl font-extrabold text-rose-500 leading-tight">2</div>
-                <div class="text-xs text-slate-400">trường hợp cần xử lý</div>
+                <div class="fs-sm fw-bold text-slate-900">Cảnh báo sinh viên</div>
+                <div class="fs-3xl fw-bold text-rose-500 lh-sm">2</div>
+                <div class="fs-xs text-slate-400">trường hợp cần xử lý</div>
               </div>
             </div>
           </div>
@@ -929,9 +929,9 @@
             alt=""
             width="300"
             height="250"
-            class="lg-robot absolute right-0 xl:right-6 top-[130px] w-[190px] xl:w-[230px] h-auto"
+            class="lg-robot position-absolute end-0 end-xl-6 top-130px w-190px w-xl-230px h-auto"
           />
-          <span class="lg-bubble hidden xl:grid absolute right-[250px] top-[150px]">
+          <span class="lg-bubble d-none d-xl-grid position-absolute end-250px top-150px">
             <svg
               class="w-6 h-6"
               viewBox="0 0 24 24"
@@ -944,25 +944,25 @@
               <path d="m5 12 5 5L20 7" />
             </svg>
           </span>
-          <span class="lg-bubble hidden xl:grid absolute right-0 top-[230px]">
+          <span class="lg-bubble d-none d-xl-grid position-absolute end-0 top-230px">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" />
             </svg>
           </span>
         </div>
 
-        <div class="relative space-y-2 max-w-lg mt-4">
-          <h2 class="text-[28px] xl:text-[34px] font-extrabold leading-tight tracking-tight">
+        <div class="position-relative space-y-2 mw-lg mt-4">
+          <h2 class="fs-28px fs-xl-34px fw-bold lh-sm tracking-tight">
             Không để sinh viên<br />nào bị bỏ lại <span class="lg-underline">phía sau.</span>
           </h2>
-          <p class="text-white/80 text-sm leading-relaxed">
+          <p class="text-white-80 fs-sm lh-relaxed">
             Điểm danh, cảnh báo vắng học, hồ sơ chăm sóc sinh viên và báo cáo — tất cả trong một
             nơi.
           </p>
         </div>
 
-        <div class="relative mt-5 grid grid-cols-3 gap-4">
-          <div class="flex items-center gap-3">
+        <div class="position-relative mt-5 d-grid grid-cols-3 gap-4">
+          <div class="d-flex align-items-center gap-3">
             <span class="lg-feat bg-gradient-to-br from-violet-400 to-violet-600">
               <svg
                 class="w-6 h-6"
@@ -978,9 +978,9 @@
                 />
               </svg>
             </span>
-            <span class="text-sm font-semibold leading-snug">Quản lý lớp học<br />dễ dàng</span>
+            <span class="fs-sm fw-semibold lh-snug">Quản lý lớp học<br />dễ dàng</span>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="d-flex align-items-center gap-3">
             <span class="lg-feat bg-gradient-to-br from-amber-300 to-orange-500">
               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path
@@ -988,17 +988,17 @@
                 />
               </svg>
             </span>
-            <span class="text-sm font-semibold leading-snug"
+            <span class="fs-sm fw-semibold lh-snug"
               >Theo dõi &amp; cảnh báo<br />kịp thời</span
             >
           </div>
-          <div class="flex items-center gap-3">
+          <div class="d-flex align-items-center gap-3">
             <span class="lg-feat bg-gradient-to-br from-sky-300 to-blue-500">
               <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M4 20V10h4v10zm6 0V4h4v16zm6 0v-7h4v7z" />
               </svg>
             </span>
-            <span class="text-sm font-semibold leading-snug">Báo cáo trực quan<br />hiệu quả</span>
+            <span class="fs-sm fw-semibold lh-snug">Báo cáo trực quan<br />hiệu quả</span>
           </div>
         </div>
       </div>

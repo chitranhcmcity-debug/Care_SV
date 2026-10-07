@@ -1,15 +1,15 @@
 <!-- Chồng toast -->
 <div
-  class="fixed top-4 right-4 left-4 sm:left-auto z-[10002] flex flex-col gap-3 sm:w-[380px] pointer-events-none"
+  class="position-fixed top-4 end-4 start-4 start-sm-auto z-10002 d-flex flex-column gap-3 w-sm-380px pe-none"
   aria-live="polite"
 >
   <div
     *ngFor="let toast of notify.toasts(); trackBy: trackById"
-    class="toast-enter pointer-events-auto relative overflow-hidden bg-white rounded-xl shadow-xl border border-slate-200 p-4 flex items-start gap-3"
+    class="toast-enter pe-auto position-relative overflow-hidden bg-white rounded-xl shadow-xl border border-slate-200 p-4 d-flex align-items-start gap-3"
     [attr.role]="toast.type === 'error' ? 'alert' : 'status'"
   >
     <span
-      class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+      class="w-10 h-10 rounded-lg d-flex align-items-center justify-content-center flex-shrink-0"
       [ngClass]="tones[toast.type].iconBox"
     >
       <svg
@@ -24,14 +24,14 @@
         <path [attr.d]="tones[toast.type].icon" />
       </svg>
     </span>
-    <div class="flex-1 min-w-0 pt-0.5">
-      <div class="text-sm font-semibold text-slate-900">{{ toast.title }}</div>
-      <p class="text-sm text-slate-600 mt-0.5 break-words">{{ toast.message }}</p>
+    <div class="flex-1 min-w-0 pt-0-5">
+      <div class="fs-sm fw-semibold text-slate-900">{{ toast.title }}</div>
+      <p class="fs-sm text-slate-600 mt-0-5 text-break">{{ toast.message }}</p>
     </div>
     <button
       type="button"
       (click)="notify.dismiss(toast.id)"
-      class="w-7 h-7 -mr-1 -mt-1 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 shrink-0"
+      class="w-7 h-7 me-n1 mt-n1 rounded-md d-flex align-items-center justify-content-center text-slate-400 text-slate-700-hover bg-slate-100-hover flex-shrink-0"
       aria-label="Đóng thông báo"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -40,7 +40,7 @@
     </button>
     <!-- bộ đếm tự đóng -->
     <span
-      class="toast-timer absolute left-0 bottom-0 h-[3px] w-full opacity-70"
+      class="toast-timer position-absolute start-0 bottom-0 h-3px w-100 opacity-70"
       [ngClass]="tones[toast.type].bar"
       [style.animation-duration]="toast.type === 'error' ? '7s' : '4.5s'"
     ></span>
@@ -50,19 +50,19 @@
 <!-- Hộp thoại xác nhận -->
 <ng-container *ngIf="notify.pendingConfirm() as request">
   <div
-    class="fade-enter fixed inset-0 z-[10001] bg-slate-900/50 backdrop-blur-[2px] flex items-center justify-center p-4"
+    class="fade-enter position-fixed inset-0 z-10001 bg-slate-900-50 backdrop-blur-2px d-flex align-items-center justify-content-center p-4"
     (click)="notify.answerConfirm(false)"
   >
     <div
-      class="dialog-enter w-full max-w-[420px] bg-white rounded-2xl shadow-xl p-6"
+      class="dialog-enter w-100 mw-420px bg-white rounded-2xl shadow-xl p-6"
       role="alertdialog"
       aria-modal="true"
       [attr.aria-label]="request.title"
       (click)="$event.stopPropagation()"
     >
-      <div class="flex items-start gap-4">
+      <div class="d-flex align-items-start gap-4">
         <span
-          class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+          class="w-12 h-12 rounded-pill d-flex align-items-center justify-content-center flex-shrink-0"
           [ngClass]="request.danger ? 'bg-rose-50 text-rose-600' : 'bg-violet-50 text-violet-600'"
         >
           <svg
@@ -95,8 +95,8 @@
           </svg>
         </span>
         <div class="flex-1 min-w-0 pt-1">
-          <h3 class="text-base font-semibold text-slate-900">{{ request.title }}</h3>
-          <p *ngIf="request.message" class="text-sm text-slate-600 mt-1.5 whitespace-pre-line">
+          <h3 class="fs-base fw-semibold text-slate-900">{{ request.title }}</h3>
+          <p *ngIf="request.message" class="fs-sm text-slate-600 mt-1-5 text-pre-line">
             {{ request.message }}
           </p>
         </div>
@@ -110,22 +110,22 @@
         [attr.aria-label]="request.title"
         autocomplete="off"
         data-dialog-autofocus
-        class="mt-5 w-full h-11 px-4 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 placeholder:text-slate-400"
+        class="mt-5 w-100 h-11 px-4 rounded-lg border border-slate-300 bg-white fs-sm text-slate-900 text-slate-400-placeholder"
       />
-      <div class="mt-6 flex justify-end gap-2">
+      <div class="mt-6 d-flex justify-content-end gap-2">
         <button
           type="button"
           (click)="notify.answerConfirm(false)"
-          class="px-4 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors"
+          class="px-4 h-10 rounded-lg bg-slate-100 bg-slate-200-hover text-slate-700 fs-sm fw-medium transition-colors"
         >
           {{ request.cancelText }}
         </button>
         <button
           type="button"
           (click)="notify.answerConfirm(true)"
-          class="px-4 h-10 rounded-lg text-white text-sm font-medium transition-colors"
+          class="px-4 h-10 rounded-lg text-white fs-sm fw-medium transition-colors"
           [ngClass]="
-            request.danger ? 'bg-rose-600 hover:bg-rose-700' : 'bg-violet-600 hover:bg-violet-700'
+            request.danger ? 'bg-rose-600 bg-rose-700-hover' : 'bg-violet-600 bg-violet-700-hover'
           "
           [attr.data-dialog-autofocus]="request.input ? null : ''"
         >

@@ -119,7 +119,7 @@ const normalize = (text: string) =>
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './thanh-dieu-huong.component.html',
-  host: { class: 'block min-h-screen bg-white' },
+  host: { class: 'd-block min-vh-100 bg-white' },
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly branding = inject(BrandingService);

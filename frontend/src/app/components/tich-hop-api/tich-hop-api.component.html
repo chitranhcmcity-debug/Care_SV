@@ -1,8 +1,8 @@
-<div class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
-  <div class="border-b border-slate-200 pb-4 flex items-start justify-between flex-wrap gap-4">
+<div class="bg-white border border-slate-200 p-6 p-md-8 rounded-2xl shadow-sm space-y-6">
+  <div class="border-bottom border-slate-200 pb-4 d-flex align-items-start justify-content-between flex-wrap gap-4">
     <div>
-      <h3 class="text-lg md:text-xl font-bold text-slate-900">🔌 Cấu hình API</h3>
-      <p class="text-xs text-slate-500 font-medium mt-0.5 max-w-2xl">
+      <h3 class="fs-lg fs-md-xl fw-bold text-slate-900">🔌 Cấu hình API</h3>
+      <p class="fs-xs text-slate-500 fw-medium mt-0-5 mw-2xl">
         Khóa kết nối cho trợ lý AI Care (ChatGPT (OpenAI) hoặc Gemini), tổng đài gọi điện (Stringee)
         và email (SMTP). Khóa bí mật được mã hóa khi lưu và không bao giờ hiển thị lại; để trống ô
         bí mật nghĩa là giữ nguyên giá trị cũ.
@@ -12,26 +12,26 @@
       type="button"
       (click)="saveDraft()"
       [disabled]="saving()"
-      class="px-6 py-3 bg-violet-600 text-white font-bold text-sm rounded-xl shadow-md disabled:opacity-60"
+      class="px-6 py-3 bg-violet-600 text-white fw-bold fs-sm rounded-xl shadow-md opacity-60-disabled"
     >
       {{ saving() ? 'Đang lưu...' : '💾 Lưu cấu hình API' }}
     </button>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+  <div class="d-grid grid-cols-1 grid-cols-lg-3 gap-5">
     <section
       *ngFor="let group of groups()"
       class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4"
     >
-      <h4 class="font-bold text-slate-900 text-sm uppercase">{{ group.name }}</h4>
+      <h4 class="fw-bold text-slate-900 fs-sm text-uppercase">{{ group.name }}</h4>
       <ng-container *ngFor="let item of group.items">
         <div *ngIf="!item.provider || item.provider === aiProvider(group.items)" class="space-y-1">
-          <div class="flex items-center justify-between gap-2">
-            <label [for]="item.key" class="text-xs font-bold text-slate-700">{{
+          <div class="d-flex align-items-center justify-content-between gap-2">
+            <label [for]="item.key" class="fs-xs fw-bold text-slate-700">{{
               item.label
             }}</label>
             <span
-              class="text-[11px] font-semibold px-2 py-0.5 rounded-full border"
+              class="fs-11px fw-semibold px-2 py-0-5 rounded-pill border"
               [ngClass]="{
                 'bg-emerald-50 text-emerald-800 border-emerald-200': item.source === 'database',
                 'bg-blue-50 text-blue-800 border-blue-200': item.source === 'env',
@@ -40,7 +40,7 @@
               >{{ sourceLabel(item) }}</span
             >
           </div>
-          <div class="flex gap-2">
+          <div class="d-flex gap-2">
             <select
               *ngIf="item.allowed; else textInput"
               [id]="item.key"
@@ -50,7 +50,7 @@
                   : draft[item.key] || item.value || 'responses'
               "
               (ngModelChange)="draft[item.key] = $event"
-              class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"
+              class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 fs-sm bg-white"
             >
               <option *ngFor="let option of item.allowed" [value]="option">
                 {{ optionLabels[option] || option }}
@@ -69,14 +69,14 @@
                     : item.value || item.placeholder || ''
                 "
                 autocomplete="off"
-                class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white font-mono"
+                class="flex-1 min-w-0 px-3 py-2 rounded-lg border border-slate-300 fs-sm bg-white font-monospace"
               />
             </ng-template>
             <button
               *ngIf="item.source === 'database'"
               type="button"
               (click)="clear(item)"
-              class="px-2.5 rounded-lg border border-rose-200 text-rose-600 text-xs font-bold hover:bg-rose-50"
+              class="px-2-5 rounded-lg border border-rose-200 text-rose-600 fs-xs fw-bold bg-rose-50-hover"
               title="Xóa giá trị đã lưu, quay về .env"
             >
               ✖
@@ -87,7 +87,7 @@
     </section>
   </div>
 
-  <p class="text-xs text-slate-500">
+  <p class="fs-xs text-slate-500">
     Thay đổi có hiệu lực ngay, không cần khởi động lại máy chủ. Khóa thanh toán PayOS thuộc nhà cung
     cấp phần mềm nên không cấu hình ở đây.
   </p>

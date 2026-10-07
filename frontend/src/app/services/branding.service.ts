@@ -3,7 +3,7 @@ import { Branding, SettingsService } from './settings.service';
 
 const DEFAULT_COLOR = '#673ab7';
 const DEFAULT_LOGO = 'logo_truong.png';
-// Sắc Tailwind → tỷ lệ pha: dương = về phía trắng, âm = về phía đen.
+// Sắc màu (50…950) → tỷ lệ pha: dương = về phía trắng, âm = về phía đen.
 const SHADES: [number, number][] = [
   [50, 0.9],
   [100, 0.78],
@@ -19,9 +19,9 @@ const SHADES: [number, number][] = [
 ];
 
 /**
- * Giao diện web do admin cấu hình: tên hệ thống, logo và màu chính. Bảng màu Tailwind
+ * Giao diện web do admin cấu hình: tên hệ thống, logo và màu chính. Bảng màu
  * `violet` (màu nhấn của ứng dụng) đọc biến CSS, nên đổi màu sẽ
- * đổi chủ đề toàn ứng dụng mà không cần build lại (xem index.html và styles.css).
+ * đổi chủ đề toàn ứng dụng mà không cần build lại (xem index.html và styles.scss).
  */
 @Injectable({ providedIn: 'root' })
 export class BrandingService {
@@ -58,7 +58,7 @@ export class BrandingService {
   private applyColor(hex: string): void {
     const root = document.documentElement.style;
     if (!/^#[0-9a-f]{6}$/i.test(hex) || hex.toLowerCase() === DEFAULT_COLOR) {
-      // Bảng màu mặc định chỉnh tay trong styles.css.
+      // Bảng màu mặc định chỉnh tay trong styles.scss.
       for (const [shade] of SHADES) root.removeProperty(`--brand-${shade}`);
       return;
     }

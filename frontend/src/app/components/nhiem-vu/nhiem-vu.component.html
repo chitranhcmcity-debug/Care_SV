@@ -1,21 +1,21 @@
-<div class="mx-4 md:mx-6 my-5 space-y-5">
+<div class="mx-4 mx-md-6 my-5 space-y-5">
   <!-- Thanh công cụ: tiêu đề trang đã có ở header phía trên -->
   <div
-    class="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+    class="bg-white border border-slate-200 rounded-2xl px-5 py-3 shadow-sm d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3"
   >
-    <p class="text-sm text-slate-500">
+    <p class="fs-sm text-slate-500">
       Xác nhận nhận việc, thực hiện và nộp minh chứng khi hoàn thành.
     </p>
     <button
       (click)="loadTasks()"
-      class="shrink-0 px-4 py-1.5 rounded-xl bg-white border border-violet-200 text-violet-700 hover:bg-violet-50 text-xs font-bold transition-colors"
+      class="flex-shrink-0 px-4 py-1-5 rounded-xl bg-white border border-violet-200 text-violet-700 bg-violet-50-hover fs-xs fw-bold transition-colors"
     >
       🔄 Cập nhật danh sách
     </button>
   </div>
 
   <!-- Thẻ chỉ số tổng quan -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div class="d-grid grid-cols-2 grid-cols-md-4 gap-3">
     <div *ngFor="let f of statCards" class="task-stat" [attr.data-tone]="f.tone">
       <span class="task-stat-icon">
         <svg class="" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="f.icon">
@@ -55,7 +55,7 @@
   </div>
 
   <!-- Bộ lọc: nút trạng thái kèm icon nét -->
-  <div class="card-3d p-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Lọc theo trạng thái">
+  <div class="card-3d p-3 d-flex flex-wrap gap-2" role="radiogroup" aria-label="Lọc theo trạng thái">
     <button
       *ngFor="let f of statusFilters"
       type="button"
@@ -104,19 +104,19 @@
       *ngFor="let task of tasks"
       class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm"
       [ngClass]="{
-        'border-amber-300 bg-amber-50/20': task.status === 'moi_giao',
-        'border-blue-300 bg-blue-50/20': task.status === 'da_xac_nhan',
-        'border-rose-300 bg-rose-50/20': task.status === 'bi_tu_choi',
-        'border-purple-300 bg-purple-50/20': task.status === 'cho_duyet',
-        'border-emerald-300 bg-emerald-50/20': task.status === 'hoan_thanh',
+        'border-amber-300 bg-amber-50-20': task.status === 'moi_giao',
+        'border-blue-300 bg-blue-50-20': task.status === 'da_xac_nhan',
+        'border-rose-300 bg-rose-50-20': task.status === 'bi_tu_choi',
+        'border-purple-300 bg-purple-50-20': task.status === 'cho_duyet',
+        'border-emerald-300 bg-emerald-50-20': task.status === 'hoan_thanh',
       }"
     >
       <!-- Tiêu đề -->
-      <div class="flex items-start justify-between flex-wrap gap-3 border-b border-slate-200 pb-3">
+      <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 border-bottom border-slate-200 pb-3">
         <div class="space-y-1">
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
             <span
-              class="px-2.5 py-1 rounded-full text-xs font-bold"
+              class="px-2-5 py-1 rounded-pill fs-xs fw-bold"
               [ngClass]="{
                 'bg-amber-600 text-white': task.status === 'moi_giao',
                 'bg-blue-700 text-white': task.status === 'da_xac_nhan',
@@ -129,16 +129,16 @@
             </span>
             <span
               *ngIf="isTaskOverdue(task)"
-              class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300"
+              class="px-2-5 py-1 rounded-pill fs-xs fw-bold bg-rose-100 text-rose-800 border border-rose-300"
             >
               ⚠️ QUÁ HẠN
             </span>
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+            <span class="px-2-5 py-1 rounded-pill fs-xs fw-bold bg-slate-100 text-slate-700">
               {{ task.category || 'khac' | viLabel }}
             </span>
             <span
               *ngIf="task.priority === 'cao' || task.priority === 'khan_cap'"
-              class="px-2.5 py-1 rounded-full text-xs font-bold"
+              class="px-2-5 py-1 rounded-pill fs-xs fw-bold"
               [ngClass]="
                 task.priority === 'khan_cap'
                   ? 'bg-rose-600 text-white'
@@ -148,9 +148,9 @@
               🔥 Ưu tiên {{ task.priority | viLabel }}
             </span>
           </div>
-          <h3 class="text-lg font-bold text-slate-900">{{ task.title }}</h3>
+          <h3 class="fs-lg fw-bold text-slate-900">{{ task.title }}</h3>
         </div>
-        <div class="text-xs text-slate-500 font-semibold text-right space-y-0.5">
+        <div class="fs-xs text-slate-500 fw-semibold text-end space-y-0-5">
           <div>
             Giao bởi: <b class="text-slate-700">{{ taskUserName(task.assignedBy) }}</b>
           </div>
@@ -164,23 +164,23 @@
       </div>
 
       <!-- Mô tả -->
-      <p class="text-sm text-slate-700 font-medium whitespace-pre-wrap">{{ task.description }}</p>
+      <p class="fs-sm text-slate-700 fw-medium text-pre-wrap">{{ task.description }}</p>
 
       <!-- Tiến độ -->
       <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <div class="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+        <div class="d-flex align-items-center gap-2">
+          <div class="flex-1 h-2-5 rounded-pill bg-slate-100 overflow-hidden">
             <div
-              class="h-full rounded-full transition-all"
+              class="h-100 rounded-pill transition-all"
               [ngClass]="task.status === 'hoan_thanh' ? 'bg-emerald-500' : 'bg-blue-500'"
               [style.width.%]="taskProgress(task)"
             ></div>
           </div>
-          <span class="text-xs font-bold text-slate-700 w-24 text-right"
+          <span class="fs-xs fw-bold text-slate-700 w-24 text-end"
             >Tiến độ {{ taskProgress(task) }}%</span
           >
         </div>
-        <ul *ngIf="recentProgress(task).length" class="text-[11px] text-slate-500 space-y-0.5">
+        <ul *ngIf="recentProgress(task).length" class="fs-11px text-slate-500 space-y-0-5">
           <li *ngFor="let p of recentProgress(task)">
             {{ p.at | date: 'dd/MM HH:mm' }} · <b>{{ p.percent }}%</b
             ><span *ngIf="p.note"> — {{ p.note }}</span>
@@ -191,9 +191,9 @@
       <!-- Thao tác: báo tiến độ trong lúc làm -->
       <div
         *ngIf="task.status === 'da_xac_nhan' || task.status === 'bi_tu_choi'"
-        class="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-2"
+        class="p-4 rounded-xl bg-blue-50-60 border border-blue-200 space-y-2"
       >
-        <label class="block text-xs font-bold text-slate-700 uppercase">
+        <label class="d-block fs-xs fw-bold text-slate-700 text-uppercase">
           Cập nhật tiến độ: {{ progressDraft(task).percent }}%
         </label>
         <input
@@ -203,28 +203,28 @@
           step="5"
           [ngModel]="progressDraft(task).percent"
           (ngModelChange)="progressDraft(task).percent = +$event"
-          class="w-full accent-blue-600"
+          class="w-100 accent-blue-600"
           aria-label="Phần trăm tiến độ"
         />
-        <div class="flex flex-col sm:flex-row gap-2">
+        <div class="d-flex flex-column flex-sm-row gap-2">
           <input
             type="text"
             maxlength="500"
             [ngModel]="progressDraft(task).note"
             (ngModelChange)="progressDraft(task).note = $event"
             placeholder="Đã làm được gì, còn vướng mắc gì... (không bắt buộc)"
-            class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none"
+            class="flex-1 px-3 py-2 rounded-xl border border-slate-300 fs-sm bg-white outline-none-focus"
           />
           <button
             type="button"
             (click)="saveProgress(task)"
             [disabled]="savingProgress === task._id"
-            class="px-4 py-2 rounded-xl bg-violet-600 disabled:opacity-60 text-white text-xs font-bold whitespace-nowrap"
+            class="px-4 py-2 rounded-xl bg-violet-600 opacity-60-disabled text-white fs-xs fw-bold text-nowrap"
           >
             {{ savingProgress === task._id ? 'Đang lưu...' : '💾 Lưu tiến độ' }}
           </button>
         </div>
-        <p class="text-[11px] text-slate-500">
+        <p class="fs-11px text-slate-500">
           Khi xong việc, nộp minh chứng bên dưới để đạt 100% và gửi sếp duyệt.
         </p>
       </div>
@@ -232,7 +232,7 @@
       <!-- Lý do từ chối -->
       <div
         *ngIf="task.status === 'bi_tu_choi' && task.reviewNote"
-        class="p-3 rounded-md bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold"
+        class="p-3 rounded-md bg-rose-50 border border-rose-200 fs-xs text-rose-800 fw-semibold"
       >
         ↩️ Sếp yêu cầu làm lại: {{ task.reviewNote }}
       </div>
@@ -240,7 +240,7 @@
       <!-- Ghi chú khi duyệt -->
       <div
         *ngIf="task.status === 'hoan_thanh' && task.reviewNote"
-        class="p-3 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold"
+        class="p-3 rounded-md bg-emerald-50 border border-emerald-200 fs-xs text-emerald-800 fw-semibold"
       >
         ✅ Nhận xét của sếp: {{ task.reviewNote }}
       </div>
@@ -250,8 +250,8 @@
         *ngIf="task.status === 'cho_duyet' || task.status === 'hoan_thanh'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2"
       >
-        <div class="text-xs font-bold text-slate-500 uppercase">Minh chứng đã nộp:</div>
-        <p *ngIf="task.evidenceNote" class="text-xs text-slate-700 font-medium">
+        <div class="fs-xs fw-bold text-slate-500 text-uppercase">Minh chứng đã nộp:</div>
+        <p *ngIf="task.evidenceNote" class="fs-xs text-slate-700 fw-medium">
           📝 {{ task.evidenceNote }}
         </p>
         <a
@@ -259,16 +259,16 @@
           [href]="task.evidenceLink"
           target="_blank"
           rel="noopener"
-          class="text-xs text-blue-700 font-bold underline break-all"
+          class="fs-xs text-blue-700 fw-bold text-decoration-underline text-break-all"
         >
           🔗 {{ task.evidenceLink }}
         </a>
-        <div *ngIf="task.evidenceFiles?.length" class="flex flex-wrap gap-2 pt-1">
+        <div *ngIf="task.evidenceFiles?.length" class="d-flex flex-wrap gap-2 pt-1">
           <button
             *ngFor="let file of task.evidenceFiles"
             type="button"
             (click)="taskService.openEvidence(task._id, file._id)"
-            class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 flex items-center gap-1.5"
+            class="px-3 py-1-5 rounded-lg bg-white border border-slate-300 fs-xs fw-bold text-slate-700 bg-slate-100-hover d-flex align-items-center gap-1-5"
           >
             📎 {{ file.originalName }} ({{ formatFileSize(file.size) }})
           </button>
@@ -276,10 +276,10 @@
       </div>
 
       <!-- Thao tác: xác nhận -->
-      <div *ngIf="task.status === 'moi_giao'" class="flex justify-end">
+      <div *ngIf="task.status === 'moi_giao'" class="d-flex justify-content-end">
         <button
           (click)="acknowledge(task)"
-          class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
+          class="px-6 py-2-5 bg-violet-600 bg-violet-700-hover text-white fw-bold rounded-xl touch-target fs-xs transition-all shadow-sm"
         >
           ▶️ XÁC NHẬN NHẬN VIỆC
         </button>
@@ -290,7 +290,7 @@
         *ngIf="task.status === 'da_xac_nhan' || task.status === 'bi_tu_choi'"
         class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3"
       >
-        <label class="block text-xs font-bold text-slate-700 uppercase">
+        <label class="d-block fs-xs fw-bold text-slate-700 text-uppercase">
           Nộp minh chứng hoàn thành (ghi chú, link, và/hoặc file — chọn ít nhất 1):
         </label>
         <textarea
@@ -298,26 +298,26 @@
           (ngModelChange)="draft(task._id).note = $event"
           rows="2"
           placeholder="Mô tả kết quả đã thực hiện..."
-          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+          class="w-100 px-4 py-2-5 rounded-xl border border-slate-300 fs-sm fw-semibold text-slate-900 outline-none-focus ring-2-focus ring-blue-600-focus bg-white"
         ></textarea>
         <input
           type="text"
           [ngModel]="draft(task._id).link"
           (ngModelChange)="draft(task._id).link = $event"
           placeholder="🔗 Link minh chứng (VD: Google Drive)..."
-          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none bg-white"
+          class="w-100 px-4 py-2-5 rounded-xl border border-slate-300 fs-sm fw-semibold text-slate-900 outline-none-focus bg-white"
         />
         <input
           type="file"
           multiple
           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
           (change)="onFilesSelected(task._id, $event)"
-          class="w-full text-xs font-semibold text-slate-700 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-violet-50 file:text-violet-700 file:text-xs file:font-bold"
+          class="w-100 fs-xs fw-semibold text-slate-700 me-3-file px-3-file py-1-5-file rounded-lg-file border-0-file bg-violet-50-file text-violet-700-file fs-xs-file fw-bold-file"
         />
-        <div class="flex justify-end">
+        <div class="d-flex justify-content-end">
           <button
             (click)="submitEvidence(task)"
-            class="px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl touch-target text-xs transition-all shadow-sm"
+            class="px-6 py-2-5 bg-violet-600 bg-violet-700-hover text-white fw-bold rounded-xl touch-target fs-xs transition-all shadow-sm"
           >
             📤 NỘP MINH CHỨNG & ĐÓNG NHIỆM VỤ
           </button>
@@ -326,7 +326,7 @@
 
       <div
         *ngIf="task.status === 'cho_duyet'"
-        class="text-xs text-purple-700 font-bold text-center py-1"
+        class="fs-xs text-purple-700 fw-bold text-center py-1"
       >
         ⏳ Đã nộp minh chứng, đang chờ sếp duyệt...
       </div>
@@ -336,9 +336,9 @@
       *ngIf="!loading && tasks.length === 0"
       class="p-12 text-center bg-white border border-slate-200 rounded-2xl space-y-3 shadow-sm"
     >
-      <div class="text-4xl">🎉</div>
-      <h3 class="text-lg font-bold text-slate-900">Không Có Nhiệm Vụ Nào!</h3>
-      <p class="text-xs text-slate-500 font-medium">
+      <div class="fs-4xl">🎉</div>
+      <h3 class="fs-lg fw-bold text-slate-900">Không Có Nhiệm Vụ Nào!</h3>
+      <p class="fs-xs text-slate-500 fw-medium">
         Bạn chưa được giao nhiệm vụ nào phù hợp bộ lọc.
       </p>
     </div>

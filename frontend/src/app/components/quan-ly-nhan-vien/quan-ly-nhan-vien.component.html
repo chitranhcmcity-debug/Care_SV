@@ -1,10 +1,10 @@
-<div class="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl shadow-sm space-y-6">
+<div class="bg-white border border-slate-200 p-6 p-md-8 rounded-2xl shadow-sm space-y-6">
   <div
-    class="border-b border-slate-200 pb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+    class="border-bottom border-slate-200 pb-4 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-4"
   >
     <div>
-      <h3 class="text-lg md:text-xl font-bold text-slate-900">Tài khoản & nhân sự</h3>
-      <p class="text-xs text-slate-500 font-medium">
+      <h3 class="fs-lg fs-md-xl fw-bold text-slate-900">Tài khoản & nhân sự</h3>
+      <p class="fs-xs text-slate-500 fw-medium">
         Tạo, sửa, khóa, xóa tài khoản và đặt lại mật khẩu. Phân lớp phụ trách cho nhân viên CSSV do
         Trưởng phòng / PHT thực hiện (tab "Phân lớp CSSV").
       </p>
@@ -14,7 +14,7 @@
   <!-- Form thêm nhân viên -->
   <form
     (ngSubmit)="createStaffAccount()"
-    class="staff-form p-6 pt-7 grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+    class="staff-form p-6 pt-7 d-grid grid-cols-1 grid-cols-md-5 gap-4 align-items-end"
   >
     <div>
       <label class="staff-label" data-tone="0"
@@ -26,7 +26,7 @@
         name="newStaffName"
         required
         placeholder="VD: Nguyễn Văn B"
-        class="staff-field w-full px-4 py-3 text-sm font-semibold"
+        class="staff-field w-100 px-4 py-3 fs-sm fw-semibold"
       />
     </div>
     <div>
@@ -39,7 +39,7 @@
         name="newStaffEmail"
         required
         placeholder="staff@itc.edu.vn"
-        class="staff-field w-full px-4 py-3 text-sm font-semibold"
+        class="staff-field w-100 px-4 py-3 fs-sm fw-semibold"
       />
     </div>
     <div>
@@ -49,7 +49,7 @@
         [(ngModel)]="newStaffPhone"
         name="newStaffPhone"
         placeholder="Phụ huynh gọi lại số này"
-        class="staff-field w-full px-4 py-3 text-sm font-semibold tabular-nums"
+        class="staff-field w-100 px-4 py-3 fs-sm fw-semibold tabular-nums"
       />
     </div>
     <div>
@@ -59,13 +59,13 @@
       <select
         [(ngModel)]="newStaffRole"
         name="newStaffRole"
-        class="staff-field w-full px-4 py-3 text-sm font-bold"
+        class="staff-field w-100 px-4 py-3 fs-sm fw-bold"
       >
         <option value="staff">🎧 Nhân Viên Chăm sóc sinh viên</option>
         <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy</option>
         <option value="manager">🏛️ Trưởng phòng / Phó hiệu trưởng</option>
       </select>
-      <p *ngIf="newStaffRole === 'manager'" class="text-xs text-slate-500 mt-1.5">
+      <p *ngIf="newStaffRole === 'manager'" class="fs-xs text-slate-500 mt-1-5">
         Trưởng phòng / PHT mới có đơn vị riêng, bắt đầu trống (không thấy dữ liệu đơn vị khác).
       </p>
     </div>
@@ -77,7 +77,7 @@
         [(ngModel)]="newStaffManagerId"
         name="newStaffManagerId"
         required
-        class="staff-field w-full px-4 py-3 text-sm font-bold"
+        class="staff-field w-100 px-4 py-3 fs-sm fw-bold"
       >
         <option value="">— Chọn Trưởng phòng / PHT —</option>
         <option *ngFor="let m of activeManagers" [value]="m._id">
@@ -92,7 +92,7 @@
         [(ngModel)]="newStaffPass"
         name="newStaffPass"
         placeholder="Mật khẩu ngẫu nhiên"
-        class="staff-field w-full px-4 py-3 text-sm tabular-nums font-semibold"
+        class="staff-field w-100 px-4 py-3 fs-sm tabular-nums fw-semibold"
       />
     </div>
     <button type="submit" [disabled]="isCreatingStaff" class="staff-submit touch-target">
@@ -105,34 +105,34 @@
     *ngIf="staffCreatedMsg || staffGeneratedPass"
     class="p-5 rounded-2xl bg-emerald-50 text-emerald-900 space-y-3 animate-fade-in border border-emerald-200"
   >
-    <div class="flex items-center justify-between">
-      <span class="font-bold text-sm flex items-center gap-2"
+    <div class="d-flex align-items-center justify-content-between">
+      <span class="fw-bold fs-sm d-flex align-items-center gap-2"
         >🎉 {{ staffCreatedMsg || 'Tạo tài khoản nhân sự thành công!' }}</span
       >
       <button
         (click)="staffCreatedMsg = ''; staffGeneratedPass = ''"
-        class="text-emerald-700/70 hover:text-emerald-900 font-bold text-xl p-1"
+        class="text-emerald-700-70 text-emerald-900-hover fw-bold fs-xl p-1"
       >
         ✖
       </button>
     </div>
     <div
       *ngIf="staffGeneratedPass"
-      class="bg-white p-4 rounded-xl border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      class="bg-white p-4 rounded-xl border border-emerald-200 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-4"
     >
       <div>
-        <span class="text-xs text-emerald-700 block font-medium uppercase mb-1"
+        <span class="fs-xs text-emerald-700 d-block fw-medium text-uppercase mb-1"
           >🔑 MẬT KHẨU ĐĂNG NHẬP KHỞI TẠO (HÃY LƯU VÀ SAO CHÉP):</span
         >
         <span
-          class="font-sans tabular-nums text-xl font-bold text-slate-900 tracking-wider bg-slate-50 px-3 py-1 rounded border border-slate-200 select-all"
+          class="font-sans tabular-nums fs-xl fw-bold text-slate-900 tracking-wider bg-slate-50 px-3 py-1 rounded border border-slate-200 user-select-all"
           >{{ staffGeneratedPass }}</span
         >
       </div>
       <button
         type="button"
         (click)="copyPasswordToClipboard(staffGeneratedPass)"
-        class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-2 touch-target cursor-pointer"
+        class="px-5 py-2-5 bg-violet-600 bg-violet-700-hover text-white fw-bold fs-xs rounded-xl shadow-sm transition-all d-flex align-items-center gap-2 touch-target cursor-pointer"
       >
         📋 SAO CHÉP MẬT KHẨU
       </button>
@@ -146,7 +146,7 @@
     aria-label="Danh sách tài khoản nhân sự"
     tabindex="0"
   >
-    <table class="staff-table w-full text-left border-collapse text-sm">
+    <table class="staff-table w-100 text-start border-collapse fs-sm">
       <thead>
         <tr>
           <th class="p-3">👤 Họ &amp; tên</th>
@@ -154,7 +154,7 @@
           <th class="p-3">🏷️ Vai trò</th>
           <th class="p-3">🏫 Lớp đang phụ trách</th>
           <th class="p-3">⚡ Trạng thái</th>
-          <th class="p-3 text-right">Thao tác</th>
+          <th class="p-3 text-end">Thao tác</th>
         </tr>
       </thead>
       <tbody>
@@ -164,14 +164,14 @@
           [attr.data-tone]="staff.role === 'manager' ? 0 : staff.role === 'staff' ? 2 : 3"
         >
           <td class="p-3">
-            <div class="flex items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
               <span class="staff-avatar">{{ staffInitials(staff.fullName) }}</span>
-              <span class="font-bold text-slate-900 whitespace-nowrap">{{ staff.fullName }}</span>
+              <span class="fw-bold text-slate-900 text-nowrap">{{ staff.fullName }}</span>
             </div>
           </td>
-          <td class="p-3 text-slate-600 font-medium tabular-nums text-xs">
+          <td class="p-3 text-slate-600 fw-medium tabular-nums fs-xs">
             <span class="staff-email" [title]="staff.email">{{ staff.email }}</span>
-            <span *ngIf="unitLabel(staff)" class="block mt-0.5 text-[11px] text-violet-700">{{
+            <span *ngIf="unitLabel(staff)" class="d-block mt-0-5 fs-11px text-violet-700">{{
               unitLabel(staff)
             }}</span>
           </td>
@@ -187,7 +187,7 @@
             </span>
           </td>
           <td class="p-3">
-            <div class="flex flex-wrap items-center gap-1.5">
+            <div class="d-flex flex-wrap align-items-center gap-1-5">
               <span
                 *ngFor="let cCode of staff.managedClasses; let ci = index"
                 class="staff-class"
@@ -222,7 +222,7 @@
               }}
             </span>
           </td>
-          <td class="p-4 text-right">
+          <td class="p-4 text-end">
             <div class="staff-actions">
               <button
                 type="button"
@@ -271,7 +271,7 @@
           </td>
         </tr>
         <tr *ngIf="staffList.length === 0">
-          <td colspan="6" class="p-8 text-center text-slate-400 text-sm font-medium">
+          <td colspan="6" class="p-8 text-center text-slate-400 fs-sm fw-medium">
             Chưa có nhân viên nào trong danh sách.
           </td>
         </tr>
@@ -282,26 +282,26 @@
 
 <div
   *ngIf="showEditStaffModal"
-  class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+  class="position-fixed inset-0 bg-slate-900-60 backdrop-blur-sm d-flex align-items-center justify-content-center z-50 p-4"
 >
   <div
-    class="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl animate-fade-in"
+    class="bg-white border border-slate-200 rounded-2xl mw-lg w-100 p-6 space-y-6 shadow-2xl animate-fade-in"
   >
-    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-      <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+    <div class="d-flex align-items-center justify-content-between border-bottom border-slate-200 pb-4">
+      <h3 class="fs-lg fw-bold text-slate-900 d-flex align-items-center gap-2">
         <span>✏️ Chỉnh Sửa Tài Khoản Nhân Viên</span>
       </h3>
       <button
         (click)="showEditStaffModal = false"
-        class="text-slate-400 hover:text-slate-600 font-bold text-xl"
+        class="text-slate-400 text-slate-600-hover fw-bold fs-xl"
       >
         ✖
       </button>
     </div>
 
-    <form (ngSubmit)="saveEditStaff()" class="space-y-4 text-xs font-bold text-slate-700">
+    <form (ngSubmit)="saveEditStaff()" class="space-y-4 fs-xs fw-bold text-slate-700">
       <div>
-        <label class="block uppercase mb-1"
+        <label class="d-block text-uppercase mb-1"
           >Họ và Tên Nhân Viên <span class="text-rose-600">*</span></label
         >
         <input
@@ -309,12 +309,12 @@
           [(ngModel)]="editStaffName"
           name="editStaffName"
           required
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900"
+          class="w-100 px-4 py-3 rounded-xl border border-slate-300 fw-bold fs-sm bg-white text-slate-900"
         />
       </div>
 
       <div>
-        <label class="block uppercase mb-1"
+        <label class="d-block text-uppercase mb-1"
           >Địa chỉ Email <span class="text-rose-600">*</span></label
         >
         <input
@@ -322,27 +322,27 @@
           [(ngModel)]="editStaffEmail"
           name="editStaffEmail"
           required
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
+          class="w-100 px-4 py-3 rounded-xl border border-slate-300 fw-bold fs-sm bg-white text-slate-900 font-sans tabular-nums"
         />
       </div>
 
       <div>
-        <label class="block uppercase mb-1">Số điện thoại</label>
+        <label class="d-block text-uppercase mb-1">Số điện thoại</label>
         <input
           type="tel"
           [(ngModel)]="editStaffPhone"
           name="editStaffPhone"
           placeholder="Phụ huynh gọi lại số này"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
+          class="w-100 px-4 py-3 rounded-xl border border-slate-300 fw-bold fs-sm bg-white text-slate-900 font-sans tabular-nums"
         />
       </div>
 
       <div>
-        <label class="block uppercase mb-1">Vai Trò Tài Khoản</label>
+        <label class="d-block text-uppercase mb-1">Vai Trò Tài Khoản</label>
         <select
           [(ngModel)]="editStaffRole"
           name="editStaffRole"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900"
+          class="w-100 px-4 py-3 rounded-xl border border-slate-300 fw-bold fs-sm bg-white text-slate-900"
         >
           <option value="staff">🎧 Nhân Viên CSSV (Chăm sóc sinh viên)</option>
           <option value="teacher">👨‍🏫 Giảng Viên Giảng Dạy (Điểm danh môn)</option>
@@ -351,28 +351,28 @@
       </div>
 
       <div>
-        <label class="block uppercase mb-1">Đặt Mật Khẩu Mới (Để trống nếu giữ nguyên)</label>
+        <label class="d-block text-uppercase mb-1">Đặt Mật Khẩu Mới (Để trống nếu giữ nguyên)</label>
         <input
           type="text"
           [(ngModel)]="editStaffPass"
           name="editStaffPass"
           placeholder="Nhập mật khẩu mới tại đây..."
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 font-bold text-sm bg-white text-slate-900 font-sans tabular-nums"
+          class="w-100 px-4 py-3 rounded-xl border border-slate-300 fw-bold fs-sm bg-white text-slate-900 font-sans tabular-nums"
         />
       </div>
 
-      <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-200">
+      <div class="pt-4 d-flex align-items-center justify-content-end space-x-3 border-top border-slate-200">
         <button
           type="button"
           (click)="showEditStaffModal = false"
-          class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold touch-target"
+          class="px-5 py-3 rounded-xl bg-slate-100 bg-slate-200-hover text-slate-700 fw-bold touch-target"
         >
           Hủy
         </button>
         <button
           type="submit"
           [disabled]="isUpdatingStaff"
-          class="px-6 py-3 rounded-xl bg-violet-600 disabled:opacity-60 text-white font-bold text-sm shadow-md transition-all flex items-center gap-2 touch-target cursor-pointer"
+          class="px-6 py-3 rounded-xl bg-violet-600 opacity-60-disabled text-white fw-bold fs-sm shadow-md transition-all d-flex align-items-center gap-2 touch-target cursor-pointer"
         >
           <span>{{ isUpdatingStaff ? 'Đang lưu...' : '💾 LƯU THAY ĐỔI' }}</span>
         </button>
