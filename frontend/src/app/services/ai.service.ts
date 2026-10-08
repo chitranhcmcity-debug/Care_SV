@@ -9,6 +9,10 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface AiCareChatMessage extends ChatMessage {
+  image?: { dataUrl: string };
+}
+
 /** AI Care giúp gì cho người dùng đang đăng nhập (tùy vai trò và quyền). */
 export interface AiCareProfile {
   name: string;
@@ -67,7 +71,7 @@ export class AiService {
    * các thao tác AI Care đã chuẩn bị (chưa thay đổi gì — người dùng xác nhận từng cái), `navigate`
    * một trang nó yêu cầu mở.
    */
-  careChat(messages: ChatMessage[]): Observable<AiCareReply> {
+  careChat(messages: AiCareChatMessage[]): Observable<AiCareReply> {
     return this.http.post<AiCareReply>(`${this.apiUrl}/care`, { messages });
   }
 

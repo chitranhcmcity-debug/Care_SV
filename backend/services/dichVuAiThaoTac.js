@@ -10,6 +10,7 @@ const HoSoChamSoc = require('../models/HoSoChamSoc');
 const { can } = require('./dichVuPhanQuyen');
 const { createTask, acknowledgeTask, reviewTask } = require('./dichVuNhiemVu');
 const { assignClass } = require('./dichVuPhanCongLop');
+const { CRUD_ACTIONS } = require('./dichVuAiCrud');
 const { assert, normalizeClass, parseOptionalDate } = require('../utils/kiemTra');
 const {
   CARE_STATUS,
@@ -69,6 +70,7 @@ async function findTaskByTitle(filter, title) {
 // Mỗi thao tác: allowed(user); prepare(user, input) → { title, details[], payload };
 // run(user, payload) → { message, navigate? }. Cả hai bước đều kiểm tra lại mọi thứ.
 const ACTIONS = [
+  ...CRUD_ACTIONS,
   {
     name: 'cap_nhat_ho_so_cham_soc',
     label: 'Cập nhật hồ sơ chăm sóc (nguyên nhân, hướng giải quyết, báo khó khăn)',

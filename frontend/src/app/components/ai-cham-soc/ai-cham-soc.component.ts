@@ -74,9 +74,13 @@ export class AiCareComponent {
 
   readonly open = signal(false);
   readonly profile = signal<AiCareProfile | null>(null);
-  readonly messages = signal<(ChatMessage & { html?: string; actions?: ActionCard[] })[]>([]);
+  readonly messages = signal<
+    (ChatMessage & { html?: string; actions?: ActionCard[]; imageUrl?: string })[]
+  >([]);
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly imageUrl = signal<string | null>(null);
+  readonly imageName = signal('');
   draft = '';
 
   constructor() {
@@ -91,6 +95,7 @@ export class AiCareComponent {
       this.messages.set([]);
       this.profile.set(null);
       this.error.set('');
+      this.removeImage();
     });
     this.scheduleWander(8000); // nghỉ ở vị trí nhà trước
     inject(DestroyRef).onDestroy(() => clearTimeout(this.wanderTimer));
@@ -270,14 +275,77 @@ export class AiCareComponent {
   reset() {
     this.messages.set([]);
     this.error.set('');
+    this.removeImage();
+  }
+
+  async onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    await this.loadImage(file);
+  }
+
+  onPaste(event: ClipboardEvent) {
+    const file = [...(event.clipboardData?.files ?? [])].find((item) =>
+      item.type.startsWith('image/'),
+    );
+    if (!file) return;
+    event.preventDefault();
+    void this.loadImage(file);
+  }
+
+  private async loadImage(file: File) {
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      this.error.set('Chỉ nhận ảnh PNG, JPEG hoặc WebP.');
+      return;
+    }
+    try {
+      let blob: Blob = file;
+      if (file.size > 4 * 1024 * 1024) {
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, 1800 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        blob = await new Promise<Blob>((resolve, reject) =>
+          canvas.toBlob(
+            (result) => (result ? resolve(result) : reject(new Error('Không xử lý được ảnh'))),
+            'image/jpeg',
+            0.82,
+          ),
+        );
+      }
+      if (blob.size > 4 * 1024 * 1024) throw new Error('Ảnh quá lớn, vui lòng chọn ảnh khác.');
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('Không đọc được ảnh'));
+        reader.readAsDataURL(blob);
+      });
+      this.imageUrl.set(dataUrl);
+      this.imageName.set(file.name);
+      this.error.set('');
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : 'Không đọc được ảnh.');
+    }
+  }
+
+  removeImage() {
+    this.imageUrl.set(null);
+    this.imageName.set('');
   }
 
   send(text = this.draft) {
     const content = text.trim();
-    if (!content || this.loading()) return;
+    const imageUrl = this.imageUrl();
+    if ((!content && !imageUrl) || this.loading()) return;
     this.draft = '';
+    this.removeImage();
     this.error.set('');
-    this.messages.update((m) => [...m, { role: 'user', content }]);
+    this.messages.update((m) => [...m, { role: 'user', content, imageUrl: imageUrl || undefined }]);
     this.scrollToEnd();
     this.loading.set(true);
     const history = this.messages()
@@ -285,7 +353,12 @@ export class AiCareComponent {
       .map(({ role, content }) => ({ role, content }));
     // Backend yêu cầu lịch sử phải bắt đầu bằng lượt của người dùng.
     while (history.length && history[0].role !== 'user') history.shift();
-    this.ai.careChat(history).subscribe({
+    const request = history.map((message, index) =>
+      index === history.length - 1 && imageUrl
+        ? { ...message, image: { dataUrl: imageUrl } }
+        : message,
+    );
+    this.ai.careChat(request).subscribe({
       next: ({ reply, actions, navigate }) => {
         this.loading.set(false);
         this.messages.update((m) => [
@@ -305,6 +378,10 @@ export class AiCareComponent {
         // Bỏ câu hỏi chưa được trả lời để lịch sử luôn xen kẽ người dùng/trợ lý.
         this.messages.update((m) => m.slice(0, -1));
         this.draft = content;
+        if (imageUrl) {
+          this.imageUrl.set(imageUrl);
+          this.imageName.set('Ảnh đã chọn');
+        }
         this.error.set(err.error?.message || 'AI Care đang bận, vui lòng thử lại.');
       },
     });

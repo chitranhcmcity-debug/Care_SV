@@ -22,18 +22,46 @@ const formatStatusCounts = (groups) =>
   groups.map((g) => `${toLabel(g._id)}: ${g.count}`).join(', ');
 
 // Lịch sử { role, content } chỉ gồm văn bản, client gửi lại mỗi lượt.
-function validateConversation(messages) {
+function validateImage(image) {
+  assert(
+    image && typeof image === 'object' && typeof image.dataUrl === 'string',
+    'Ảnh không hợp lệ',
+  );
+  const match = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(image.dataUrl);
+  assert(
+    match && image.dataUrl.length <= 6_000_000,
+    'Chỉ nhận ảnh PNG, JPEG hoặc WebP tối đa 4 MB',
+  );
+  const bytes = Buffer.from(match[2], 'base64');
+  assert(bytes.length > 0 && bytes.length <= 4 * 1024 * 1024, 'Ảnh phải nhỏ hơn 4 MB');
+  const valid =
+    match[1] === 'png'
+      ? bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+      : match[1] === 'jpeg'
+        ? bytes[0] === 0xff && bytes[1] === 0xd8 && bytes.at(-2) === 0xff && bytes.at(-1) === 0xd9
+        : bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP';
+  assert(valid, 'Nội dung ảnh không đúng định dạng đã khai báo');
+}
+
+function validateConversation(messages, allowImage = false) {
   assert(Array.isArray(messages) && messages.length > 0, 'Cần ít nhất 1 tin nhắn');
   assert(messages.length <= 20, 'Cuộc trò chuyện quá dài, vui lòng bắt đầu lại');
-  for (const m of messages) {
+  for (const [index, m] of messages.entries()) {
     assert(
       m &&
         ['user', 'assistant'].includes(m.role) &&
         typeof m.content === 'string' &&
-        m.content.trim() &&
+        (m.content.trim() || (allowImage && m.image)) &&
         m.content.length <= 4000,
       'Định dạng tin nhắn không hợp lệ',
     );
+    if (m.image) {
+      assert(
+        allowImage && m.role === 'user' && index === messages.length - 1,
+        'Chỉ gửi một ảnh cùng câu hỏi mới nhất',
+      );
+      validateImage(m.image);
+    }
   }
   assert(messages.at(-1).role === 'user', 'Tin nhắn cuối phải là câu hỏi của người dùng');
 }
@@ -45,12 +73,12 @@ function getCareProfile(req, res) {
 async function careChat(req, res, next) {
   try {
     const messages = req.body?.messages;
-    validateConversation(messages);
+    validateConversation(messages, true);
     // Các thao tác mô hình đã chuẩn bị trong lượt này (hiện thành thẻ Xác nhận / Hủy) và trang cần mở.
     const ctx = { actions: [], navigate: null };
     const reply = await aiService.chatWithTools({
       system: await aiCare.systemPromptFor(req.user),
-      messages: messages.map(({ role, content }) => ({ role, content })),
+      messages: messages.map(({ role, content, image }) => ({ role, content, image })),
       tools: aiCare.toolDefinitions(req.user),
       execute: (name, input) => aiCare.executeTool(req.user, name, input, ctx),
     });

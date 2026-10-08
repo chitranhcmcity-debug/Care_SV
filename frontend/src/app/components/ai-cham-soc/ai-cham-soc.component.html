@@ -128,6 +128,12 @@
           class="ai-grad mw-85pct px-3-5 py-2 rounded-2xl rounded-bottom-end-md text-white text-pre-wrap"
         >
           {{ m.content }}
+          <img
+            *ngIf="m.imageUrl"
+            [src]="m.imageUrl"
+            alt="Ảnh đã gửi cho AI Care"
+            class="d-block mt-2 rounded-3 ai-chat-image"
+          />
         </div>
       </div>
       <div *ngIf="m.role === 'assistant'" class="d-flex">
@@ -217,14 +223,55 @@
     </div>
   </div>
 
+  <div *ngIf="imageUrl()" class="px-4 pt-2 bg-white d-flex align-items-center gap-2">
+    <img [src]="imageUrl()!" alt="Ảnh chuẩn bị gửi" class="ai-image-preview rounded-2" />
+    <span class="fs-xs text-slate-600 text-truncate flex-1">{{ imageName() }}</span>
+    <button type="button" class="fs-xs text-rose-700" (click)="removeImage()">Bỏ ảnh</button>
+  </div>
   <form
     class="px-3 pt-3 pb-2 border-top border-violet-100 d-flex align-items-end gap-2 bg-white"
     (ngSubmit)="send()"
   >
+    <input
+      #cameraInput
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      capture="environment"
+      class="d-none"
+      (change)="onImageSelected($event)"
+    />
+    <input
+      #imageInput
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      class="d-none"
+      (change)="onImageSelected($event)"
+    />
+    <button
+      type="button"
+      (click)="cameraInput.click()"
+      [disabled]="loading()"
+      class="ai-image-button"
+      title="Chụp ảnh"
+      aria-label="Chụp ảnh"
+    >
+      📷
+    </button>
+    <button
+      type="button"
+      (click)="imageInput.click()"
+      [disabled]="loading()"
+      class="ai-image-button"
+      title="Chọn ảnh"
+      aria-label="Chọn ảnh"
+    >
+      🖼️
+    </button>
     <textarea
       name="draft"
       [(ngModel)]="draft"
       (keydown)="onKeydown($event)"
+      (paste)="onPaste($event)"
       rows="1"
       maxlength="4000"
       placeholder="Hỏi AI Care…"
@@ -232,7 +279,7 @@
     ></textarea>
     <button
       type="submit"
-      [disabled]="loading() || !draft.trim()"
+      [disabled]="loading() || (!draft.trim() && !imageUrl())"
       class="ai-grad h-42px px-5 rounded-pill text-white fs-sm fw-semibold d-inline-flex align-items-center gap-1-5 opacity-50-disabled shadow-none-disabled"
     >
       Gửi

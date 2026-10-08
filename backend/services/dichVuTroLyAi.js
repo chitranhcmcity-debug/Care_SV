@@ -182,7 +182,23 @@ async function runTool(names, execute, name, argumentsText) {
 async function chatWithTools({ system, messages, tools, execute, maxTurns = 6 }) {
   const names = new Set(tools.map((tool) => tool.name));
   const completions = usesChatCompletions();
-  const history = completions ? [{ role: 'system', content: system }, ...messages] : [...messages];
+  const prepared = messages.map(({ role, content, image }) => {
+    if (!image) return { role, content };
+    const imageUrl = image.dataUrl;
+    return {
+      role,
+      content: completions
+        ? [
+            { type: 'text', text: content || 'Hãy xem ảnh này.' },
+            { type: 'image_url', image_url: { url: imageUrl } },
+          ]
+        : [
+            { type: 'input_text', text: content || 'Hãy xem ảnh này.' },
+            { type: 'input_image', image_url: imageUrl },
+          ],
+    };
+  });
+  const history = completions ? [{ role: 'system', content: system }, ...prepared] : prepared;
   const functions = tools.map(({ name, description, input_schema }) =>
     completions
       ? { type: 'function', function: { name, description, parameters: input_schema } }

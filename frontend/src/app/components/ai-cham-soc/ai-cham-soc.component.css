@@ -180,6 +180,28 @@ button.ai-grad:not(:disabled):hover {
 }
 
 /* Thẻ đề xuất thao tác trong chat. */
+.ai-image-button {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: #f5f3ff;
+  font-size: 18px;
+}
+.ai-image-button:disabled {
+  opacity: 0.5;
+}
+.ai-image-preview {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+}
+.ai-chat-image {
+  max-width: 240px;
+  max-height: 220px;
+  object-fit: contain;
+}
 .action-card {
   margin-left: 4px;
   max-width: 92%;

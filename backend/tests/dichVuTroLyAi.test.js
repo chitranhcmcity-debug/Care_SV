@@ -124,6 +124,27 @@ test('tool loop preserves output and returns matching call results', async () =>
   ]);
   assert.equal(messages.length, 1);
 });
+test('tool chat passes an attached image in both provider formats', async () => {
+  const image = { dataUrl: 'data:image/png;base64,aW1hZ2U=' };
+  const input = {
+    ...toolArgs,
+    messages: [{ role: 'user', content: 'Xem ảnh', image }],
+    execute: async () => ({}),
+  };
+  responses.push(answer);
+  await ai.chatWithTools(input);
+  assert.deepEqual(requests[0].input[0].content, [
+    { type: 'input_text', text: 'Xem ảnh' },
+    { type: 'input_image', image_url: image.dataUrl },
+  ]);
+  process.env.OPENAI_API_MODE = 'chat';
+  responses.push({ choices: [{ message: { content: 'Đã xem' }, finish_reason: 'stop' }] });
+  await ai.chatWithTools(input);
+  assert.deepEqual(requests[1].messages[1].content, [
+    { type: 'text', text: 'Xem ảnh' },
+    { type: 'image_url', image_url: { url: image.dataUrl } },
+  ]);
+});
 test('unknown tools and malformed arguments never execute', async () => {
   for (const item of [call('forbidden'), call('lookup', '{')]) {
     responses.push({ status: 'completed', output: [item] }, answer);

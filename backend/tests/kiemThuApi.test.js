@@ -1637,6 +1637,203 @@ test('AI Care actions: only prepared by the model, run when the same user confir
   await NguoiDung.deleteOne({ _id: staff._id });
 });
 
+test('AI Care CRUD requires confirmation, current permission and an unchanged record', async () => {
+  const aiCare = require('../services/dichVuAiCare');
+  const { permissionsForRole } = require('../services/dichVuPhanQuyen');
+  const manager = {
+    ...users.manager.toObject(),
+    id: String(users.manager._id),
+    permissions: await permissionsForRole('manager'),
+  };
+  const staff = {
+    ...users.staff.toObject(),
+    id: String(users.staff._id),
+    permissions: await permissionsForRole('staff'),
+  };
+  const names = aiCare.toolDefinitions(manager).map((tool) => tool.name);
+  assert.ok(names.includes('them_sinh_vien') && names.includes('xoa_nhom_hoc_phan'));
+  assert.ok(!aiCare.toolDefinitions(staff).some((tool) => tool.name === 'xoa_sinh_vien'));
+
+  const ctx = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'them_sinh_vien',
+    {
+      studentCode: 'AI-CRUD-01',
+      fullName: 'Sinh viên AI',
+      classCode: 'AI-CLASS',
+    },
+    ctx,
+  );
+  assert.equal(await SinhVien.countDocuments({ studentCode: 'AI-CRUD-01' }), 0);
+  assert.equal(
+    (await request(`/ai/care/actions/${ctx.actions[0].id}/confirm`, tokens.manager, 'POST')).status,
+    200,
+  );
+  let item = await SinhVien.findOne({ studentCode: 'AI-CRUD-01' });
+  assert.equal(item.fullName, 'Sinh viên AI');
+
+  const update = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'sua_sinh_vien',
+    {
+      mssv: 'AI-CRUD-01',
+      thayDoi: { fullName: 'Tên đã sửa' },
+    },
+    update,
+  );
+  item.fullName = 'Người khác vừa sửa';
+  await item.save();
+  assert.equal(
+    (await request(`/ai/care/actions/${update.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    409,
+  );
+  const fresh = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'sua_sinh_vien',
+    {
+      mssv: 'AI-CRUD-01',
+      thayDoi: { fullName: 'Tên đã sửa' },
+    },
+    fresh,
+  );
+  assert.equal(
+    (await request(`/ai/care/actions/${fresh.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  assert.equal((await SinhVien.findById(item._id)).fullName, 'Tên đã sửa');
+
+  const remove = { actions: [], navigate: null };
+  await aiCare.executeTool(manager, 'xoa_sinh_vien', { mssv: 'AI-CRUD-01' }, remove);
+  assert.match(remove.actions[0].details.join(' '), /Không thể hoàn tác/);
+  assert.ok(await SinhVien.exists({ _id: item._id }));
+  assert.equal(
+    (await request(`/ai/care/actions/${remove.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  assert.equal(await SinhVien.exists({ _id: item._id }), null);
+
+  const revoked = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'them_sinh_vien',
+    { studentCode: 'AI-REVOKED', fullName: 'Không được tạo', classCode: 'AI-CLASS' },
+    revoked,
+  );
+  await assert.rejects(
+    require('../services/dichVuAiThaoTac').confirmAction(
+      { ...manager, permissions: [] },
+      revoked.actions[0].id,
+    ),
+    { status: 403 },
+  );
+  assert.equal(await SinhVien.exists({ studentCode: 'AI-REVOKED' }), null);
+
+  const addGroup = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'them_nhom_hoc_phan',
+    {
+      groupCode: 'AI-GROUP-01',
+      courseName: 'Học phần AI',
+    },
+    addGroup,
+  );
+  assert.equal(
+    (await request(`/ai/care/actions/${addGroup.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  const editGroup = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'sua_nhom_hoc_phan',
+    {
+      groupCode: 'AI-GROUP-01',
+      thayDoi: { room: 'B.202' },
+    },
+    editGroup,
+  );
+  assert.equal(
+    (await request(`/ai/care/actions/${editGroup.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  assert.equal((await NhomHocPhan.findOne({ groupCode: 'AI-GROUP-01' })).room, 'B.202');
+  const removeGroup = { actions: [], navigate: null };
+  await aiCare.executeTool(manager, 'xoa_nhom_hoc_phan', { groupCode: 'AI-GROUP-01' }, removeGroup);
+  assert.equal(
+    (await request(`/ai/care/actions/${removeGroup.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  assert.equal(await NhomHocPhan.exists({ groupCode: 'AI-GROUP-01' }), null);
+
+  const task = await NhiemVu.create({
+    title: 'AI CRUD task unique',
+    description: 'Bản nháp',
+    assignedBy: users.manager._id,
+    assignedTo: users.staff._id,
+  });
+  const editTask = { actions: [], navigate: null };
+  await aiCare.executeTool(
+    manager,
+    'sua_nhiem_vu',
+    {
+      tieuDe: task.title,
+      thayDoi: { description: 'Đã cập nhật' },
+    },
+    editTask,
+  );
+  assert.equal(
+    (await request(`/ai/care/actions/${editTask.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  assert.equal((await NhiemVu.findById(task._id)).description, 'Đã cập nhật');
+  const deleteTask = { actions: [], navigate: null };
+  await aiCare.executeTool(manager, 'xoa_nhiem_vu', { tieuDe: task.title }, deleteTask);
+  assert.equal(
+    (await request(`/ai/care/actions/${deleteTask.actions[0].id}/confirm`, tokens.manager, 'POST'))
+      .status,
+    200,
+  );
+  assert.equal(await NhiemVu.exists({ _id: task._id }), null);
+});
+
+test('AI Care image accepts one real recent image and rejects fake image data', async () => {
+  const image = {
+    dataUrl:
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==',
+  };
+  const valid = await request('/ai/care', tokens.manager, 'POST', {
+    messages: [{ role: 'user', content: 'Xem ảnh này', image }],
+  });
+  assert.equal(valid.status, 503); // Test không cấu hình API key; validation đã qua.
+  const fake = await request('/ai/care', tokens.manager, 'POST', {
+    messages: [
+      {
+        role: 'user',
+        content: 'Xem ảnh này',
+        image: { dataUrl: 'data:image/png;base64,ZmFrZQ==' },
+      },
+    ],
+  });
+  assert.equal(fake.status, 400);
+  const old = await request('/ai/care', tokens.manager, 'POST', {
+    messages: [
+      { role: 'user', content: 'Ảnh', image },
+      { role: 'user', content: 'Câu hỏi sau' },
+    ],
+  });
+  assert.equal(old.status, 400);
+});
+
 test('AI staff-performance is admin-only', async () => {
   const { staff, token } = await createTaskStaff('ai-perf');
   assert.equal(
