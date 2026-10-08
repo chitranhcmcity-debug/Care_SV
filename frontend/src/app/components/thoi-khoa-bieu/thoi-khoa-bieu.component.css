@@ -4,6 +4,9 @@
   background: rgb(255 255 255 / 0.92);
   box-shadow: 0 10px 30px -20px rgb(76 29 149 / 0.4);
 }
+.tt-mobile-agenda {
+  display: none;
+}
 
 /* Shift legend: sáng = amber, chiều = sky, tối = violet */
 .tt-sang {
@@ -455,6 +458,108 @@
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .tt-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+  }
+  .tt-bar-shifts {
+    flex-wrap: wrap;
+  }
+  .tt-bar-shifts > p {
+    flex-basis: 100%;
+  }
+  .tt-bar-week,
+  .tt-bar-filters {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .tt-week {
+    min-width: 0;
+    flex: 1 1 220px;
+    justify-content: space-between;
+  }
+  .tt-week-range {
+    min-width: 0;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+  .tt-select {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .tt-select select {
+    width: 100%;
+    min-width: 0;
+  }
+  .tt-seg,
+  .tt-list,
+  .tt-scroll {
+    display: none;
+  }
+  .tt-mobile-agenda {
+    display: grid;
+    gap: 12px;
+  }
+  .tt-mobile-day {
+    min-width: 0;
+    padding: 14px;
+    border: 1.5px solid #ede9fe;
+    border-radius: 18px;
+    background: #fff;
+  }
+  .tt-mobile-day-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 10px;
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .tt-mobile-day-title small {
+    margin-left: 5px;
+    color: #64748b;
+    font-size: 12px;
+  }
+  .tt-mobile-entry {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--tone) 22%, white);
+    border-left: 4px solid var(--tone);
+    border-radius: 12px;
+    background: var(--tint);
+    text-align: left;
+  }
+  .tt-mobile-entry-time {
+    color: var(--tone);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .tt-mobile-entry-name {
+    overflow-wrap: anywhere;
+    color: #1e293b;
+    font-weight: 700;
+  }
+  .tt-mobile-entry-course,
+  .tt-mobile-entry-meta {
+    overflow-wrap: anywhere;
+    color: #475569;
+    font-size: 12px;
+  }
+  .tt-mobile-empty {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 12px;
+  }
 }
 .tt-meta {
   display: flex;

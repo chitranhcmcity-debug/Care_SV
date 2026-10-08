@@ -83,7 +83,7 @@
   <section
     class="tt-bar d-flex flex-wrap flex-xl-nowrap align-items-center justify-content-between column-gap-3 row-gap-2-5 px-3-5 py-2-5"
   >
-    <div class="d-flex align-items-center gap-1-5 flex-shrink-0">
+    <div class="tt-bar-shifts d-flex align-items-center gap-1-5 flex-shrink-0">
       <p class="fs-13px fw-bold text-slate-800 me-1 text-nowrap">Khung giờ học</p>
       <span *ngFor="let s of shifts" class="tt-chip" [ngClass]="'tt-' + s.key">
         <svg class="tt-chip-ico" viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="s.key">
@@ -101,7 +101,7 @@
       </span>
     </div>
 
-    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+    <div class="tt-bar-week d-flex align-items-center gap-2 flex-shrink-0">
       <div class="tt-week">
         <button type="button" class="tt-week-btn" aria-label="Tuần trước" (click)="shiftWeek(-1)">
           <svg
@@ -151,7 +151,7 @@
       </button>
     </div>
 
-    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+    <div class="tt-bar-filters d-flex align-items-center gap-2 flex-shrink-0">
       <label *ngIf="auth.isTeacher()" class="tt-pill tt-pill--check">
         <input
           type="checkbox"
@@ -237,6 +237,37 @@
       class="mx-auto h-8 w-8 rounded-pill border-4 border-violet-100 border-top-violet-600 animate-spin"
     ></div>
     <p class="mt-3 fs-sm fw-medium text-slate-500">Đang tải thời khóa biểu...</p>
+  </div>
+
+  <div *ngIf="!loading()" class="tt-mobile-agenda">
+    <section *ngFor="let day of week; let i = index" class="tt-mobile-day">
+      <h2 class="tt-mobile-day-title">
+        <span>{{ day | viLabel }} <small>{{ weekDates()[i] | date: 'dd/MM' }}</small></span>
+        <span class="tt-count">{{ layout().counts[day] }}</span>
+      </h2>
+      <ng-container *ngFor="let o of occurrences()">
+        <button
+          *ngIf="o.day === day"
+          type="button"
+          class="tt-mobile-entry"
+          [attr.data-tone]="tone(o.entry)"
+          (click)="open(o.entry, o.day)"
+        >
+          <span class="tt-mobile-entry-time">
+            <ng-container *ngIf="o.entry.startTime; else mobileShift">
+              {{ o.entry.startTime }}–{{ o.entry.endTime }}
+            </ng-container>
+            <ng-template #mobileShift>Ca {{ o.entry.shift | viLabel }}</ng-template>
+          </span>
+          <span class="tt-mobile-entry-name">{{ o.entry.groupCode }}</span>
+          <span *ngIf="o.entry.courseName" class="tt-mobile-entry-course">{{ o.entry.courseName }}</span>
+          <span class="tt-mobile-entry-meta">
+            {{ o.entry.room || 'Chưa có phòng' }} · {{ o.entry.teacherName || 'Chưa phân công GV' }}
+          </span>
+        </button>
+      </ng-container>
+      <p *ngIf="!layout().counts[day]" class="tt-mobile-empty">Không có lớp học</p>
+    </section>
   </div>
 
   <div *ngIf="!loading() && view() === 'list'" class="tt-list">
