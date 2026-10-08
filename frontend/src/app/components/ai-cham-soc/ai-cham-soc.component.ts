@@ -287,9 +287,10 @@ export class AiCareComponent {
   }
 
   onPaste(event: ClipboardEvent) {
-    const file = [...(event.clipboardData?.files ?? [])].find((item) =>
-      item.type.startsWith('image/'),
+    const imageItem = [...(event.clipboardData?.items ?? [])].find(
+      (item) => item.kind === 'file' && item.type.startsWith('image/'),
     );
+    const file = imageItem?.getAsFile();
     if (!file) return;
     event.preventDefault();
     void this.loadImage(file);

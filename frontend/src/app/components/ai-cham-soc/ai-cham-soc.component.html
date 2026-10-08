@@ -233,30 +233,12 @@
     (ngSubmit)="send()"
   >
     <input
-      #cameraInput
-      type="file"
-      accept="image/png,image/jpeg,image/webp"
-      capture="environment"
-      class="d-none"
-      (change)="onImageSelected($event)"
-    />
-    <input
       #imageInput
       type="file"
       accept="image/png,image/jpeg,image/webp"
       class="d-none"
       (change)="onImageSelected($event)"
     />
-    <button
-      type="button"
-      (click)="cameraInput.click()"
-      [disabled]="loading()"
-      class="ai-image-button"
-      title="Chụp ảnh"
-      aria-label="Chụp ảnh"
-    >
-      📷
-    </button>
     <button
       type="button"
       (click)="imageInput.click()"
@@ -274,7 +256,7 @@
       (paste)="onPaste($event)"
       rows="1"
       maxlength="4000"
-      placeholder="Hỏi AI Care…"
+      placeholder="Hỏi AI Care hoặc dán ảnh màn hình (Ctrl+V)…"
       class="flex-1 resize-none rounded-2xl border border-violet-100 bg-violet-50-40 px-4 py-2-5 fs-sm outline-none-focus bg-white-focus border-violet-400-focus ring-2-focus ring-violet-100-focus transition-colors"
     ></textarea>
     <button

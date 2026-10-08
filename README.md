@@ -74,7 +74,7 @@ hiện hành của người đăng nhập. Mỗi thao tác ghi dữ liệu đề
 **Xác nhận** hoặc **Hủy**; backend kiểm tra lại quyền và tình trạng bản ghi khi xác nhận. Các đề
 xuất hết hạn sau 15 phút và hiện được giữ trong bộ nhớ của một tiến trình backend.
 
-Khung chat cho phép chụp ảnh trên điện thoại, chọn ảnh hoặc dán ảnh từ clipboard. Chỉ nhận PNG,
+Khung chat cho phép chọn ảnh hoặc dán ảnh chụp màn hình vào ô nhập bằng Ctrl+V. Chỉ nhận PNG,
 JPEG và WebP tối đa 4 MB; ảnh được gửi cùng câu hỏi mới nhất đến nhà cung cấp AI đang cấu hình.
 Cần chọn model có khả năng đọc ảnh. Ảnh không được lưu vào MongoDB hay lịch sử chat trên server.
 
