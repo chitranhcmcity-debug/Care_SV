@@ -76,7 +76,7 @@ test('Railway migration replaces persisted Gemini routing, preserves unrelated s
   assert.equal(process.env.AI_PROVIDER, 'openai');
   assert.equal(process.env.OPENAI_API_MODE, 'chat');
   assert.equal(process.env.OPENAI_BASE_URL, 'https://api-trikun.up.railway.app/v1');
-  assert.equal(process.env.OPENAI_MODEL, 'ag/gemini-3.7-flash-low');
+  assert.equal(process.env.OPENAI_MODEL, 'ag/gemini-3.8-flash-low');
   assert.equal(process.env.OPENAI_API_KEY, 'trikun-deployment-test-key');
   assert.notEqual(record.integrations.OPENAI_API_KEY, process.env.OPENAI_API_KEY);
   assert.equal(record.integrations.GEMINI_API_KEY, googleKey);
@@ -99,6 +99,6 @@ test('deployment preset initializes settings when no settings record exists', as
   record = null;
   await config.migrateAiToTrikun();
   await config.applyIntegrations();
-  assert.equal(record.aiConfigurationVersion, 'trikun-gemini-3.7-v1');
-  assert.equal(process.env.OPENAI_MODEL, 'ag/gemini-3.7-flash-low');
+  assert.equal(record.aiConfigurationVersion, 'trikun-gemini-3.8-v1');
+  assert.equal(process.env.OPENAI_MODEL, 'ag/gemini-3.8-flash-low');
 });

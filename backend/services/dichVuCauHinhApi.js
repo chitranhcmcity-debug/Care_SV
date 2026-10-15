@@ -29,7 +29,7 @@ const CATALOG = Object.freeze([
     group: 'Trợ lý AI',
     provider: 'openai',
     label: 'Model',
-    placeholder: 'ag/gemini-3.7-flash-low',
+    placeholder: 'ag/gemini-3.8-flash-low',
   },
   {
     key: 'OPENAI_BASE_URL',
@@ -64,14 +64,14 @@ let applied = {};
 // Giữ thông tin xác thực ngoài kho mã nguồn và giữ nguyên các thay đổi rõ ràng của admin sau này.
 async function migrateAiToTrikun() {
   if (!process.env.RAILWAY_ENVIRONMENT_ID && process.env.AI_DEPLOYMENT_PRESET !== 'trikun') return;
-  const version = 'trikun-gemini-3.7-v1';
+  const version = 'trikun-gemini-3.8-v1';
   const settings = (await CaiDatHeThong.findOne()) || new CaiDatHeThong();
   if (settings.aiConfigurationVersion === version) return;
   const values = {
     AI_PROVIDER: 'openai',
     OPENAI_API_MODE: 'chat',
     OPENAI_BASE_URL: 'https://api-trikun.up.railway.app/v1',
-    OPENAI_MODEL: 'ag/gemini-3.7-flash-low',
+    OPENAI_MODEL: 'ag/gemini-3.8-flash-low',
   };
   // Khóa triển khai được cung cấp rõ ràng sẽ thay khóa OpenAI cũ; không bao giờ dùng lại khóa Google.
   if (envDefaults.OPENAI_API_KEY?.trim()) {
@@ -84,7 +84,7 @@ async function migrateAiToTrikun() {
   settings.aiConfigurationVersion = version;
   settings.markModified('integrations');
   await settings.save();
-  console.log('[AI] Migrated saved AI configuration to Trikun / ag/gemini-3.7-flash-low.');
+  console.log('[AI] Migrated saved AI configuration to Trikun / ag/gemini-3.8-flash-low.');
 }
 
 function cipherKey() {

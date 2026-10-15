@@ -1,4 +1,4 @@
-﻿const { test, beforeEach, after } = require('node:test');
+const { test, beforeEach, after } = require('node:test');
 const assert = require('node:assert/strict');
 const sdkPath = require.resolve('openai');
 const originalSdk = require(sdkPath);
@@ -209,7 +209,7 @@ test('compatible proxy uses Chat Completions and can switch back to Responses', 
   process.env.OPENAI_API_KEY = 'proxy-test-key';
   process.env.OPENAI_API_MODE = 'chat';
   process.env.OPENAI_BASE_URL = 'https://api-trikun.up.railway.app/v1';
-  process.env.OPENAI_MODEL = 'ag/gemini-3.7-flash-low';
+  process.env.OPENAI_MODEL = 'ag/gemini-3.8-flash-low';
   responses.push(geminiAnswer({ content: 'Chào bạn' }));
   assert.equal(await ai.chat(args), 'Chào bạn');
   assert.equal(endpoints.at(-1), process.env.OPENAI_BASE_URL);
@@ -322,7 +322,7 @@ test('defaults route to Trikun even with a Gemini key present', async () => {
   assert.equal(await ai.chat(args), 'OK');
   assert.equal(endpoints.at(-1), 'https://api-trikun.up.railway.app/v1');
   assert.equal(keys.at(-1), 'trikun-default-key');
-  assert.equal(requests[0].model, 'ag/gemini-3.7-flash-low');
+  assert.equal(requests[0].model, 'ag/gemini-3.8-flash-low');
   assert.equal(requests[0].stream, false);
   assert.deepEqual(protocols, ['chat']);
   delete process.env.OPENAI_API_KEY;

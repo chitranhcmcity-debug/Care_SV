@@ -4,7 +4,7 @@ const { assert } = require('../utils/kiemTra');
 // OpenAI hỗ trợ Responses hoặc proxy Chat Completions tương thích; endpoint Gemini của Google
 // dùng Chat Completions qua cùng SDK. Đọc cấu hình ở mỗi lần gọi để nhận thay đổi của admin ngay.
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
-const openaiModel = () => process.env.OPENAI_MODEL?.trim() || 'ag/gemini-3.7-flash-low';
+const openaiModel = () => process.env.OPENAI_MODEL?.trim() || 'ag/gemini-3.8-flash-low';
 const geminiModel = () => process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash';
 // Gemini 2.5 tính token suy nghĩ vào max_tokens; giữ phần suy nghĩ nhỏ và cộng ngân sách thêm bên ngoài.
 const GEMINI_THINKING_TOKENS = 1024;
