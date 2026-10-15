@@ -123,6 +123,11 @@
   border: 1.5px solid var(--card-border);
   box-shadow: 0 30px 60px -28px rgb(76 29 149 / 0.5);
 }
+@media (min-width: 576px) {
+  .ai-panel {
+    width: min(500px, calc(100vw - 2.5rem));
+  }
+}
 .ai-header {
   background-image: var(--hero-gradient);
 }
