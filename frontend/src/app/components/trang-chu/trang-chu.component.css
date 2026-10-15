@@ -178,7 +178,7 @@
     box-shadow 0.25s ease;
 }
 .fcard:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.01);
   box-shadow:
     inset 0 1px 0 #fff,
     0 30px 54px -26px color-mix(in srgb, var(--c2) 65%, transparent);
@@ -272,7 +272,60 @@
   }
 }
 
+/* Hiện dần khi cuộn tới (các mục dưới hero): chỉ dùng opacity + transform.
+   Lớp .rv do JS thêm; fill-mode "backwards" để sau khi chạy xong hiệu ứng hover vẫn hoạt động. */
+.rv:not(.rv-in) {
+  opacity: 0;
+}
+.rv-in {
+  animation: rv-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--rv-delay, 0s) backwards;
+}
+@keyframes rv-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* Hover nhẹ cho các thẻ và nút phụ bên dưới hero. */
+.step,
+.ai-pill,
+.ai-chat {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.step:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 30px 52px -28px color-mix(in srgb, var(--a) 80%, transparent);
+}
+.ai-pill:hover {
+  transform: translateX(4px);
+  box-shadow: 0 10px 22px -12px rgb(76 29 149 / 0.5);
+}
+.ai-chat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 36px 66px -30px rgb(76 29 149 / 0.55);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .rv:not(.rv-in) {
+    opacity: 1;
+  }
+  .rv-in {
+    animation: none;
+  }
+  .step,
+  .ai-pill,
+  .ai-chat {
+    transition: none;
+  }
+  .step:hover,
+  .ai-pill:hover,
+  .ai-chat:hover,
+  .fcard:hover {
+    transform: none;
+  }
   .blob,
   .float,
   .float-slow,
@@ -695,10 +748,13 @@
   border: 1px solid rgb(255 255 255 / 0.3);
   font-size: 16px;
   font-weight: 700;
-  transition: background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 .cta-pill:hover {
   background: rgb(255 255 255 / 0.22);
+  transform: scale(1.03);
 }
 .cta-bubble,
 .cta-card,

@@ -269,6 +269,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   readonly activeSection = signal('');
   readonly roleLabels = ROLE_LABELS;
   private sectionObserver?: IntersectionObserver;
+  private revealObserver?: IntersectionObserver;
 
   constructor(
     public authService: AuthService,
@@ -295,10 +296,59 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       const el = document.getElementById(id);
       if (el) this.sectionObserver.observe(el);
     }
+    this.setupScrollReveal();
   }
 
   ngOnDestroy() {
     this.sectionObserver?.disconnect();
+    this.revealObserver?.disconnect();
+  }
+
+  /**
+   * Hiệu ứng trượt-mờ vào khi cuộn cho các mục từ Tính năng trở xuống (Hero giữ nguyên).
+   * Lớp ẩn chỉ được thêm bằng JS nên nếu script không chạy nội dung vẫn hiển thị bình thường.
+   */
+  private setupScrollReveal() {
+    if (typeof IntersectionObserver === 'undefined') return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const selector = [
+      '.text-center.mx-auto',
+      '.fcard',
+      '.ai-panel .space-y-5 > *',
+      '.ai-panel .space-y-5 li',
+      '.ai-chat',
+      '.step',
+      '.role',
+    ].join(',');
+    const seen = new Map<Element, number>();
+    const targets: HTMLElement[] = [];
+    for (const id of ['tinh-nang', 'ai-care', 'quy-trinh', 'danh-cho-ai']) {
+      document.getElementById(id)?.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+        if (el.tagName === 'UL' || (el.closest('li') && el.tagName !== 'LI')) return;
+        targets.push(el);
+      });
+    }
+    this.revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('rv-in');
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
+    );
+    for (const el of targets) {
+      const parent = el.parentElement!;
+      const order = seen.get(parent) ?? 0;
+      seen.set(parent, order + 1);
+      const columns = getComputedStyle(parent).display.includes('grid')
+        ? getComputedStyle(parent).gridTemplateColumns.split(' ').length
+        : 6;
+      el.style.setProperty('--rv-delay', `${(order % columns) * 0.1}s`);
+      el.classList.add('rv');
+      this.revealObserver.observe(el);
+    }
   }
 
   scrollTop(event: Event) {
