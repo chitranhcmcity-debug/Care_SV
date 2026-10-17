@@ -1,7 +1,7 @@
 <!-- ===== Header (toàn chiều rộng) ===== -->
 <!-- Di động: thanh ứng dụng gọn (menu nằm ở thanh tab dưới); safe-area đệm phần tai thỏ -->
 <header
-  class="position-sticky top-0 z-40 h-safe-top-14 pt-safe-top h-md-20 pt-md-0 bg-white border-bottom border-slate-200 border-md-0 d-flex align-items-center gap-3 gap-md-4 px-4 px-md-6"
+  class="mobile-glass-header position-sticky top-0 z-40 h-safe-top-14 pt-safe-top h-md-20 pt-md-0 bg-white border-bottom border-slate-200 border-md-0 d-flex align-items-center gap-3 gap-md-4 px-4 px-md-6"
 >
   <!-- Thương hiệu -->
   <a routerLink="/" class="d-none d-md-flex align-items-center gap-2-5 w-228px flex-shrink-0">
@@ -267,7 +267,7 @@
 
   <!-- ===== Sidebar ===== -->
   <aside
-    class="position-fixed position-md-sticky top-md-20 inset-y-0 start-0 z-50 z-md-auto w-260px h-md-screen-80px bg-white d-flex flex-column flex-shrink-0 transition-transform duration-200 translate-x-md-0"
+    class="mobile-glass-drawer position-fixed position-md-sticky top-md-20 inset-y-0 start-0 z-50 z-md-auto w-260px h-md-screen-80px bg-white d-flex flex-column flex-shrink-0 transition-transform duration-200 translate-x-md-0"
     [ngClass]="{
       'translate-x-0 shadow-xl': sidebarOpen,
       'translate-x-n100': !sidebarOpen,
@@ -276,10 +276,14 @@
   >
     <!-- Thương hiệu (chỉ ngăn kéo di động; thương hiệu desktop nằm ở header) -->
     <div class="d-md-none h-20 px-6 d-flex align-items-center gap-2-5">
-      <img [src]="branding.logo()" alt="Logo ITC" width="36" height="36" class="object-fit-contain" />
-      <span class="fw-bold fs-base lh-sm text-slate-900 line-clamp-2">{{
-        branding.title()
-      }}</span>
+      <img
+        [src]="branding.logo()"
+        alt="Logo ITC"
+        width="36"
+        height="36"
+        class="object-fit-contain"
+      />
+      <span class="fw-bold fs-base lh-sm text-slate-900 line-clamp-2">{{ branding.title() }}</span>
     </div>
 
     <nav class="nav-scroll flex-1 overflow-y-auto px-4 pb-4" aria-label="Điều hướng chính">
@@ -452,26 +456,19 @@
 </div>
 
 <!-- ===== Thanh tab dưới trên di động (nổi): các trang chính + "Menu" cho mọi thứ còn lại ===== -->
-<nav
-  class="d-md-none position-fixed inset-x-3 bottom-safe-bottom-3 z-30 rounded-3xl bg-white-90 backdrop-blur-xl ring-1 ring-slate-900-5 shadow-tim-28 p-1-5"
-  aria-label="Điều hướng nhanh"
->
-  <div class="d-flex">
+<nav class="mobile-glass-dock d-md-none position-fixed z-30" aria-label="Điều hướng nhanh">
+  <div class="mobile-glass-tabs d-flex">
     <a
       *ngFor="let item of bottomTabs"
       [routerLink]="item.path"
       [queryParams]="item.queryParams"
       [ngClass]="isActive(item) ? 'text-violet-700 fw-semibold' : 'text-slate-500'"
       [attr.aria-current]="isActive(item) ? 'page' : null"
-      class="flex-1 min-w-0 py-1 d-flex flex-column align-items-center gap-0-5 fs-11px scale-95-active transition-transform"
+      class="mobile-glass-tab flex-1 min-w-0 d-flex flex-column align-items-center"
     >
       <span
-        class="position-relative w-14 h-8 rounded-pill d-flex align-items-center justify-content-center transition-colors"
-        [ngClass]="
-          isActive(item)
-            ? 'bg-gradient-to-br from-violet-500 to-violet-700 text-white shadow-md shadow-violet-500-40'
-            : ''
-        "
+        class="mobile-glass-icon position-relative d-flex align-items-center justify-content-center"
+        [ngClass]="isActive(item) ? 'mobile-glass-icon--active' : ''"
       >
         <svg
           class="w-22px h-22px"
@@ -499,11 +496,11 @@
       (click)="sidebarOpen = true"
       [attr.aria-expanded]="sidebarOpen"
       [ngClass]="sidebarOpen ? 'text-violet-700 fw-semibold' : 'text-slate-500'"
-      class="flex-1 min-w-0 py-1 d-flex flex-column align-items-center gap-0-5 fs-11px scale-95-active transition-transform"
+      class="mobile-glass-tab flex-1 min-w-0 d-flex flex-column align-items-center"
     >
       <span
-        class="w-14 h-8 rounded-pill d-flex align-items-center justify-content-center"
-        [ngClass]="sidebarOpen ? 'bg-violet-100' : ''"
+        class="mobile-glass-icon d-flex align-items-center justify-content-center"
+        [ngClass]="sidebarOpen ? 'mobile-glass-icon--active' : ''"
       >
         <svg
           class="w-22px h-22px"

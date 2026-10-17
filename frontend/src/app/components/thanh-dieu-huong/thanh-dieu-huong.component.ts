@@ -119,6 +119,7 @@ const normalize = (text: string) =>
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './thanh-dieu-huong.component.html',
+  styleUrl: './thanh-dieu-huong.component.css',
   host: { class: 'd-block min-vh-100 bg-white' },
 })
 export class NavbarComponent implements OnInit, OnDestroy {
